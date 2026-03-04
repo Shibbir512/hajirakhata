@@ -8,6 +8,7 @@ import { onAuthStateChanged } from 'firebase/auth';
 
 export const useAttendanceData = () => {
   const [user, setUser] = useState(auth?.currentUser || null);
+  const [orgId, setOrgId] = useState<string | null>(null);
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [students, setStudents] = useState<{[key: string]: Student[]}>({});
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
@@ -19,11 +20,23 @@ export const useAttendanceData = () => {
       setLoading(false);
       return;
     }
-    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
-      if (!currentUser) {
+      if (currentUser) {
+        // Fetch user profile to get organizationId
+        const userDocRef = doc(db!, `users`, currentUser.uid);
+        const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+          if (docSnap.exists()) {
+            setOrgId(docSnap.data().organizationId || null);
+          } else {
+            setOrgId(null);
+          }
+        });
+        return () => unsubUser();
+      } else {
+        setOrgId(null);
         setClasses([]);
-        setStudents({});
+        setStudents([]);
         setAttendance([]);
         setReminders([]);
         setLoading(false);
@@ -33,12 +46,16 @@ export const useAttendanceData = () => {
   }, []);
 
   useEffect(() => {
-    if (!user || !db) return;
+    if (!user || !db || !orgId) {
+      if (user && !orgId) setLoading(false);
+      return;
+    }
 
-    const classesRef = collection(db, `users/${user.uid}/classes`);
-    const studentsRef = collection(db, `users/${user.uid}/students`);
-    const attendanceRef = collection(db, `users/${user.uid}/attendance`);
-    const remindersRef = collection(db, `users/${user.uid}/reminders`);
+    setLoading(true);
+    const classesRef = collection(db, `organizations/${orgId}/classes`);
+    const studentsRef = collection(db, `organizations/${orgId}/students`);
+    const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
+    const remindersRef = collection(db, `organizations/${orgId}/reminders`);
 
     const unsubClasses = onSnapshot(classesRef, (snapshot) => {
       const loadedClasses = snapshot.docs.map(doc => doc.data() as ClassData);
@@ -49,13 +66,10 @@ export const useAttendanceData = () => {
       const loadedStudents: {[key: string]: Student[]} = {};
       snapshot.docs.forEach(doc => {
         const student = doc.data() as Student;
-        // Extract classId from student ID or store it in student object. 
-        // Assuming student ID format: classId-student-timestamp
         const classId = student.id.split('-student-')[0]; 
         if (!loadedStudents[classId]) loadedStudents[classId] = [];
         loadedStudents[classId].push(student);
       });
-      // Sort students by roll
       for (const key in loadedStudents) {
         loadedStudents[key].sort((a, b) => a.roll - b.roll);
       }
@@ -68,7 +82,7 @@ export const useAttendanceData = () => {
     });
 
     const unsubReminders = onSnapshot(remindersRef, (snapshot) => {
-      const loadedReminders = snapshot.docs.map(doc => doc.id); // Using doc ID as time
+      const loadedReminders = snapshot.docs.map(doc => doc.id);
       setReminders(loadedReminders.sort());
     });
     
@@ -80,31 +94,60 @@ export const useAttendanceData = () => {
       unsubAttendance();
       unsubReminders();
     };
+  }, [user, orgId]);
+
+  const createOrganization = useCallback(async (name: string) => {
+    if (!user || !db) return;
+    const newOrgId = `school-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    await setDoc(doc(db, 'organizations', newOrgId), { 
+      id: newOrgId, 
+      name, 
+      createdBy: user.uid,
+      createdAt: Date.now()
+    });
+    await setDoc(doc(db, 'users', user.uid), { organizationId: newOrgId }, { merge: true });
+    setOrgId(newOrgId);
   }, [user]);
 
+  const joinOrganization = useCallback(async (id: string) => {
+    if (!user || !db) return;
+    const orgDoc = await doc(db, 'organizations', id);
+    // In a real app, you'd check if it exists first
+    await setDoc(doc(db, 'users', user.uid), { organizationId: id }, { merge: true });
+    setOrgId(id);
+  }, [user]);
+
+  const leaveOrganization = useCallback(async () => {
+    if (!user || !db) return;
+    await setDoc(doc(db, 'users', user.uid), { organizationId: null }, { merge: true });
+    setOrgId(null);
+  }, [user]);
 
   const takeAttendance = useCallback(async (classId: string, studentStatuses: Map<string, {status: AttendanceStatus, note: string}>) => {
-    if (!user || !db) return;
+    if (!user || !db || !orgId) return;
     const timestamp = Date.now();
-    
     const batchPromises: Promise<void>[] = [];
 
     studentStatuses.forEach(({ status, note }, studentId) => {
       const recordId = `${timestamp}-${studentId}`;
-      const record: AttendanceRecord = {
+      const record: any = {
         id: recordId,
         studentId,
         classId,
         timestamp,
         status,
-        note: note || undefined,
       };
-      const recordRef = doc(db!, `users/${user!.uid}/attendance`, recordId);
+      
+      if (note && note.trim()) {
+        record.note = note;
+      }
+
+      const recordRef = doc(db!, `organizations/${orgId}/attendance`, recordId);
       batchPromises.push(setDoc(recordRef, record));
     });
 
     await Promise.all(batchPromises);
-  }, [user]);
+  }, [user, orgId]);
 
   const getAbsencesForStudent = useCallback((studentId: string) => {
     return attendance
@@ -113,16 +156,16 @@ export const useAttendanceData = () => {
   }, [attendance]);
 
   const updateAttendanceRecordStatus = useCallback(async (recordId: string, newStatus: AttendanceStatus) => {
-    if (!user || !db) return;
-    const recordRef = doc(db, `users/${user.uid}/attendance`, recordId);
+    if (!user || !db || !orgId) return;
+    const recordRef = doc(db, `organizations/${orgId}/attendance`, recordId);
     await updateDoc(recordRef, { status: newStatus });
-  }, [user]);
+  }, [user, orgId]);
   
   const updateAttendanceRecordNote = useCallback(async (recordId: string, newNote: string) => {
-    if (!user || !db) return;
-    const recordRef = doc(db, `users/${user.uid}/attendance`, recordId);
+    if (!user || !db || !orgId) return;
+    const recordRef = doc(db, `organizations/${orgId}/attendance`, recordId);
     await updateDoc(recordRef, { note: newNote });
-  }, [user]);
+  }, [user, orgId]);
 
   const getConsolidatedReport = useCallback((filters: {
     startDate: Date | null;
@@ -130,7 +173,6 @@ export const useAttendanceData = () => {
     status: AttendanceStatus;
   }) => {
     const report = new Map<string, { student: Student; count: number }[]>();
-    
     let filteredAttendance = attendance;
 
     if (filters.startDate) {
@@ -170,84 +212,71 @@ export const useAttendanceData = () => {
   }, [attendance, classes, students]);
 
   const addClass = useCallback(async (name: string) => {
-    if (!user || !db) return;
+    if (!user || !db || !orgId) return;
     const newClassId = `class-${Date.now()}`;
     const newClass = { id: newClassId, name };
-    await setDoc(doc(db, `users/${user.uid}/classes`, newClassId), newClass);
-  }, [user]);
+    await setDoc(doc(db, `organizations/${orgId}/classes`, newClassId), newClass);
+  }, [user, orgId]);
 
   const updateClassName = useCallback(async (id: string, name: string) => {
-    if (!user || !db) return;
-    await updateDoc(doc(db, `users/${user.uid}/classes`, id), { name });
-  }, [user]);
+    if (!user || !db || !orgId) return;
+    await updateDoc(doc(db, `organizations/${orgId}/classes`, id), { name });
+  }, [user, orgId]);
 
   const deleteClass = useCallback(async (id: string) => {
-    if (!user || !db) return;
-    await deleteDoc(doc(db, `users/${user.uid}/classes`, id));
+    if (!user || !db || !orgId) return;
+    await deleteDoc(doc(db, `organizations/${orgId}/classes`, id));
     
-    // Delete students of this class
     const studentsToDelete = students[id] || [];
     for (const student of studentsToDelete) {
-        await deleteDoc(doc(db!, `users/${user!.uid}/students`, student.id));
+        await deleteDoc(doc(db!, `organizations/${orgId}/students`, student.id));
     }
 
-    // Delete attendance records for this class
     const attendanceToDelete = attendance.filter(r => r.classId === id);
     for (const record of attendanceToDelete) {
-        await deleteDoc(doc(db!, `users/${user!.uid}/attendance`, record.id));
+        await deleteDoc(doc(db!, `organizations/${orgId}/attendance`, record.id));
     }
-  }, [user, students, attendance]);
+  }, [user, orgId, students, attendance]);
 
   const updateStudentName = useCallback(async (studentId: string, newName: string) => {
-    if (!user || !db) return;
-    // Find student to get all data, as we need to update the doc
-    let studentToUpdate: Student | undefined;
-    for (const classId in students) {
-        const s = students[classId].find(s => s.id === studentId);
-        if (s) {
-            studentToUpdate = s;
-            break;
-        }
-    }
-    if (studentToUpdate) {
-        await updateDoc(doc(db, `users/${user.uid}/students`, studentId), { name: newName });
-    }
-  }, [user, students]);
+    if (!user || !db || !orgId) return;
+    await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), { name: newName });
+  }, [user, orgId]);
 
   const addStudent = useCallback(async (classId: string, name: string, roll: number) => {
-    if (!user || !db) return;
+    if (!user || !db || !orgId) return;
     const studentId = `${classId}-student-${Date.now()}`;
     const newStudent: Student = {
       id: studentId,
       name,
       roll,
     };
-    await setDoc(doc(db, `users/${user.uid}/students`, studentId), newStudent);
-  }, [user]);
+    await setDoc(doc(db, `organizations/${orgId}/students`, studentId), newStudent);
+  }, [user, orgId]);
 
   const deleteStudent = useCallback(async (studentId: string) => {
-    if (!user || !db) return;
-    await deleteDoc(doc(db, `users/${user.uid}/students`, studentId));
+    if (!user || !db || !orgId) return;
+    await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
     
-    // Delete attendance for this student
     const attendanceToDelete = attendance.filter(r => r.studentId === studentId);
     for (const record of attendanceToDelete) {
-        await deleteDoc(doc(db!, `users/${user!.uid}/attendance`, record.id));
+        await deleteDoc(doc(db!, `organizations/${orgId}/attendance`, record.id));
     }
-  }, [user, attendance]);
+  }, [user, orgId, attendance]);
 
   const addReminder = useCallback(async (time: string) => {
-    if (!user || !db) return;
-    await setDoc(doc(db, `users/${user.uid}/reminders`, time), { time });
-  }, [user]);
+    if (!user || !db || !orgId) return;
+    await setDoc(doc(db, `organizations/${orgId}/reminders`, time), { time });
+  }, [user, orgId]);
 
   const deleteReminder = useCallback(async (time: string) => {
-    if (!user || !db) return;
-    await deleteDoc(doc(db, `users/${user.uid}/reminders`, time));
-  }, [user]);
+    if (!user || !db || !orgId) return;
+    await deleteDoc(doc(db, `organizations/${orgId}/reminders`, time));
+  }, [user, orgId]);
 
   return { 
     user,
+    orgId,
     loading,
     classes, 
     students, 
@@ -265,6 +294,9 @@ export const useAttendanceData = () => {
     deleteStudent, 
     reminders, 
     addReminder, 
-    deleteReminder 
+    deleteReminder,
+    createOrganization,
+    joinOrganization,
+    leaveOrganization
   };
 };
