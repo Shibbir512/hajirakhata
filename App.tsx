@@ -39,7 +39,8 @@ const App: React.FC = () => {
     deleteReminder,
     createOrganization,
     joinOrganization,
-    leaveOrganization
+    leaveOrganization,
+    visitedOrgs
   } = useAttendanceData();
   
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
@@ -145,7 +146,8 @@ const App: React.FC = () => {
       <OrgManagement 
         onCreateOrg={createOrganization} 
         onJoinOrg={joinOrganization} 
-        onLogout={handleLogout} 
+        onLogout={handleLogout}
+        visitedOrgs={visitedOrgs}
       />
     );
   }

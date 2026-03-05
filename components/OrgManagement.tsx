@@ -6,9 +6,10 @@ interface OrgManagementProps {
   onCreateOrg: (name: string) => Promise<void>;
   onJoinOrg: (id: string) => Promise<void>;
   onLogout: () => void;
+  visitedOrgs?: {[key: string]: string};
 }
 
-const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, onLogout }) => {
+const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, onLogout, visitedOrgs = {} }) => {
   const [mode, setMode] = useState<'select' | 'create' | 'join'>('select');
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -23,8 +24,19 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
       } else {
         await onJoinOrg(input);
       }
-    } catch (error) {
-      alert('ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    } catch (error: any) {
+      alert(error.message || 'ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleQuickJoin = async (id: string) => {
+    setLoading(true);
+    try {
+      await onJoinOrg(id);
+    } catch (error: any) {
+      alert(error.message || 'ব্যর্থ হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
     } finally {
       setLoading(false);
     }
@@ -40,11 +52,30 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
 
         {mode === 'select' ? (
           <div className="space-y-4">
+            {Object.keys(visitedOrgs).length > 0 && (
+              <div className="mb-6">
+                <h3 className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">আপনার স্কুলসমূহ</h3>
+                <div className="space-y-2">
+                  {Object.entries(visitedOrgs).map(([id, name]) => (
+                    <button
+                      key={id}
+                      onClick={() => handleQuickJoin(id)}
+                      disabled={loading}
+                      className="w-full flex items-center justify-between p-3 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200 rounded-md transition-colors text-left group"
+                    >
+                      <span className="font-medium text-indigo-700">{name}</span>
+                      <span className="text-xs text-indigo-400 group-hover:text-indigo-600">জয়েন করুন &rarr;</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
             <Button onClick={() => setMode('create')} className="w-full justify-center py-3">
               নতুন স্কুল তৈরি করুন
             </Button>
             <Button onClick={() => setMode('join')} variant="secondary" className="w-full justify-center py-3">
-              বিদ্যমান স্কুলে জয়েন করুন
+              অন্য স্কুলে জয়েন করুন
             </Button>
             <div className="pt-4 border-t">
               <button onClick={onLogout} className="text-sm text-gray-500 hover:text-red-500 w-full text-center">

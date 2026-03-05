@@ -3,12 +3,13 @@ import { CLASSES, STUDENTS } from '../constants';
 import type { AttendanceRecord, Student, ClassData } from '../types';
 import { AttendanceStatus } from '../types';
 import { db, auth } from '../src/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query, where, updateDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, where, updateDoc, getDoc } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export const useAttendanceData = () => {
   const [user, setUser] = useState(auth?.currentUser || null);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [visitedOrgs, setVisitedOrgs] = useState<{[key: string]: string}>({});
   const [classes, setClasses] = useState<ClassData[]>([]);
   const [students, setStudents] = useState<{[key: string]: Student[]}>({});
   const [attendance, setAttendance] = useState<AttendanceRecord[]>([]);
@@ -27,14 +28,18 @@ export const useAttendanceData = () => {
         const userDocRef = doc(db!, `users`, currentUser.uid);
         const unsubUser = onSnapshot(userDocRef, (docSnap) => {
           if (docSnap.exists()) {
-            setOrgId(docSnap.data().organizationId || null);
+            const data = docSnap.data();
+            setOrgId(data.organizationId || null);
+            setVisitedOrgs(data.visitedOrgs || {});
           } else {
             setOrgId(null);
+            setVisitedOrgs({});
           }
         });
         return () => unsubUser();
       } else {
         setOrgId(null);
+        setVisitedOrgs({});
         setClasses([]);
         setStudents([]);
         setAttendance([]);
@@ -105,15 +110,34 @@ export const useAttendanceData = () => {
       createdBy: user.uid,
       createdAt: Date.now()
     });
-    await setDoc(doc(db, 'users', user.uid), { organizationId: newOrgId }, { merge: true });
+    
+    // Update user with new org and add to history
+    await setDoc(doc(db, 'users', user.uid), { 
+      organizationId: newOrgId,
+      [`visitedOrgs.${newOrgId}`]: name
+    }, { merge: true });
+    
     setOrgId(newOrgId);
   }, [user]);
 
   const joinOrganization = useCallback(async (id: string) => {
     if (!user || !db) return;
-    const orgDoc = await doc(db, 'organizations', id);
-    // In a real app, you'd check if it exists first
-    await setDoc(doc(db, 'users', user.uid), { organizationId: id }, { merge: true });
+    
+    // Check if org exists and get name
+    const orgRef = doc(db, 'organizations', id);
+    const orgSnap = await getDoc(orgRef);
+    
+    if (!orgSnap.exists()) {
+      throw new Error("স্কুলটি খুঁজে পাওয়া যায়নি। সঠিক আইডি দিন।");
+    }
+    
+    const orgName = orgSnap.data().name;
+
+    await setDoc(doc(db, 'users', user.uid), { 
+      organizationId: id,
+      [`visitedOrgs.${id}`]: orgName
+    }, { merge: true });
+    
     setOrgId(id);
   }, [user]);
 
@@ -297,6 +321,7 @@ export const useAttendanceData = () => {
     deleteReminder,
     createOrganization,
     joinOrganization,
-    leaveOrganization
+    leaveOrganization,
+    visitedOrgs
   };
 };
