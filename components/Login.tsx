@@ -19,6 +19,10 @@ const Login: React.FC = () => {
       console.error("Login failed", error);
       if (error.code === 'auth/unauthorized-domain') {
         setError('unauthorized-domain');
+      } else if (error.code === 'auth/network-request-failed') {
+        setError('network-error');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        setError('লগইন পপআপ বন্ধ করা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       } else {
         setError(error.message);
       }
@@ -76,7 +80,29 @@ const Login: React.FC = () => {
             </div>
         )}
         
-        {error && error !== 'unauthorized-domain' && (
+        {error === 'network-error' && (
+            <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 text-left shadow-md">
+                <div className="flex items-center mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-red-500 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    <p className="font-bold text-red-700 text-lg">ইন্টারনেট সংযোগ সমস্যা</p>
+                </div>
+                <p className="text-red-600 mb-3">
+                    Firebase সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন এবং আবার চেষ্টা করুন।
+                </p>
+                <p className="text-sm text-gray-600">
+                    সম্ভাব্য কারণ:
+                </p>
+                <ul className="list-disc list-inside pl-1 text-sm text-gray-600">
+                    <li>ইন্টারনেট সংযোগ বিচ্ছিন্ন</li>
+                    <li>ফায়ারওয়াল বা প্রক্সি ব্লক করছে</li>
+                    <li>ব্রাউজার এক্সটেনশন (যেমন AdBlocker) সমস্যা করছে</li>
+                </ul>
+            </div>
+        )}
+
+        {error && error !== 'unauthorized-domain' && error !== 'network-error' && (
             <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4 text-sm">
                 ত্রুটি: {error}
             </div>

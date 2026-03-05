@@ -114,6 +114,17 @@ const App: React.FC = () => {
     }
   };
 
+  const handleLeaveOrg = async () => {
+    if (window.confirm('আপনি কি বর্তমান স্কুল থেকে বের হতে চান? আপনি পরে আবার স্কুল আইডির মাধ্যমে জয়েন করতে পারবেন।')) {
+      try {
+        await leaveOrganization();
+      } catch (error) {
+        console.error("Error leaving organization:", error);
+        alert("স্কুল পরিবর্তন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
+      }
+    }
+  };
+
   const copyOrgId = () => {
     if (orgId) {
       navigator.clipboard.writeText(orgId);
@@ -250,7 +261,8 @@ const App: React.FC = () => {
             <ClipboardIcon className="w-3 h-3 text-slate-400" />
          </div>
          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">{user.displayName || user.email}</span>
+            <span className="text-sm text-gray-600 hidden sm:inline">{user.displayName || user.email}</span>
+            <Button onClick={handleLeaveOrg} variant="secondary" size="sm" className="text-xs">স্কুল পরিবর্তন</Button>
             <Button onClick={handleLogout} variant="secondary" size="sm">লগ আউট</Button>
          </div>
       </div>
