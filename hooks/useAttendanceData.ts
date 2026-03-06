@@ -24,16 +24,43 @@ export const useAttendanceData = () => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       setUser(currentUser);
       if (currentUser) {
+        setLoading(true);
         // Fetch user profile to get organizationId
         const userDocRef = doc(db!, `users`, currentUser.uid);
-        const unsubUser = onSnapshot(userDocRef, (docSnap) => {
+        const unsubUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
-            setOrgId(data.organizationId || null);
-            setVisitedOrgs(data.visitedOrgs || {});
+            const currentOrgId = data.organizationId || null;
+            const history = data.visitedOrgs || {};
+            
+            setOrgId(currentOrgId);
+            setVisitedOrgs(history);
+
+            // If no org ID, stop loading so user can select/create org
+            // If there IS an org ID, keep loading true, the second useEffect will handle fetching class data
+            if (!currentOrgId) {
+              setLoading(false);
+            }
+
+            // Auto-populate history if current org is missing from it
+            if (currentOrgId && !history[currentOrgId]) {
+              try {
+                const orgRef = doc(db!, 'organizations', currentOrgId);
+                const orgSnap = await getDoc(orgRef);
+                if (orgSnap.exists()) {
+                  const orgName = orgSnap.data().name;
+                  await setDoc(userDocRef, { 
+                    visitedOrgs: { [currentOrgId]: orgName } 
+                  }, { merge: true });
+                }
+              } catch (e) {
+                console.error("Error auto-populating history:", e);
+              }
+            }
           } else {
             setOrgId(null);
             setVisitedOrgs({});
+            setLoading(false);
           }
         });
         return () => unsubUser();
@@ -52,7 +79,6 @@ export const useAttendanceData = () => {
 
   useEffect(() => {
     if (!user || !db || !orgId) {
-      if (user && !orgId) setLoading(false);
       return;
     }
 
@@ -114,7 +140,9 @@ export const useAttendanceData = () => {
     // Update user with new org and add to history
     await setDoc(doc(db, 'users', user.uid), { 
       organizationId: newOrgId,
-      [`visitedOrgs.${newOrgId}`]: name
+      visitedOrgs: {
+        [newOrgId]: name
+      }
     }, { merge: true });
     
     setOrgId(newOrgId);
@@ -135,7 +163,9 @@ export const useAttendanceData = () => {
 
     await setDoc(doc(db, 'users', user.uid), { 
       organizationId: id,
-      [`visitedOrgs.${id}`]: orgName
+      visitedOrgs: {
+        [id]: orgName
+      }
     }, { merge: true });
     
     setOrgId(id);

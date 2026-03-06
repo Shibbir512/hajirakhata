@@ -6,6 +6,7 @@ import { ClipboardIcon } from './common/Icons';
 
 const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     if (!auth || !googleProvider) {
@@ -13,6 +14,7 @@ const Login: React.FC = () => {
       return;
     }
     setError(null);
+    setLoading(true);
     try {
       await signInWithPopup(auth, googleProvider);
     } catch (error: any) {
@@ -21,11 +23,13 @@ const Login: React.FC = () => {
         setError('unauthorized-domain');
       } else if (error.code === 'auth/network-request-failed') {
         setError('network-error');
-      } else if (error.code === 'auth/popup-closed-by-user') {
+      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
         setError('লগইন পপআপ বন্ধ করা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       } else {
         setError(error.message);
       }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -108,8 +112,8 @@ const Login: React.FC = () => {
             </div>
         )}
 
-        <Button onClick={handleLogin} className="w-full justify-center" disabled={!auth}>
-          গুগল দিয়ে লগইন করুন
+        <Button onClick={handleLogin} className="w-full justify-center" disabled={!auth || loading}>
+          {loading ? 'অপেক্ষা করুন...' : 'গুগল দিয়ে লগইন করুন'}
         </Button>
       </div>
     </div>
