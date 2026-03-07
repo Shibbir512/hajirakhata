@@ -1,5 +1,6 @@
 export interface Student {
   id: string;
+  classId: string;
   roll: number;
   name: string;
   fatherName?: string;

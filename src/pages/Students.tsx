@@ -33,9 +33,9 @@ const Students: React.FC = () => {
     );
   }, [classStudents, searchQuery]);
 
-  const handleAddStudent = (name: string, roll: number, fatherName?: string, phone?: string, address?: string) => {
+  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string) => {
     if (selectedClassId) {
-      addStudent(selectedClassId, name, roll, fatherName, phone, address);
+      addStudent(selectedClassId, name, fatherName, phone, address);
       setIsAddModalOpen(false);
     }
   };
@@ -48,8 +48,8 @@ const Students: React.FC = () => {
   };
 
   const handleDeleteStudent = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this student? This action cannot be undone.")) {
-      deleteStudent(id);
+    if (selectedClassId && window.confirm("Are you sure you want to delete this student? This action cannot be undone.")) {
+      deleteStudent(id, selectedClassId);
     }
   };
 

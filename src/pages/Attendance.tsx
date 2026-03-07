@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -13,7 +13,7 @@ const Attendance: React.FC = () => {
   const { user, orgId } = useAuth();
   const { classes } = useClasses(orgId, user);
   const { students } = useStudents(orgId, user);
-  const { attendance, takeAttendance } = useAttendance(
+  const { attendanceSessions, takeAttendance } = useAttendance(
     orgId,
     user,
     classes,
@@ -21,20 +21,41 @@ const Attendance: React.FC = () => {
   );
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(
-    new Date().toISOString().split("T")[0],
-  );
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [attendanceState, setAttendanceState] = useState<
-    Map<string, { status: AttendanceStatus; note: string }>
+    Map<string, { status: AttendanceStatus; studentName: string }>
   >(new Map());
 
   const classStudents = useMemo(() => {
     if (!selectedClassId) return [];
     return students[selectedClassId] || [];
   }, [selectedClassId, students]);
+
+  // Initialize attendance state with Default Present
+  useEffect(() => {
+    if (!selectedClassId) {
+      setAttendanceState(new Map());
+      return;
+    }
+    
+    const newMap = new Map();
+    classStudents.forEach((student) => {
+      newMap.set(student.id, { status: AttendanceStatus.Present, studentName: student.name });
+    });
+    setAttendanceState(newMap);
+  }, [selectedClassId, classStudents]);
+
+  const liveCounter = useMemo(() => {
+    let present = 0;
+    let absent = 0;
+    attendanceState.forEach((val) => {
+      if (val.status === AttendanceStatus.Present) present++;
+      else absent++;
+    });
+    return { total: attendanceState.size, present, absent };
+  }, [attendanceState]);
 
   const filteredAndSortedStudents = useMemo(() => {
     let result = classStudents.filter(
@@ -63,58 +84,31 @@ const Attendance: React.FC = () => {
   }, [filteredAndSortedStudents, currentPage]);
 
   // Reset page when search or class changes
-  useMemo(() => {
+  useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedClassId]);
 
-  // Initialize attendance state from existing records
-  useMemo(() => {
-    if (!selectedClassId) return;
-
-    const date = new Date(selectedDate);
-    const existingRecords = attendance.filter((r) => {
-      const rDate = new Date(r.timestamp);
-      return (
-        r.classId === selectedClassId &&
-        rDate.getDate() === date.getDate() &&
-        rDate.getMonth() === date.getMonth() &&
-        rDate.getFullYear() === date.getFullYear()
-      );
-    });
-
-    const newMap = new Map();
-    classStudents.forEach((student) => {
-      const record = existingRecords.find((r) => r.studentId === student.id);
-      if (record) {
-        newMap.set(student.id, { status: record.status, note: record.note });
-      }
-    });
-    setAttendanceState(newMap);
-  }, [selectedClassId, selectedDate, attendance, classStudents]);
-
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
-      const newMap = new Map(prev);
-      const current = newMap.get(studentId) || { status: undefined, note: "" };
-      newMap.set(studentId, { ...(current as any), status });
+      const newMap = new Map<string, { status: AttendanceStatus; studentName: string }>(prev);
+      const current = newMap.get(studentId);
+      if (current) {
+        newMap.set(studentId, { status, studentName: current.studentName });
+      }
       return newMap;
     });
   };
 
   const handleSave = () => {
     if (!selectedClassId) return;
-    takeAttendance(selectedClassId, attendanceState, selectedDate);
+    takeAttendance(selectedClassId, attendanceState);
   };
 
   const markAll = (status: AttendanceStatus) => {
     setAttendanceState((prev) => {
       const newMap = new Map(prev);
-      classStudents.forEach((student) => {
-        const current = newMap.get(student.id) || {
-          status: undefined,
-          note: "",
-        };
-        newMap.set(student.id, { ...(current as any), status });
+      newMap.forEach((value: { status: AttendanceStatus; studentName: string }, key: string) => {
+        newMap.set(key, { status, studentName: value.studentName });
       });
       return newMap;
     });
@@ -132,12 +126,6 @@ const Attendance: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">হাজিরা</h2>
         <div className="flex items-center gap-4">
-          <input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
           <button
             onClick={handleSave}
             className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
@@ -147,6 +135,24 @@ const Attendance: React.FC = () => {
           </button>
         </div>
       </div>
+
+      {/* Live Counter */}
+      {selectedClassId && (
+        <div className="grid grid-cols-3 gap-4">
+          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-center">
+            <p className="text-sm text-slate-500">মোট</p>
+            <p className="text-2xl font-bold text-slate-800">{liveCounter.total}</p>
+          </div>
+          <div className="bg-green-50 p-4 rounded-lg shadow-sm border border-green-100 text-center">
+            <p className="text-sm text-green-600">উপস্থিত</p>
+            <p className="text-2xl font-bold text-green-700">{liveCounter.present}</p>
+          </div>
+          <div className="bg-red-50 p-4 rounded-lg shadow-sm border border-red-100 text-center">
+            <p className="text-sm text-red-600">অনুপস্থিত</p>
+            <p className="text-2xl font-bold text-red-700">{liveCounter.absent}</p>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">

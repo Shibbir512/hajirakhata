@@ -23,6 +23,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const links = [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
     { name: "হাজিরা", path: "/attendance", icon: CalendarCheck },
+    { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
@@ -32,13 +33,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 h-full transform transition-transform duration-300 ease-in-out md:static md:transform-none",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
     >
       <div className="flex items-center justify-between h-16 border-b border-slate-200 px-4">
         <span className="text-xl font-bold text-blue-600">হাজিরা অ্যাপ</span>
-        <button onClick={() => setIsOpen(false)} className="md:hidden p-2 text-slate-500">
+        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500">
           <X className="w-6 h-6" />
         </button>
       </div>

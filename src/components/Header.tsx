@@ -35,11 +35,11 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="md:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
         >
           <Menu className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold text-slate-800">{getPageTitle()}</h1>
+        <h1 className="text-xl font-bold text-slate-800 hidden lg:block">{getPageTitle()}</h1>
       </div>
       <div className="flex items-center gap-4">
         <button className="p-2 rounded-full hover:bg-slate-100 relative transition-colors">

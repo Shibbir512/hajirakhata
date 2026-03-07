@@ -23,7 +23,7 @@ const Reports: React.FC = () => {
   const { user, orgId } = useAuth();
   const { classes } = useClasses(orgId, user);
   const { students } = useStudents(orgId, user);
-  const { attendance } = useAttendance(orgId, user, classes, students);
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(
@@ -42,24 +42,27 @@ const Reports: React.FC = () => {
     const end = new Date(endDate);
     const classStudents = students[selectedClassId] || [];
 
-    // Filter attendance by date range and class
-    const filteredAttendance = attendance.filter((r) => {
-      const rDate = new Date(r.timestamp);
-      return r.classId === selectedClassId && rDate >= start && rDate <= end;
+    // Filter sessions by date range and class
+    const filteredSessions = attendanceSessions.filter((s) => {
+      const [day, month, year] = s.date.split("-").map(Number);
+      const sDate = new Date(year, month - 1, day);
+      return s.classId === selectedClassId && sDate >= start && sDate <= end;
     });
 
     // Calculate stats per student
     return classStudents
       .map((student) => {
-        const studentRecords = filteredAttendance.filter(
-          (r) => r.studentId === student.id,
-        );
-        const present = studentRecords.filter(
-          (r) => r.status === "present",
-        ).length;
-        const absent = studentRecords.filter(
-          (r) => r.status === "absent",
-        ).length;
+        let present = 0;
+        let absent = 0;
+        
+        filteredSessions.forEach(session => {
+          const studentRecord = session.students.find((st: any) => st.studentId === student.id);
+          if (studentRecord) {
+            if (studentRecord.status === "present") present++;
+            else absent++;
+          }
+        });
+
         const total = present + absent;
         const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
 
@@ -72,7 +75,7 @@ const Reports: React.FC = () => {
         };
       })
       .sort((a, b) => a.roll - b.roll);
-  }, [selectedClassId, startDate, endDate, attendance, students]);
+  }, [selectedClassId, startDate, endDate, attendanceSessions, students]);
 
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(

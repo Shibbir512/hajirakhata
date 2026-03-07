@@ -5,6 +5,7 @@ import DashboardLayout from "./src/layouts/DashboardLayout";
 import Login from "./src/pages/Login";
 import Dashboard from "./src/pages/Dashboard";
 import Attendance from "./src/pages/Attendance";
+import AttendanceHistory from "./src/pages/AttendanceHistory";
 import Students from "./src/pages/Students";
 import Classes from "./src/pages/Classes";
 import Reports from "./src/pages/Reports";
@@ -46,6 +47,7 @@ const App: React.FC = () => {
         >
           <Route index element={<Dashboard />} />
           <Route path="attendance" element={<Attendance />} />
+          <Route path="attendance/history" element={<AttendanceHistory />} />
           <Route path="students" element={<Students />} />
           <Route path="classes" element={<Classes />} />
           <Route path="reports" element={<Reports />} />

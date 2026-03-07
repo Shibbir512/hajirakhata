@@ -19,45 +19,44 @@ const Dashboard: React.FC = () => {
   const { user, orgId } = useAuth();
   const { students } = useStudents(orgId, user);
   const { classes } = useClasses(orgId, user);
-  const { attendance } = useAttendance(orgId, user, classes, students);
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students);
 
   const stats = useMemo(() => {
     const totalStudents = Object.values(students).flat().length;
     const totalClasses = classes.length;
 
-    const today = new Date().toISOString().split("T")[0];
-    const todaysAttendance = attendance.filter((r) => {
-      const recordDate = new Date(r.timestamp).toISOString().split("T")[0];
-      return recordDate === today;
+    const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    const todaysSessions = attendanceSessions.filter((s) => s.date === today);
+
+    let presentToday = 0;
+    let absentToday = 0;
+    todaysSessions.forEach(s => {
+      s.students.forEach((st: any) => {
+        if (st.status === "present") presentToday++;
+        else absentToday++;
+      });
     });
 
-    const presentToday = todaysAttendance.filter(
-      (r) => r.status === "present",
-    ).length;
-    const absentToday = todaysAttendance.filter(
-      (r) => r.status === "absent",
-    ).length;
-
     return { totalStudents, totalClasses, presentToday, absentToday };
-  }, [students, classes, attendance]);
+  }, [students, classes, attendanceSessions]);
 
   const chartData = useMemo(() => {
-    // Generate data for the last 7 days
     const data = [];
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toISOString().split("T")[0];
+      const dateStr = date.toLocaleDateString('en-GB').replace(/\//g, '-');
 
-      const dayAttendance = attendance.filter((r) => {
-        const recordDate = new Date(r.timestamp).toISOString().split("T")[0];
-        return recordDate === dateStr;
+      const daySessions = attendanceSessions.filter((s) => s.date === dateStr);
+
+      let present = 0;
+      let absent = 0;
+      daySessions.forEach(s => {
+        s.students.forEach((st: any) => {
+          if (st.status === "present") present++;
+          else absent++;
+        });
       });
-
-      const present = dayAttendance.filter(
-        (r) => r.status === "present",
-      ).length;
-      const absent = dayAttendance.filter((r) => r.status === "absent").length;
 
       data.push({
         name: date.toLocaleDateString("en-US", { weekday: "short" }),
@@ -66,7 +65,7 @@ const Dashboard: React.FC = () => {
       });
     }
     return data;
-  }, [attendance]);
+  }, [attendanceSessions]);
 
   return (
     <div className="space-y-6">
@@ -114,7 +113,7 @@ const Dashboard: React.FC = () => {
                   backgroundColor: "#fff",
                   borderRadius: "8px",
                   border: "none",
-                  boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  boxShadow: "0 4px 6px -1px rgb(0 0, 0 / 0.1)",
                 }}
                 cursor={{ fill: "transparent" }}
               />

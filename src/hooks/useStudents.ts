@@ -11,6 +11,8 @@ import {
   where,
   getDocs,
   writeBatch,
+  orderBy,
+  limit,
 } from "firebase/firestore";
 import { Student } from "../types";
 import toast from "react-hot-toast";
@@ -43,14 +45,27 @@ export const useStudents = (orgId: string | null, user: any) => {
   }, [user, orgId]);
 
   const addStudent = useCallback(
-    async (classId: string, name: string, roll: number, fatherName?: string, phone?: string, address?: string) => {
+    async (classId: string, name: string, fatherName?: string, phone?: string, address?: string) => {
       if (!user || !db || !orgId) return;
       try {
+        // Find max roll in class
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("classId", "==", classId));
+        const querySnapshot = await getDocs(q);
+        
+        let maxRoll = 0;
+        querySnapshot.docs.forEach(doc => {
+          const roll = doc.data().roll;
+          if (roll > maxRoll) maxRoll = roll;
+        });
+        const newRoll = maxRoll + 1;
+
         const studentId = `${classId}-student-${Date.now()}`;
         const newStudent: Student = {
           id: studentId,
+          classId,
+          roll: newRoll,
           name,
-          roll,
           fatherName,
           phone,
           address,
@@ -68,22 +83,8 @@ export const useStudents = (orgId: string | null, user: any) => {
     [user, orgId],
   );
 
-  const updateStudent = useCallback(
-    async (studentId: string, data: Partial<Student>) => {
-      if (!user || !db || !orgId) return;
-      try {
-        await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), data);
-        toast.success("Student updated successfully!");
-      } catch (error) {
-        console.error("Error updating student:", error);
-        toast.error("Failed to update student.");
-      }
-    },
-    [user, orgId],
-  );
-
   const deleteStudent = useCallback(
-    async (studentId: string) => {
+    async (studentId: string, classId: string) => {
       if (!user || !db || !orgId) return;
       try {
         // 1. Delete the student document
@@ -94,18 +95,43 @@ export const useStudents = (orgId: string | null, user: any) => {
         const attendanceQuery = query(attendanceRef, where("studentId", "==", studentId));
         const attendanceSnapshot = await getDocs(attendanceQuery);
 
+        const batch = writeBatch(db);
+        
         if (!attendanceSnapshot.empty) {
-          const batch = writeBatch(db);
           attendanceSnapshot.docs.forEach(doc => {
             batch.delete(doc.ref);
           });
-          await batch.commit();
         }
 
-        toast.success("Student and associated records deleted successfully!");
+        // 3. Reorder remaining students
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("classId", "==", classId), orderBy("roll", "asc"));
+        const remainingStudents = await getDocs(q);
+        
+        remainingStudents.docs.forEach((doc, index) => {
+          batch.update(doc.ref, { roll: index + 1 });
+        });
+
+        await batch.commit();
+
+        toast.success("Student deleted and rolls reordered successfully!");
       } catch (error) {
         console.error("Error deleting student:", error);
         toast.error("Failed to delete student.");
+      }
+    },
+    [user, orgId],
+  );
+
+  const updateStudent = useCallback(
+    async (studentId: string, data: Partial<Student>) => {
+      if (!user || !db || !orgId) return;
+      try {
+        await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), data);
+        toast.success("Student updated successfully!");
+      } catch (error) {
+        console.error("Error updating student:", error);
+        toast.error("Failed to update student.");
       }
     },
     [user, orgId],

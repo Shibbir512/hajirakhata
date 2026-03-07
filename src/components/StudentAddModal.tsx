@@ -4,7 +4,7 @@ import { X } from "lucide-react";
 interface StudentAddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (name: string, roll: number, fatherName?: string, phone?: string, address?: string) => void;
+  onAdd: (name: string, fatherName?: string, phone?: string, address?: string) => void;
 }
 
 const StudentAddModal: React.FC<StudentAddModalProps> = ({
@@ -13,7 +13,6 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   onAdd,
 }) => {
   const [name, setName] = useState("");
-  const [roll, setRoll] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
@@ -27,13 +26,8 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
       setError("Name is required");
       return;
     }
-    if (!roll || parseInt(roll) <= 0) {
-      setError("Valid roll number is required");
-      return;
-    }
-    onAdd(name, parseInt(roll), fatherName, phone, address);
+    onAdd(name, fatherName, phone, address);
     setName("");
-    setRoll("");
     setFatherName("");
     setPhone("");
     setAddress("");
@@ -71,17 +65,10 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
-                Roll Number *
-              </label>
-              <input
-                type="number"
-                value={roll}
-                onChange={(e) => setRoll(e.target.value)}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Enter roll number"
-              />
+            <div className="bg-blue-50 p-3 rounded-lg border border-blue-100">
+              <p className="text-sm text-blue-700">
+                Roll number will be assigned automatically.
+              </p>
             </div>
 
             <div>

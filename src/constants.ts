@@ -51,6 +51,7 @@ const generateStudents = (classId: string, count: number): Student[] => {
   for (let i = 0; i < count; i++) {
     students.push({
       id: `${classId}-student-${i + 1}`,
+      classId,
       roll: i + 1,
       name: studentNames[i % studentNames.length],
     });
