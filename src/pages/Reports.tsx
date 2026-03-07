@@ -18,6 +18,8 @@ import {
 } from "recharts";
 import { Download, Calendar } from "lucide-react";
 import clsx from "clsx";
+import jsPDF from "jspdf";
+import autoTable from "jspdf-autotable";
 
 const Reports: React.FC = () => {
   const { user, orgId } = useAuth();
@@ -77,6 +79,16 @@ const Reports: React.FC = () => {
       .sort((a, b) => a.roll - b.roll);
   }, [selectedClassId, startDate, endDate, attendanceSessions, students]);
 
+  const handleExportPDF = () => {
+    const doc = new jsPDF();
+    doc.text("Attendance Report", 14, 15);
+    autoTable(doc, {
+      head: [['Roll', 'Name', 'Present', 'Absent', 'Percentage']],
+      body: reportData.map(s => [s.roll, s.name, s.present, s.absent, s.percentage + '%']),
+    });
+    doc.save("attendance-report.pdf");
+  };
+
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(
       (acc, curr) => acc + curr.present,
@@ -95,9 +107,12 @@ const Reports: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">রিপোর্ট</h2>
-        <button className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm">
+        <button 
+          onClick={handleExportPDF}
+          className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+        >
           <Download className="w-4 h-4 mr-2" />
-          CSV এক্সপোর্ট
+          PDF এক্সপোর্ট
         </button>
       </div>
 

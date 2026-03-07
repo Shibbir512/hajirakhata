@@ -137,5 +137,41 @@ export const useStudents = (orgId: string | null, user: any) => {
     [user, orgId],
   );
 
-  return { students, addStudent, updateStudent, deleteStudent };
+  const bulkAddStudents = useCallback(
+    async (classId: string, studentsList: Omit<Student, 'id' | 'classId' | 'roll'>[]) => {
+      if (!user || !db || !orgId) return;
+      try {
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("classId", "==", classId));
+        const querySnapshot = await getDocs(q);
+        
+        let maxRoll = 0;
+        querySnapshot.docs.forEach(doc => {
+          const roll = doc.data().roll;
+          if (roll > maxRoll) maxRoll = roll;
+        });
+
+        const batch = writeBatch(db);
+        studentsList.forEach((studentData, index) => {
+          const studentId = `${classId}-student-${Date.now()}-${index}`;
+          const newStudent: Student = {
+            ...studentData,
+            id: studentId,
+            classId,
+            roll: maxRoll + index + 1,
+          };
+          batch.set(doc(db, `organizations/${orgId}/students`, studentId), newStudent);
+        });
+
+        await batch.commit();
+        toast.success("Students added successfully!");
+      } catch (error) {
+        console.error("Error adding students:", error);
+        toast.error("Failed to add students.");
+      }
+    },
+    [user, orgId],
+  );
+
+  return { students, addStudent, updateStudent, deleteStudent, bulkAddStudents };
 };

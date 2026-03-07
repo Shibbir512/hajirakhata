@@ -1,17 +1,19 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
-import { Plus, Edit, Trash2, Search, Eye, X } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download } from "lucide-react";
 import { Student } from "../types";
 import clsx from "clsx";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
+import Papa from "papaparse";
+import mammoth from "mammoth";
 
 const Students: React.FC = () => {
   const { user, orgId } = useAuth();
   const { classes } = useClasses(orgId, user);
-  const { students, addStudent, updateStudent, deleteStudent } =
+  const { students, addStudent, updateStudent, deleteStudent, bulkAddStudents } =
     useStudents(orgId, user);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -19,6 +21,7 @@ const Students: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const classStudents = useMemo(() => {
     if (!selectedClassId) return [];
@@ -53,21 +56,135 @@ const Students: React.FC = () => {
     }
   };
 
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file || !selectedClassId) return;
+
+    if (file.type === "text/csv") {
+      Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          const studentsList = results.data.map((row: any) => ({
+            name: row.name,
+            fatherName: row.fatherName,
+            phone: row.phone,
+            address: row.address,
+          }));
+          bulkAddStudents(selectedClassId, studentsList);
+        },
+      });
+    } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      const lines = result.value.split("\n");
+      const studentsList = lines.map(line => {
+        const [name, fatherName, phone, address] = line.split(",");
+        return { name: name?.trim(), fatherName: fatherName?.trim(), phone: phone?.trim(), address: address?.trim() };
+      }).filter(s => s.name);
+      bulkAddStudents(selectedClassId, studentsList);
+    } else {
+      alert("Unsupported file type. Please upload a CSV or DOCX file.");
+    }
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const handleExport = async (format: 'csv' | 'docx') => {
+    if (format === 'csv') {
+      const csv = Papa.unparse(classStudents.map(s => ({
+        Name: s.name,
+        Roll: s.roll,
+        FatherName: s.fatherName,
+        Phone: s.phone,
+        Address: s.address
+      })));
+      const blob = new Blob([csv], { type: 'text/csv' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'students.csv';
+      a.click();
+    } else if (format === 'docx') {
+      const { Document, Packer, Paragraph, TextRun } = await import('docx');
+      const doc = new Document({
+        sections: [{
+          children: [
+            new Paragraph({ text: "Student List", heading: "Heading1" }),
+            ...classStudents.map(s => new Paragraph({
+              children: [
+                new TextRun({ text: `${s.roll}. ${s.name}`, bold: true }),
+                new TextRun({ text: `\nFather: ${s.fatherName || "N/A"} | Phone: ${s.phone || "N/A"} | Address: ${s.address || "N/A"}\n\n` })
+              ]
+            }))
+          ]
+        }]
+      });
+      const blob = await Packer.toBlob(doc);
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'students.docx';
+      a.click();
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800">শিক্ষার্থী</h2>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          disabled={!selectedClassId}
-          className={clsx(
-            "flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm",
-            !selectedClassId && "opacity-50 cursor-not-allowed",
-          )}
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          শিক্ষার্থী যোগ করুন
-        </button>
+        <div className="flex gap-2">
+          <input
+            type="file"
+            ref={fileInputRef}
+            onChange={handleFileUpload}
+            accept=".csv, .docx"
+            className="hidden"
+          />
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!selectedClassId}
+            className={clsx(
+              "flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm",
+              !selectedClassId && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <Upload className="w-4 h-4 mr-2" />
+            আমদানি (CSV/DOCX)
+          </button>
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={!selectedClassId || classStudents.length === 0}
+            className={clsx(
+              "flex items-center px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-sm",
+              (!selectedClassId || classStudents.length === 0) && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            CSV এক্সপোর্ট
+          </button>
+          <button
+            onClick={() => handleExport('docx')}
+            disabled={!selectedClassId || classStudents.length === 0}
+            className={clsx(
+              "flex items-center px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-sm",
+              (!selectedClassId || classStudents.length === 0) && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <Download className="w-4 h-4 mr-2" />
+            DOCX এক্সপোর্ট
+          </button>
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            disabled={!selectedClassId}
+            className={clsx(
+              "flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm",
+              !selectedClassId && "opacity-50 cursor-not-allowed",
+            )}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            শিক্ষার্থী যোগ করুন
+          </button>
+        </div>
       </div>
 
       <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
