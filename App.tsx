@@ -1,5 +1,10 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { useAttendanceData } from './hooks/useAttendanceData';
+import { Toaster, toast } from 'react-hot-toast';
+import { useAuth } from './hooks/useAuth';
+import { useClasses } from './hooks/useClasses';
+import { useStudents } from './hooks/useStudents';
+import { useAttendance } from './hooks/useAttendance';
+import { useReminders } from './hooks/useReminders';
 import type { ClassData, Student } from './types';
 import Header from './components/Header';
 import ClassSelector from './components/ClassSelector';
@@ -10,7 +15,7 @@ import ManageClasses from './components/ManageClasses';
 import ManageStudents from './components/ManageStudents';
 import Reminders from './components/Reminders';
 import Button from './components/common/Button';
-import { ChartBarIcon, Cog6ToothIcon, BellIcon, ClipboardIcon } from './components/common/Icons';
+import { ClipboardIcon } from './components/common/Icons';
 import Login from './components/Login';
 import OrgManagement from './components/OrgManagement';
 import { auth } from './src/firebase';
@@ -19,30 +24,26 @@ const App: React.FC = () => {
   const { 
     user,
     orgId,
-    loading,
-    classes, 
+    visitedOrgs,
+    loading: authLoading,
+    createOrganization,
+    joinOrganization,
+    leaveOrganization
+  } = useAuth();
+
+  const { classes, addClass, updateClassName, deleteClass } = useClasses(orgId, user);
+  const { students, addStudent, updateStudentName, deleteStudent } = useStudents(orgId, user);
+  const { 
     attendance, 
-    students, 
+    loading: attendanceLoading, 
     takeAttendance, 
     getAbsencesForStudent, 
     getHistoryForStudent,
     updateAttendanceRecordStatus, 
     getConsolidatedReport,
-    addClass,
-    updateClassName,
-    deleteClass,
-    updateStudentName,
-    updateAttendanceRecordNote,
-    addStudent,
-    deleteStudent,
-    reminders,
-    addReminder,
-    deleteReminder,
-    createOrganization,
-    joinOrganization,
-    leaveOrganization,
-    visitedOrgs
-  } = useAttendanceData();
+    updateAttendanceRecordNote
+  } = useAttendance(orgId, user, classes, students);
+  const { reminders, addReminder, deleteReminder } = useReminders(orgId, user);
   
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
@@ -63,8 +64,6 @@ const App: React.FC = () => {
 
   useEffect(() => {
       const checkReminders = () => {
-        if (Notification.permission !== 'granted') return;
-        
         const now = new Date();
         const hours = now.getHours().toString().padStart(2, '0');
         const minutes = now.getMinutes().toString().padStart(2, '0');
@@ -75,10 +74,9 @@ const App: React.FC = () => {
           const today = now.toISOString().split('T')[0];
 
           if (lastNotified !== today) {
-            new Notification('হাজিরা নেওয়ার সময় হয়েছে!', {
-              body: `সময়: ${currentTime}। এখন ছাত্র/ছাত্রীদের হাজিরা নেওয়ার জন্য অ্যাপটি খুলুন।`,
-              icon: '/vite.svg',
-              tag: `attendance-reminder-${currentTime}`
+            toast('হাজিরা নেওয়ার সময় হয়েছে!', {
+              icon: '⏰',
+              duration: 5000,
             });
             sessionStorage.setItem(`notified_${currentTime}`, today);
           }
@@ -126,7 +124,7 @@ const App: React.FC = () => {
         await leaveOrganization();
       } catch (error) {
         console.error("Error leaving organization:", error);
-        alert("মাদরাসা পরিবর্তন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
+        toast.error("মাদরাসা পরিবর্তন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
       }
     }
   };
@@ -134,26 +132,34 @@ const App: React.FC = () => {
   const copyOrgId = () => {
     if (orgId) {
       navigator.clipboard.writeText(orgId);
-      alert('মাদরাসা আইডি কপি করা হয়েছে। অন্য শিক্ষকদের সাথে এটি শেয়ার করুন।');
+      toast.success('মাদরাসা আইডি কপি করা হয়েছে।');
     }
   };
 
-  if (loading) {
+  if (authLoading) {
     return <div className="flex items-center justify-center min-h-screen">লোড হচ্ছে...</div>;
   }
 
   if (!user) {
-    return <Login />;
+    return (
+      <>
+        <Toaster position="top-center" />
+        <Login />
+      </>
+    );
   }
 
   if (!orgId) {
     return (
-      <OrgManagement 
-        onCreateOrg={createOrganization} 
-        onJoinOrg={joinOrganization} 
-        onLogout={handleLogout}
-        visitedOrgs={visitedOrgs}
-      />
+      <>
+        <Toaster position="top-center" />
+        <OrgManagement 
+          onCreateOrg={createOrganization} 
+          onJoinOrg={joinOrganization} 
+          onLogout={handleLogout}
+          visitedOrgs={visitedOrgs}
+        />
+      </>
     );
   }
   
@@ -236,6 +242,7 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      <Toaster position="top-center" />
       <Header 
         user={user} 
         orgId={orgId} 

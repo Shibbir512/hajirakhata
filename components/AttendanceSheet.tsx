@@ -54,7 +54,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
       });
   }, [attendanceRecords, classData, selectedDate]);
 
-  // Initialize statuses from selected date's records when class changes or records load
   useEffect(() => {
     if (students.length > 0) {
         const initialStatuses = new Map<string, { status: AttendanceStatus, note: string }>();
@@ -83,13 +82,23 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     setCurrentStatuses(prev => {
       const newMap = new Map(prev);
       const currentEntry = (newMap.get(studentId) || { status: AttendanceStatus.Present, note: '' }) as { status: AttendanceStatus; note: string };
-      
-      // If clicking the same status, toggle it off (remove from map)? 
-      // Or just keep it. The UI uses radio buttons, so usually one is selected.
-      // If we want to allow "unmarking", we can check if it's already set.
-      // But for simplicity, let's just set it.
-      
       newMap.set(studentId, { ...currentEntry, status });
+      return newMap;
+    });
+    setHasUnsavedChanges(true);
+  };
+
+  const toggleStatus = (studentId: string) => {
+    setCurrentStatuses(prev => {
+      const newMap = new Map(prev);
+      const currentEntry = newMap.get(studentId) as { status: AttendanceStatus; note: string } | undefined;
+      let newStatus = AttendanceStatus.Present;
+      if (currentEntry?.status === AttendanceStatus.Present) {
+          newStatus = AttendanceStatus.Absent;
+      } else if (currentEntry?.status === AttendanceStatus.Absent) {
+          newStatus = AttendanceStatus.Present; 
+      }
+      newMap.set(studentId, { status: newStatus, note: currentEntry?.note || '' });
       return newMap;
     });
     setHasUnsavedChanges(true);
@@ -100,9 +109,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
       const newMap = new Map(prev);
       students.forEach(student => {
         const currentEntry = (newMap.get(student.id) || { status: AttendanceStatus.Present, note: '' }) as { status: AttendanceStatus; note: string };
-        // Only mark if not already marked? Or overwrite?
-        // "Mark All Present" usually means overwrite or fill blanks.
-        // Let's overwrite for consistency.
         newMap.set(student.id, { ...currentEntry, status });
       });
       return newMap;
@@ -135,7 +141,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     }
   };
 
-  // Stats Calculation
   const totalStudents = students.length;
   const presentCount = Array.from(currentStatuses.values()).filter((s: { status: AttendanceStatus; note: string }) => s.status === AttendanceStatus.Present).length;
   const absentCount = Array.from(currentStatuses.values()).filter((s: { status: AttendanceStatus; note: string }) => s.status === AttendanceStatus.Absent).length;
@@ -153,7 +158,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                 const seconds = String(date.getSeconds()).padStart(2, '0');
                 const ampm = hours >= 12 ? 'PM' : 'AM';
                 hours = hours % 12;
-                hours = hours ? hours : 12; // the hour '0' should be '12'
+                hours = hours ? hours : 12;
                 timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
             }
             return {
@@ -167,7 +172,6 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
 
   return (
     <>
-      {/* Stats Grid - Only show if class selected? Or show zeros? */}
       {classData && (
         <>
             {teacherInfo && (
@@ -212,17 +216,16 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
         </>
       )}
 
-      {/* Sticky Header: Tabs + Search */}
       <div className="bg-white rounded-t-xl border border-slate-200 shadow-sm sticky top-16 sm:top-[64px] z-40">
           <ClassSelector classes={classes} selectedClassId={selectedClassId} onSelectClass={onSelectClass} />
 
           {classData && (
               <div className="px-3 sm:px-4 py-2 border-b border-slate-100 flex gap-2">
                   <button 
-                      className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center justify-center gap-2"
-                      disabled
+                      onClick={() => handleMarkAll(AttendanceStatus.Present)}
+                      className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center justify-center gap-2 hover:bg-indigo-700 transition"
                   >
-                      <i className="fa-solid fa-clipboard-check"></i> হাজিরা নিন
+                      <i className="fa-solid fa-play"></i> হাজিরা শুরু করুন
                   </button>
                   <button 
                       onClick={onViewReport}
@@ -265,138 +268,72 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
           </div>
       </div>
 
-      {/* Student List */}
-      <div className="bg-white border-x border-b border-slate-200 rounded-b-xl shadow-sm mb-20 min-h-[200px]">
-          
-          <div className="hidden sm:grid grid-cols-12 gap-4 px-6 py-3 bg-slate-50 border-b border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider">
-              <div className="col-span-2 text-center">রোল নং</div>
-              <div className="col-span-4">ছাত্রের নাম</div>
-              <div className="col-span-4 text-center">হাজিরা স্ট্যাটাস</div>
-              <div className="col-span-2 text-right">মন্তব্য</div>
-          </div>
-
+      <div className="bg-slate-50 border-x border-b border-slate-200 rounded-b-xl shadow-sm mb-20 min-h-[200px] p-4 sm:p-6">
           {!classData ? (
              <div className="text-center py-10 text-gray-500">
                 অনুগ্রহ করে একটি শ্রেণি নির্বাচন করুন।
              </div>
           ) : filteredStudents.length > 0 ? (
-            filteredStudents.map(student => {
-                const status = currentStatuses.get(student.id)?.status;
-                const note = currentStatuses.get(student.id)?.note;
-                const isPresent = status === AttendanceStatus.Present;
-                const isAbsent = status === AttendanceStatus.Absent;
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                {filteredStudents.map(student => {
+                    const status = currentStatuses.get(student.id)?.status;
+                    const note = currentStatuses.get(student.id)?.note;
+                    const isPresent = status === AttendanceStatus.Present;
+                    const isAbsent = status === AttendanceStatus.Absent;
+                    const isUnmarked = !status;
 
-                return (
-                    <div key={student.id} className={`px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 hover:bg-slate-50 transition group ${isAbsent ? 'bg-rose-50/30' : ''}`}>
-                        {/* Mobile Layout */}
-                        <div className="flex flex-col gap-3 sm:hidden">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-3">
-                                    <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-sm font-bold rounded-md border border-slate-200 min-w-[2.5rem] text-center">{student.roll}</span>
-                                    <div className="flex items-center gap-2">
-                                        <h3 
-                                            className="text-base font-bold text-slate-800 cursor-pointer hover:text-teal-600 line-clamp-1"
-                                            onClick={() => onSelectStudent(student)}
-                                        >
-                                            {student.name}
-                                        </h3>
-                                        <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-teal-600 transition-colors p-1" title="নাম পরিবর্তন করুন">
-                                            <EditIcon className="w-3 h-3" />
-                                        </button>
-                                    </div>
-                                </div>
+                    return (
+                        <div 
+                            key={student.id} 
+                            onClick={() => toggleStatus(student.id)}
+                            className={`relative flex flex-col items-center justify-center p-4 rounded-2xl border-2 cursor-pointer transition-all duration-200 select-none
+                                ${isPresent ? 'bg-emerald-50 border-emerald-400 shadow-sm shadow-emerald-100' : 
+                                  isAbsent ? 'bg-rose-50 border-rose-400 shadow-sm shadow-rose-100' : 
+                                  'bg-white border-slate-200 hover:border-slate-300 shadow-sm'}
+                            `}
+                        >
+                            <div className="absolute top-2 right-2 flex gap-1">
+                                {note && (
+                                    <button 
+                                        onClick={(e) => { e.stopPropagation(); setEditingNoteForStudent(student); }}
+                                        className="text-teal-600 hover:text-teal-800 p-2 -m-2"
+                                        title={note}
+                                        style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                                    >
+                                        <i className="fa-solid fa-comment-dots"></i>
+                                    </button>
+                                )}
                                 <button 
-                                    onClick={() => setEditingNoteForStudent(student)}
-                                    className={`p-2 rounded-full transition relative ${note ? 'text-teal-600 bg-teal-50' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'}`} 
-                                    title={note || "মন্তব্য যোগ করুন"}
+                                    onClick={(e) => { e.stopPropagation(); setEditingStudent(student); }}
+                                    className="text-slate-400 hover:text-slate-600 p-2 -m-2"
+                                    title="এডিট"
+                                    style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 >
-                                    <i className={`fa-solid fa-comment-dots text-lg`}></i>
-                                    {note && <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full"></span>}
+                                    <EditIcon className="w-4 h-4" />
                                 </button>
                             </div>
                             
-                            <div className="flex gap-2 w-full">
-                                <input 
-                                    type="radio" 
-                                    name={`status_mobile_${student.id}`} 
-                                    id={`present_mobile_${student.id}`} 
-                                    className="hidden" 
-                                    checked={isPresent}
-                                    onChange={() => handleStatusChange(student.id, AttendanceStatus.Present)}
-                                />
-                                <label htmlFor={`present_mobile_${student.id}`} className={`flex-1 cursor-pointer px-2 py-2 text-sm font-semibold rounded-md border transition flex items-center justify-center gap-1.5 ${isPresent ? 'bg-emerald-50 text-emerald-600 border-emerald-200 ring-1 ring-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
-                                    <i className="fa-solid fa-check"></i> উপস্থিত
-                                </label>
-                                
-                                <input 
-                                    type="radio" 
-                                    name={`status_mobile_${student.id}`} 
-                                    id={`absent_mobile_${student.id}`} 
-                                    className="hidden" 
-                                    checked={isAbsent}
-                                    onChange={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
-                                />
-                                <label htmlFor={`absent_mobile_${student.id}`} className={`flex-1 cursor-pointer px-2 py-2 text-sm font-semibold rounded-md border transition flex items-center justify-center gap-1.5 ${isAbsent ? 'bg-rose-50 text-rose-600 border-rose-200 ring-1 ring-rose-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50'}`}>
-                                    <i className="fa-solid fa-xmark"></i> অনুপস্থিত
-                                </label>
+                            <div className={`w-12 h-12 rounded-full flex items-center justify-center text-lg font-bold mb-2
+                                ${isPresent ? 'bg-emerald-100 text-emerald-700' : 
+                                  isAbsent ? 'bg-rose-100 text-rose-700' : 
+                                  'bg-slate-100 text-slate-600'}
+                            `}>
+                                {student.roll}
+                            </div>
+                            
+                            <h3 className="text-sm font-bold text-slate-800 text-center line-clamp-2 mb-1" onClick={(e) => { e.stopPropagation(); onSelectStudent(student); }}>
+                                {student.name}
+                            </h3>
+                            
+                            <div className="mt-auto pt-2">
+                                {isPresent && <span className="text-xs font-bold text-emerald-600 flex items-center gap-1"><i className="fa-solid fa-check"></i> উপস্থিত</span>}
+                                {isAbsent && <span className="text-xs font-bold text-rose-600 flex items-center gap-1"><i className="fa-solid fa-xmark"></i> অনুপস্থিত</span>}
+                                {isUnmarked && <span className="text-xs font-medium text-slate-400">চিহ্নিত করুন</span>}
                             </div>
                         </div>
-
-                        {/* Desktop Layout */}
-                        <div className="hidden sm:grid grid-cols-12 gap-4 items-center">
-                            <div className="col-span-2 flex items-center justify-center gap-3">
-                                <span className="inline-block px-3 py-1 bg-slate-100 text-slate-700 text-sm font-bold rounded-md border border-slate-200">{student.roll}</span>
-                            </div>
-                            <div className="col-span-4 flex items-center gap-3">
-                                <h3 
-                                    className="text-base font-bold text-slate-800 cursor-pointer hover:text-teal-600"
-                                    onClick={() => onSelectStudent(student)}
-                                >
-                                    {student.name}
-                                </h3>
-                                <button onClick={() => setEditingStudent(student)} className="text-slate-300 hover:text-teal-600 transition-colors opacity-0 group-hover:opacity-100" title="নাম পরিবর্তন করুন">
-                                    <EditIcon className="w-3 h-3" />
-                                </button>
-                            </div>
-                            <div className="col-span-4 flex justify-center gap-2">
-                                <input 
-                                    type="radio" 
-                                    name={`status_${student.id}`} 
-                                    id={`present_${student.id}`} 
-                                    className="status-radio hidden" 
-                                    checked={isPresent}
-                                    onChange={() => handleStatusChange(student.id, AttendanceStatus.Present)}
-                                />
-                                <label htmlFor={`present_${student.id}`} className={`present-btn cursor-pointer px-4 py-1.5 text-sm font-semibold rounded-md border transition flex items-center gap-1.5 ${isPresent ? 'bg-emerald-50 text-emerald-600 border-emerald-200 ring-1 ring-emerald-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-600 hover:border-emerald-200'}`}>
-                                    <i className="fa-solid fa-check"></i> উপস্থিত
-                                </label>
-                                
-                                <input 
-                                    type="radio" 
-                                    name={`status_${student.id}`} 
-                                    id={`absent_${student.id}`} 
-                                    className="status-radio hidden" 
-                                    checked={isAbsent}
-                                    onChange={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
-                                />
-                                <label htmlFor={`absent_${student.id}`} className={`absent-btn cursor-pointer px-4 py-1.5 text-sm font-semibold rounded-md border transition flex items-center gap-1.5 ${isAbsent ? 'bg-rose-50 text-rose-600 border-rose-200 ring-1 ring-rose-200' : 'bg-white text-slate-600 border-slate-200 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200'}`}>
-                                    <i className="fa-solid fa-xmark"></i> অনুপস্থিত
-                                </label>
-                            </div>
-                            <div className="col-span-2 flex justify-end">
-                                <button 
-                                    onClick={() => setEditingNoteForStudent(student)}
-                                    className={`p-2 rounded-full transition relative ${note ? 'text-teal-600 bg-teal-50' : 'text-slate-400 hover:text-teal-600 hover:bg-teal-50'}`} 
-                                    title={note || "মন্তব্য যোগ করুন"}
-                                >
-                                    <i className={`fa-solid fa-comment-dots text-lg`}></i>
-                                    {note && <span className="absolute top-0 right-0 w-2 h-2 bg-rose-500 rounded-full"></span>}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                );
-            })
+                    );
+                })}
+            </div>
           ) : (
               <div className="text-center py-10 text-gray-500">
                   কোনো ছাত্র/ছাত্রী খুঁজে পাওয়া যায়নি।
@@ -407,14 +344,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
       {editingStudent && (
           <StudentEditModal 
               student={editingStudent}
-              history={[]} // Pass empty or fetch if needed, but modal handles fetching? No, App passes it.
-              // Wait, StudentDetailModal needs history. 
-              // But here we are using StudentEditModal which is for editing name?
-              // Let's check StudentEditModal.tsx.
-              // Ah, I might have confused StudentDetailModal (history) with StudentEditModal (name edit).
-              // The previous code used StudentEditModal for name edit.
-              // And StudentDetailModal for history (in App.tsx).
-              // Here I am using StudentEditModal for name edit. Correct.
+              history={[]}
               onClose={() => setEditingStudent(null)}
               onSave={handleSaveStudentName}
           />

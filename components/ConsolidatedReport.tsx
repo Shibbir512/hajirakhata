@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import type { ClassData, Student } from '../types';
 import { AttendanceStatus } from '../types';
 import Button from './common/Button';
 import ClassSelector from './ClassSelector';
-import { ArrowLeftIcon, UserIcon, DocumentArrowDownIcon, MagnifyingGlassIcon } from './common/Icons';
+import { ArrowLeftIcon, UserIcon, DocumentArrowDownIcon, MagnifyingGlassIcon, ShareIcon, EnvelopeIcon, DocumentTextIcon } from './common/Icons';
 import { normalizeSearchQuery, fuzzyMatch } from '../utils/search';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 interface ConsolidatedReportProps {
     classes: ClassData[];
@@ -36,8 +38,25 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
         setSearchQuery('');
     }, [selectedClassId]);
 
-    const { report: reportData, teachers } = useMemo(() => {
-        return getConsolidatedReport({ startDate, endDate, status });
+    const [reportData, setReportData] = useState<Map<string, { student: Student; count: number }[]>>(new Map());
+    const [teachers, setTeachers] = useState<{ name: string; timestamp: number }[]>([]);
+    const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        const fetchReport = async () => {
+            setLoading(true);
+            try {
+                const result = await getConsolidatedReport({ startDate, endDate, status });
+                setReportData(result.report);
+                setTeachers(result.teachers);
+            } catch (error) {
+                console.error("Error fetching report:", error);
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        fetchReport();
     }, [getConsolidatedReport, startDate, endDate, status]);
 
     const selectedClassReport = selectedClassId ? reportData.get(selectedClassId) : null;
@@ -55,6 +74,76 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
     }, [selectedClassReport, searchQuery]);
 
     const statusText = status === AttendanceStatus.Absent ? 'অনুপস্থিত' : 'উপস্থিত';
+
+    const generateReportText = () => {
+        if (!selectedClassId || !filteredReport || filteredReport.length === 0) return '';
+
+        const selectedClass = classes.find(c => c.id === selectedClassId);
+        if (!selectedClass) return '';
+
+        const datePart = (startDate ? `শুরু: ${startDate.toLocaleDateString('en-GB')}` : '') + (endDate ? ` শেষ: ${endDate.toLocaleDateString('en-GB')}` : '');
+        let report = `হাজিরার রিপোর্ট: ${selectedClass.name}\n`;
+        report += `স্ট্যাটাস: ${statusText}\n`;
+        if (datePart) report += `${datePart}\n`;
+        report += `------------------------------------\n`;
+        
+        filteredReport.forEach(({ student, count }) => {
+            report += `${student.roll}. ${student.name}: ${count} দিন\n`;
+        });
+        
+        return report;
+    };
+
+    const handleShareReport = async () => {
+        const report = generateReportText();
+        if (!report) return;
+
+        if (navigator.share) {
+            try {
+                await navigator.share({
+                    title: `হাজিরার রিপোর্ট: ${statusText}`,
+                    text: report,
+                });
+            } catch (err) {
+                console.error('Error sharing:', err);
+            }
+        } else {
+            try {
+                await navigator.clipboard.writeText(report);
+                alert('রিপোর্ট ক্লipবোর্ডে কপি করা হয়েছে!');
+            } catch (err) {
+                console.error('Failed to copy report: ', err);
+            }
+        }
+    };
+
+    const reportRef = useRef<HTMLDivElement>(null);
+
+    const handleDownloadPDF = async () => {
+        if (!reportRef.current || !selectedClassId) return;
+        const selectedClass = classes.find(c => c.id === selectedClassId);
+        try {
+            const canvas = await html2canvas(reportRef.current, { scale: 2 });
+            const imgData = canvas.toDataURL('image/png');
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+            pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+            pdf.save(`${selectedClass?.name || 'class'}_report.pdf`);
+        } catch (err) {
+            console.error('Failed to generate PDF:', err);
+            alert('PDF তৈরি করতে সমস্যা হয়েছে।');
+        }
+    };
+
+    const handleEmailReport = () => {
+        const report = generateReportText();
+        if (!report) return;
+        const selectedClass = classes.find(c => c.id === selectedClassId);
+        const subject = encodeURIComponent(`${selectedClass?.name || 'Class'} এর হাজিরার রিপোর্ট`);
+        const body = encodeURIComponent(report);
+        window.location.href = `mailto:?subject=${subject}&body=${body}`;
+    };
 
     const handleExportCSV = () => {
         if (!selectedClassId || !filteredReport || filteredReport.length === 0) {
@@ -95,24 +184,55 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
                 </div>
                 <div className="flex items-center gap-2 flex-wrap">
                     <Button 
+                        onClick={handleShareReport} 
+                        variant="secondary" 
+                        size="sm" 
+                        disabled={!selectedClassId || !filteredReport || filteredReport.length === 0}
+                        title={!selectedClassId || !filteredReport || filteredReport.length === 0 ? "শেয়ার করতে একটি শ্রেণি নির্বাচন করুন" : "রিপোর্টটি শেয়ার করুন"}
+                    >
+                        <ShareIcon className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">শেয়ার</span>
+                    </Button>
+                    <Button 
+                        onClick={handleEmailReport} 
+                        variant="secondary" 
+                        size="sm" 
+                        disabled={!selectedClassId || !filteredReport || filteredReport.length === 0}
+                        title={!selectedClassId || !filteredReport || filteredReport.length === 0 ? "ইমেইল করতে একটি শ্রেণি নির্বাচন করুন" : "রিপোর্টটি ইমেইল করুন"}
+                    >
+                        <EnvelopeIcon className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">ইমেইল</span>
+                    </Button>
+                    <Button 
+                        onClick={handleDownloadPDF} 
+                        variant="secondary" 
+                        size="sm" 
+                        disabled={!selectedClassId || !filteredReport || filteredReport.length === 0}
+                        title={!selectedClassId || !filteredReport || filteredReport.length === 0 ? "PDF ডাউনলোড করতে একটি শ্রেণি নির্বাচন করুন" : "রিপোর্টটি PDF হিসাবে ডাউনলোড করুন"}
+                    >
+                        <DocumentTextIcon className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">PDF</span>
+                    </Button>
+                    <Button 
                         onClick={handleExportCSV} 
                         variant="secondary" 
                         size="sm" 
                         disabled={!selectedClassId || !filteredReport || filteredReport.length === 0}
                         title={!selectedClassId || !filteredReport || filteredReport.length === 0 ? "এক্সপোর্ট করতে একটি শ্রেণি নির্বাচন করুন" : "রিপোর্টটি CSV হিসাবে ডাউনলোড করুন"}
                     >
-                        <DocumentArrowDownIcon className="w-4 h-4 mr-2" />
-                        CSV এক্সপোর্ট করুন
+                        <DocumentArrowDownIcon className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">CSV</span>
                     </Button>
                     <Button onClick={onBack} variant="secondary" size="sm">
-                        <ArrowLeftIcon className="w-4 h-4 mr-2" />
-                        ফিরে যান
+                        <ArrowLeftIcon className="w-4 h-4 sm:mr-2" />
+                        <span className="hidden sm:inline">ফিরে যান</span>
                     </Button>
                 </div>
             </div>
             
-            <div className="border-b pb-4 mb-6">
-                <h3 className="text-lg font-semibold mb-3 text-gray-700">ফিল্টার করুন</h3>
+            <div ref={reportRef} className="bg-white">
+                <div className="border-b pb-4 mb-6" data-html2canvas-ignore>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-700">ফিল্টার করুন</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div>
                         <label htmlFor="start-date" className="block text-sm font-medium text-gray-700">শুরুর তারিখ</label>
@@ -180,7 +300,7 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
                 </div>
             )}
 
-            <div className="mb-6">
+            <div className="mb-6" data-html2canvas-ignore>
                  <h3 className="text-lg font-semibold mb-3 text-gray-700">শ্রেণি নির্বাচন করুন</h3>
                 <ClassSelector 
                     classes={classes}
@@ -191,7 +311,7 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
             
             {selectedClassId ? (
                 <div>
-                    <div className="relative mb-4">
+                    <div className="relative mb-4" data-html2canvas-ignore>
                          <span className="absolute inset-y-0 left-0 flex items-center pl-3">
                             <MagnifyingGlassIcon className="w-5 h-5 text-gray-400" />
                         </span>
@@ -232,6 +352,7 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
                     <p className="text-gray-500">রিপোর্ট দেখতে অনুগ্রহ করে একটি শ্রেণি নির্বাচন করুন।</p>
                 </div>
             )}
+            </div>
         </div>
     );
 };
