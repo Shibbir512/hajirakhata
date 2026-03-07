@@ -12,7 +12,7 @@ interface ConsolidatedReportProps {
         startDate: Date | null; 
         endDate: Date | null; 
         status: AttendanceStatus 
-    }) => { report: Map<string, { student: Student; count: number }[]>; teachers: string[] };
+    }) => { report: Map<string, { student: Student; count: number }[]>; teachers: { name: string; timestamp: number }[] };
     onSelectStudent: (student: Student) => void;
     onBack: () => void;
     selectedClassId: string | null;
@@ -154,11 +154,28 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({
                 <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
                     <h3 className="text-sm font-semibold text-blue-800 mb-2">এই সময়ে হাজিরা নিয়েছেন:</h3>
                     <div className="flex flex-wrap gap-2">
-                        {teachers.map((teacher, index) => (
-                            <span key={index} className="px-3 py-1 bg-white text-blue-600 rounded-full text-xs font-medium border border-blue-200 shadow-sm">
-                                {teacher}
-                            </span>
-                        ))}
+                        {teachers.map((teacher, index) => {
+                            const date = new Date(teacher.timestamp);
+                            const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' ');
+                            
+                            // Manual 12-hour format
+                            let hours = date.getHours();
+                            const minutes = date.getMinutes().toString().padStart(2, '0');
+                            const seconds = date.getSeconds().toString().padStart(2, '0');
+                            const ampm = hours >= 12 ? 'PM' : 'AM';
+                            hours = hours % 12;
+                            hours = hours ? hours : 12; // the hour '0' should be '12'
+                            const timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
+                            
+                            return (
+                                <div key={index} className="px-3 py-2 bg-white text-blue-600 rounded-lg text-xs font-medium border border-blue-200 shadow-sm flex flex-col">
+                                    <span className="font-bold">{teacher.name}</span>
+                                    <span className="text-[10px] text-slate-500 mt-0.5">
+                                        তারিখ: {dateStr}, সময়: {timeStr}
+                                    </span>
+                                </div>
+                            );
+                        })}
                     </div>
                 </div>
             )}

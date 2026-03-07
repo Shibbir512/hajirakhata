@@ -35,7 +35,7 @@ const Reminders: React.FC<RemindersProps> = ({ reminders, onAddReminder, onDelet
         const [hours, minutes] = time24h.split(':');
         const date = new Date();
         date.setHours(parseInt(hours, 10), parseInt(minutes, 10));
-        return date.toLocaleTimeString('bn-BD', { hour: 'numeric', minute: 'numeric', hour12: true });
+        return date.toLocaleTimeString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true });
     };
 
     return (

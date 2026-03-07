@@ -148,10 +148,13 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
             let timeStr = '';
             if (record.takenAt) {
                 const date = new Date(record.takenAt);
-                const hours = String(date.getHours()).padStart(2, '0');
+                let hours = date.getHours();
                 const minutes = String(date.getMinutes()).padStart(2, '0');
                 const seconds = String(date.getSeconds()).padStart(2, '0');
-                timeStr = `${hours}:${minutes}:${seconds}`;
+                const ampm = hours >= 12 ? 'PM' : 'AM';
+                hours = hours % 12;
+                hours = hours ? hours : 12; // the hour '0' should be '12'
+                timeStr = `${hours}:${minutes}:${seconds} ${ampm}`;
             }
             return {
                 name: record.teacherName,
@@ -216,7 +219,7 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
           {classData && (
               <div className="px-3 sm:px-4 py-2 border-b border-slate-100 flex gap-2">
                   <button 
-                      className="flex-1 py-2 bg-teal-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center justify-center gap-2"
+                      className="flex-1 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold shadow-sm flex items-center justify-center gap-2"
                       disabled
                   >
                       <i className="fa-solid fa-clipboard-check"></i> হাজিরা নিন

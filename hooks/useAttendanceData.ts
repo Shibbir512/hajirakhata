@@ -262,7 +262,7 @@ export const useAttendanceData = () => {
     status: AttendanceStatus;
   }) => {
     const report = new Map<string, { student: Student; count: number }[]>();
-    const teachers = new Set<string>();
+    const teachersMap = new Map<string, { name: string; timestamp: number }>();
     let filteredAttendance = attendance;
 
     if (filters.startDate) {
@@ -279,7 +279,13 @@ export const useAttendanceData = () => {
     const studentCount = new Map<string, number>();
     filteredAttendance.forEach(record => {
         if (record.teacherName) {
-            teachers.add(record.teacherName);
+            const time = record.takenAt || record.timestamp;
+            // Create a unique key for teacher + time (rounded to minutes to avoid slight diffs if any)
+            // Actually, let's just use the exact time.
+            const key = `${record.teacherName}-${time}`;
+            if (!teachersMap.has(key)) {
+                teachersMap.set(key, { name: record.teacherName, timestamp: time });
+            }
         }
         if (record.status === filters.status) {
             studentCount.set(record.studentId, (studentCount.get(record.studentId) || 0) + 1);
@@ -301,7 +307,9 @@ export const useAttendanceData = () => {
         }
     });
 
-    return { report, teachers: Array.from(teachers) };
+    const teachersList = Array.from(teachersMap.values()).sort((a, b) => b.timestamp - a.timestamp);
+
+    return { report, teachers: teachersList };
   }, [attendance, classes, students]);
 
   const addClass = useCallback(async (name: string) => {
