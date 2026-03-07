@@ -68,6 +68,18 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
     }
   }, [students, todaysRecords]);
 
+  useEffect(() => {
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [hasUnsavedChanges]);
+
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return students;
     const lowercasedQuery = searchQuery.toLowerCase();
@@ -293,21 +305,17 @@ const AttendanceSheet: React.FC<AttendanceSheetProps> = ({
                             `}
                         >
                             <div className="absolute top-2 right-2 flex gap-1">
-                                {note && (
-                                    <button 
-                                        onClick={(e) => { e.stopPropagation(); setEditingNoteForStudent(student); }}
-                                        className="text-teal-600 hover:text-teal-800 p-2 -m-2"
-                                        title={note}
-                                        style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                                    >
-                                        <i className="fa-solid fa-comment-dots"></i>
-                                    </button>
-                                )}
+                                <button 
+                                    onClick={(e) => { e.stopPropagation(); setEditingNoteForStudent(student); }}
+                                    className={`${note ? 'text-teal-600 hover:text-teal-800' : 'text-slate-300 hover:text-slate-500'} p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center`}
+                                    title={note || "নোট যোগ করুন"}
+                                >
+                                    <i className={note ? "fa-solid fa-comment-dots" : "fa-regular fa-comment"}></i>
+                                </button>
                                 <button 
                                     onClick={(e) => { e.stopPropagation(); setEditingStudent(student); }}
-                                    className="text-slate-400 hover:text-slate-600 p-2 -m-2"
+                                    className="text-slate-400 hover:text-slate-600 p-2 -m-2 min-w-[44px] min-h-[44px] flex items-center justify-center"
                                     title="এডিট"
-                                    style={{ minWidth: '44px', minHeight: '44px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                                 >
                                     <EditIcon className="w-4 h-4" />
                                 </button>

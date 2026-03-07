@@ -104,8 +104,12 @@ export const useAttendance = (orgId: string | null, user: any, classes: ClassDat
         batch.set(recordRef, record, { merge: true });
       });
 
-      await batch.commit();
-      toast.success('হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!');
+      batch.commit().catch(error => {
+        console.error("Error committing batch:", error);
+        toast.error('হাজিরা সিঙ্ক করতে সমস্যা হয়েছে।');
+      });
+      
+      toast.success('হাজিরা সংরক্ষিত! (অফলাইনে থাকলে ইন্টারনেট এলে সিঙ্ক হবে)');
     } catch (error) {
       console.error("Error taking attendance:", error);
       toast.error('হাজিরা সংরক্ষণ করতে সমস্যা হয়েছে।');
