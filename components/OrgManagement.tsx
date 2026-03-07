@@ -45,9 +45,9 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
   return (
     <div className="flex flex-col items-center justify-center min-h-screen bg-slate-100 p-4">
       <div className="bg-white p-8 rounded-lg shadow-md max-w-md w-full">
-        <h1 className="text-2xl font-bold mb-2 text-gray-800 text-center">স্কুল/প্রতিষ্ঠান সেটআপ</h1>
+        <h1 className="text-2xl font-bold mb-2 text-gray-800 text-center">মাদরাসা/প্রতিষ্ঠান সেটআপ</h1>
         <p className="text-gray-600 mb-6 text-center text-sm">
-          ১০ জন শিক্ষক মিলে একই ডাটা ব্যবহার করতে চাইলে একটি স্কুল তৈরি করুন অথবা বিদ্যমান স্কুলে জয়েন করুন।
+          ১০ জন শিক্ষক মিলে একই ডাটা ব্যবহার করতে চাইলে একটি মাদরাসা তৈরি করুন অথবা বিদ্যমান মাদরাসায় জয়েন করুন।
         </p>
 
         {mode === 'select' ? (
@@ -61,7 +61,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
                     </svg>
                   </div>
                   <h3 className="text-lg font-bold text-gray-800">স্বাগতম!</h3>
-                  <p className="text-sm text-gray-500">আপনার স্কুল নির্বাচন করুন</p>
+                  <p className="text-sm text-gray-500">আপনার মাদরাসা নির্বাচন করুন</p>
                 </div>
                 
                 <div className="space-y-3">
@@ -92,7 +92,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
                     </svg>
-                    অন্য কোনো স্কুলে জয়েন করুন
+                    অন্য কোনো মাদরাসায় জয়েন করুন
                   </button>
                   <button 
                     onClick={() => setMode('create')} 
@@ -101,17 +101,17 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
-                    নতুন স্কুল তৈরি করুন
+                    নতুন মাদরাসা তৈরি করুন
                   </button>
                 </div>
               </div>
             ) : (
               <div className="space-y-4">
                 <Button onClick={() => setMode('create')} className="w-full justify-center py-3">
-                  নতুন স্কুল তৈরি করুন
+                  নতুন মাদরাসা তৈরি করুন
                 </Button>
                 <Button onClick={() => setMode('join')} variant="secondary" className="w-full justify-center py-3">
-                  বিদ্যমান স্কুলে জয়েন করুন
+                  বিদ্যমান মাদরাসায় জয়েন করুন
                 </Button>
               </div>
             )}
@@ -126,13 +126,13 @@ const OrgManagement: React.FC<OrgManagementProps> = ({ onCreateOrg, onJoinOrg, o
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                {mode === 'create' ? 'স্কুলের নাম' : 'স্কুল আইডি (School ID)'}
+                {mode === 'create' ? 'মাদরাসার নাম' : 'মাদরাসার নাম বা আইডি'}
               </label>
               <input
                 type="text"
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder={mode === 'create' ? 'যেমন: আদর্শ উচ্চ বিদ্যালয়' : 'যেমন: school-123...'}
+                placeholder={mode === 'create' ? 'যেমন: আদর্শ মাদরাসা' : 'যেমন: আদর্শ মাদরাসা'}
                 className="w-full p-2 border rounded focus:ring-2 focus:ring-slate-500 outline-none"
                 required
               />

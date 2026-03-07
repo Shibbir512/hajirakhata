@@ -8,32 +8,52 @@ import NoteEditModal from './NoteEditModal';
 
 interface StudentDetailModalProps {
   student: Student;
-  absences: AttendanceRecord[];
+  history: AttendanceRecord[];
   onClose: () => void;
   onUpdateRecord: (recordId: string, newStatus: AttendanceStatus) => void;
   onUpdateRecordNote: (recordId: string, newNote: string) => void;
 }
 
-const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, absences, onClose, onUpdateRecord, onUpdateRecordNote }) => {
+const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, history, onClose, onUpdateRecord, onUpdateRecordNote }) => {
   const [editingRecordForNote, setEditingRecordForNote] = useState<AttendanceRecord | null>(null);
 
   const handleCopyReport = async () => {
-    let report = `অনুপস্থিতির রিপোর্ট\n`;
+    const presentCount = history.filter(r => r.status === AttendanceStatus.Present).length;
+    const absentCount = history.filter(r => r.status === AttendanceStatus.Absent).length;
+
+    let report = `হাজিরার রিপোর্ট\n`;
     report += `ছাত্র/ছাত্রীর নাম: ${student.name}\n`;
     report += `রোল: ${student.roll}\n`;
+    report += `মোট ক্লাস: ${history.length}\n`;
+    report += `উপস্থিত: ${presentCount} দিন\n`;
+    report += `অনুপস্থিত: ${absentCount} দিন\n`;
     report += `------------------------------------\n`;
-    if (absences.length > 0) {
-      absences.forEach(record => {
-        const date = new Date(record.timestamp);
-        report += `- তারিখ: ${date.toLocaleDateString('bn-BD')}, সময়: ${date.toLocaleTimeString('bn-BD')}\n`;
-        if (record.note) {
-          report += `  নোট: ${record.note}\n`;
-        }
-      });
-    } else {
-      report += "কোনো অনুপস্থিতি নেই।\n";
+    
+      if (history.length > 0) {
+        history.forEach(record => {
+          const date = new Date(record.timestamp);
+          const day = String(date.getDate()).padStart(2, '0');
+          const month = String(date.getMonth() + 1).padStart(2, '0');
+          const year = date.getFullYear();
+          const hours = String(date.getHours()).padStart(2, '0');
+          const minutes = String(date.getMinutes()).padStart(2, '0');
+          const seconds = String(date.getSeconds()).padStart(2, '0');
+          
+          const formattedDate = `${day} ${month} ${year}`;
+          const formattedTime = `${hours} ${minutes} ${seconds}`;
+
+          const status = record.status === AttendanceStatus.Present ? 'উপস্থিত' : 'অনুপস্থিত';
+          report += `- ডেইট: ${formattedDate}, টাইম: ${formattedTime} - ${status}\n`;
+          if (record.teacherName) {
+              report += `  শিক্ষক: ${record.teacherName} (টাইম ${formattedTime}, ডেইট ${formattedDate})\n`;
+          }
+          if (record.note) {
+            report += `  নোট: ${record.note}\n`;
+          }
+        });
+      } else {
+      report += "কোনো রেকর্ড নেই।\n";
     }
-    report += `\nমোট অনুপস্থিত: ${absences.length} দিন`;
 
     try {
       await navigator.clipboard.writeText(report);
@@ -66,18 +86,39 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, absenc
               </Button>
           </div>
           
-          <h4 className="text-md font-semibold mb-3 text-gray-700 border-b pb-2">অনুপস্থিতির তালিকা</h4>
+          <h4 className="text-md font-semibold mb-3 text-gray-700 border-b pb-2">হাজিরার ইতিহাস</h4>
           
-          {absences.length > 0 ? (
+          {history.length > 0 ? (
             <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
-              {absences.map(record => {
+              {history.map(record => {
                 const date = new Date(record.timestamp);
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                const hours = String(date.getHours()).padStart(2, '0');
+                const minutes = String(date.getMinutes()).padStart(2, '0');
+                const seconds = String(date.getSeconds()).padStart(2, '0');
+                
+                const formattedDate = `${day} ${month} ${year}`;
+                const formattedTime = `${hours} ${minutes} ${seconds}`;
+
+                const isPresent = record.status === AttendanceStatus.Present;
                 return (
-                  <div key={record.id} className="p-3 bg-red-50 rounded-lg">
+                  <div key={record.id} className={`p-3 rounded-lg border ${isPresent ? 'bg-green-50 border-green-100' : 'bg-red-50 border-red-100'}`}>
                     <div className="flex items-start justify-between">
                         <div>
-                            <p className="font-medium text-red-800">তারিখ: {date.toLocaleDateString('bn-BD')}</p>
-                            <p className="text-sm text-red-600">সময়: {date.toLocaleTimeString('bn-BD')}</p>
+                            <p className={`font-medium ${isPresent ? 'text-green-800' : 'text-red-800'}`}>
+                              ডেইট: {formattedDate}
+                              <span className={`ml-2 text-xs px-2 py-0.5 rounded-full ${isPresent ? 'bg-green-200 text-green-800' : 'bg-red-200 text-red-800'}`}>
+                                {isPresent ? 'উপস্থিত' : 'অনুপস্থিত'}
+                              </span>
+                            </p>
+                            <p className={`text-sm ${isPresent ? 'text-green-600' : 'text-red-600'}`}>টাইম: {formattedTime}</p>
+                            {record.teacherName && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                    শিক্ষক: {record.teacherName} (টাইম {formattedTime}, ডেইট {formattedDate})
+                                </p>
+                            )}
                         </div>
                         <div className="flex flex-col sm:flex-row gap-1">
                             <Button
@@ -92,16 +133,16 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, absenc
                             <Button
                                 variant="ghost"
                                 size="sm"
-                                onClick={() => onUpdateRecord(record.id, AttendanceStatus.Present)}
-                                title="উপস্থিত হিসাবে চিহ্নিত করুন"
+                                onClick={() => onUpdateRecord(record.id, isPresent ? AttendanceStatus.Absent : AttendanceStatus.Present)}
+                                title={isPresent ? "অনুপস্থিত হিসেবে চিহ্নিত করুন" : "উপস্থিত হিসেবে চিহ্নিত করুন"}
                             >
                                 <EditIcon className="w-4 h-4 sm:mr-2" />
-                                <span className="hidden sm:inline">এডিট</span>
+                                <span className="hidden sm:inline">স্ট্যাটাস পরিবর্তন</span>
                             </Button>
                         </div>
                     </div>
                     {record.note && (
-                        <p className="text-xs text-gray-700 mt-2 pt-2 pl-2 border-t border-red-200">
+                        <p className={`text-xs mt-2 pt-2 pl-2 border-t ${isPresent ? 'text-green-700 border-green-200' : 'text-red-700 border-red-200'}`}>
                             <strong>নোট:</strong> {record.note}
                         </p>
                     )}
@@ -110,7 +151,7 @@ const StudentDetailModal: React.FC<StudentDetailModalProps> = ({ student, absenc
               })}
             </div>
           ) : (
-            <p className="text-center py-8 text-gray-500">এই ছাত্র/ছাত্রী কখনো অনুপস্থিত ছিল না।</p>
+            <p className="text-center py-8 text-gray-500">এই ছাত্র/ছাত্রীর কোনো হাজিরার রেকর্ড নেই।</p>
           )}
 
           <div className="mt-6 text-right">

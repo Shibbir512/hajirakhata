@@ -21,4 +21,7 @@ export interface AttendanceRecord {
   timestamp: number;
   status: AttendanceStatus;
   note?: string;
+  teacherName?: string;
+  teacherId?: string;
+  takenAt?: number;
 }

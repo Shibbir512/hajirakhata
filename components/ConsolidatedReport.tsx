@@ -12,13 +12,21 @@ interface ConsolidatedReportProps {
         startDate: Date | null; 
         endDate: Date | null; 
         status: AttendanceStatus 
-    }) => Map<string, { student: Student; count: number }[]>;
+    }) => { report: Map<string, { student: Student; count: number }[]>; teachers: string[] };
     onSelectStudent: (student: Student) => void;
     onBack: () => void;
+    selectedClassId: string | null;
+    onSelectClass: (id: string) => void;
 }
 
-const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({ classes, getConsolidatedReport, onSelectStudent, onBack }) => {
-    const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
+const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({ 
+    classes, 
+    getConsolidatedReport, 
+    onSelectStudent, 
+    onBack,
+    selectedClassId,
+    onSelectClass
+}) => {
     const [startDate, setStartDate] = useState<Date | null>(null);
     const [endDate, setEndDate] = useState<Date | null>(null);
     const [status, setStatus] = useState<AttendanceStatus>(AttendanceStatus.Absent);
@@ -28,7 +36,7 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({ classes, getCon
         setSearchQuery('');
     }, [selectedClassId]);
 
-    const reportData = useMemo(() => {
+    const { report: reportData, teachers } = useMemo(() => {
         return getConsolidatedReport({ startDate, endDate, status });
     }, [getConsolidatedReport, startDate, endDate, status]);
 
@@ -142,12 +150,25 @@ const ConsolidatedReport: React.FC<ConsolidatedReportProps> = ({ classes, getCon
                 </div>
             </div>
 
+            {teachers.length > 0 && (
+                <div className="mb-6 bg-blue-50 p-4 rounded-lg border border-blue-100">
+                    <h3 className="text-sm font-semibold text-blue-800 mb-2">এই সময়ে হাজিরা নিয়েছেন:</h3>
+                    <div className="flex flex-wrap gap-2">
+                        {teachers.map((teacher, index) => (
+                            <span key={index} className="px-3 py-1 bg-white text-blue-600 rounded-full text-xs font-medium border border-blue-200 shadow-sm">
+                                {teacher}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
+
             <div className="mb-6">
                  <h3 className="text-lg font-semibold mb-3 text-gray-700">শ্রেণি নির্বাচন করুন</h3>
                 <ClassSelector 
                     classes={classes}
                     selectedClassId={selectedClassId}
-                    onSelectClass={setSelectedClassId}
+                    onSelectClass={onSelectClass}
                 />
             </div>
             

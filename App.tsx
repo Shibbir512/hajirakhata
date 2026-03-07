@@ -25,6 +25,7 @@ const App: React.FC = () => {
     students, 
     takeAttendance, 
     getAbsencesForStudent, 
+    getHistoryForStudent,
     updateAttendanceRecordStatus, 
     getConsolidatedReport,
     addClass,
@@ -45,6 +46,10 @@ const App: React.FC = () => {
   
   const [selectedClassId, setSelectedClassId] = useState<string | null>(null);
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    const today = new Date();
+    return today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+  });
   const [view, setView] = useState<'attendance' | 'report' | 'manageClasses' | 'manageStudents' | 'reminders'>('attendance');
   const [classForStudentManagement, setClassForStudentManagement] = useState<string | null>(null);
 
@@ -116,12 +121,12 @@ const App: React.FC = () => {
   };
 
   const handleLeaveOrg = async () => {
-    if (window.confirm('আপনি কি বর্তমান স্কুল থেকে বের হতে চান? আপনি পরে আবার স্কুল আইডির মাধ্যমে জয়েন করতে পারবেন।')) {
+    if (window.confirm('আপনি কি বর্তমান মাদরাসা থেকে বের হতে চান? আপনি পরে আবার মাদরাসার নাম বা আইডির মাধ্যমে জয়েন করতে পারবেন।')) {
       try {
         await leaveOrganization();
       } catch (error) {
         console.error("Error leaving organization:", error);
-        alert("স্কুল পরিবর্তন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
+        alert("মাদরাসা পরিবর্তন করতে সমস্যা হয়েছে। অনুগ্রহ করে আবার চেষ্টা করুন।");
       }
     }
   };
@@ -129,7 +134,7 @@ const App: React.FC = () => {
   const copyOrgId = () => {
     if (orgId) {
       navigator.clipboard.writeText(orgId);
-      alert('স্কুল আইডি কপি করা হয়েছে। অন্য শিক্ষকদের সাথে এটি শেয়ার করুন।');
+      alert('মাদরাসা আইডি কপি করা হয়েছে। অন্য শিক্ষকদের সাথে এটি শেয়ার করুন।');
     }
   };
 
@@ -161,6 +166,8 @@ const App: React.FC = () => {
                     getConsolidatedReport={getConsolidatedReport}
                     onSelectStudent={handleSelectStudent}
                     onBack={() => setView('attendance')}
+                    selectedClassId={selectedClassId}
+                    onSelectClass={setSelectedClassId}
                 />
             );
         case 'reminders':
@@ -210,7 +217,7 @@ const App: React.FC = () => {
               <>
                 <div className="bg-white rounded-lg shadow-md p-4 mb-6">
                   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-3">
-                      <h2 className="text-xl font-bold text-gray-700 mb-3 sm:mb-0">শ্রেণি নির্বাচন করুন</h2>
+                      <h2 className="text-xl font-bold text-gray-700 mb-3 sm:mb-0">ড্যাশবোর্ড</h2>
                       <div className="flex flex-wrap gap-2">
                           <Button onClick={() => setView('reminders')} variant="secondary">
                               <BellIcon className="w-5 h-5 mr-2" />
@@ -226,45 +233,43 @@ const App: React.FC = () => {
                           </Button>
                       </div>
                   </div>
-                  <ClassSelector
-                    classes={classes}
-                    selectedClassId={selectedClassId}
-                    onSelectClass={setSelectedClassId}
-                  />
                 </div>
     
-                {selectedClass ? (
-                  <AttendanceSheet
-                    key={selectedClass.id}
-                    classData={selectedClass}
-                    attendanceRecords={attendance}
-                    students={students[selectedClass.id] || []}
-                    onTakeAttendance={takeAttendance}
-                    onSelectStudent={handleSelectStudent}
-                    onUpdateStudentName={updateStudentName}
-                  />
-                ) : (
-                  <div className="text-center p-10 bg-white rounded-lg shadow-md">
-                    <p className="text-gray-500">{classes.length > 0 ? 'শুরু করতে অনুগ্রহ করে একটি শ্রেণি নির্বাচন করুন।' : 'কোনো শ্রেণি পাওয়া যায়নি। অনুগ্রহ করে একটি নতুন শ্রেণি যোগ করুন।'}</p>
-                  </div>
-                )}
+                <AttendanceSheet
+                  classes={classes}
+                  selectedClassId={selectedClassId}
+                  onSelectClass={setSelectedClassId}
+                  students={selectedClass ? (students[selectedClass.id] || []) : []}
+                  attendanceRecords={attendance}
+                  onTakeAttendance={takeAttendance}
+                  onSelectStudent={handleSelectStudent}
+                  onUpdateStudentName={updateStudentName}
+                  selectedDate={selectedDate}
+                  onViewReport={() => setView('report')}
+                />
               </>
             );
     }
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-800">
-      <Header />
+    <div className="min-h-screen bg-gray-50 text-gray-800 font-sans">
+      <Header 
+        user={user} 
+        orgId={orgId} 
+        onLogout={handleLogout} 
+        selectedDate={selectedDate}
+        onDateChange={setSelectedDate}
+      />
       <div className="container mx-auto px-4 py-2 flex flex-col sm:flex-row justify-between items-center gap-2">
-         <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onClick={copyOrgId} title="স্কুল আইডি কপি করুন">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">School ID:</span>
+         <div className="flex items-center gap-2 bg-slate-100 px-3 py-1 rounded-full border border-slate-200 cursor-pointer hover:bg-slate-200 transition-colors" onClick={copyOrgId} title="মাদরাসা আইডি কপি করুন">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">Madrasa ID:</span>
             <code className="text-xs font-mono text-slate-700">{orgId}</code>
             <ClipboardIcon className="w-3 h-3 text-slate-400" />
          </div>
-         <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600 hidden sm:inline">{user.displayName || user.email}</span>
-            <Button onClick={handleLeaveOrg} variant="secondary" size="sm" className="text-xs">স্কুল পরিবর্তন</Button>
+         <div className="flex items-center gap-2 sm:hidden">
+            <span className="text-sm text-gray-600">{user.displayName || user.email}</span>
+            <Button onClick={handleLeaveOrg} variant="secondary" size="sm" className="text-xs">মাদরাসা পরিবর্তন</Button>
             <Button onClick={handleLogout} variant="secondary" size="sm">লগ আউট</Button>
          </div>
       </div>
@@ -275,7 +280,7 @@ const App: React.FC = () => {
       {selectedStudent && (
         <StudentDetailModal
           student={selectedStudent}
-          absences={getAbsencesForStudent(selectedStudent.id)}
+          history={getHistoryForStudent(selectedStudent.id)}
           onClose={handleCloseModal}
           onUpdateRecord={updateAttendanceRecordStatus}
           onUpdateRecordNote={updateAttendanceRecordNote}

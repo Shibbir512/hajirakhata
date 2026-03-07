@@ -3,7 +3,7 @@ import { CLASSES, STUDENTS } from '../constants';
 import type { AttendanceRecord, Student, ClassData } from '../types';
 import { AttendanceStatus } from '../types';
 import { db, auth } from '../src/firebase';
-import { collection, doc, setDoc, deleteDoc, onSnapshot, query, where, updateDoc, getDoc } from 'firebase/firestore';
+import { collection, doc, setDoc, deleteDoc, onSnapshot, query, where, updateDoc, getDoc, getDocs } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 
 export const useAttendanceData = () => {
@@ -129,7 +129,7 @@ export const useAttendanceData = () => {
 
   const createOrganization = useCallback(async (name: string) => {
     if (!user || !db) return;
-    const newOrgId = `school-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const newOrgId = `madrasa-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
     await setDoc(doc(db, 'organizations', newOrgId), { 
       id: newOrgId, 
       name, 
@@ -148,27 +148,40 @@ export const useAttendanceData = () => {
     setOrgId(newOrgId);
   }, [user]);
 
-  const joinOrganization = useCallback(async (id: string) => {
+  const joinOrganization = useCallback(async (identifier: string) => {
     if (!user || !db) return;
     
-    // Check if org exists and get name
-    const orgRef = doc(db, 'organizations', id);
+    let targetOrgId = identifier;
+    let orgName = '';
+
+    // First try to find by ID
+    const orgRef = doc(db, 'organizations', identifier);
     const orgSnap = await getDoc(orgRef);
     
-    if (!orgSnap.exists()) {
-      throw new Error("স্কুলটি খুঁজে পাওয়া যায়নি। সঠিক আইডি দিন।");
+    if (orgSnap.exists()) {
+      orgName = orgSnap.data().name;
+    } else {
+      // If not found by ID, try to find by Name
+      const q = query(collection(db, 'organizations'), where('name', '==', identifier));
+      const querySnapshot = await getDocs(q);
+      
+      if (!querySnapshot.empty) {
+        const orgDoc = querySnapshot.docs[0];
+        targetOrgId = orgDoc.id;
+        orgName = orgDoc.data().name;
+      } else {
+        throw new Error("মাদরাসাটি খুঁজে পাওয়া যায়নি। সঠিক নাম বা আইডি দিন।");
+      }
     }
     
-    const orgName = orgSnap.data().name;
-
     await setDoc(doc(db, 'users', user.uid), { 
-      organizationId: id,
+      organizationId: targetOrgId,
       visitedOrgs: {
-        [id]: orgName
+        [targetOrgId]: orgName
       }
     }, { merge: true });
     
-    setOrgId(id);
+    setOrgId(targetOrgId);
   }, [user]);
 
   const leaveOrganization = useCallback(async () => {
@@ -177,31 +190,53 @@ export const useAttendanceData = () => {
     setOrgId(null);
   }, [user]);
 
-  const takeAttendance = useCallback(async (classId: string, studentStatuses: Map<string, {status: AttendanceStatus, note: string}>) => {
+  const takeAttendance = useCallback(async (classId: string, studentStatuses: Map<string, {status: AttendanceStatus, note: string}>, dateString?: string) => {
     if (!user || !db || !orgId) return;
-    const timestamp = Date.now();
+    
+    let timestamp: number;
+    if (dateString) {
+      const date = new Date(dateString);
+      date.setHours(0, 0, 0, 0);
+      timestamp = date.getTime();
+    } else {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      timestamp = today.getTime();
+    }
+
     const batchPromises: Promise<void>[] = [];
+    const takenAt = Date.now();
 
     studentStatuses.forEach(({ status, note }, studentId) => {
-      const recordId = `${timestamp}-${studentId}`;
+      // Use a consistent ID format based on date and student ID to prevent duplicates for the same day
+      // Format: YYYY-MM-DD-studentId
+      const dateKey = new Date(timestamp).toISOString().split('T')[0];
+      const recordId = `${dateKey}-${studentId}`;
+      
       const record: any = {
         id: recordId,
         studentId,
         classId,
         timestamp,
         status,
+        note: note || '',
+        teacherName: user.displayName || user.email || 'অজানা',
+        teacherId: user.uid,
+        takenAt
       };
-      
-      if (note && note.trim()) {
-        record.note = note;
-      }
 
       const recordRef = doc(db!, `organizations/${orgId}/attendance`, recordId);
-      batchPromises.push(setDoc(recordRef, record));
+      batchPromises.push(setDoc(recordRef, record, { merge: true }));
     });
 
     await Promise.all(batchPromises);
   }, [user, orgId]);
+
+  const getHistoryForStudent = useCallback((studentId: string) => {
+    return attendance
+      .filter(record => record.studentId === studentId)
+      .sort((a, b) => b.timestamp - a.timestamp);
+  }, [attendance]);
 
   const getAbsencesForStudent = useCallback((studentId: string) => {
     return attendance
@@ -227,6 +262,7 @@ export const useAttendanceData = () => {
     status: AttendanceStatus;
   }) => {
     const report = new Map<string, { student: Student; count: number }[]>();
+    const teachers = new Set<string>();
     let filteredAttendance = attendance;
 
     if (filters.startDate) {
@@ -242,6 +278,9 @@ export const useAttendanceData = () => {
 
     const studentCount = new Map<string, number>();
     filteredAttendance.forEach(record => {
+        if (record.teacherName) {
+            teachers.add(record.teacherName);
+        }
         if (record.status === filters.status) {
             studentCount.set(record.studentId, (studentCount.get(record.studentId) || 0) + 1);
         }
@@ -262,7 +301,7 @@ export const useAttendanceData = () => {
         }
     });
 
-    return report;
+    return { report, teachers: Array.from(teachers) };
   }, [attendance, classes, students]);
 
   const addClass = useCallback(async (name: string) => {
@@ -337,6 +376,7 @@ export const useAttendanceData = () => {
     attendance, 
     takeAttendance, 
     getAbsencesForStudent, 
+    getHistoryForStudent,
     updateAttendanceRecordStatus, 
     getConsolidatedReport, 
     addClass, 

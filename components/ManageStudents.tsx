@@ -58,11 +58,11 @@ const ManageStudents: React.FC<ManageStudentsProps> = ({ classData, students, on
             {students.length > 0 ? (
                 students.map(student => (
                     <div key={student.id} className="flex items-center justify-between p-3 rounded-md border bg-gray-50">
-                        <div className="flex items-center gap-3">
-                           <p className="font-medium text-gray-600 w-8 text-center">{student.roll}.</p>
-                           <p className="font-medium text-gray-800">{student.name}</p>
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                           <p className="font-medium text-gray-600 w-8 text-center flex-shrink-0">{student.roll}.</p>
+                           <p className="font-medium text-gray-800 truncate">{student.name}</p>
                         </div>
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 flex-shrink-0">
                             <Button size="sm" variant="ghost" onClick={() => setEditingStudent(student)} title="নাম পরিবর্তন করুন">
                                 <EditIcon className="w-5 h-5" />
                             </Button>

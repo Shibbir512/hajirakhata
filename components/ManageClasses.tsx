@@ -133,8 +133,8 @@ const ManageClasses: React.FC<ManageClassesProps> = ({ classes, onAddClass, onUp
             {classes.length > 0 ? (
                 classes.map(cls => (
                     <div key={cls.id} className="flex items-center justify-between p-3 rounded-md border bg-gray-50">
-                        <p className="font-medium text-gray-800">{cls.name}</p>
-                        <div className="flex gap-2">
+                        <p className="font-medium text-gray-800 truncate flex-1 min-w-0">{cls.name}</p>
+                        <div className="flex gap-2 flex-shrink-0">
                              <Button size="sm" variant="ghost" onClick={() => onManageStudents(cls.id)} title="ছাত্র/ছাত্রী পরিচালনা">
                                 <UsersIcon className="w-5 h-5" />
                             </Button>
