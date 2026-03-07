@@ -1,5 +1,5 @@
 {
-  "name": "Student Attendance App (ছাত্র হাজিরা)",
+  "name": "Student Attendance App",
   "description": "An application for teachers to take and manage student attendance for multiple classes. Attendance can be taken multiple times a day and reports can be viewed, edited, and shared.",
   "requestFramePermissions": []
 }

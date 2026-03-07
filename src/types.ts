@@ -2,6 +2,9 @@ export interface Student {
   id: string;
   roll: number;
   name: string;
+  fatherName?: string;
+  phone?: string;
+  address?: string;
 }
 
 export interface ClassData {
@@ -10,8 +13,8 @@ export interface ClassData {
 }
 
 export enum AttendanceStatus {
-  Present = 'present',
-  Absent = 'absent',
+  Present = "present",
+  Absent = "absent",
 }
 
 export interface AttendanceRecord {

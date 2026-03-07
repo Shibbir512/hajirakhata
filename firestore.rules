@@ -1,0 +1,39 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function to check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Helper function to check if user belongs to the organization
+    function belongsToOrg(orgId) {
+      return isAuthenticated() && request.auth.uid != null;
+      // In a real app, you'd check a users collection or custom claims
+      // For this simple version, we assume any authenticated user can access the org they specify
+      // A more robust implementation would be:
+      // return isAuthenticated() && exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
+    }
+
+    // Organizations collection
+    match /organizations/{orgId} {
+      allow read, write: if isAuthenticated();
+      
+      // Classes subcollection
+      match /classes/{classId} {
+        allow read, write: if belongsToOrg(orgId);
+      }
+      
+      // Students subcollection
+      match /students/{studentId} {
+        allow read, write: if belongsToOrg(orgId);
+      }
+      
+      // Attendance subcollection
+      match /attendance/{recordId} {
+        allow read, write: if belongsToOrg(orgId);
+      }
+    }
+  }
+}

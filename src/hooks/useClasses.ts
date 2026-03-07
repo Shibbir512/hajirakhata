@@ -1,0 +1,115 @@
+import { useState, useEffect, useCallback } from "react";
+import { db } from "../firebase";
+import {
+  collection,
+  doc,
+  onSnapshot,
+  setDoc,
+  updateDoc,
+  deleteDoc,
+  query,
+  where,
+  getDocs,
+  writeBatch,
+} from "firebase/firestore";
+import { ClassData } from "../types";
+import toast from "react-hot-toast";
+
+export const useClasses = (orgId: string | null, user: any) => {
+  const [classes, setClasses] = useState<ClassData[]>([]);
+
+  useEffect(() => {
+    if (!user || !db || !orgId) {
+      setClasses([]);
+      return;
+    }
+
+    const classesRef = collection(db, `organizations/${orgId}/classes`);
+    const unsubClasses = onSnapshot(classesRef, (snapshot) => {
+      const loadedClasses = snapshot.docs.map((doc) => doc.data() as ClassData);
+      setClasses(loadedClasses);
+    });
+
+    return () => unsubClasses();
+  }, [user, orgId]);
+
+  const addClass = useCallback(
+    async (name: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        const newClassId = `class-${Date.now()}`;
+        const newClass = { id: newClassId, name };
+        await setDoc(
+          doc(db, `organizations/${orgId}/classes`, newClassId),
+          newClass,
+        );
+        toast.success("Class added successfully!");
+      } catch (error) {
+        console.error("Error adding class:", error);
+        toast.error("Failed to add class.");
+      }
+    },
+    [user, orgId],
+  );
+
+  const updateClassName = useCallback(
+    async (id: string, name: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        await updateDoc(doc(db, `organizations/${orgId}/classes`, id), {
+          name,
+        });
+        toast.success("Class updated successfully!");
+      } catch (error) {
+        console.error("Error updating class:", error);
+        toast.error("Failed to update class.");
+      }
+    },
+    [user, orgId],
+  );
+
+  const deleteClass = useCallback(
+    async (id: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        // 1. Delete the class document
+        await deleteDoc(doc(db, `organizations/${orgId}/classes`, id));
+
+        // 2. Delete associated students
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const studentsSnapshot = await getDocs(studentsRef);
+        
+        // We can't query by ID prefix easily in Firestore, so we fetch all and filter
+        // Alternatively, if we had classId in student doc, we could query.
+        // For now, filtering client-side since the collection size per org is manageable.
+        const studentsToDelete = studentsSnapshot.docs.filter(doc => doc.id.startsWith(`${id}-student-`));
+        
+        // 3. Delete associated attendance records
+        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
+        const attendanceQuery = query(attendanceRef, where("classId", "==", id));
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+
+        // Use batch to delete
+        const batch = writeBatch(db);
+        
+        studentsToDelete.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+
+        attendanceSnapshot.docs.forEach(doc => {
+          batch.delete(doc.ref);
+        });
+
+        await batch.commit();
+
+        toast.success("Class and associated data deleted successfully!");
+      } catch (error) {
+        console.error("Error deleting class:", error);
+        toast.error("Failed to delete class.");
+      }
+    },
+    [user, orgId],
+  );
+
+  return { classes, addClass, updateClassName, deleteClass };
+};

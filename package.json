@@ -1,5 +1,5 @@
 {
-  "name": "student-attendance-app-(ছাত্র-হাজিরা)",
+  "name": "student-attendance-app",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -10,12 +10,18 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "clsx": "^2.1.1",
     "firebase": "^12.10.0",
+    "framer-motion": "^12.35.0",
     "html2canvas": "^1.4.1",
     "jspdf": "^4.2.0",
+    "lucide-react": "^0.577.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
-    "react-hot-toast": "^2.6.0"
+    "react-hot-toast": "^2.6.0",
+    "react-router-dom": "^7.13.1",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
     "@tailwindcss/vite": "^4.2.1",
