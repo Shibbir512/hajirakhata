@@ -43,10 +43,10 @@ export const useClasses = (orgId: string | null, user: any) => {
           doc(db, `organizations/${orgId}/classes`, newClassId),
           newClass,
         );
-        toast.success("Class added successfully!");
+        toast.success("শ্রেণি সফলভাবে যোগ করা হয়েছে!");
       } catch (error) {
         console.error("Error adding class:", error);
-        toast.error("Failed to add class.");
+        toast.error("শ্রেণি যোগ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -59,10 +59,10 @@ export const useClasses = (orgId: string | null, user: any) => {
         await updateDoc(doc(db, `organizations/${orgId}/classes`, id), {
           name,
         });
-        toast.success("Class updated successfully!");
+        toast.success("শ্রেণি সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating class:", error);
-        toast.error("Failed to update class.");
+        toast.error("শ্রেণি আপডেট করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -102,10 +102,10 @@ export const useClasses = (orgId: string | null, user: any) => {
 
         await batch.commit();
 
-        toast.success("Class and associated data deleted successfully!");
+        toast.success("শ্রেণি এবং সম্পর্কিত তথ্য সফলভাবে মুছে ফেলা হয়েছে!");
       } catch (error) {
         console.error("Error deleting class:", error);
-        toast.error("Failed to delete class.");
+        toast.error("শ্রেণি মুছে ফেলতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],

@@ -26,10 +26,10 @@ const Settings: React.FC = () => {
     try {
       const orgRef = doc(db, "organizations", orgId);
       await updateDoc(orgRef, { name: orgName.trim() });
-      toast.success("Organization name updated successfully!");
+      toast.success("প্রতিষ্ঠানের নাম সফলভাবে আপডেট করা হয়েছে!");
     } catch (error) {
       console.error("Error updating organization name:", error);
-      toast.error("Failed to update organization name.");
+      toast.error("প্রতিষ্ঠানের নাম আপডেট করতে ব্যর্থ হয়েছে।");
     } finally {
       setIsSaving(false);
     }
@@ -38,26 +38,26 @@ const Settings: React.FC = () => {
   const handleCopyId = () => {
     if (orgId) {
       navigator.clipboard.writeText(orgId);
-      toast.success("Organization ID copied to clipboard!");
+      toast.success("অর্গানাইজেশন আইডি ক্লিপবোর্ডে কপি করা হয়েছে!");
     }
   };
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800">সেটিংস</h2>
+      <h2 className="text-3xl font-bold gradient-text tracking-tight">সেটিংস</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Profile Section */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-blue-600">
-              <User className="w-6 h-6" />
+        <div className="card-premium p-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-14 h-14 bg-gradient-to-tr from-indigo-100 to-teal-100 rounded-full flex items-center justify-center text-teal-600 shadow-inner border border-white">
+              <User className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-800">
+              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
                 প্রোফাইল সেটিংস
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 mt-1">
                 আপনার অ্যাকাউন্টের তথ্য পরিচালনা করুন
               </p>
             </div>
@@ -74,7 +74,7 @@ const Settings: React.FC = () => {
                   type="text"
                   value={user?.displayName || ""}
                   disabled
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 cursor-not-allowed"
+                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70"
                 />
               </div>
             </div>
@@ -88,7 +88,7 @@ const Settings: React.FC = () => {
                   type="email"
                   value={user?.email || ""}
                   disabled
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 cursor-not-allowed"
+                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70"
                 />
               </div>
             </div>
@@ -102,7 +102,7 @@ const Settings: React.FC = () => {
                   type="text"
                   value="অ্যাডমিন"
                   disabled
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 cursor-not-allowed"
+                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70"
                 />
               </div>
             </div>
@@ -110,16 +110,16 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Organization Section */}
-        <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-          <div className="flex items-center gap-4 mb-6">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center text-purple-600">
-              <Building className="w-6 h-6" />
+        <div className="card-premium p-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-14 h-14 bg-gradient-to-tr from-purple-100 to-pink-100 rounded-full flex items-center justify-center text-purple-600 shadow-inner border border-white">
+              <Building className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-slate-800">
+              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
                 প্রতিষ্ঠান
               </h3>
-              <p className="text-sm text-slate-500">
+              <p className="text-sm text-slate-500 mt-1">
                 আপনার প্রতিষ্ঠানের তথ্য পরিচালনা করুন
               </p>
             </div>
@@ -134,7 +134,7 @@ const Settings: React.FC = () => {
                 type="text"
                 value={orgName}
                 onChange={handleOrgNameChange}
-                className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                className="input-premium"
               />
             </div>
             <div>
@@ -142,26 +142,26 @@ const Settings: React.FC = () => {
                 অর্গানাইজেশন আইডি
               </label>
               <div className="flex items-center gap-2">
-                <code className="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-slate-600 font-mono text-sm">
+                <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-sm shadow-inner">
                   {orgId}
                 </code>
                 <button
                   onClick={handleCopyId}
-                  className="px-3 py-2 text-sm text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors border border-indigo-100"
                 >
                   কপি
                 </button>
               </div>
-              <p className="text-xs text-slate-400 mt-1">
+              <p className="text-xs text-slate-400 mt-2">
                 অন্যদের আমন্ত্রণ জানাতে এই আইডি শেয়ার করুন।
               </p>
             </div>
 
-            <div className="pt-4">
+            <div className="pt-6">
               <button
                 onClick={handleSaveOrg}
                 disabled={isSaving || !orgName.trim() || orgName === visitedOrgs[orgId || ""]}
-                className="w-full px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSaving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
               </button>
@@ -170,20 +170,21 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Danger Zone */}
-        <div className="col-span-1 md:col-span-2 bg-white p-6 rounded-xl shadow-sm border border-red-100">
-          <h3 className="text-lg font-semibold text-red-600 mb-4">
+        <div className="col-span-1 md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-rose-100/50 relative overflow-hidden">
+          <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-pink-400"></div>
+          <h3 className="text-xl font-bold text-rose-600 mb-6 tracking-tight">
             ঝুঁকিপূর্ণ এলাকা
           </h3>
-          <div className="flex items-center justify-between p-4 bg-red-50 rounded-lg border border-red-100">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-rose-50/50 rounded-2xl border border-rose-100 gap-4">
             <div>
-              <h4 className="font-medium text-red-900">সাইন আউট</h4>
-              <p className="text-sm text-red-700">
+              <h4 className="font-semibold text-rose-900 text-lg">সাইন আউট</h4>
+              <p className="text-sm text-rose-700/80 mt-1">
                 এই ডিভাইস থেকে আপনার অ্যাকাউন্ট থেকে সাইন আউট করুন
               </p>
             </div>
             <button
               onClick={logout}
-              className="flex items-center px-4 py-2 bg-white border border-red-200 text-red-600 rounded-lg hover:bg-red-50 transition-colors shadow-sm"
+              className="flex items-center px-6 py-3 bg-white border border-rose-200 text-rose-600 rounded-xl hover:bg-rose-50 hover:text-rose-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center"
             >
               <LogOut className="w-4 h-4 mr-2" />
               সাইন আউট

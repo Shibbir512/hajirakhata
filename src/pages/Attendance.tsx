@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Save, CheckCircle, XCircle, ChevronLeft, ChevronRight, ArrowUpDown } from "lucide-react";
+import { Search, Save, CheckCircle, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from "lucide-react";
 import clsx from "clsx";
 
 const ITEMS_PER_PAGE = 10;
@@ -124,13 +124,13 @@ const Attendance: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">হাজিরা</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা</h2>
         <div className="flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-3 rounded-xl font-bold text-base"
           >
-            <Save className="w-4 h-4 mr-2" />
+            <Save className="w-5 h-5 mr-2" />
             সংরক্ষণ
           </button>
         </div>
@@ -139,87 +139,90 @@ const Attendance: React.FC = () => {
       {/* Live Counter */}
       {selectedClassId && (
         <div className="grid grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-lg shadow-sm border border-slate-200 text-center">
-            <p className="text-sm text-slate-500">মোট</p>
-            <p className="text-2xl font-bold text-slate-800">{liveCounter.total}</p>
+          <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-200/60 text-center hover:shadow-md transition-all duration-300">
+            <p className="text-sm text-slate-500 font-medium uppercase tracking-wider mb-1">মোট</p>
+            <p className="text-3xl font-bold text-slate-800">{liveCounter.total}</p>
           </div>
-          <div className="bg-green-50 p-4 rounded-lg shadow-sm border border-green-100 text-center">
-            <p className="text-sm text-green-600">উপস্থিত</p>
-            <p className="text-2xl font-bold text-green-700">{liveCounter.present}</p>
+          <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-6 rounded-2xl shadow-sm border border-emerald-100/50 text-center hover:shadow-md transition-all duration-300">
+            <p className="text-sm text-emerald-600 font-medium uppercase tracking-wider mb-1">উপস্থিত</p>
+            <p className="text-3xl font-bold text-emerald-700">{liveCounter.present}</p>
           </div>
-          <div className="bg-red-50 p-4 rounded-lg shadow-sm border border-red-100 text-center">
-            <p className="text-sm text-red-600">অনুপস্থিত</p>
-            <p className="text-2xl font-bold text-red-700">{liveCounter.absent}</p>
+          <div className="bg-gradient-to-br from-rose-50 to-pink-50 p-6 rounded-2xl shadow-sm border border-rose-100/50 text-center hover:shadow-md transition-all duration-300">
+            <p className="text-sm text-rose-600 font-medium uppercase tracking-wider mb-1">অনুপস্থিত</p>
+            <p className="text-3xl font-bold text-rose-700">{liveCounter.absent}</p>
           </div>
         </div>
       )}
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-          >
-            <option value="">শ্রেণি নির্বাচন করুন</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
+      <div className="card-premium p-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative min-w-[240px]">
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+            >
+              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+          </div>
 
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
             <input
               type="text"
               placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-premium pl-12 search-highlight"
             />
           </div>
         </div>
 
         {selectedClassId ? (
           <>
-            <div className="flex gap-2 mb-4">
+            <div className="flex gap-3 mb-6">
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
-                className="text-sm text-green-600 hover:text-green-700 font-medium px-3 py-1 rounded-md hover:bg-green-50 transition-colors"
+                className="text-sm text-emerald-600 hover:text-emerald-700 font-medium px-4 py-2 rounded-xl hover:bg-emerald-50 transition-all duration-300 border border-transparent hover:border-emerald-100"
               >
                 সবাইকে উপস্থিত করুন
               </button>
-              <span className="text-slate-300 self-center">|</span>
+              <div className="w-px bg-slate-200 self-stretch my-2"></div>
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
-                className="text-sm text-red-600 hover:text-red-700 font-medium px-3 py-1 rounded-md hover:bg-red-50 transition-colors"
+                className="text-sm text-rose-600 hover:text-rose-700 font-medium px-4 py-2 rounded-xl hover:bg-rose-50 transition-all duration-300 border border-transparent hover:border-rose-100"
               >
                 সবাইকে অনুপস্থিত করুন
               </button>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            <div className="overflow-x-auto border border-slate-200/60 rounded-2xl shadow-sm">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0 z-10">
+                <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
                   <tr>
                     <th 
-                      className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                      className="py-3 px-3 sm:py-4 sm:px-6 font-semibold text-slate-600 border-b border-slate-200/60 cursor-pointer hover:bg-slate-100/50 transition-colors text-xs sm:text-sm"
                       onClick={() => handleSort('roll')}
                     >
-                      <div className="flex items-center gap-1">
-                        রোল <ArrowUpDown className="w-4 h-4 text-slate-400" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        রোল <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                       </div>
                     </th>
                     <th 
-                      className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200 cursor-pointer hover:bg-slate-100 transition-colors"
+                      className="py-3 px-3 sm:py-4 sm:px-6 font-semibold text-slate-600 border-b border-slate-200/60 cursor-pointer hover:bg-slate-100/50 transition-colors text-xs sm:text-sm"
                       onClick={() => handleSort('name')}
                     >
-                      <div className="flex items-center gap-1">
-                        শিক্ষার্থীর নাম <ArrowUpDown className="w-4 h-4 text-slate-400" />
+                      <div className="flex items-center gap-1 sm:gap-2">
+                        শিক্ষার্থীর নাম <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                       </div>
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="text-center py-3 px-3 sm:py-4 sm:px-6 font-semibold text-slate-600 border-b border-slate-200/60 text-xs sm:text-sm">
                       অবস্থা
                     </th>
                   </tr>
@@ -230,16 +233,18 @@ const Attendance: React.FC = () => {
                     return (
                       <tr
                         key={student.id}
-                        className="border-b border-slate-100 hover:bg-blue-50/50 transition-colors group"
+                        className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group"
                       >
-                        <td className="py-3 px-4 text-slate-800">
+                        <td className="py-3 px-3 sm:py-4 sm:px-6 text-slate-800 font-mono text-xs sm:text-sm">
                           {student.roll}
                         </td>
-                        <td className="py-3 px-4 text-slate-800 font-medium">
-                          {student.name}
+                        <td className="py-3 px-3 sm:py-4 sm:px-6 text-slate-800 font-medium text-xs sm:text-sm">
+                          <div className="flex items-center gap-3">
+                            {student.name}
+                          </div>
                         </td>
-                        <td className="py-3 px-4">
-                          <div className="flex justify-center gap-2">
+                        <td className="py-3 px-3 sm:py-4 sm:px-6">
+                          <div className="flex justify-center gap-1.5 sm:gap-3">
                             <button
                               onClick={() =>
                                 handleStatusChange(
@@ -248,14 +253,14 @@ const Attendance: React.FC = () => {
                                 )
                               }
                               className={clsx(
-                                "p-2 rounded-lg transition-all flex items-center gap-2 border",
+                                "px-2 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all duration-300 flex items-center gap-1 sm:gap-2 border-2",
                                 status === AttendanceStatus.Present
-                                  ? "bg-green-100 text-green-700 border-green-200 shadow-sm"
-                                  : "text-slate-400 border-transparent hover:bg-slate-100 hover:text-slate-600",
+                                  ? "bg-emerald-100 text-emerald-800 border-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.2)]"
+                                  : "text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
                               )}
                             >
-                              <CheckCircle className="w-5 h-5" />
-                              <span className="text-sm font-medium hidden sm:inline">
+                              <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <span className="text-[10px] sm:text-sm font-bold hidden xs:inline">
                                 উপস্থিত
                               </span>
                             </button>
@@ -267,14 +272,14 @@ const Attendance: React.FC = () => {
                                 )
                               }
                               className={clsx(
-                                "p-2 rounded-lg transition-all flex items-center gap-2 border",
+                                "px-2 py-1.5 sm:px-4 sm:py-2 rounded-xl transition-all duration-300 flex items-center gap-1 sm:gap-2 border-2",
                                 status === AttendanceStatus.Absent
-                                  ? "bg-red-100 text-red-700 border-red-200 shadow-sm"
-                                  : "text-slate-400 border-transparent hover:bg-slate-100 hover:text-slate-600",
+                                  ? "bg-rose-100 text-rose-800 border-rose-400 shadow-[0_0_10px_rgba(239,68,68,0.2)]"
+                                  : "text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
                               )}
                             >
-                              <XCircle className="w-5 h-5" />
-                              <span className="text-sm font-medium hidden sm:inline">
+                              <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                              <span className="text-[10px] sm:text-sm font-bold hidden xs:inline">
                                 অনুপস্থিত
                               </span>
                             </button>
@@ -327,7 +332,7 @@ const Attendance: React.FC = () => {
             )}
           </>
         ) : (
-          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
             <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
             <p className="text-sm">হাজিরা দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>

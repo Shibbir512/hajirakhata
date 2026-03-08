@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Eye, Edit2, X } from "lucide-react";
+import { Edit2, X, ChevronDown } from "lucide-react";
 import clsx from "clsx";
 
 const AttendanceHistory: React.FC = () => {
@@ -57,43 +57,51 @@ const AttendanceHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800">হাজিরা ইতিহাস</h2>
+      <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
       
-      <select
-        value={selectedClassId}
-        onChange={(e) => setSelectedClassId(e.target.value)}
-        className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-      >
-        <option value="">শ্রেণি নির্বাচন করুন</option>
-        {classes.map((cls) => (
-          <option key={cls.id} value={cls.id}>
-            {cls.name}
-          </option>
-        ))}
-      </select>
+      <div className="card-premium p-6">
+        <div className="relative max-w-xs">
+          <select
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+          >
+            <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+            {classes.map((cls) => (
+              <option key={cls.id} value={cls.id}>
+                {cls.name}
+              </option>
+            ))}
+          </select>
+          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+        </div>
+      </div>
 
-      <div className="space-y-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classSessions.map(session => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           return (
-            <div key={session.id} className="bg-white rounded-xl shadow-sm border border-slate-200 p-4">
-              <div className="flex justify-between items-start mb-3">
-                <div className="text-sm text-slate-600 space-y-1">
-                  <p><span className="font-semibold">তারিখঃ</span> {session.date ? toBengaliDate(session.date) : ""}</p>
-                  <p><span className="font-semibold">সময়ঃ</span> {session.time ? toBengaliTime(session.time) : ""}</p>
-                  <p><span className="font-semibold">হাজিরা নিয়েছেনঃ</span> {session.takenBy?.name || "N/A"}</p>
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300">
+              <div className="flex justify-between items-start mb-4">
+                <div className="text-sm text-slate-600 space-y-2">
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">তারিখঃ</span> <span className="font-mono bg-slate-100 px-2 py-0.5 rounded-md">{session.date ? toBengaliDate(session.date) : ""}</span></p>
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">সময়ঃ</span> <span className="font-mono bg-slate-100 px-2 py-0.5 rounded-md">{session.time ? toBengaliTime(session.time) : ""}</span></p>
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-600 font-medium">{session.takenBy?.name || "N/A"}</span></p>
                 </div>
-                <button onClick={() => handleEdit(session)} className="text-blue-600 hover:text-blue-800 p-2 bg-blue-50 rounded-full">
-                  <Edit2 className="w-5 h-5" />
+                <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2.5 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
+                  <Edit2 className="w-4 h-4" />
                 </button>
               </div>
               
-              <div className="border-t pt-3">
-                <p className="font-semibold text-slate-700 mb-2">অনুপস্থিত ছাত্র:</p>
+              <div className="border-t border-slate-100 pt-4 mt-2">
+                <p className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
+                  অনুপস্থিত ছাত্র:
+                </p>
                 {absentStudents.length > 0 ? (
-                  <ul className="space-y-1">
+                  <ul className="space-y-2">
                     {absentStudents.map((s: any) => (
-                      <li key={s.studentId} className="text-sm text-slate-600 bg-slate-50 p-2 rounded">
+                      <li key={s.studentId} className="text-sm text-slate-700 bg-rose-50/50 border border-rose-100/50 px-3 py-2 rounded-lg flex items-center gap-2">
                         {s.studentName}
                       </li>
                     ))}
@@ -108,26 +116,33 @@ const AttendanceHistory: React.FC = () => {
       </div>
 
       {isEditMode && selectedSession && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold">হাজিরা সম্পাদনা</h3>
-              <button onClick={() => setIsEditMode(false)}><X className="w-6 h-6" /></button>
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 p-8">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা সম্পাদনা</h3>
+              <button onClick={() => setIsEditMode(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-2">
+            <div className="space-y-3">
               {editedStudents.map((student: any) => (
-                <div key={student.studentId} className="flex justify-between items-center p-2 border-b">
-                  <span>{student.studentName}</span>
+                <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
+                  <span className="font-medium text-slate-800 flex items-center gap-3">
+                    {student.studentName}
+                  </span>
                   <button 
                     onClick={() => handleStatusToggle(student.studentId)}
-                    className={clsx("px-3 py-1 rounded-full text-sm", student.status === AttendanceStatus.Present ? "bg-green-100 text-green-700" : "bg-red-100 text-red-700")}
+                    className={clsx(
+                      "px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 border-2",
+                      student.status === AttendanceStatus.Present 
+                        ? "bg-emerald-100 text-emerald-800 border-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.15)]" 
+                        : "bg-rose-100 text-rose-800 border-rose-400 shadow-[0_0_10px_rgba(239,68,68,0.15)]"
+                    )}
                   >
                     {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
                   </button>
                 </div>
               ))}
             </div>
-            <button onClick={handleSave} className="w-full mt-6 bg-blue-600 text-white py-2 rounded-lg">সংরক্ষণ করুন</button>
+            <button onClick={handleSave} className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-medium">সংরক্ষণ করুন</button>
           </div>
         </div>
       )}

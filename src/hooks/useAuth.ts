@@ -98,10 +98,10 @@ export const useAuth = () => {
         );
 
         setOrgId(newOrgId);
-        toast.success("Organization created successfully!");
+        toast.success("প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!");
       } catch (error) {
         console.error("Error creating organization:", error);
-        toast.error("Failed to create organization.");
+        toast.error("প্রতিষ্ঠান তৈরি করতে ব্যর্থ হয়েছে।");
       }
     },
     [user],
@@ -149,10 +149,10 @@ export const useAuth = () => {
         );
 
         setOrgId(targetOrgId);
-        toast.success("Joined organization successfully!");
+        toast.success("প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!");
       } catch (error: any) {
         console.error("Error joining organization:", error);
-        toast.error(error.message || "Failed to join organization.");
+        toast.error(error.message || "প্রতিষ্ঠানে যুক্ত হতে ব্যর্থ হয়েছে।");
       }
     },
     [user],
@@ -167,10 +167,10 @@ export const useAuth = () => {
         { merge: true },
       );
       setOrgId(null);
-      toast.success("Left organization successfully.");
+      toast.success("প্রতিষ্ঠান থেকে সফলভাবে প্রস্থান করেছেন।");
     } catch (error) {
       console.error("Error leaving organization:", error);
-      toast.error("Failed to leave organization.");
+      toast.error("প্রতিষ্ঠান থেকে প্রস্থান করতে ব্যর্থ হয়েছে।");
     }
   }, [user]);
 
@@ -178,10 +178,10 @@ export const useAuth = () => {
     if (auth) {
       try {
         await signOut(auth);
-        toast.success("Logged out successfully.");
+        toast.success("সফলভাবে লগআউট হয়েছে।");
       } catch (error) {
         console.error("Error logging out:", error);
-        toast.error("Failed to log out.");
+        toast.error("লগআউট করতে ব্যর্থ হয়েছে।");
       }
     }
   }, []);

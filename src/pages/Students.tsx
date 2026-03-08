@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown } from "lucide-react";
 import { Student } from "../types";
 import clsx from "clsx";
 import StudentAddModal from "../components/StudentAddModal";
@@ -131,8 +131,8 @@ const Students: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">শিক্ষার্থী</h2>
-        <div className="flex gap-2">
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">শিক্ষার্থী</h2>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
           <input
             type="file"
             ref={fileInputRef}
@@ -141,22 +141,39 @@ const Students: React.FC = () => {
             className="hidden"
           />
           <button
+            onClick={() => setIsAddModalOpen(true)}
+            disabled={!selectedClassId}
+            className={clsx(
+              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-lg transition-all duration-300 text-sm sm:text-base",
+              selectedClassId 
+                ? "bg-[#4CAF50] hover:bg-[#43a047] hover:shadow-green-200" 
+                : "bg-slate-300 cursor-not-allowed"
+            )}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            শিক্ষার্থী যোগ
+          </button>
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={!selectedClassId}
             className={clsx(
-              "flex items-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors shadow-sm",
-              !selectedClassId && "opacity-50 cursor-not-allowed",
+              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
+              selectedClassId 
+                ? "bg-amber-500 hover:bg-amber-600 hover:shadow-amber-100" 
+                : "bg-slate-300 cursor-not-allowed"
             )}
           >
             <Upload className="w-4 h-4 mr-2" />
-            আমদানি (CSV/DOCX)
+            আমদানি
           </button>
           <button
             onClick={() => handleExport('csv')}
             disabled={!selectedClassId || classStudents.length === 0}
             className={clsx(
-              "flex items-center px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-sm",
-              (!selectedClassId || classStudents.length === 0) && "opacity-50 cursor-not-allowed",
+              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
+              (!selectedClassId || classStudents.length === 0)
+                ? "bg-slate-300 cursor-not-allowed"
+                : "bg-sky-500 hover:bg-sky-600 hover:shadow-sky-100"
             )}
           >
             <Download className="w-4 h-4 mr-2" />
@@ -166,50 +183,44 @@ const Students: React.FC = () => {
             onClick={() => handleExport('docx')}
             disabled={!selectedClassId || classStudents.length === 0}
             className={clsx(
-              "flex items-center px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors shadow-sm",
-              (!selectedClassId || classStudents.length === 0) && "opacity-50 cursor-not-allowed",
+              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
+              (!selectedClassId || classStudents.length === 0)
+                ? "bg-slate-300 cursor-not-allowed"
+                : "bg-rose-500 hover:bg-rose-600 hover:shadow-rose-100"
             )}
           >
             <Download className="w-4 h-4 mr-2" />
             DOCX এক্সপোর্ট
           </button>
-          <button
-            onClick={() => setIsAddModalOpen(true)}
-            disabled={!selectedClassId}
-            className={clsx(
-              "flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm",
-              !selectedClassId && "opacity-50 cursor-not-allowed",
-            )}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            শিক্ষার্থী যোগ করুন
-          </button>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-          >
-            <option value="">শ্রেণি নির্বাচন করুন</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
+      <div className="card-premium p-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative min-w-[240px]">
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+            >
+              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+          </div>
 
           <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
             <input
               type="text"
               placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-premium pl-12 search-highlight"
             />
           </div>
         </div>
@@ -217,7 +228,7 @@ const Students: React.FC = () => {
         {selectedClassId ? (
           <div className="overflow-x-auto border border-slate-200 rounded-lg">
             <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-50 sticky top-0 z-10">
+              <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
                 <tr>
                   <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
                     রোল
@@ -239,32 +250,34 @@ const Students: React.FC = () => {
                     key={student.id}
                     className="border-b border-slate-100 hover:bg-slate-50 transition-colors group"
                   >
-                    <td className="py-3 px-4 text-slate-800">{student.roll}</td>
-                    <td className="py-3 px-4 text-slate-800 font-medium">
-                      {student.name}
+                    <td className="py-4 px-4 text-slate-800">{student.roll}</td>
+                    <td className="py-4 px-4 text-slate-800 font-medium">
+                      <div className="flex items-center gap-3">
+                        {student.name}
+                      </div>
                     </td>
-                    <td className="py-3 px-4 text-slate-500 hidden md:table-cell">
+                    <td className="py-4 px-4 text-slate-500 hidden md:table-cell">
                       {student.phone || "-"}
                     </td>
-                    <td className="py-3 px-4 text-right">
+                    <td className="py-4 px-4 text-right">
                       <div className="flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                         <button
                           onClick={() => setViewingStudent(student)}
-                          className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
                           title="বিস্তারিত দেখুন"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => setEditingStudent(student)}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
                           title="সম্পাদনা"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => handleDeleteStudent(student.id)}
-                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                          className="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
                           title="মুছুন"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -284,7 +297,7 @@ const Students: React.FC = () => {
             </table>
           </div>
         ) : (
-          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
             <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
             <p className="text-sm">শিক্ষার্থী ব্যবস্থাপনা করার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
@@ -308,8 +321,8 @@ const Students: React.FC = () => {
       )}
 
       {viewingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-white/20">
             <div className="flex justify-between items-center p-6 border-b border-slate-100">
               <h3 className="text-lg font-semibold text-slate-800">শিক্ষার্থীর বিস্তারিত</h3>
               <button
@@ -341,10 +354,10 @@ const Students: React.FC = () => {
                 <div className="col-span-2 text-sm text-slate-900 whitespace-pre-wrap">{viewingStudent.address || "-"}</div>
               </div>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                className="btn-secondary"
               >
                 বন্ধ করুন
               </button>

@@ -1,6 +1,63 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import "react-datepicker/dist/react-datepicker.css";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 
-body {
-  font-family: 'Noto Sans Bengali', sans-serif;
+@theme {
+  --color-bg-main: #FAF9F7;
+  --color-primary-start: #1e1b4b; /* Deep navy/purple */
+  --color-primary-end: #14b8a6; /* Aqua/teal */
+  --color-pastel-peach: #ffdab9;
+  --color-pastel-orange: #ffd8b1;
+  --color-pastel-pink: #ffb6c1;
+  --color-pastel-blue: #add8e6;
+}
+
+@layer base {
+  body {
+    font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+    background-color: var(--color-bg-main);
+    color: #334155;
+  }
+}
+
+@layer components {
+  .card-premium {
+    @apply bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 backdrop-blur-sm;
+  }
+  .btn-primary {
+    @apply bg-gradient-to-r from-indigo-900 to-teal-400 text-white rounded-2xl shadow-[0_4px_14px_0_rgb(0,118,255,0.39)] hover:shadow-[0_6px_20px_rgba(0,118,255,0.23)] hover:opacity-90 transition-all duration-200 font-medium px-6 py-3 border-none;
+  }
+  .btn-secondary {
+    @apply bg-white text-slate-700 rounded-2xl shadow-[0_4px_14px_0_rgb(0,0,0,0.05)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-all duration-200 font-medium px-6 py-3 border border-slate-100;
+  }
+  .input-premium {
+    @apply w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400 transition-all shadow-sm font-medium;
+  }
+  .search-highlight {
+    @apply border-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.2)] ring-2 ring-teal-400/20;
+  }
+  .toggle-premium {
+    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2;
+  }
+  .toggle-thumb {
+    @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform;
+  }
+  .badge-pastel-blue {
+    @apply bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-medium border border-blue-100;
+  }
+  .badge-pastel-pink {
+    @apply bg-pink-50 text-pink-600 px-3 py-1 rounded-full text-sm font-medium border border-pink-100;
+  }
+  .badge-pastel-orange {
+    @apply bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100;
+  }
+  .badge-pastel-peach {
+    @apply bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100;
+  }
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-teal-400;
+  }
+  .active-nav-item {
+    @apply bg-gradient-to-r from-indigo-900/10 to-teal-400/10 text-indigo-900 font-medium border-r-4 border-teal-400;
+  }
 }

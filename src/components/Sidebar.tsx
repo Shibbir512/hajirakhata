@@ -33,13 +33,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200 h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200/60 h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
     >
-      <div className="flex items-center justify-between h-16 border-b border-slate-200 px-4">
-        <span className="text-xl font-bold text-blue-600">হাজিরা অ্যাপ</span>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500">
+      <div className="flex items-center justify-between h-20 border-b border-slate-200/60 px-6">
+        <span className="text-2xl font-bold gradient-text tracking-tight">হাজিরা খাতা</span>
+        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
@@ -52,10 +52,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 clsx(
-                  "flex items-center px-4 py-3 rounded-lg transition-colors duration-200",
+                  "flex items-center px-4 py-3 rounded-xl transition-all duration-200",
                   isActive
-                    ? "bg-blue-50 text-blue-600 font-medium"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900",
+                    ? "active-nav-item"
+                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
                 )
               }
             >
@@ -65,9 +65,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           ))}
         </nav>
       </div>
-      <div className="p-4 border-t border-slate-200">
+      <div className="p-6 border-t border-slate-200/60">
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm border border-white">
             {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">

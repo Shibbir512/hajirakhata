@@ -17,7 +17,7 @@ const Login: React.FC = () => {
 
   const handleLogin = async () => {
     if (!auth || !googleProvider) {
-      setError("Firebase configuration not found.");
+      setError("ফায়ারবেস কনফিগারেশন পাওয়া যায়নি।");
       return;
     }
     setError(null);
@@ -31,7 +31,7 @@ const Login: React.FC = () => {
       } else if (error.code === 'auth/network-request-failed') {
         setError('network-error');
       } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        setError('Login popup closed. Please try again.');
+        setError('লগিন পপআপ বন্ধ হয়ে গেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
       } else {
         setError(error.message);
       }
@@ -48,25 +48,25 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-        <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
-          <svg className="w-8 h-8 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+    <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
+      <div className="max-w-md w-full card-premium p-10 text-center">
+        <div className="w-20 h-20 bg-gradient-to-tr from-indigo-100 to-teal-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner border border-white">
+          <svg className="w-10 h-10 text-teal-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
           </svg>
         </div>
         
-        <h1 className="text-2xl font-bold text-slate-800 mb-2">Student Attendance</h1>
-        <p className="text-slate-500 mb-8">Sign in to manage attendance, students, and reports securely.</p>
+        <h1 className="text-3xl font-bold gradient-text mb-3 tracking-tight">হাজিরা খাতা</h1>
+        <p className="text-slate-500 mb-8">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
 
         {error === 'unauthorized-domain' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
               <div>
-                <h3 className="font-semibold text-red-800">Domain Not Authorized</h3>
+                <h3 className="font-semibold text-red-800">ডোমেইন অনুমোদিত নয়</h3>
                 <p className="text-sm text-red-600 mt-1">
-                  This domain needs to be added to Firebase Authentication settings.
+                  এই ডোমেইনটি ফায়ারবেস অথেনটিকেশন সেটিংসে যোগ করতে হবে।
                 </p>
                 <div className="flex items-center gap-2 mt-3 bg-white border border-red-100 rounded px-3 py-2">
                   <code className="text-xs font-mono text-slate-600 flex-1">{window.location.hostname}</code>
@@ -83,9 +83,9 @@ const Login: React.FC = () => {
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left flex items-start gap-3">
             <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
             <div>
-              <h3 className="font-semibold text-red-800">Network Error</h3>
+              <h3 className="font-semibold text-red-800">নেটওয়ার্ক ত্রুটি</h3>
               <p className="text-sm text-red-600 mt-1">
-                Unable to connect to Firebase. Please check your internet connection.
+                ফায়ারবেসের সাথে সংযোগ করতে অক্ষম। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।
               </p>
             </div>
           </div>
@@ -101,19 +101,19 @@ const Login: React.FC = () => {
         <button
           onClick={handleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-3 bg-white border border-slate-200 rounded-xl text-slate-700 font-medium hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border border-slate-200 rounded-2xl text-slate-700 font-medium hover:shadow-[0_8px_30px_rgb(0,0,0,0.08)] hover:-translate-y-0.5 transition-all duration-300"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-slate-400" />
           ) : (
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5" />
           )}
-          <span>{loading ? 'Signing in...' : 'Continue with Google'}</span>
+          <span>{loading ? 'সাইন ইন করা হচ্ছে...' : 'গুগল দিয়ে চালিয়ে যান'}</span>
         </button>
       </div>
       
       <p className="mt-8 text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} Student Attendance App. All rights reserved.
+        &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
       </p>
     </div>
   );

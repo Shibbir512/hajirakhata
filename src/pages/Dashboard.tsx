@@ -25,7 +25,7 @@ const Dashboard: React.FC = () => {
     const totalStudents = Object.values(students).flat().length;
     const totalClasses = classes.length;
 
-    const today = new Date().toLocaleDateString('en-GB').replace(/\//g, '-');
+    const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
     const todaysSessions = attendanceSessions.filter((s) => s.date === today);
 
     let presentToday = 0;
@@ -45,7 +45,7 @@ const Dashboard: React.FC = () => {
     for (let i = 6; i >= 0; i--) {
       const date = new Date();
       date.setDate(date.getDate() - i);
-      const dateStr = date.toLocaleDateString('en-GB').replace(/\//g, '-');
+      const dateStr = date.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
 
       const daySessions = attendanceSessions.filter((s) => s.date === dateStr);
 
@@ -69,7 +69,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800">ড্যাশবোর্ড ওভারভিউ</h2>
+      <h2 className="text-3xl font-bold gradient-text tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
@@ -77,29 +77,33 @@ const Dashboard: React.FC = () => {
           value={stats.totalStudents}
           icon={Users}
           color="bg-blue-500"
+          gradient="from-blue-500 to-cyan-400"
         />
         <StatCard
           title="আজ উপস্থিত"
           value={stats.presentToday}
           icon={UserCheck}
-          color="bg-green-500"
+          color="bg-teal-500"
+          gradient="from-teal-400 to-emerald-400"
         />
         <StatCard
           title="আজ অনুপস্থিত"
           value={stats.absentToday}
           icon={UserX}
-          color="bg-red-500"
+          color="bg-orange-400"
+          gradient="from-orange-400 to-pink-400"
         />
         <StatCard
           title="মোট শ্রেণি"
           value={stats.totalClasses}
           icon={BookOpen}
-          color="bg-purple-500"
+          color="bg-indigo-500"
+          gradient="from-indigo-500 to-purple-400"
         />
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <h3 className="text-lg font-semibold text-slate-800 mb-4">
+      <div className="card-premium p-8">
+        <h3 className="text-xl font-bold text-slate-800 mb-6 tracking-tight">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
@@ -120,15 +124,15 @@ const Dashboard: React.FC = () => {
               <Legend />
               <Bar
                 dataKey="Present"
-                fill="#22c55e"
-                radius={[4, 4, 0, 0]}
-                barSize={40}
+                fill="#14b8a6"
+                radius={[6, 6, 0, 0]}
+                barSize={32}
               />
               <Bar
                 dataKey="Absent"
-                fill="#ef4444"
-                radius={[4, 4, 0, 0]}
-                barSize={40}
+                fill="#fb923c"
+                radius={[6, 6, 0, 0]}
+                barSize={32}
               />
             </BarChart>
           </ResponsiveContainer>
@@ -143,6 +147,7 @@ interface StatCardProps {
   value: number;
   icon: React.ElementType;
   color: string;
+  gradient: string;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -150,15 +155,17 @@ const StatCard = React.memo<StatCardProps>(({
   value,
   icon: Icon,
   color,
+  gradient,
 }) => (
-  <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 flex items-center justify-between">
-    <div>
-      <p className="text-sm font-medium text-slate-500">{title}</p>
-      <p className="text-2xl font-bold text-slate-800 mt-1">{value}</p>
+  <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
+    <div className="relative z-10">
+      <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
+      <p className="text-3xl font-bold text-slate-800">{value}</p>
     </div>
-    <div className={`p-3 rounded-lg ${color} bg-opacity-10`}>
-      <Icon className={`w-6 h-6 ${color.replace("bg-", "text-")}`} />
+    <div className={`relative z-10 p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-${color.replace('bg-', '')}/30 group-hover:scale-110 transition-transform duration-300`}>
+      <Icon className="w-6 h-6" />
     </div>
+    <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
   </div>
 ));
 

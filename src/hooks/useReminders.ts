@@ -34,10 +34,10 @@ export const useReminders = (orgId: string | null, user: any) => {
         await setDoc(doc(db, `organizations/${orgId}/reminders`, time), {
           time,
         });
-        toast.success("Reminder added successfully!");
+        toast.success("রিমাইন্ডার সফলভাবে যোগ করা হয়েছে!");
       } catch (error) {
         console.error("Error adding reminder:", error);
-        toast.error("Failed to add reminder.");
+        toast.error("রিমাইন্ডার যোগ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -48,10 +48,10 @@ export const useReminders = (orgId: string | null, user: any) => {
       if (!user || !db || !orgId) return;
       try {
         await deleteDoc(doc(db, `organizations/${orgId}/reminders`, time));
-        toast.success("Reminder deleted successfully!");
+        toast.success("রিমাইন্ডার সফলভাবে মুছে ফেলা হয়েছে!");
       } catch (error) {
         console.error("Error deleting reminder:", error);
-        toast.error("Failed to delete reminder.");
+        toast.error("রিমাইন্ডার মুছে ফেলতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],

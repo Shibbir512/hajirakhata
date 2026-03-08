@@ -16,10 +16,11 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Download, Calendar } from "lucide-react";
+import { Download, Calendar, ChevronDown } from "lucide-react";
 import clsx from "clsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import DatePicker from "react-datepicker";
 
 const Reports: React.FC = () => {
   const { user, orgId } = useAuth();
@@ -28,14 +29,10 @@ const Reports: React.FC = () => {
   const { attendanceSessions } = useAttendance(orgId, user, classes, students);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(
+  const [startDate, setStartDate] = useState<Date>(
     new Date(new Date().setDate(new Date().getDate() - 30))
-      .toISOString()
-      .split("T")[0],
   );
-  const [endDate, setEndDate] = useState<string>(
-    new Date().toISOString().split("T")[0],
-  );
+  const [endDate, setEndDate] = useState<Date>(new Date());
 
   const reportData = useMemo(() => {
     if (!selectedClassId) return [];
@@ -125,63 +122,67 @@ const Reports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800">রিপোর্ট</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">রিপোর্ট</h2>
         <button 
           onClick={handleExportPDF}
-          className="flex items-center px-4 py-2 bg-white border border-slate-200 text-slate-700 rounded-lg hover:bg-slate-50 transition-colors shadow-sm"
+          className="btn-secondary flex items-center px-4 py-2"
         >
           <Download className="w-4 h-4 mr-2" />
           PDF এক্সপোর্ট
         </button>
       </div>
 
-      <div id="report-container" className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
-        <div className="flex flex-col sm:flex-row gap-4 mb-6">
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-[200px]"
-          >
-            <option value="">শ্রেণি নির্বাচন করুন</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
-
-          <div className="flex items-center gap-2 flex-1 sm:flex-none">
-            <div className="relative flex-1 sm:flex-none">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-            <span className="text-slate-500 font-medium">থেকে</span>
-            <div className="relative flex-1 sm:flex-none">
-              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
+      <div id="report-container" className="card-premium p-4 sm:p-8">
+        <div className="flex flex-col sm:flex-row gap-4 mb-8">
+          <div className="relative min-w-[240px]">
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+            >
+              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
           </div>
+
+            <div className="flex items-center gap-2 flex-1 sm:flex-none">
+              <div className="relative flex-1 sm:flex-none">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 w-4 h-4" />
+                <DatePicker
+                  selected={startDate}
+                  onChange={(date: Date | null) => date && setStartDate(date)}
+                  dateFormat="dd MM yyyy"
+                  className="input-premium pl-10 search-highlight"
+                />
+              </div>
+              <span className="text-slate-500 font-medium text-xs sm:text-sm">থেকে</span>
+              <div className="relative flex-1 sm:flex-none">
+                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 w-4 h-4" />
+                <DatePicker
+                  selected={endDate}
+                  onChange={(date: Date | null) => date && setEndDate(date)}
+                  dateFormat="dd MM yyyy"
+                  className="input-premium pl-10 search-highlight"
+                />
+              </div>
+            </div>
         </div>
 
         {selectedClassId ? (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="h-80 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="h-80 bg-slate-50/50 rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-inner overflow-hidden">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
                   হাজিরা ওভারভিউ
                 </h3>
-                <ResponsiveContainer width="100%" height="100%">
-                  <PieChart>
+                <div className="w-full h-[calc(100%-2rem)]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
                     <Pie
                       data={pieData}
                       cx="50%"
@@ -211,13 +212,15 @@ const Reports: React.FC = () => {
                   </PieChart>
                 </ResponsiveContainer>
               </div>
+              </div>
 
-              <div className="h-80 bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="h-80 bg-slate-50/50 rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-inner overflow-hidden">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
                   শিক্ষার্থীর পারফরম্যান্স (সেরা ১০)
                 </h3>
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={reportData.slice(0, 10)}>
+                <div className="w-full h-[calc(100%-2rem)]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={reportData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="name" axisLine={false} tickLine={false} />
                     <YAxis axisLine={false} tickLine={false} />
@@ -248,25 +251,26 @@ const Reports: React.FC = () => {
                   </BarChart>
                 </ResponsiveContainer>
               </div>
+              </div>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200 rounded-lg">
+            <div className="overflow-x-auto border border-slate-200/60 rounded-2xl shadow-sm max-w-full">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50 sticky top-0 z-10">
+                <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
                   <tr>
-                    <th className="py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
+                    <th className="py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       রোল
                     </th>
-                    <th className="py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
+                    <th className="py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       শিক্ষার্থীর নাম
                     </th>
-                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
+                    <th className="hidden sm:table-cell text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       উপস্থিত
                     </th>
-                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
+                    <th className="hidden sm:table-cell text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       অনুপস্থিত
                     </th>
-                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
+                    <th className="text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       শতকরা
                     </th>
                   </tr>
@@ -275,29 +279,29 @@ const Reports: React.FC = () => {
                   {reportData.map((student) => (
                     <tr
                       key={student.roll}
-                      className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                      className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors"
                     >
-                      <td className="py-2 px-2 text-slate-800 text-xs">
+                      <td className="py-3 px-2 sm:px-4 text-slate-800 text-[10px] sm:text-sm font-mono">
                         {student.roll}
                       </td>
-                      <td className="py-2 px-2 text-slate-800 font-medium text-xs">
+                      <td className="py-3 px-2 sm:px-4 text-slate-800 font-medium text-[10px] sm:text-sm truncate max-w-[100px] sm:max-w-none">
                         {student.name}
                       </td>
-                      <td className="py-2 px-2 text-center text-green-600 font-medium text-xs">
+                      <td className="hidden sm:table-cell py-3 px-2 sm:px-4 text-center text-emerald-600 font-medium text-[10px] sm:text-sm">
                         {student.present}
                       </td>
-                      <td className="py-2 px-2 text-center text-red-600 font-medium text-xs">
+                      <td className="hidden sm:table-cell py-3 px-2 sm:px-4 text-center text-rose-600 font-medium text-[10px] sm:text-sm">
                         {student.absent}
                       </td>
-                      <td className="py-2 px-2 text-center">
+                      <td className="py-3 px-2 sm:px-4 text-center">
                         <span
                           className={clsx(
-                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
+                            "px-1.5 py-0.5 sm:px-2 sm:py-1 rounded-full text-[9px] sm:text-xs font-bold",
                             student.percentage >= 75
-                              ? "bg-green-100 text-green-700"
+                              ? "bg-emerald-100 text-emerald-700"
                               : student.percentage >= 50
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-700",
+                                ? "bg-amber-100 text-amber-700"
+                                : "bg-rose-100 text-rose-700",
                           )}
                         >
                           {student.percentage}%
@@ -317,7 +321,7 @@ const Reports: React.FC = () => {
             </div>
           </>
         ) : (
-          <div className="text-center py-12 text-slate-500 bg-slate-50 rounded-lg border border-dashed border-slate-200">
+          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
             <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
             <p className="text-sm">রিপোর্ট দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>

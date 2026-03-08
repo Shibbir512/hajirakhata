@@ -74,10 +74,10 @@ export const useStudents = (orgId: string | null, user: any) => {
           doc(db, `organizations/${orgId}/students`, studentId),
           newStudent,
         );
-        toast.success("Student added successfully!");
+        toast.success("শিক্ষার্থী সফলভাবে যোগ করা হয়েছে!");
       } catch (error) {
         console.error("Error adding student:", error);
-        toast.error("Failed to add student.");
+        toast.error("শিক্ষার্থী যোগ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -114,10 +114,10 @@ export const useStudents = (orgId: string | null, user: any) => {
 
         await batch.commit();
 
-        toast.success("Student deleted and rolls reordered successfully!");
+        toast.success("শিক্ষার্থী মুছে ফেলা হয়েছে এবং রোল নম্বর পুনরায় সাজানো হয়েছে!");
       } catch (error) {
         console.error("Error deleting student:", error);
-        toast.error("Failed to delete student.");
+        toast.error("শিক্ষার্থী মুছে ফেলতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -128,10 +128,10 @@ export const useStudents = (orgId: string | null, user: any) => {
       if (!user || !db || !orgId) return;
       try {
         await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), data);
-        toast.success("Student updated successfully!");
+        toast.success("শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating student:", error);
-        toast.error("Failed to update student.");
+        toast.error("শিক্ষার্থীর তথ্য আপডেট করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -164,10 +164,10 @@ export const useStudents = (orgId: string | null, user: any) => {
         });
 
         await batch.commit();
-        toast.success("Students added successfully!");
+        toast.success("শিক্ষার্থীদের সফলভাবে যোগ করা হয়েছে!");
       } catch (error) {
         console.error("Error adding students:", error);
-        toast.error("Failed to add students.");
+        toast.error("শিক্ষার্থীদের যোগ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],

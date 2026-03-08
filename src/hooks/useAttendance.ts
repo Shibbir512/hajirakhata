@@ -56,7 +56,7 @@ export const useAttendance = (
       },
       (error) => {
         console.error("Error fetching sessions:", error);
-        toast.error("Failed to load attendance sessions.");
+        toast.error("হাজিরা সেশন লোড করতে ব্যর্থ হয়েছে।");
         setLoading(false);
       },
     );
@@ -73,8 +73,8 @@ export const useAttendance = (
 
       try {
         const now = new Date();
-        const date = now.toLocaleDateString('en-GB').replace(/\//g, '-'); // dd-mm-yyyy
-        const time = now.toLocaleTimeString('en-GB-u-nu-latn', { hour12: true, hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const date = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
+        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).replace(/:/g, ' ').replace(' ', '-'); // hh mm ss-AM/PM
 
         // Duplicate Protection: Check if session exists
         const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
@@ -82,7 +82,7 @@ export const useAttendance = (
         const snapshot = await getDocs(q);
         
         if (!snapshot.empty) {
-          toast.error("Attendance already taken for this session.");
+          toast.error("এই সেশনের জন্য ইতিমধ্যে হাজিরা নেওয়া হয়েছে।");
           return;
         }
 
@@ -105,10 +105,10 @@ export const useAttendance = (
         };
 
         await addDoc(sessionsRef, sessionData);
-        toast.success("Attendance saved successfully!");
+        toast.success("হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!");
       } catch (error) {
         console.error("Error taking attendance:", error);
-        toast.error("Failed to save attendance.");
+        toast.error("হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],
@@ -120,10 +120,10 @@ export const useAttendance = (
       try {
         const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
         await updateDoc(sessionRef, { students });
-        toast.success("Attendance updated!");
+        toast.success("হাজিরা আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating attendance:", error);
-        toast.error("Failed to update attendance.");
+        toast.error("হাজিরা আপডেট করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId],

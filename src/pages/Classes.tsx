@@ -39,10 +39,10 @@ const Classes: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-bold text-slate-800">শ্রেণি</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">শ্রেণি</h2>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+          className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold"
         >
           <Plus className="w-4 h-4 mr-2" />
           শ্রেণি যোগ করুন
@@ -50,37 +50,49 @@ const Classes: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classes.map((cls) => (
-          <div
-            key={cls.id}
-            className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-shadow group"
-          >
-            <div className="flex justify-between items-start">
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800">
-                  {cls.name}
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">আইডি: {cls.id}</p>
-              </div>
-              <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                <button
-                  onClick={() => setEditingClass(cls)}
-                  className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                >
-                  <Edit className="w-4 h-4" />
-                </button>
-                <button
-                  onClick={() => handleDeleteClass(cls.id)}
-                  className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+        {classes.map((cls, index) => {
+          const colors = [
+            { bg: "bg-orange-50/80", border: "border-orange-100", text: "text-orange-700", sub: "text-orange-500" },
+            { bg: "bg-emerald-50/80", border: "border-emerald-100", text: "text-emerald-700", sub: "text-emerald-500" },
+            { bg: "bg-blue-50/80", border: "border-blue-100", text: "text-blue-700", sub: "text-blue-500" },
+            { bg: "bg-amber-50/80", border: "border-amber-100", text: "text-amber-700", sub: "text-amber-500" },
+            { bg: "bg-rose-50/80", border: "border-rose-100", text: "text-rose-700", sub: "text-rose-500" },
+            { bg: "bg-indigo-50/80", border: "border-indigo-100", text: "text-indigo-700", sub: "text-indigo-500" },
+          ];
+          const color = colors[index % colors.length];
+
+          return (
+            <div
+              key={cls.id}
+              className={`p-6 rounded-3xl border ${color.bg} ${color.border} hover:-translate-y-1 transition-all duration-300 group shadow-sm hover:shadow-md`}
+            >
+              <div className="flex justify-between items-start">
+                <div>
+                  <h3 className={`text-xl font-bold ${color.text} tracking-tight`}>
+                    {cls.name}
+                  </h3>
+                  <p className={`text-sm ${color.sub} mt-1 font-mono opacity-80`}>আইডি: {cls.id}</p>
+                </div>
+                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <button
+                    onClick={() => setEditingClass(cls)}
+                    className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+                  <button
+                    onClick={() => handleDeleteClass(cls.id)}
+                    className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
         {classes.length === 0 && (
-          <div className="col-span-full text-center py-12 text-slate-500 bg-white rounded-xl border border-dashed border-slate-200">
+          <div className="col-span-full text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
             কোন শ্রেণি পাওয়া যায়নি। শুরু করতে একটি শ্রেণি যোগ করুন।
           </div>
         )}
@@ -134,10 +146,10 @@ const ClassModal = React.memo<ClassModalProps>(({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-      <div className="bg-white rounded-xl shadow-lg w-full max-w-md mx-4 overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-white/20">
         <div className="flex justify-between items-center p-6 border-b border-slate-100">
-          <h3 className="text-lg font-semibold text-slate-800">{title}</h3>
+          <h3 className="text-xl font-bold text-slate-800 tracking-tight">{title}</h3>
           <button
             onClick={onClose}
             className="text-slate-400 hover:text-slate-600 transition-colors"
@@ -155,7 +167,7 @@ const ClassModal = React.memo<ClassModalProps>(({
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="input-premium"
               placeholder="শ্রেণির নাম লিখুন"
               autoFocus
             />
@@ -163,17 +175,17 @@ const ClassModal = React.memo<ClassModalProps>(({
 
           {error && <p className="text-sm text-red-500">{error}</p>}
 
-          <div className="flex justify-end gap-3 mt-6">
+          <div className="flex justify-end gap-3 mt-8">
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-slate-600 hover:bg-slate-50 rounded-lg transition-colors"
+              className="btn-secondary px-6 py-2"
             >
               বাতিল
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2 rounded-xl font-bold"
             >
               সংরক্ষণ
             </button>

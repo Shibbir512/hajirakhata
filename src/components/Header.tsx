@@ -31,37 +31,33 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 md:px-6 z-10">
+    <header className="bg-[#008080] text-white border-b border-teal-800/50 h-20 flex items-center justify-between px-4 md:px-8 z-10 shadow-md">
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 text-slate-600 hover:bg-slate-100 rounded-lg"
+          className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <Menu className="w-6 h-6" />
         </button>
-        <h1 className="text-xl font-bold text-slate-800 hidden lg:block">{getPageTitle()}</h1>
+        <h1 className="text-2xl font-bold text-white hidden lg:block tracking-tight drop-shadow-sm">{getPageTitle()}</h1>
       </div>
       <div className="flex items-center gap-4">
-        <button className="p-2 rounded-full hover:bg-slate-100 relative transition-colors">
-          <Bell className="w-5 h-5 text-slate-600" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full border border-white"></span>
-        </button>
-        <div className="flex items-center gap-3 pl-4 border-l border-slate-200">
-          <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold shadow-sm">
+        <div className="flex items-center gap-3 pl-4 border-l border-white/20">
+          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm">
             {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="hidden md:block">
-            <p className="text-sm font-medium text-slate-900 leading-none">
+            <p className="text-sm font-medium text-white leading-none drop-shadow-sm">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-teal-100 mt-1">
               {user?.email || "user@example.com"}
             </p>
           </div>
         </div>
         <button
           onClick={logout}
-          className="p-2 rounded-full hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors ml-2"
+          className="p-2 rounded-full hover:bg-red-500/20 text-white/80 hover:text-red-200 transition-colors ml-2"
           title="Sign Out"
         >
           <LogOut className="w-5 h-5" />
