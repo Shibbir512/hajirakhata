@@ -129,10 +129,26 @@ export const useAttendance = (
     [user, orgId],
   );
 
+  const deleteAttendanceSession = useCallback(
+    async (sessionId: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
+        await updateDoc(sessionRef, { deleted: true }); // Or use deleteDoc if you want to permanently remove it
+        toast.success("হাজিরা সেশন মুছে ফেলা হয়েছে!");
+      } catch (error) {
+        console.error("Error deleting attendance:", error);
+        toast.error("হাজিরা সেশন মুছতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId],
+  );
+
   return {
     attendanceSessions,
     loading,
     takeAttendance,
     updateAttendanceSession,
+    deleteAttendanceSession,
   };
 };

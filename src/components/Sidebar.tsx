@@ -22,7 +22,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const links = [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
-    { name: "হাজিরা", path: "/attendance", icon: CalendarCheck },
+    { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },

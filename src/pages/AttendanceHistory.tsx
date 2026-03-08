@@ -3,20 +3,20 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Edit2, X, ChevronDown } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2 } from "lucide-react";
 import clsx from "clsx";
 
 const AttendanceHistory: React.FC = () => {
   const { user, orgId } = useAuth();
   const { classes } = useClasses(orgId, user);
-  const { attendanceSessions, updateAttendanceSession } = useAttendance(orgId, user, classes, {});
+  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, {});
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
 
   const classSessions = useMemo(() => {
-    return attendanceSessions.filter(s => s.classId === selectedClassId);
+    return attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
   }, [attendanceSessions, selectedClassId]);
 
   const handleEdit = (session: any) => {
@@ -88,9 +88,14 @@ const AttendanceHistory: React.FC = () => {
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">সময়ঃ</span> <span className="font-mono bg-slate-100 px-2 py-0.5 rounded-md">{session.time ? toBengaliTime(session.time) : ""}</span></p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-600 font-medium">{session.takenBy?.name || "N/A"}</span></p>
                 </div>
-                <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2.5 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
-                  <Edit2 className="w-4 h-4" />
-                </button>
+                <div className="flex gap-2">
+                  <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2.5 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => deleteAttendanceSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2.5 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
               
               <div className="border-t border-slate-100 pt-4 mt-2">
