@@ -19,7 +19,7 @@ import {
 import { Download, Calendar } from "lucide-react";
 import clsx from "clsx";
 import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
+import html2canvas from "html2canvas";
 
 const Reports: React.FC = () => {
   const { user, orgId } = useAuth();
@@ -79,14 +79,33 @@ const Reports: React.FC = () => {
       .sort((a, b) => a.roll - b.roll);
   }, [selectedClassId, startDate, endDate, attendanceSessions, students]);
 
-  const handleExportPDF = () => {
-    const doc = new jsPDF();
-    doc.text("Attendance Report", 14, 15);
-    autoTable(doc, {
-      head: [['Roll', 'Name', 'Present', 'Absent', 'Percentage']],
-      body: reportData.map(s => [s.roll, s.name, s.present, s.absent, s.percentage + '%']),
-    });
-    doc.save("attendance-report.pdf");
+  const handleExportPDF = async () => {
+    const input = document.getElementById('report-container');
+    if (!input) return;
+
+    const canvas = await html2canvas(input, { scale: 2 });
+    const imgData = canvas.toDataURL('image/png');
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    
+    const imgProps = pdf.getImageProperties(imgData);
+    const pdfWidth = pdf.internal.pageSize.getWidth();
+    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+    let heightLeft = pdfHeight;
+    let position = 0;
+    const pageHeight = pdf.internal.pageSize.getHeight();
+
+    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+    heightLeft -= pageHeight;
+
+    while (heightLeft > 0) {
+      position = heightLeft - pdfHeight;
+      pdf.addPage();
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+    }
+    
+    pdf.save("attendance-report.pdf");
   };
 
   const pieData = useMemo(() => {
@@ -116,7 +135,7 @@ const Reports: React.FC = () => {
         </button>
       </div>
 
-      <div className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
+      <div id="report-container" className="bg-white p-6 rounded-xl shadow-sm border border-slate-200">
         <div className="flex flex-col sm:flex-row gap-4 mb-6">
           <select
             value={selectedClassId}
@@ -235,19 +254,19 @@ const Reports: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-50 sticky top-0 z-10">
                   <tr>
-                    <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
                       রোল
                     </th>
-                    <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
                       শিক্ষার্থীর নাম
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
                       উপস্থিত
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
                       অনুপস্থিত
                     </th>
-                    <th className="text-center py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                    <th className="text-center py-2 px-2 font-semibold text-slate-600 border-b border-slate-200 text-xs">
                       শতকরা
                     </th>
                   </tr>
@@ -258,22 +277,22 @@ const Reports: React.FC = () => {
                       key={student.roll}
                       className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
                     >
-                      <td className="py-3 px-4 text-slate-800">
+                      <td className="py-2 px-2 text-slate-800 text-xs">
                         {student.roll}
                       </td>
-                      <td className="py-3 px-4 text-slate-800 font-medium">
+                      <td className="py-2 px-2 text-slate-800 font-medium text-xs">
                         {student.name}
                       </td>
-                      <td className="py-3 px-4 text-center text-green-600 font-medium">
+                      <td className="py-2 px-2 text-center text-green-600 font-medium text-xs">
                         {student.present}
                       </td>
-                      <td className="py-3 px-4 text-center text-red-600 font-medium">
+                      <td className="py-2 px-2 text-center text-red-600 font-medium text-xs">
                         {student.absent}
                       </td>
-                      <td className="py-3 px-4 text-center">
+                      <td className="py-2 px-2 text-center">
                         <span
                           className={clsx(
-                            "px-2 py-1 rounded-full text-xs font-bold",
+                            "px-1.5 py-0.5 rounded-full text-[10px] font-bold",
                             student.percentage >= 75
                               ? "bg-green-100 text-green-700"
                               : student.percentage >= 50
