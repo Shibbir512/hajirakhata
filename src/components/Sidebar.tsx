@@ -45,7 +45,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <X className="w-6 h-6" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto py-4">
+      <div className="flex-1 overflow-y-auto py-4 text-[#08457e]">
         <nav className="px-4 space-y-2">
           {links.map((link) => (
             <NavLink
@@ -57,7 +57,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   "flex items-center px-4 py-3 rounded-xl transition-all duration-200",
                   isActive
                     ? "active-nav-item"
-                    : "text-slate-500 hover:bg-slate-50 hover:text-slate-800",
+                    : "hover:bg-slate-50 hover:text-[#08457e]/80",
                 )
               }
             >
@@ -70,7 +70,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               setIsOpen(false);
               navigate("/org-management");
             }}
-            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 hover:bg-slate-50 hover:text-[#08457e]/80"
           >
             <Building2 className="w-5 h-5 mr-3" />
             প্রতিষ্ঠান পরিবর্তন

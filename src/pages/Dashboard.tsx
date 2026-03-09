@@ -103,7 +103,7 @@ const Dashboard: React.FC = () => {
       </div>
 
       <div className="card-premium p-8">
-        <h3 className="text-xl font-bold text-slate-800 mb-6 tracking-tight">
+        <h3 className="text-[19.75px] leading-[27.25px] font-bold text-[#26619c] mb-6 tracking-tight">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
@@ -158,11 +158,11 @@ const StatCard = React.memo<StatCardProps>(({
   gradient,
 }) => (
   <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
-    <div className="relative z-10">
-      <p className="text-sm font-medium text-slate-500 mb-1">{title}</p>
-      <p className="text-3xl font-bold text-slate-800">{value}</p>
+    <div className="relative z-10 flex-1">
+      <p className="text-sm font-medium text-slate-500 mb-1 text-center">{title}</p>
+      <p className="text-3xl font-bold text-[#26619c] text-center">{value}</p>
     </div>
-    <div className={`relative z-10 p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-${color.replace('bg-', '')}/30 group-hover:scale-110 transition-transform duration-300`}>
+    <div className={`relative z-10 p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-${color.replace('bg-', '')}/30 group-hover:scale-110 transition-transform duration-300 ml-4`}>
       <Icon className="w-6 h-6" />
     </div>
     <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
