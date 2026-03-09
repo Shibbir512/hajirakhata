@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 export const useAuth = () => {
   const [user, setUser] = useState<User | null>(auth?.currentUser || null);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
 
@@ -33,9 +34,11 @@ export const useAuth = () => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
+            const userRole = data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
 
             setOrgId(currentOrgId);
+            setRole(userRole);
             setVisitedOrgs(history);
 
             if (currentOrgId && !history[currentOrgId]) {
@@ -189,6 +192,7 @@ export const useAuth = () => {
   return {
     user,
     orgId,
+    role,
     visitedOrgs,
     loading,
     setLoading,

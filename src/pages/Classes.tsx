@@ -5,10 +5,11 @@ import { Plus, Edit, Trash2, X } from "lucide-react";
 import { ClassData } from "../types";
 
 const Classes: React.FC = () => {
-  const { user, orgId } = useAuth();
+  const { user, orgId, role } = useAuth();
   const { classes, addClass, updateClassName, deleteClass } = useClasses(
     orgId,
     user,
+    role,
   );
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);

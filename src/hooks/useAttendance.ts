@@ -27,6 +27,7 @@ export const useAttendance = (
   user: any,
   classes: ClassData[],
   students: { [key: string]: Student[] },
+  role: string | null,
 ) => {
   const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -131,7 +132,10 @@ export const useAttendance = (
 
   const deleteAttendanceSession = useCallback(
     async (sessionId: string) => {
-      if (!user || !db || !orgId) return;
+      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+        toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
+        return;
+      }
       try {
         const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
         await updateDoc(sessionRef, { deleted: true }); // Or use deleteDoc if you want to permanently remove it
@@ -141,7 +145,7 @@ export const useAttendance = (
         toast.error("হাজিরা সেশন মুছতে ব্যর্থ হয়েছে।");
       }
     },
-    [user, orgId],
+    [user, orgId, role],
   );
 
   return {

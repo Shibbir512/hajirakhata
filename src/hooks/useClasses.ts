@@ -15,7 +15,7 @@ import {
 import { ClassData } from "../types";
 import toast from "react-hot-toast";
 
-export const useClasses = (orgId: string | null, user: any) => {
+export const useClasses = (orgId: string | null, user: any, role: string | null) => {
   const [classes, setClasses] = useState<ClassData[]>([]);
 
   useEffect(() => {
@@ -70,7 +70,10 @@ export const useClasses = (orgId: string | null, user: any) => {
 
   const deleteClass = useCallback(
     async (id: string) => {
-      if (!user || !db || !orgId) return;
+      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+        toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
+        return;
+      }
       try {
         // 1. Delete the class document
         await deleteDoc(doc(db, `organizations/${orgId}/classes`, id));
@@ -108,7 +111,7 @@ export const useClasses = (orgId: string | null, user: any) => {
         toast.error("শ্রেণি মুছে ফেলতে ব্যর্থ হয়েছে।");
       }
     },
-    [user, orgId],
+    [user, orgId, role],
   );
 
   return { classes, addClass, updateClassName, deleteClass };

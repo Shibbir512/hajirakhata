@@ -7,9 +7,9 @@ import { Edit2, X, ChevronDown, Trash2 } from "lucide-react";
 import clsx from "clsx";
 
 const AttendanceHistory: React.FC = () => {
-  const { user, orgId } = useAuth();
-  const { classes } = useClasses(orgId, user);
-  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, {});
+  const { user, orgId, role } = useAuth();
+  const { classes } = useClasses(orgId, user, role);
+  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, {}, role);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);

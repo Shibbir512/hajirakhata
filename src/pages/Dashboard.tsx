@@ -16,10 +16,10 @@ import {
 } from "recharts";
 
 const Dashboard: React.FC = () => {
-  const { user, orgId } = useAuth();
-  const { students } = useStudents(orgId, user);
-  const { classes } = useClasses(orgId, user);
-  const { attendanceSessions } = useAttendance(orgId, user, classes, students);
+  const { user, orgId, role } = useAuth();
+  const { students } = useStudents(orgId, user, role);
+  const { classes } = useClasses(orgId, user, role);
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
 
   const stats = useMemo(() => {
     const totalStudents = Object.values(students).flat().length;

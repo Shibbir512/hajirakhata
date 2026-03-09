@@ -23,10 +23,10 @@ import html2canvas from "html2canvas";
 import DatePicker from "react-datepicker";
 
 const Reports: React.FC = () => {
-  const { user, orgId } = useAuth();
-  const { classes } = useClasses(orgId, user);
-  const { students } = useStudents(orgId, user);
-  const { attendanceSessions } = useAttendance(orgId, user, classes, students);
+  const { user, orgId, role } = useAuth();
+  const { classes } = useClasses(orgId, user, role);
+  const { students } = useStudents(orgId, user, role);
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(

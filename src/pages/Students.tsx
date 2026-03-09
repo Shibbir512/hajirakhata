@@ -11,10 +11,10 @@ import Papa from "papaparse";
 import mammoth from "mammoth";
 
 const Students: React.FC = () => {
-  const { user, orgId } = useAuth();
-  const { classes } = useClasses(orgId, user);
+  const { user, orgId, role } = useAuth();
+  const { classes } = useClasses(orgId, user, role);
   const { students, addStudent, updateStudent, deleteStudent, bulkAddStudents } =
-    useStudents(orgId, user);
+    useStudents(orgId, user, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");

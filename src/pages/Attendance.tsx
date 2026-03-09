@@ -10,14 +10,15 @@ import clsx from "clsx";
 const ITEMS_PER_PAGE = 10;
 
 const Attendance: React.FC = () => {
-  const { user, orgId } = useAuth();
-  const { classes } = useClasses(orgId, user);
-  const { students } = useStudents(orgId, user);
+  const { user, orgId, role } = useAuth();
+  const { classes } = useClasses(orgId, user, role);
+  const { students } = useStudents(orgId, user, role);
   const { attendanceSessions, takeAttendance } = useAttendance(
     orgId,
     user,
     classes,
     students,
+    role,
   );
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -124,7 +125,7 @@ const Attendance: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা নিম</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা</h2>
         <div className="flex items-center gap-4">
           <button
             onClick={handleSave}

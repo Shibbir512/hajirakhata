@@ -17,7 +17,7 @@ import {
 import { Student } from "../types";
 import toast from "react-hot-toast";
 
-export const useStudents = (orgId: string | null, user: any) => {
+export const useStudents = (orgId: string | null, user: any, role: string | null) => {
   const [students, setStudents] = useState<{ [key: string]: Student[] }>({});
 
   useEffect(() => {
@@ -85,7 +85,10 @@ export const useStudents = (orgId: string | null, user: any) => {
 
   const deleteStudent = useCallback(
     async (studentId: string, classId: string) => {
-      if (!user || !db || !orgId) return;
+      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+        toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
+        return;
+      }
       try {
         // 1. Delete the student document
         await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
@@ -120,7 +123,7 @@ export const useStudents = (orgId: string | null, user: any) => {
         toast.error("শিক্ষার্থী মুছে ফেলতে ব্যর্থ হয়েছে।");
       }
     },
-    [user, orgId],
+    [user, orgId, role],
   );
 
   const updateStudent = useCallback(
