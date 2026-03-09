@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, orgName } = useAuth();
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -39,7 +39,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         >
           <Menu className="w-6 h-6" />
         </button>
-        <h1 className="text-2xl font-bold text-white hidden lg:block tracking-tight drop-shadow-sm">{getPageTitle()}</h1>
+        <div className="hidden lg:block">
+          <h1 className="text-sm font-medium text-teal-100 tracking-tight drop-shadow-sm">{getPageTitle()}</h1>
+          {orgName && <p className="text-2xl font-bold text-white drop-shadow-sm mt-0.5">{orgName}</p>}
+        </div>
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 pl-4 border-l border-white/20">

@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -10,6 +11,7 @@ import clsx from "clsx";
 const ITEMS_PER_PAGE = 10;
 
 const Attendance: React.FC = () => {
+  const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
@@ -100,9 +102,12 @@ const Attendance: React.FC = () => {
     });
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selectedClassId) return;
-    takeAttendance(selectedClassId, attendanceState);
+    const success = await takeAttendance(selectedClassId, attendanceState);
+    if (success) {
+      navigate(-1);
+    }
   };
 
   const markAll = (status: AttendanceStatus) => {

@@ -1,41 +1,65 @@
-import React, { useState } from "react";
-import { Outlet, useLocation } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
-import OrgManagement from "../components/OrgManagement";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
+import { ArrowLeft } from "lucide-react";
 
 const DashboardLayout: React.FC = () => {
-  const { orgId, createOrganization, joinOrganization, logout, visitedOrgs } =
-    useAuth();
+  const { orgId, loading } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
-  if (!orgId) {
+  // Handle mobile hardware back button
+  useEffect(() => {
+    const handlePopState = (event: PopStateEvent) => {
+      // Browser back button or mobile back gesture handles this automatically
+      // but we can add custom logic here if needed
+    };
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  if (loading) {
     return (
-      <OrgManagement
-        onCreateOrg={createOrganization}
-        onJoinOrg={joinOrganization}
-        onLogout={logout}
-        visitedOrgs={visitedOrgs}
-      />
+      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
+        <div className="w-12 h-12 border-4 border-indigo-200 border-t-teal-500 rounded-full animate-spin"></div>
+      </div>
     );
   }
 
+  if (!orgId && location.pathname !== "/org-management") {
+    return <Navigate to="/org-management" replace />;
+  }
+
+  const showBackButton = location.pathname !== "/" && location.pathname !== "/org-management";
+
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
-      <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
-      {isSidebarOpen && (
+      {orgId && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
+      {orgId && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />
+        {orgId && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] p-4 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto w-full">
+            {showBackButton && (
+              <div className="mb-6">
+                <button
+                  onClick={() => navigate(-1)}
+                  className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold text-sm"
+                >
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  ফিরে যান
+                </button>
+              </div>
+            )}
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

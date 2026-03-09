@@ -1,6 +1,7 @@
 import React from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
+import OrgManagementPage from "./src/pages/OrgManagementPage";
 import DashboardLayout from "./src/layouts/DashboardLayout";
 import Login from "./src/pages/Login";
 import Dashboard from "./src/pages/Dashboard";
@@ -10,7 +11,7 @@ import Students from "./src/pages/Students";
 import Classes from "./src/pages/Classes";
 import Reports from "./src/pages/Reports";
 import Settings from "./src/pages/Settings";
-import { useAuth } from "./src/hooks/useAuth";
+import { useAuth, AuthProvider } from "./src/hooks/useAuth";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
@@ -32,29 +33,32 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
-      <Toaster position="top-right" />
-      <Routes>
-        <Route path="/login" element={<Login />} />
+    <AuthProvider>
+      <BrowserRouter>
+        <Toaster position="top-right" />
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
-        <Route
-          path="/"
-          element={
-            <ProtectedRoute>
-              <DashboardLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route index element={<Dashboard />} />
-          <Route path="attendance" element={<Attendance />} />
-          <Route path="attendance/history" element={<AttendanceHistory />} />
-          <Route path="students" element={<Students />} />
-          <Route path="classes" element={<Classes />} />
-          <Route path="reports" element={<Reports />} />
-          <Route path="settings" element={<Settings />} />
-        </Route>
-      </Routes>
-    </BrowserRouter>
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <DashboardLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route index element={<Dashboard />} />
+            <Route path="attendance" element={<Attendance />} />
+            <Route path="attendance/history" element={<AttendanceHistory />} />
+            <Route path="students" element={<Students />} />
+            <Route path="classes" element={<Classes />} />
+            <Route path="reports" element={<Reports />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   );
 };
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -7,6 +7,7 @@ import {
   BookOpen,
   BarChart3,
   Settings,
+  Building2,
   X,
 } from "lucide-react";
 import clsx from "clsx";
@@ -19,6 +20,7 @@ interface SidebarProps {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const links = [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
@@ -63,6 +65,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               {link.name}
             </NavLink>
           ))}
+          <button
+            onClick={() => {
+              setIsOpen(false);
+              navigate("/org-management");
+            }}
+            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 text-slate-500 hover:bg-slate-50 hover:text-slate-800"
+          >
+            <Building2 className="w-5 h-5 mr-3" />
+            প্রতিষ্ঠান পরিবর্তন
+          </button>
         </nav>
       </div>
       <div className="p-6 border-t border-slate-200/60">

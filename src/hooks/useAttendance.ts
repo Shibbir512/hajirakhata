@@ -69,8 +69,8 @@ export const useAttendance = (
     async (
       classId: string,
       studentStatuses: Map<string, { status: AttendanceStatus; studentName: string }>,
-    ) => {
-      if (!user || !db || !orgId) return;
+    ): Promise<boolean> => {
+      if (!user || !db || !orgId) return false;
 
       try {
         const now = new Date();
@@ -84,7 +84,7 @@ export const useAttendance = (
         
         if (!snapshot.empty) {
           toast.error("এই সেশনের জন্য ইতিমধ্যে হাজিরা নেওয়া হয়েছে।");
-          return;
+          return false;
         }
 
         const studentsArray = Array.from(studentStatuses.entries()).map(([studentId, { status, studentName }]) => ({
@@ -107,9 +107,11 @@ export const useAttendance = (
 
         await addDoc(sessionsRef, sessionData);
         toast.success("হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!");
+        return true;
       } catch (error) {
         console.error("Error taking attendance:", error);
         toast.error("হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
+        return false;
       }
     },
     [user, orgId],

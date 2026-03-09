@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { auth, db } from "../firebase";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import {
@@ -10,12 +10,32 @@ import {
   collection,
   where,
   getDocs,
+  deleteField,
+  updateDoc,
 } from "firebase/firestore";
 import toast from "react-hot-toast";
 
-export const useAuth = () => {
+interface AuthContextType {
+  user: User | null;
+  orgId: string | null;
+  orgName: string | null;
+  role: string | null;
+  visitedOrgs: { [key: string]: string };
+  loading: boolean;
+  setLoading: (loading: boolean) => void;
+  createOrganization: (name: string) => Promise<string | null>;
+  joinOrganization: (identifier: string) => Promise<string | null>;
+  leaveOrganization: () => Promise<void>;
+  removeVisitedOrg: (orgId: string) => Promise<void>;
+  logout: () => Promise<void>;
+}
+
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
+
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(auth?.currentUser || null);
   const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
@@ -30,16 +50,41 @@ export const useAuth = () => {
       if (currentUser) {
         setLoading(true);
         const userDocRef = doc(db!, `users`, currentUser.uid);
+        
+        // Ensure user's basic info is stored
+        try {
+          await setDoc(userDocRef, {
+            displayName: currentUser.displayName || "অজ্ঞাত ব্যবহারকারী",
+            email: currentUser.email || "",
+          }, { merge: true });
+        } catch (e) {
+          console.error("Error saving user info:", e);
+        }
+
         const unsubUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
-            const userRole = data.role || "teacher"; // Default role
+            let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
 
-            setOrgId(currentOrgId);
+            if (currentOrgId && userRole !== "admin") {
+              try {
+                const orgRef = doc(db!, "organizations", currentOrgId);
+                const orgSnap = await getDoc(orgRef);
+                if (orgSnap.exists() && orgSnap.data().createdBy === currentUser.uid) {
+                  userRole = "admin";
+                  await setDoc(userDocRef, { roles: { [currentOrgId]: "admin" } }, { merge: true });
+                }
+              } catch (e) {
+                console.error("Error checking org owner:", e);
+              }
+            }
+
             setRole(userRole);
             setVisitedOrgs(history);
+            setOrgName(currentOrgId ? (history[currentOrgId] || null) : null);
+            setOrgId(currentOrgId);
 
             if (currentOrgId && !history[currentOrgId]) {
               try {
@@ -78,8 +123,8 @@ export const useAuth = () => {
   }, []);
 
   const createOrganization = useCallback(
-    async (name: string) => {
-      if (!user || !db) return;
+    async (name: string): Promise<string | null> => {
+      if (!user || !db) return null;
       try {
         const newOrgId = `org-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         await setDoc(doc(db, "organizations", newOrgId), {
@@ -96,28 +141,34 @@ export const useAuth = () => {
             visitedOrgs: {
               [newOrgId]: name,
             },
+            roles: {
+              [newOrgId]: "admin",
+            },
           },
           { merge: true },
         );
 
         setOrgId(newOrgId);
         toast.success("প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!");
+        return newOrgId;
       } catch (error) {
         console.error("Error creating organization:", error);
         toast.error("প্রতিষ্ঠান তৈরি করতে ব্যর্থ হয়েছে।");
+        return null;
       }
     },
     [user],
   );
 
   const joinOrganization = useCallback(
-    async (identifier: string) => {
-      if (!user || !db) return;
+    async (identifier: string): Promise<string | null> => {
+      if (!user || !db) return null;
+      const cleanIdentifier = identifier.trim();
       try {
-        let targetOrgId = identifier;
+        let targetOrgId = cleanIdentifier;
         let orgName = "";
 
-        const orgRef = doc(db, "organizations", identifier);
+        const orgRef = doc(db, "organizations", cleanIdentifier);
         const orgSnap = await getDoc(orgRef);
 
         if (orgSnap.exists()) {
@@ -125,7 +176,7 @@ export const useAuth = () => {
         } else {
           const q = query(
             collection(db, "organizations"),
-            where("name", "==", identifier),
+            where("name", "==", cleanIdentifier),
           );
           const querySnapshot = await getDocs(q);
 
@@ -135,7 +186,7 @@ export const useAuth = () => {
             orgName = orgDoc.data().name;
           } else {
             throw new Error(
-              "Organization not found. Please provide a valid name or ID.",
+              "প্রতিষ্ঠান খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।",
             );
           }
         }
@@ -153,9 +204,11 @@ export const useAuth = () => {
 
         setOrgId(targetOrgId);
         toast.success("প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!");
+        return targetOrgId;
       } catch (error: any) {
         console.error("Error joining organization:", error);
         toast.error(error.message || "প্রতিষ্ঠানে যুক্ত হতে ব্যর্থ হয়েছে।");
+        return null;
       }
     },
     [user],
@@ -177,6 +230,36 @@ export const useAuth = () => {
     }
   }, [user]);
 
+  const removeVisitedOrg = useCallback(async (orgIdToRemove: string) => {
+    if (!user || !db) return;
+    try {
+      const updates: any = {
+        [`visitedOrgs.${orgIdToRemove}`]: deleteField(),
+      };
+      
+      if (orgId === orgIdToRemove) {
+        updates.organizationId = null;
+      }
+
+      await updateDoc(doc(db, "users", user.uid), updates);
+      
+      setVisitedOrgs((prev) => {
+        const updated = { ...prev };
+        delete updated[orgIdToRemove];
+        return updated;
+      });
+      
+      if (orgId === orgIdToRemove) {
+        setOrgId(null);
+      }
+      
+      toast.success("তালিকা থেকে মুছে ফেলা হয়েছে।");
+    } catch (error) {
+      console.error("Error removing visited org:", error);
+      toast.error("মুছে ফেলতে ব্যর্থ হয়েছে।");
+    }
+  }, [user, orgId]);
+
   const logout = useCallback(async () => {
     if (auth) {
       try {
@@ -189,16 +272,32 @@ export const useAuth = () => {
     }
   }, []);
 
-  return {
-    user,
-    orgId,
-    role,
-    visitedOrgs,
-    loading,
-    setLoading,
-    createOrganization,
-    joinOrganization,
-    leaveOrganization,
-    logout,
-  };
+  return (
+    <AuthContext.Provider
+      value={{
+        user,
+        orgId,
+        orgName,
+        role,
+        visitedOrgs,
+        loading,
+        setLoading,
+        createOrganization,
+        joinOrganization,
+        leaveOrganization,
+        removeVisitedOrg,
+        logout,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
+  );
+};
+
+export const useAuth = () => {
+  const context = useContext(AuthContext);
+  if (context === undefined) {
+    throw new Error("useAuth must be used within an AuthProvider");
+  }
+  return context;
 };
