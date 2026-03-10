@@ -52,7 +52,13 @@ const AttendanceHistory: React.FC = () => {
   };
 
   const handleShare = async (session: any) => {
-    const text = `হাজিরা রিপোর্ট: ${session.date}, সময়: ${session.time}\nউপস্থিত: ${session.students.filter((s: any) => s.status === AttendanceStatus.Present).length} জন\nঅনুপস্থিত: ${session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length} জন`;
+    const className = classes.find(c => c.id === session.classId)?.name || "N/A";
+    const formattedDate = toBengaliDate(session.date);
+    const formattedTime = toBengaliTime(session.time);
+    const presentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Present).length;
+    const absentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length;
+
+    const text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
     
     if (navigator.share) {
       try {
@@ -77,12 +83,25 @@ const AttendanceHistory: React.FC = () => {
 
   const toBengaliDate = (dateStr: string) => {
     if (!dateStr || typeof dateStr !== 'string') return "";
-    return dateStr.split("-").map(toBengaliNumber).join("-");
+    const separator = dateStr.includes("-") ? "-" : " ";
+    return dateStr.split(separator).map(toBengaliNumber).join("-");
   };
 
   const toBengaliTime = (timeStr: string) => {
-    // Basic conversion for time string like "10:30:00 AM"
-    return timeStr.replace(/\d/g, (match) => toBengaliNumber(match));
+    if (!timeStr || typeof timeStr !== 'string') return "";
+    
+    // Convert all digits to Bengali digits
+    let result = timeStr.replace(/\d/g, (match) => toBengaliNumber(match));
+    
+    // Handle our custom format "hh mm ss-AM/PM" (from useAttendance.ts)
+    if (timeStr.includes("-")) {
+      const [timePart, ampm] = result.split("-");
+      const formattedTime = timePart.trim().replace(/\s+/g, ":");
+      return `${formattedTime} ${ampm || ""}`;
+    }
+    
+    // Handle standard format "hh:mm:ss AM/PM" or others
+    return result;
   };
 
   return (
@@ -122,10 +141,12 @@ const AttendanceHistory: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classSessions.map(session => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
+          const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
             <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100" onClick={() => setViewingSession(session)}>
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2">
+                  <p className="text-lg font-bold text-teal-700 mb-1">{className}</p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">তারিখঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span></p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">সময়ঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.time ? toBengaliTime(session.time) : ""}</span></p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-700 font-semibold">{session.takenBy?.name || "N/A"}</span></p>

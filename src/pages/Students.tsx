@@ -39,27 +39,35 @@ const Students: React.FC = () => {
 
   const studentAttendance = useStudentAttendance(viewingStudent?.id || "", attendanceSessions);
 
-  const classStudents = useMemo(() => {
-    if (!selectedClassId) return [];
-    return students[selectedClassId] || [];
+  const allStudentsList = useMemo(() => {
+    if (selectedClassId) {
+      return students[selectedClassId] || [];
+    }
+    // Flatten all students from all classes
+    return Object.values(students).flat();
   }, [selectedClassId, students]);
 
   const fuse = useMemo(() => {
-    const normalizedStudents = classStudents.map(s => ({
-      ...s,
-      normalizedName: normalizeBengali(s.name)
-    }));
+    const normalizedStudents = allStudentsList.map(s => {
+      const className = classes.find(c => c.id === s.classId)?.name || "";
+      return {
+        ...s,
+        className,
+        normalizedName: normalizeBengali(s.name),
+        normalizedClassName: normalizeBengali(className)
+      };
+    });
     return new Fuse(normalizedStudents, {
-      keys: ['normalizedName', 'roll'],
+      keys: ['normalizedName', 'roll', 'normalizedClassName'],
       threshold: 0.3,
     });
-  }, [classStudents]);
+  }, [allStudentsList, classes]);
 
   const filteredStudents = useMemo(() => {
-    if (!searchQuery) return classStudents;
+    if (!searchQuery) return allStudentsList;
     const normalizedQuery = normalizeBengali(searchQuery);
     return fuse.search(normalizedQuery).map(result => result.item);
-  }, [fuse, searchQuery, classStudents]);
+  }, [fuse, searchQuery, allStudentsList]);
 
   const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string) => {
     if (selectedClassId) {
@@ -114,9 +122,10 @@ const Students: React.FC = () => {
 
   const handleExport = async (format: 'csv' | 'docx') => {
     if (format === 'csv') {
-      const csv = Papa.unparse(classStudents.map(s => ({
+      const csv = Papa.unparse(allStudentsList.map(s => ({
         Name: s.name,
         Roll: s.roll,
+        Class: classes.find(c => c.id === s.classId)?.name || "N/A",
         FatherName: s.fatherName,
         Phone: s.phone,
         Address: s.address
@@ -133,9 +142,9 @@ const Students: React.FC = () => {
         sections: [{
           children: [
             new Paragraph({ text: "Student List", heading: "Heading1" }),
-            ...classStudents.map(s => new Paragraph({
+            ...allStudentsList.map(s => new Paragraph({
               children: [
-                new TextRun({ text: `${s.roll}. ${s.name}`, bold: true }),
+                new TextRun({ text: `${s.roll}. ${s.name} (${classes.find(c => c.id === s.classId)?.name || "N/A"})`, bold: true }),
                 new TextRun({ text: `\nFather: ${s.fatherName || "N/A"} | Phone: ${s.phone || "N/A"} | Address: ${s.address || "N/A"}\n\n` })
               ]
             }))
@@ -191,10 +200,10 @@ const Students: React.FC = () => {
           </button>
           <button
             onClick={() => handleExport('csv')}
-            disabled={!selectedClassId || classStudents.length === 0}
+            disabled={allStudentsList.length === 0}
             className={clsx(
               "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
-              (!selectedClassId || classStudents.length === 0)
+              (allStudentsList.length === 0)
                 ? "bg-slate-300 cursor-not-allowed"
                 : "bg-sky-500 hover:bg-sky-600 hover:shadow-sky-100"
             )}
@@ -204,10 +213,10 @@ const Students: React.FC = () => {
           </button>
           <button
             onClick={() => handleExport('docx')}
-            disabled={!selectedClassId || classStudents.length === 0}
+            disabled={allStudentsList.length === 0}
             className={clsx(
               "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
-              (!selectedClassId || classStudents.length === 0)
+              (allStudentsList.length === 0)
                 ? "bg-slate-300 cursor-not-allowed"
                 : "bg-rose-500 hover:bg-rose-600 hover:shadow-rose-100"
             )}
@@ -248,83 +257,82 @@ const Students: React.FC = () => {
           </div>
         </div>
 
-        {selectedClassId ? (
-          <div className="overflow-x-auto border border-slate-200 rounded-lg">
-            <table className="w-full text-left border-collapse">
-              <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
-                <tr>
-                  <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
-                    রোল
-                  </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
-                    শিক্ষার্থীর নাম
-                  </th>
-                  <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200 hidden md:table-cell">
-                    ফোন
-                  </th>
-                  <th className="text-right py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
-                    কার্যক্রম
-                  </th>
+        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
+              <tr>
+                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                  রোল
+                </th>
+                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                  শিক্ষার্থীর নাম
+                </th>
+                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                  শ্রেণি
+                </th>
+                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200 hidden md:table-cell">
+                  ফোন
+                </th>
+                <th className="text-right py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                  কার্যক্রম
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredStudents.map((student) => (
+                <tr
+                  key={student.id}
+                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors group"
+                >
+                  <td className="py-4 px-4 text-slate-800">{student.roll}</td>
+                  <td className="py-4 px-4 text-slate-800 font-medium">
+                    <div className="flex items-center gap-3">
+                      {student.name}
+                    </div>
+                  </td>
+                  <td className="py-4 px-4 text-slate-600">
+                    {classes.find(c => c.id === student.classId)?.name || "N/A"}
+                  </td>
+                  <td className="py-4 px-4 text-slate-500 hidden md:table-cell">
+                    {student.phone || "-"}
+                  </td>
+                  <td className="py-4 px-4 text-right">
+                    <div className="flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                      <button
+                        onClick={() => setViewingStudent(student)}
+                        className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+                        title="বিস্তারিত দেখুন"
+                      >
+                        <Eye className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => setEditingStudent(student)}
+                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                        title="সম্পাদনা"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteStudent(student)}
+                        className="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
+                        title="মুছুন"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {filteredStudents.map((student) => (
-                  <tr
-                    key={student.id}
-                    className="border-b border-slate-100 hover:bg-slate-50 transition-colors group"
-                  >
-                    <td className="py-4 px-4 text-slate-800">{student.roll}</td>
-                    <td className="py-4 px-4 text-slate-800 font-medium">
-                      <div className="flex items-center gap-3">
-                        {student.name}
-                      </div>
-                    </td>
-                    <td className="py-4 px-4 text-slate-500 hidden md:table-cell">
-                      {student.phone || "-"}
-                    </td>
-                    <td className="py-4 px-4 text-right">
-                      <div className="flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => setViewingStudent(student)}
-                          className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
-                          title="বিস্তারিত দেখুন"
-                        >
-                          <Eye className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => setEditingStudent(student)}
-                          className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
-                          title="সম্পাদনা"
-                        >
-                          <Edit className="w-4 h-4" />
-                        </button>
-                        <button
-                          onClick={() => handleDeleteStudent(student)}
-                          className="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
-                          title="মুছুন"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-                {filteredStudents.length === 0 && (
-                  <tr>
-                    <td colSpan={4} className="text-center py-8 text-slate-500">
-                      কোন শিক্ষার্থী পাওয়া যায়নি।
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        ) : (
-          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
-            <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
-            <p className="text-sm">শিক্ষার্থী ব্যবস্থাপনা করার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
-          </div>
-        )}
+              ))}
+              {filteredStudents.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-8 text-slate-500">
+                    কোন শিক্ষার্থী পাওয়া যায়নি।
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {isAddModalOpen && (
@@ -418,8 +426,8 @@ const Students: React.FC = () => {
           isOpen={!!studentToDelete}
           onClose={() => setStudentToDelete(null)}
           onConfirm={() => {
-            if (selectedClassId) {
-              deleteStudent(studentToDelete.id, selectedClassId);
+            if (studentToDelete) {
+              deleteStudent(studentToDelete.id, studentToDelete.classId);
             }
             setStudentToDelete(null);
           }}
