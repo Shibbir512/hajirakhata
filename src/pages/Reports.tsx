@@ -22,6 +22,8 @@ import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import DatePicker from "react-datepicker";
 
+import Papa from "papaparse";
+
 const Reports: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
@@ -30,7 +32,7 @@ const Reports: React.FC = () => {
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(
-    new Date(new Date().setDate(new Date().getDate() - 30))
+    new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Default to start of current month
   );
   const [endDate, setEndDate] = useState<Date>(new Date());
 
@@ -105,6 +107,23 @@ const Reports: React.FC = () => {
     pdf.save("attendance-report.pdf");
   };
 
+  const handleExportCSV = () => {
+    const csv = Papa.unparse(reportData.map(s => ({
+      Roll: s.roll,
+      Name: s.name,
+      Present: s.present,
+      Absent: s.absent,
+      Percentage: `${s.percentage}%`
+    })));
+    const csvWithBOM = "\uFEFF" + csv;
+    const blob = new Blob([csvWithBOM], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  };
+
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(
       (acc, curr) => acc + curr.present,
@@ -123,13 +142,22 @@ const Reports: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-3xl font-bold gradient-text tracking-tight">রিপোর্ট</h2>
-        <button 
-          onClick={handleExportPDF}
-          className="btn-secondary flex items-center px-4 py-2"
-        >
-          <Download className="w-4 h-4 mr-2" />
-          PDF এক্সপোর্ট
-        </button>
+        <div className="flex gap-2">
+          <button 
+            onClick={handleExportCSV}
+            className="btn-secondary flex items-center px-4 py-2"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            CSV এক্সপোর্ট
+          </button>
+          <button 
+            onClick={handleExportPDF}
+            className="btn-secondary flex items-center px-4 py-2"
+          >
+            <Download className="w-4 h-4 mr-2" />
+            PDF এক্সপোর্ট
+          </button>
+        </div>
       </div>
 
       <div id="report-container" className="card-premium p-4 sm:p-8">

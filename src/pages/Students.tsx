@@ -2,7 +2,9 @@ import React, { useState, useMemo, useRef } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown } from "lucide-react";
+import { useAttendance } from "../hooks/useAttendance";
+import { useStudentAttendance } from "../hooks/useStudentAttendance";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar } from "lucide-react";
 import { Student } from "../types";
 import clsx from "clsx";
 import StudentAddModal from "../components/StudentAddModal";
@@ -15,6 +17,7 @@ const Students: React.FC = () => {
   const { classes } = useClasses(orgId, user, role);
   const { students, addStudent, updateStudent, deleteStudent, bulkAddStudents } =
     useStudents(orgId, user, role);
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,6 +25,8 @@ const Students: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const studentAttendance = useStudentAttendance(viewingStudent?.id || "", attendanceSessions);
 
   const classStudents = useMemo(() => {
     if (!selectedClassId) return [];
@@ -349,9 +354,33 @@ const Students: React.FC = () => {
                 <div className="col-span-1 text-sm font-medium text-slate-500">ফোন</div>
                 <div className="col-span-2 text-sm text-slate-900">{viewingStudent.phone || "-"}</div>
               </div>
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
                 <div className="col-span-1 text-sm font-medium text-slate-500">ঠিকানা</div>
                 <div className="col-span-2 text-sm text-slate-900 whitespace-pre-wrap">{viewingStudent.address || "-"}</div>
+              </div>
+              
+              <div className="pt-2">
+                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-teal-500" />
+                  সাম্প্রতিক হাজিরা
+                </h4>
+                <div className="max-h-48 overflow-y-auto space-y-2">
+                  {studentAttendance.length > 0 ? (
+                    studentAttendance.map((record, idx) => (
+                      <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded-lg text-sm">
+                        <span className="text-slate-600">{record.date}</span>
+                        <span className={clsx(
+                          "font-medium px-2 py-0.5 rounded-full text-xs",
+                          record.status === 'present' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                        )}>
+                          {record.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <p className="text-sm text-slate-400 italic">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
+                  )}
+                </div>
               </div>
             </div>
             <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
