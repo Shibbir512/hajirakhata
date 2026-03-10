@@ -33,9 +33,14 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
     return () => unsubClasses();
   }, [user, orgId]);
 
+  const [isAdding, setIsAdding] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const addClass = useCallback(
     async (name: string) => {
       if (!user || !db || !orgId) return;
+      setIsAdding(true);
       try {
         const newClassId = `class-${Date.now()}`;
         const newClass = { id: newClassId, name };
@@ -47,6 +52,8 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
       } catch (error) {
         console.error("Error adding class:", error);
         toast.error("শ্রেণি যোগ করতে ব্যর্থ হয়েছে।");
+      } finally {
+        setIsAdding(false);
       }
     },
     [user, orgId],
@@ -55,6 +62,7 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
   const updateClassName = useCallback(
     async (id: string, name: string) => {
       if (!user || !db || !orgId) return;
+      setIsUpdating(true);
       try {
         await updateDoc(doc(db, `organizations/${orgId}/classes`, id), {
           name,
@@ -63,6 +71,8 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
       } catch (error) {
         console.error("Error updating class:", error);
         toast.error("শ্রেণি আপডেট করতে ব্যর্থ হয়েছে।");
+      } finally {
+        setIsUpdating(false);
       }
     },
     [user, orgId],
@@ -81,6 +91,7 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
         return;
       }
 
+      setIsDeleting(true);
       try {
         // 1. Delete the class document
         await deleteDoc(doc(db, `organizations/${orgId}/classes`, id));
@@ -116,10 +127,12 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
       } catch (error) {
         console.error("Error deleting class:", error);
         toast.error("শ্রেণি মুছে ফেলতে ব্যর্থ হয়েছে।");
+      } finally {
+        setIsDeleting(false);
       }
     },
     [user, orgId, role],
   );
 
-  return { classes, addClass, updateClassName, deleteClass };
+  return { classes, addClass, updateClassName, deleteClass, isAdding, isUpdating, isDeleting };
 };

@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { AlertCircle, Loader2, Copy, Check } from 'lucide-react';
+import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
@@ -31,6 +31,14 @@ const Login: React.FC = () => {
 
       // Save user data to Firestore (without awaiting to speed up login)
       const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists() && !phoneNumber.trim()) {
+        setError("নতুন একাউন্ট তৈরির জন্য অনুগ্রহ করে আপনার ফোন নম্বরটি প্রদান করুন।");
+        setLoading(false);
+        return;
+      }
+
       const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
       
       const userData: any = {
@@ -43,7 +51,7 @@ const Login: React.FC = () => {
       if (phoneNumber.trim()) {
         userData.phone = phoneNumber.trim();
       }
-
+      
       setDoc(userRef, userData, { merge: true }).catch(error => console.error("Error saving user data:", error));
     } catch (error: any) {
       console.error("Login failed", error);
@@ -119,16 +127,14 @@ const Login: React.FC = () => {
           </div>
         )}
 
-        <div className="mb-6 text-left">
-          <label className="block text-sm font-medium text-slate-700 mb-2">
-            ফোন নম্বর (ঐচ্ছিক)
-          </label>
+        <div className="mb-6 relative">
+          <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
           <input
             type="tel"
             value={phoneNumber}
             onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="যেমন: ০১৭০০০০০০০০"
-            className="input-premium w-full border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all"
+            placeholder="ফোন নম্বর"
+            className="w-full pl-12 pr-4 py-4 border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all text-lg !rounded-none"
           />
         </div>
 

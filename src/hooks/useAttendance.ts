@@ -32,6 +32,7 @@ export const useAttendance = (
 ) => {
   const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isTakingAttendance, setIsTakingAttendance] = useState(false);
 
   // Fetch attendance sessions
   useEffect(() => {
@@ -73,6 +74,7 @@ export const useAttendance = (
     ): Promise<boolean> => {
       if (!user || !db || !orgId) return false;
 
+      setIsTakingAttendance(true);
       try {
         const now = new Date();
         const date = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
@@ -113,6 +115,8 @@ export const useAttendance = (
         console.error("Error taking attendance:", error);
         toast.error("হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
         return false;
+      } finally {
+        setIsTakingAttendance(false);
       }
     },
     [user, orgId],
@@ -162,6 +166,7 @@ export const useAttendance = (
   return {
     attendanceSessions,
     loading,
+    isTakingAttendance,
     takeAttendance,
     updateAttendanceSession,
     deleteAttendanceSession,

@@ -5,7 +5,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Save, CheckCircle, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown } from "lucide-react";
+import { Search, Save, CheckCircle, XCircle, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2 } from "lucide-react";
 import clsx from "clsx";
 
 const ITEMS_PER_PAGE = 10;
@@ -15,7 +15,7 @@ const Attendance: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
-  const { attendanceSessions, takeAttendance } = useAttendance(
+  const { attendanceSessions, takeAttendance, isTakingAttendance } = useAttendance(
     orgId,
     user,
     classes,
@@ -138,10 +138,15 @@ const Attendance: React.FC = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-3 rounded-xl font-bold text-base"
+            disabled={isTakingAttendance}
+            className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-3 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Save className="w-5 h-5 mr-2" />
-            সংরক্ষণ
+            {isTakingAttendance ? (
+              <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+            ) : (
+              <Save className="w-5 h-5 mr-2" />
+            )}
+            {isTakingAttendance ? 'সংরক্ষণ করা হচ্ছে...' : 'সংরক্ষণ'}
           </button>
         </div>
       </div>

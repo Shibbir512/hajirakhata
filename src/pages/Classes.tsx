@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
-import { Plus, Edit, Trash2, X } from "lucide-react";
+import { Plus, Edit, Trash2, X, Loader2 } from "lucide-react";
 import { ClassData } from "../types";
 
 const Classes: React.FC = () => {
   const { user, orgId, role } = useAuth();
-  const { classes, addClass, updateClassName, deleteClass } = useClasses(
+  const { classes, addClass, updateClassName, deleteClass, isAdding, isUpdating, isDeleting } = useClasses(
     orgId,
     user,
     role,
@@ -43,10 +43,11 @@ const Classes: React.FC = () => {
         <h2 className="text-3xl font-bold gradient-text tracking-tight">শ্রেণি</h2>
         <button
           onClick={() => setIsAddModalOpen(true)}
-          className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold"
+          disabled={isAdding}
+          className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          <Plus className="w-4 h-4 mr-2" />
-          শ্রেণি যোগ করুন
+          {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+          {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
         </button>
       </div>
 

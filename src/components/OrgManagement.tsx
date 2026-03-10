@@ -7,6 +7,7 @@ import {
   ArrowLeft,
   ArrowRight,
   Trash2,
+  Building,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -191,19 +192,22 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                   ? "প্রতিষ্ঠানের নাম"
                   : "প্রতিষ্ঠানের নাম বা আইডি"}
               </label>
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder={
-                  mode === "create"
-                    ? "যেমন: আমার প্রতিষ্ঠান"
-                    : "যেমন: আমার প্রতিষ্ঠান বা আইডি"
-                }
-                className="input-premium w-full border border-teal-400 bg-teal-50/30 focus:border-[#045F5F] focus:bg-white transition-all"
-                required
-                autoFocus
-              />
+              <div className="relative w-full">
+                <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-6 h-6" />
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder={
+                    mode === "create"
+                      ? "যেমন: আমার প্রতিষ্ঠান"
+                      : "যেমন: আমার প্রতিষ্ঠান বা আইডি"
+                  }
+                  className="w-full pl-14 pr-4 py-5 border-2 border-teal-400 bg-teal-50/30 focus:border-[#045F5F] focus:bg-white transition-all text-xl !rounded-none"
+                  required
+                  autoFocus
+                />
+              </div>
             </div>
             <div className="flex gap-3 pt-2">
               <button
