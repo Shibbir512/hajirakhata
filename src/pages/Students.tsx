@@ -386,8 +386,9 @@ const Students: React.FC = () => {
             <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="btn-secondary"
+                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
               >
+                <X className="w-5 h-5 mr-2" />
                 বন্ধ করুন
               </button>
             </div>

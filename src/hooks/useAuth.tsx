@@ -21,6 +21,7 @@ interface AuthContextType {
   orgId: string | null;
   orgName: string | null;
   role: string | null;
+  phone: string | null;
   visitedOrgs: { [key: string]: string };
   loading: boolean;
   setLoading: (loading: boolean) => void;
@@ -38,6 +39,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [loading, setLoading] = useState(true);
 
@@ -81,10 +83,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const currentOrgId = data.organizationId || null;
             let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
+            const userPhone = data.phone || null;
 
             // Set initial state
             setRole(userRole);
             setVisitedOrgs(history);
+            setPhone(userPhone);
             
             let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
             setOrgName(currentOrgName);
@@ -154,10 +158,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!user || !db) return null;
       try {
         const newOrgId = `org-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+        
+        // Try to get the most up-to-date info from the users collection first
+        let cName = user.displayName || user.email?.split('@')[0] || "অজানা";
+        let cEmail = user.email || "ইমেইল নেই";
+        
+        try {
+          const userSnap = await getDoc(doc(db, "users", user.uid));
+          if (userSnap.exists()) {
+            const userData = userSnap.data();
+            cName = userData.displayName || cName;
+            cEmail = userData.email || cEmail;
+          }
+        } catch (e) {
+          console.error("Error fetching user data for org creation:", e);
+        }
+
         await setDoc(doc(db, "organizations", newOrgId), {
           id: newOrgId,
           name,
           createdBy: user.uid,
+          creatorName: cName,
+          creatorEmail: cEmail,
           createdAt: serverTimestamp(),
         });
 
@@ -316,6 +338,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         orgId,
         orgName,
         role,
+        phone,
         visitedOrgs,
         loading,
         setLoading,

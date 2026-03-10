@@ -12,6 +12,8 @@ const Login: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
 
+  const [phoneNumber, setPhoneNumber] = useState("");
+
   if (user) {
     return <Navigate to="/" replace />;
   }
@@ -30,12 +32,19 @@ const Login: React.FC = () => {
       // Save user data to Firestore (without awaiting to speed up login)
       const userRef = doc(db, "users", user.uid);
       const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
-      setDoc(userRef, {
+      
+      const userData: any = {
         displayName: user.displayName || fallbackName,
         email: user.email || "ইমেইল নেই",
         photoURL: user.photoURL || "",
         lastLogin: serverTimestamp()
-      }, { merge: true }).catch(error => console.error("Error saving user data:", error));
+      };
+      
+      if (phoneNumber.trim()) {
+        userData.phone = phoneNumber.trim();
+      }
+
+      setDoc(userRef, userData, { merge: true }).catch(error => console.error("Error saving user data:", error));
     } catch (error: any) {
       console.error("Login failed", error);
       if (error.code === 'auth/unauthorized-domain') {
@@ -109,6 +118,19 @@ const Login: React.FC = () => {
             <p className="text-sm text-red-600">{error}</p>
           </div>
         )}
+
+        <div className="mb-6 text-left">
+          <label className="block text-sm font-medium text-slate-700 mb-2">
+            ফোন নম্বর (ঐচ্ছিক)
+          </label>
+          <input
+            type="tel"
+            value={phoneNumber}
+            onChange={(e) => setPhoneNumber(e.target.value)}
+            placeholder="যেমন: ০১৭০০০০০০০০"
+            className="input-premium w-full border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all"
+          />
+        </div>
 
         <button
           onClick={handleLogin}

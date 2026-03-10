@@ -104,6 +104,10 @@ const Attendance: React.FC = () => {
 
   const handleSave = async () => {
     if (!selectedClassId) return;
+    if (attendanceState.size === 0) {
+      alert("এই শ্রেণিতে কোনো শিক্ষার্থী নেই। হাজিরা সংরক্ষণ করা সম্ভব নয়।");
+      return;
+    }
     const success = await takeAttendance(selectedClassId, attendanceState);
     if (success) {
       navigate("/");

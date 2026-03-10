@@ -117,8 +117,9 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2 rounded-xl font-bold"
+            className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
           >
+            <X className="w-5 h-5 mr-2" />
             বাতিল
           </button>
           <button

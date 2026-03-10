@@ -209,7 +209,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="button"
                 onClick={() => setMode("select")}
-                className="flex-1 flex items-center justify-center gap-2 py-3 px-4 bg-white border-2 border-teal-100 text-teal-800 rounded-xl font-bold hover:bg-teal-50 transition-all"
+                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 ফিরে যান

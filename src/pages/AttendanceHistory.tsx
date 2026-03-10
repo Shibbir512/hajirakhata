@@ -3,21 +3,30 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Edit2, X, ChevronDown, Trash2 } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar } from "lucide-react";
 import clsx from "clsx";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 const AttendanceHistory: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, {}, role);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
+  const [viewingSession, setViewingSession] = useState<any | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
 
   const classSessions = useMemo(() => {
-    return attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
-  }, [attendanceSessions, selectedClassId]);
+    let filtered = attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
+    if (selectedDate) {
+      const dateStr = selectedDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' ');
+      filtered = filtered.filter(s => s.date === dateStr);
+    }
+    return filtered;
+  }, [attendanceSessions, selectedClassId, selectedDate]);
 
   const handleEdit = (session: any) => {
     setSelectedSession(session);
@@ -59,7 +68,7 @@ const AttendanceHistory: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
       
-      <div className="card-premium p-6">
+      <div className="card-premium p-6 flex flex-col sm:flex-row gap-4">
         <div className="relative max-w-xs">
           <select
             value={selectedClassId}
@@ -75,50 +84,91 @@ const AttendanceHistory: React.FC = () => {
           </select>
           <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
         </div>
+
+        <div className="relative max-w-xs">
+          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 w-4 h-4" />
+          <DatePicker
+            selected={selectedDate}
+            onChange={(date: Date | null) => setSelectedDate(date)}
+            dateFormat="dd MM yyyy"
+            placeholderText="তারিখ নির্বাচন করুন"
+            className="input-premium pl-10 w-full"
+            isClearable
+          />
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {classSessions.map(session => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           return (
-            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300">
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100" onClick={() => setViewingSession(session)}>
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2">
-                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">তারিখঃ</span> <span className="font-mono bg-slate-100 px-2 py-0.5 rounded-md">{session.date ? toBengaliDate(session.date) : ""}</span></p>
-                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">সময়ঃ</span> <span className="font-mono bg-slate-100 px-2 py-0.5 rounded-md">{session.time ? toBengaliTime(session.time) : ""}</span></p>
-                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-800">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-600 font-medium">{session.takenBy?.name || "N/A"}</span></p>
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">তারিখঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span></p>
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">সময়ঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.time ? toBengaliTime(session.time) : ""}</span></p>
+                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-700 font-semibold">{session.takenBy?.name || "N/A"}</span></p>
                 </div>
-                <div className="flex gap-2">
-                  <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2.5 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors">
+                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                  <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => deleteAttendanceSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2.5 bg-rose-50 hover:bg-rose-100 rounded-xl transition-colors">
+                  <button onClick={() => deleteAttendanceSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
               </div>
               
               <div className="border-t border-slate-100 pt-4 mt-2">
-                <p className="font-semibold text-slate-800 mb-3 flex items-center gap-2">
-                  <span className="w-2 h-2 rounded-full bg-rose-500"></span>
-                  অনুপস্থিত ছাত্র:
+                <p className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                  <span className={clsx("w-2 h-2 rounded-full", absentStudents.length > 0 ? "bg-rose-500" : "bg-emerald-500")}></span>
+                  {absentStudents.length > 0 ? `অনুপস্থিত ছাত্র (${toBengaliNumber(absentStudents.length)} জন):` : "সবাই উপস্থিত"}
                 </p>
-                {absentStudents.length > 0 ? (
+                {absentStudents.length > 0 && (
                   <ul className="space-y-2">
-                    {absentStudents.map((s: any) => (
-                      <li key={s.studentId} className="text-sm text-slate-700 bg-rose-50/50 border border-rose-100/50 px-3 py-2 rounded-lg flex items-center gap-2">
+                    {absentStudents.slice(0, 3).map((s: any) => (
+                      <li key={s.studentId} className="text-sm text-slate-700 bg-rose-50/80 border border-rose-100 px-3 py-1.5 rounded-md flex items-center gap-2">
                         {s.studentName}
                       </li>
                     ))}
+                    {absentStudents.length > 3 && (
+                      <li className="text-xs text-slate-500 italic pl-2">আরও {toBengaliNumber(absentStudents.length - 3)} জন...</li>
+                    )}
                   </ul>
-                ) : (
-                  <p className="text-sm text-slate-500 italic">কেউ নেই</p>
                 )}
               </div>
             </div>
           );
         })}
       </div>
+
+      {viewingSession && (
+        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 p-8">
+            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
+              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা বিস্তারিত</h3>
+              <button onClick={() => setViewingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="space-y-3">
+              {viewingSession.students.map((student: any) => (
+                <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
+                  <span className="font-medium text-slate-800 flex items-center gap-3">
+                    {student.studentName}
+                  </span>
+                  <span className={clsx(
+                    "px-4 py-2 rounded-xl text-sm font-bold",
+                    student.status === AttendanceStatus.Present 
+                      ? "bg-emerald-100 text-emerald-800" 
+                      : "bg-rose-100 text-rose-800"
+                  )}>
+                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
 
       {isEditMode && selectedSession && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">

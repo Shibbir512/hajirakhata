@@ -28,14 +28,24 @@ const Dashboard: React.FC = () => {
     const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
     const todaysSessions = attendanceSessions.filter((s) => s.date === today);
 
-    let presentToday = 0;
-    let absentToday = 0;
+    const presentTodaySet = new Set();
+    const absentTodaySet = new Set();
+
     todaysSessions.forEach(s => {
       s.students.forEach((st: any) => {
-        if (st.status === "present") presentToday++;
-        else absentToday++;
+        if (st.status === "present") {
+          presentTodaySet.add(st.studentId);
+          absentTodaySet.delete(st.studentId);
+        } else {
+          if (!presentTodaySet.has(st.studentId)) {
+            absentTodaySet.add(st.studentId);
+          }
+        }
       });
     });
+
+    const presentToday = presentTodaySet.size;
+    const absentToday = absentTodaySet.size;
 
     return { totalStudents, totalClasses, presentToday, absentToday };
   }, [students, classes, attendanceSessions]);
@@ -49,19 +59,26 @@ const Dashboard: React.FC = () => {
 
       const daySessions = attendanceSessions.filter((s) => s.date === dateStr);
 
-      let present = 0;
-      let absent = 0;
+      const presentSet = new Set();
+      const absentSet = new Set();
+
       daySessions.forEach(s => {
         s.students.forEach((st: any) => {
-          if (st.status === "present") present++;
-          else absent++;
+          if (st.status === "present") {
+            presentSet.add(st.studentId);
+            absentSet.delete(st.studentId);
+          } else {
+            if (!presentSet.has(st.studentId)) {
+              absentSet.add(st.studentId);
+            }
+          }
         });
       });
 
       data.push({
         name: date.toLocaleDateString("en-US", { weekday: "short" }),
-        Present: present,
-        Absent: absent,
+        Present: presentSet.size,
+        Absent: absentSet.size,
       });
     }
     return data;

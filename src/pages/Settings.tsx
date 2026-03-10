@@ -1,25 +1,37 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus } from "lucide-react";
-import { doc, updateDoc, collection, query, where, getDocs, deleteField, deleteDoc, onSnapshot } from "firebase/firestore";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X } from "lucide-react";
+import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, logout, visitedOrgs } = useAuth();
+  const { user, orgId, role, phone, logout, visitedOrgs } = useAuth();
   const [orgName, setOrgName] = useState("");
+  const [userPhone, setUserPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
+  const [allOrgs, setAllOrgs] = useState<any[]>([]);
+  const [loadingAllOrgs, setLoadingAllOrgs] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+
+  const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
 
   useEffect(() => {
     if (orgId && visitedOrgs[orgId]) {
       setOrgName(visitedOrgs[orgId]);
     }
   }, [orgId, visitedOrgs]);
+
+  useEffect(() => {
+    if (phone) {
+      setUserPhone(phone);
+    }
+  }, [phone]);
 
   useEffect(() => {
     if (!orgId || role !== "admin" || !db) return;
@@ -39,6 +51,46 @@ const Settings: React.FC = () => {
     return () => unsubscribe();
   }, [orgId, role]);
 
+  useEffect(() => {
+    if (isSuperAdmin && db) {
+      const fetchAllOrgs = async () => {
+        setLoadingAllOrgs(true);
+        try {
+          const q = query(collection(db, "organizations"));
+          const snap = await getDocs(q);
+          const orgsData = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          
+          // For orgs missing creator info, try to fetch from users collection
+          const updatedOrgs = await Promise.all(orgsData.map(async (org: any) => {
+            if ((!org.creatorName || org.creatorName === "অজানা") && org.createdBy) {
+              try {
+                const userSnap = await getDoc(doc(db, "users", org.createdBy));
+                if (userSnap.exists()) {
+                  const userData = userSnap.data();
+                  return {
+                    ...org,
+                    creatorName: userData.displayName || userData.email?.split('@')[0] || "অজানা",
+                    creatorEmail: userData.email || "ইমেইল নেই"
+                  };
+                }
+              } catch (e) {
+                console.error("Error fetching creator info for org:", org.id, e);
+              }
+            }
+            return org;
+          }));
+
+          setAllOrgs(updatedOrgs);
+        } catch (e) {
+          console.error("Error fetching all orgs:", e);
+        } finally {
+          setLoadingAllOrgs(false);
+        }
+      };
+      fetchAllOrgs();
+    }
+  }, [isSuperAdmin]);
+
   const handleOrgNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setOrgName(e.target.value);
   };
@@ -55,6 +107,21 @@ const Settings: React.FC = () => {
       toast.error("প্রতিষ্ঠানের নাম আপডেট করতে ব্যর্থ হয়েছে।");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleSavePhone = async () => {
+    if (!user) return;
+    setIsSavingPhone(true);
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { phone: userPhone.trim() });
+      toast.success("ফোন নম্বর সফলভাবে আপডেট করা হয়েছে!");
+    } catch (error) {
+      console.error("Error updating phone number:", error);
+      toast.error("ফোন নম্বর আপডেট করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setIsSavingPhone(false);
     }
   };
 
@@ -199,6 +266,30 @@ const Settings: React.FC = () => {
                   disabled
                   className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70 font-bold text-teal-700"
                 />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                ফোন নম্বর
+              </label>
+              <div className="relative flex gap-2">
+                <div className="relative flex-1">
+                  <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                  <input
+                    type="tel"
+                    value={userPhone}
+                    onChange={(e) => setUserPhone(e.target.value)}
+                    placeholder="ফোন নম্বর লিখুন"
+                    className="input-premium pl-10"
+                  />
+                </div>
+                <button
+                  onClick={handleSavePhone}
+                  disabled={isSavingPhone || userPhone === (phone || "")}
+                  className="px-4 py-2 bg-teal-600 text-white rounded-xl font-bold text-sm disabled:opacity-50"
+                >
+                  {isSavingPhone ? "..." : "সেভ"}
+                </button>
               </div>
             </div>
           </div>
@@ -391,6 +482,91 @@ const Settings: React.FC = () => {
           </div>
         )}
 
+        {/* System Overview Section (Super Admin Only) */}
+        {isSuperAdmin && (
+          <div className="col-span-1 md:col-span-2 card-premium p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 bg-gradient-to-tr from-orange-100 to-yellow-100 rounded-full flex items-center justify-center text-orange-600 shadow-inner border border-white">
+                <List className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                  সিস্টেম ওভারভিউ (সুপার অ্যাডমিন)
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  সিস্টেমের সকল প্রতিষ্ঠানের তালিকা
+                </p>
+              </div>
+            </div>
+
+            {loadingAllOrgs ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
+              </div>
+            ) : allOrgs.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 text-sm">
+                      <th className="pb-3 font-medium">প্রতিষ্ঠানের নাম ও আইডি</th>
+                      <th className="pb-3 font-medium">তৈরি করেছেন</th>
+                      <th className="pb-3 font-medium">তৈরির সময়</th>
+                      <th className="pb-3 font-medium text-right">অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {allOrgs.map((org) => (
+                      <tr key={org.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-800">{org.name}</span>
+                            <span className="text-xs text-slate-400 font-mono">ID: {org.id}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <div className="flex flex-col">
+                            <span className="text-sm font-medium text-slate-700">{org.creatorName || "অজানা"}</span>
+                            <span className="text-xs text-slate-500">{org.creatorEmail || "ইমেইল নেই"}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <span className="text-xs text-slate-500">
+                            {org.createdAt?.toDate ? org.createdAt.toDate().toLocaleDateString('bn-BD') : "N/A"}
+                          </span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            onClick={async () => {
+                              const isBanned = !!org.banned;
+                              try {
+                                await updateDoc(doc(db, "organizations", org.id), { banned: !isBanned });
+                                setAllOrgs(allOrgs.map(o => o.id === org.id ? { ...o, banned: !isBanned } : o));
+                                toast.success(isBanned ? "প্রতিষ্ঠানটি আনব্যান করা হয়েছে।" : "প্রতিষ্ঠানটি ব্যান করা হয়েছে।");
+                              } catch (e) {
+                                console.error("Error toggling ban:", e);
+                                toast.error("ব্যর্থ হয়েছে।");
+                              }
+                            }}
+                            className={`p-2 rounded-lg transition-colors ${org.banned ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-rose-600 bg-rose-50 hover:bg-rose-100"}`}
+                            title={org.banned ? "আনব্যান করুন" : "ব্যান করুন"}
+                          >
+                            {org.banned ? <ShieldCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <div className="mt-4 p-4 bg-teal-50 rounded-xl border border-teal-100">
+                  <p className="text-teal-800 font-bold">মোট প্রতিষ্ঠান: {allOrgs.length}টি</p>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-slate-500 py-8">কোনো প্রতিষ্ঠান পাওয়া যায়নি।</p>
+            )}
+          </div>
+        )}
+
         {/* Danger Zone */}
         <div className="col-span-1 md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-rose-100/50 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-rose-400 to-pink-400"></div>
@@ -425,8 +601,9 @@ const Settings: React.FC = () => {
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
                   disabled={isDeleting}
-                  className="px-4 py-3 text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-xl transition-colors text-sm font-medium w-full sm:w-auto"
+                  className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-3 rounded-xl font-bold text-sm w-full sm:w-auto justify-center"
                 >
+                  <X className="w-4 h-4 mr-2" />
                   বাতিল
                 </button>
                 <button
