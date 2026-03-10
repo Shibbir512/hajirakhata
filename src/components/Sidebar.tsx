@@ -1,5 +1,7 @@
 import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
+import { SUPER_ADMIN_EMAILS } from "../constants";
+import { useAuth } from "../hooks/useAuth";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -9,9 +11,9 @@ import {
   Settings,
   Building2,
   X,
+  ShieldAlert,
 } from "lucide-react";
 import clsx from "clsx";
-import { useAuth } from "../hooks/useAuth";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -22,6 +24,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
+  const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
+
   const links = [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
@@ -30,6 +34,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "সেটিংস", path: "/settings", icon: Settings },
+    ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
   ];
 
   return (

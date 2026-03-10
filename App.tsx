@@ -11,6 +11,7 @@ import Students from "./src/pages/Students";
 import Classes from "./src/pages/Classes";
 import Reports from "./src/pages/Reports";
 import Settings from "./src/pages/Settings";
+import SuperAdminDashboard from "./src/pages/SuperAdminDashboard";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
@@ -55,6 +56,7 @@ const App: React.FC = () => {
             <Route path="classes" element={<Classes />} />
             <Route path="reports" element={<Reports />} />
             <Route path="settings" element={<Settings />} />
+            <Route path="super-admin" element={<SuperAdminDashboard />} />
           </Route>
         </Routes>
       </BrowserRouter>

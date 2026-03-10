@@ -1,0 +1,106 @@
+import React, { useEffect, useState } from "react";
+import { db } from "../firebase";
+import { collection, getDocs, doc, updateDoc } from "firebase/firestore";
+import { Users, BookOpen, Lock, Unlock } from "lucide-react";
+import toast from "react-hot-toast";
+
+interface OrgStats {
+  id: string;
+  name: string;
+  studentCount: number;
+  teacherCount: number;
+  isBlocked?: boolean;
+}
+
+const SuperAdminDashboard: React.FC = () => {
+  const [orgStats, setOrgStats] = useState<OrgStats[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchStats = async () => {
+    setLoading(true);
+    try {
+      const orgsSnapshot = await getDocs(collection(db, "organizations"));
+      const stats: OrgStats[] = [];
+
+      for (const orgDoc of orgsSnapshot.docs) {
+        const orgId = orgDoc.id;
+        const orgData = orgDoc.data();
+        const orgName = orgData.name;
+        const isBlocked = orgData.isBlocked || false;
+
+        // Count Students
+        const studentsSnapshot = await getDocs(collection(db, `organizations/${orgId}/students`));
+        const studentCount = studentsSnapshot.size;
+
+        // Count Teachers
+        const usersSnapshot = await getDocs(collection(db, "users"));
+        const teacherCount = usersSnapshot.docs.filter(
+          (userDoc) => userDoc.data().organizationId === orgId
+        ).length;
+
+        stats.push({ id: orgId, name: orgName, studentCount, teacherCount, isBlocked });
+      }
+      setOrgStats(stats);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const toggleBlockStatus = async (orgId: string, currentStatus: boolean) => {
+    try {
+      await updateDoc(doc(db, "organizations", orgId), {
+        isBlocked: !currentStatus,
+      });
+      toast.success(`প্রতিষ্ঠানটি সফলভাবে ${!currentStatus ? "ব্লক" : "আনব্লক"} করা হয়েছে।`);
+      fetchStats();
+    } catch (error) {
+      console.error("Error toggling block status:", error);
+      toast.error("অবস্থা পরিবর্তন করতে ব্যর্থ হয়েছে।");
+    }
+  };
+
+  if (loading) return <div className="p-8 text-center">লোড হচ্ছে...</div>;
+
+  return (
+    <div className="p-8 space-y-6">
+      <h2 className="text-3xl font-bold gradient-text tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড</h2>
+      <div className="grid grid-cols-1 gap-6">
+        {orgStats.map((org) => (
+          <div key={org.id} className="card-premium p-6 flex items-center justify-between">
+            <div>
+              <h3 className="text-xl font-bold text-teal-800">{org.name}</h3>
+              <p className="text-sm text-slate-500 font-mono">{org.id}</p>
+            </div>
+            <div className="flex items-center gap-6">
+              <div className="flex items-center gap-2">
+                <Users className="w-5 h-5 text-violet-500" />
+                <span className="font-bold">{org.studentCount} ছাত্র</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <BookOpen className="w-5 h-5 text-amber-500" />
+                <span className="font-bold">{org.teacherCount} শিক্ষক</span>
+              </div>
+              <button
+                onClick={() => toggleBlockStatus(org.id, org.isBlocked || false)}
+                className={`p-2 rounded-full ${
+                  org.isBlocked ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+                }`}
+                title={org.isBlocked ? "আনব্লক করুন" : "ব্লক করুন"}
+              >
+                {org.isBlocked ? <Lock className="w-5 h-5" /> : <Unlock className="w-5 h-5" />}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+export default SuperAdminDashboard;

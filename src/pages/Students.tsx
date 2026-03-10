@@ -9,8 +9,18 @@ import { Student } from "../types";
 import clsx from "clsx";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 import Papa from "papaparse";
 import mammoth from "mammoth";
+import Fuse from "fuse.js";
+
+// Bengali character normalization
+const normalizeBengali = (text: string) => {
+  return text
+    .replace(/[\u09BC\u09BE-\u09CD\u09D7]/g, '') // Remove diacritics/matras
+    .replace(/[\u0981-\u0983]/g, '') // Remove chandrabindu, anusvara, visarga
+    .toLowerCase();
+};
 
 const Students: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -24,6 +34,7 @@ const Students: React.FC = () => {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+  const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const studentAttendance = useStudentAttendance(viewingStudent?.id || "", attendanceSessions);
@@ -33,13 +44,22 @@ const Students: React.FC = () => {
     return students[selectedClassId] || [];
   }, [selectedClassId, students]);
 
+  const fuse = useMemo(() => {
+    const normalizedStudents = classStudents.map(s => ({
+      ...s,
+      normalizedName: normalizeBengali(s.name)
+    }));
+    return new Fuse(normalizedStudents, {
+      keys: ['normalizedName', 'roll'],
+      threshold: 0.3,
+    });
+  }, [classStudents]);
+
   const filteredStudents = useMemo(() => {
-    return classStudents.filter(
-      (student) =>
-        student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.roll.toString().includes(searchQuery),
-    );
-  }, [classStudents, searchQuery]);
+    if (!searchQuery) return classStudents;
+    const normalizedQuery = normalizeBengali(searchQuery);
+    return fuse.search(normalizedQuery).map(result => result.item);
+  }, [fuse, searchQuery, classStudents]);
 
   const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string) => {
     if (selectedClassId) {
@@ -55,10 +75,8 @@ const Students: React.FC = () => {
     }
   };
 
-  const handleDeleteStudent = (id: string) => {
-    if (selectedClassId && window.confirm("Are you sure you want to delete this student? This action cannot be undone.")) {
-      deleteStudent(id, selectedClassId);
-    }
+  const handleDeleteStudent = (student: Student) => {
+    setStudentToDelete(student);
   };
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -281,7 +299,7 @@ const Students: React.FC = () => {
                           <Edit className="w-4 h-4" />
                         </button>
                         <button
-                          onClick={() => handleDeleteStudent(student.id)}
+                          onClick={() => handleDeleteStudent(student)}
                           className="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
                           title="মুছুন"
                         >
@@ -394,6 +412,20 @@ const Students: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {studentToDelete && (
+        <ConfirmationDialog
+          isOpen={!!studentToDelete}
+          onClose={() => setStudentToDelete(null)}
+          onConfirm={() => {
+            if (selectedClassId) {
+              deleteStudent(studentToDelete.id, selectedClassId);
+            }
+            setStudentToDelete(null);
+          }}
+          title="শিক্ষার্থী মুছে ফেলুন"
+          message={`আপনি কি নিশ্চিত যে শিক্ষার্থী ${studentToDelete.name}-কে মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।`}
+        />
       )}
     </div>
   );

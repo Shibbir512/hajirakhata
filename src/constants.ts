@@ -1,5 +1,7 @@
 import type { ClassData, Student } from "./types";
 
+export const SUPER_ADMIN_EMAILS = ["shibbir.ahma.2025@gmail.com"];
+
 export const CLASSES: ClassData[] = [
   { id: "class-1", name: "Class 1" },
   { id: "class-2", name: "Class 2" },

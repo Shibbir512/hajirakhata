@@ -3,7 +3,8 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Edit2, X, ChevronDown, Trash2, Calendar } from "lucide-react";
+import ConfirmationDialog from "../components/ConfirmationDialog";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2 } from "lucide-react";
 import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -18,6 +19,7 @@ const AttendanceHistory: React.FC = () => {
   const [viewingSession, setViewingSession] = useState<any | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
+  const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
 
   const classSessions = useMemo(() => {
     let filtered = attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
@@ -47,6 +49,25 @@ const AttendanceHistory: React.FC = () => {
     await updateAttendanceSession(selectedSession.id, editedStudents);
     setIsEditMode(false);
     setSelectedSession(null);
+  };
+
+  const handleShare = async (session: any) => {
+    const text = `হাজিরা রিপোর্ট: ${session.date}, সময়: ${session.time}\nউপস্থিত: ${session.students.filter((s: any) => s.status === AttendanceStatus.Present).length} জন\nঅনুপস্থিত: ${session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length} জন`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: 'হাজিরা রিপোর্ট',
+          text: text,
+        });
+      } catch (err) {
+        console.error('Error sharing:', err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(text);
+      alert('রিপোর্ট কপি করা হয়েছে!');
+    }
   };
 
   const toBengaliNumber = (num: string | number) => {
@@ -113,7 +134,7 @@ const AttendanceHistory: React.FC = () => {
                   <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => deleteAttendanceSession(session.id)} className="text-rose-600 hover:text-rose-800 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
+                  <button onClick={() => setSessionToDelete(session)} className="text-rose-600 hover:text-rose-800 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -147,7 +168,10 @@ const AttendanceHistory: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto border border-white/20 p-8">
             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা বিস্তারিত</h3>
-              <button onClick={() => setViewingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+              <div className="flex items-center gap-2">
+                <button onClick={() => handleShare(viewingSession)} className="text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full"><Share2 className="w-5 h-5" /></button>
+                <button onClick={() => setViewingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+              </div>
             </div>
             <div className="space-y-3">
               {viewingSession.students.map((student: any) => (
@@ -200,6 +224,18 @@ const AttendanceHistory: React.FC = () => {
             <button onClick={handleSave} className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-medium">সংরক্ষণ করুন</button>
           </div>
         </div>
+      )}
+      {sessionToDelete && (
+        <ConfirmationDialog
+          isOpen={!!sessionToDelete}
+          onClose={() => setSessionToDelete(null)}
+          onConfirm={() => {
+            deleteAttendanceSession(sessionToDelete.id);
+            setSessionToDelete(null);
+          }}
+          title="হাজিরা সেশন মুছে ফেলুন"
+          message="আপনি কি নিশ্চিত যে এই হাজিরা সেশনটি মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।"
+        />
       )}
     </div>
   );
