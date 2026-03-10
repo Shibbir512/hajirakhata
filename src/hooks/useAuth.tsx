@@ -12,6 +12,7 @@ import {
   getDocs,
   deleteField,
   updateDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import toast from "react-hot-toast";
 
@@ -45,81 +46,101 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setLoading(false);
       return;
     }
+    
+    let unsubUser: (() => void) | null = null;
+
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      // Clean up previous user listener if it exists
+      if (unsubUser) {
+        unsubUser();
+        unsubUser = null;
+      }
+
       setUser(currentUser);
-      if (currentUser) {
+      
+      if (currentUser && db) {
         setLoading(true);
-        const userDocRef = doc(db!, `users`, currentUser.uid);
+        const userDocRef = doc(db, `users`, currentUser.uid);
         
-        // Ensure user's basic info is stored
+        // Ensure user's basic info is stored without blocking
         try {
-          await setDoc(userDocRef, {
-            displayName: currentUser.displayName || "অজ্ঞাত ব্যবহারকারী",
+          const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
+          setDoc(userDocRef, {
+            displayName: currentUser.displayName || fallbackName,
             email: currentUser.email || "",
-          }, { merge: true });
+            photoURL: currentUser.photoURL || "",
+            lastSeen: serverTimestamp()
+          }, { merge: true }).catch(e => console.error("Error saving user info:", e));
         } catch (e) {
           console.error("Error saving user info:", e);
         }
 
-        const unsubUser = onSnapshot(userDocRef, async (docSnap) => {
+        unsubUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
             let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
 
+            // Set initial state immediately to unblock UI
+            setRole(userRole);
+            setVisitedOrgs(history);
+            setOrgName(currentOrgId ? (history[currentOrgId] || null) : null);
+            setOrgId(currentOrgId);
+            setLoading(false);
+
+            // Perform background checks
             if (currentOrgId && userRole !== "admin") {
               try {
-                const orgRef = doc(db!, "organizations", currentOrgId);
+                const orgRef = doc(db, "organizations", currentOrgId);
                 const orgSnap = await getDoc(orgRef);
                 if (orgSnap.exists() && orgSnap.data().createdBy === currentUser.uid) {
                   userRole = "admin";
-                  await setDoc(userDocRef, { roles: { [currentOrgId]: "admin" } }, { merge: true });
+                  setRole(userRole);
+                  setDoc(userDocRef, { roles: { [currentOrgId]: "admin" } }, { merge: true }).catch(console.error);
                 }
               } catch (e) {
                 console.error("Error checking org owner:", e);
               }
             }
 
-            setRole(userRole);
-            setVisitedOrgs(history);
-            setOrgName(currentOrgId ? (history[currentOrgId] || null) : null);
-            setOrgId(currentOrgId);
-
             if (currentOrgId && !history[currentOrgId]) {
               try {
-                const orgRef = doc(db!, "organizations", currentOrgId);
+                const orgRef = doc(db, "organizations", currentOrgId);
                 const orgSnap = await getDoc(orgRef);
                 if (orgSnap.exists()) {
                   const orgName = orgSnap.data().name;
-                  await setDoc(
+                  setOrgName(orgName);
+                  setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: orgName }));
+                  setDoc(
                     userDocRef,
                     {
                       visitedOrgs: { [currentOrgId]: orgName },
                     },
                     { merge: true },
-                  );
+                  ).catch(console.error);
                 }
               } catch (e) {
                 console.error("Error auto-populating history:", e);
               }
             }
-
-            setLoading(false);
           } else {
             setOrgId(null);
             setVisitedOrgs({});
             setLoading(false);
           }
         });
-        return () => unsubUser();
       } else {
         setOrgId(null);
         setVisitedOrgs({});
         setLoading(false);
       }
     });
-    return () => unsubscribe();
+
+    return () => {
+      unsubscribe();
+      if (unsubUser) unsubUser();
+    };
   }, []);
 
   const createOrganization = useCallback(
@@ -131,12 +152,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: newOrgId,
           name,
           createdBy: user.uid,
-          createdAt: Date.now(),
+          createdAt: serverTimestamp(),
         });
 
+        const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
         await setDoc(
           doc(db, "users", user.uid),
           {
+            displayName: user.displayName || fallbackName,
+            email: user.email || "",
+            photoURL: user.photoURL || "",
             organizationId: newOrgId,
             visitedOrgs: {
               [newOrgId]: name,
@@ -144,6 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             roles: {
               [newOrgId]: "admin",
             },
+            lastSeen: serverTimestamp()
           },
           { merge: true },
         );
@@ -191,13 +217,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }
 
+        const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
         await setDoc(
           doc(db, "users", user.uid),
           {
+            displayName: user.displayName || fallbackName,
+            email: user.email || "",
+            photoURL: user.photoURL || "",
             organizationId: targetOrgId,
             visitedOrgs: {
               [targetOrgId]: orgName,
             },
+            lastSeen: serverTimestamp()
           },
           { merge: true },
         );

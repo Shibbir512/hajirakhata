@@ -70,10 +70,17 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
 
   const deleteClass = useCallback(
     async (id: string) => {
-      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+      
+      // Allow teachers to delete classes as well if they are in the org
+      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }
+
       try {
         // 1. Delete the class document
         await deleteDoc(doc(db, `organizations/${orgId}/classes`, id));

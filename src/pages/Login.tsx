@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
-import { auth, googleProvider } from '../firebase';
+import { auth, googleProvider, db } from '../firebase';
+import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { AlertCircle, Loader2, Copy, Check } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -16,14 +17,25 @@ const Login: React.FC = () => {
   }
 
   const handleLogin = async () => {
-    if (!auth || !googleProvider) {
+    if (!auth || !googleProvider || !db) {
       setError("ফায়ারবেস কনফিগারেশন পাওয়া যায়নি।");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      await signInWithPopup(auth, googleProvider);
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+
+      // Save user data to Firestore (without awaiting to speed up login)
+      const userRef = doc(db, "users", user.uid);
+      const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
+      setDoc(userRef, {
+        displayName: user.displayName || fallbackName,
+        email: user.email || "ইমেইল নেই",
+        photoURL: user.photoURL || "",
+        lastLogin: serverTimestamp()
+      }, { merge: true }).catch(error => console.error("Error saving user data:", error));
     } catch (error: any) {
       console.error("Login failed", error);
       if (error.code === 'auth/unauthorized-domain') {

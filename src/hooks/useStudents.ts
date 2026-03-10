@@ -85,10 +85,17 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
 
   const deleteStudent = useCallback(
     async (studentId: string, classId: string) => {
-      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+      
+      // Allow teachers to delete students as well
+      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }
+
       try {
         // 1. Delete the student document
         await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
@@ -108,11 +115,22 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
 
         // 3. Reorder remaining students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
-        const q = query(studentsRef, where("classId", "==", classId), orderBy("roll", "asc"));
+        // Remove orderBy to avoid composite index requirement
+        const q = query(studentsRef, where("classId", "==", classId));
         const remainingStudents = await getDocs(q);
         
-        remainingStudents.docs.forEach((doc, index) => {
-          batch.update(doc.ref, { roll: index + 1 });
+        // Sort client-side instead
+        const sortedDocs = remainingStudents.docs.sort((a, b) => {
+          const rollA = a.data().roll || 0;
+          const rollB = b.data().roll || 0;
+          return rollA - rollB;
+        });
+
+        sortedDocs.forEach((doc, index) => {
+          const newRoll = index + 1;
+          if (doc.data().roll !== newRoll) {
+            batch.update(doc.ref, { roll: newRoll });
+          }
         });
 
         await batch.commit();

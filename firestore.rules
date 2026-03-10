@@ -16,6 +16,16 @@ service cloud.firestore {
       // return isAuthenticated() && exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
     }
 
+    // Helper function to check if user is admin of an org
+    function isAdmin(orgId) {
+      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
+      let userData = get(userPath).data;
+      return exists(userPath) && 
+             'roles' in userData && 
+             orgId in userData.roles && 
+             userData.roles[orgId] == 'admin';
+    }
+
     // Organizations collection
     match /organizations/{orgId} {
       allow read, write: if isAuthenticated();
@@ -30,10 +40,37 @@ service cloud.firestore {
         allow read, write: if belongsToOrg(orgId);
       }
       
-      // Attendance subcollection
+      // Attendance subcollection (legacy or alternative)
       match /attendance/{recordId} {
         allow read, write: if belongsToOrg(orgId);
       }
+
+      // Attendance Sessions subcollection
+      match /attendance_sessions/{sessionId} {
+        allow read, write: if belongsToOrg(orgId);
+      }
+    }
+
+    // Users collection
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        (
+          'organizationId' in resource.data && 
+          resource.data.organizationId != null && 
+          isAdmin(resource.data.organizationId)
+        )
+      );
+      allow delete: if isAuthenticated() && (
+        request.auth.uid == userId || 
+        (
+          'organizationId' in resource.data && 
+          resource.data.organizationId != null && 
+          isAdmin(resource.data.organizationId)
+        )
+      );
     }
   }
 }

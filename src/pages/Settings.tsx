@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog } from "lucide-react";
-import { doc, updateDoc, collection, query, where, getDocs, deleteField } from "firebase/firestore";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus } from "lucide-react";
+import { doc, updateDoc, collection, query, where, getDocs, deleteField, deleteDoc, onSnapshot } from "firebase/firestore";
+import { deleteUser } from "firebase/auth";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 
@@ -11,6 +12,8 @@ const Settings: React.FC = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (orgId && visitedOrgs[orgId]) {
@@ -19,21 +22,21 @@ const Settings: React.FC = () => {
   }, [orgId, visitedOrgs]);
 
   useEffect(() => {
-    const fetchStaff = async () => {
-      if (!orgId || role !== "admin") return;
-      setLoadingStaff(true);
-      try {
-        const q = query(collection(db, "users"), where("organizationId", "==", orgId));
-        const snapshot = await getDocs(q);
-        const staffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setStaff(staffList);
-      } catch (error) {
-        console.error("Error fetching staff:", error);
-      } finally {
-        setLoadingStaff(false);
-      }
-    };
-    fetchStaff();
+    if (!orgId || role !== "admin" || !db) return;
+    
+    setLoadingStaff(true);
+    const q = query(collection(db, "users"), where("organizationId", "==", orgId));
+    
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const staffList = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setStaff(staffList);
+      setLoadingStaff(false);
+    }, (error) => {
+      console.error("Error fetching staff:", error);
+      setLoadingStaff(false);
+    });
+
+    return () => unsubscribe();
   }, [orgId, role]);
 
   const handleOrgNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -81,6 +84,38 @@ const Settings: React.FC = () => {
     } catch (error) {
       console.error("Error removing user:", error);
       toast.error("ব্যবহারকারীকে মুছে ফেলতে ব্যর্থ হয়েছে।");
+    }
+  };
+
+  const executeDeleteAccount = async () => {
+    if (!user) {
+      toast.error("ব্যবহারকারী খুঁজে পাওয়া যায়নি।");
+      return;
+    }
+
+    setIsDeleting(true);
+    const toastId = toast.loading("অ্যাকাউন্ট মুছে ফেলা হচ্ছে, অনুগ্রহ করে অপেক্ষা করুন...");
+
+    try {
+      // 1. Delete from Firestore first
+      const userRef = doc(db, "users", user.uid);
+      await deleteDoc(userRef);
+      
+      // 2. Delete from Firebase Auth
+      await deleteUser(user);
+      
+      toast.success("আপনার অ্যাকাউন্ট সফলভাবে মুছে ফেলা হয়েছে।", { id: toastId, duration: 5000 });
+      logout();
+    } catch (error: any) {
+      console.error("Error deleting own account:", error);
+      if (error.code === 'auth/requires-recent-login') {
+        toast.error("নিরাপত্তার জন্য অনুগ্রহ করে লগআউট করে আবার লগইন করুন, তারপর চেষ্টা করুন।", { id: toastId, duration: 6000 });
+      } else {
+        toast.error(`অ্যাকাউন্ট মুছে ফেলতে ব্যর্থ হয়েছে: ${error.message || "অজানা ত্রুটি"}`, { id: toastId, duration: 6000 });
+      }
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
     }
   };
 
@@ -223,7 +258,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={handleSaveOrg}
                   disabled={isSaving || !orgName.trim() || orgName === visitedOrgs[orgId || ""]}
-                  className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full py-3 rounded-xl font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-4 bg-[#008080] hover:bg-[#006666] text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
                 </button>
@@ -270,11 +305,16 @@ const Settings: React.FC = () => {
                       <tr key={s.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
                         <td className="py-4">
                           <div className="flex flex-col">
-                            <span className="font-semibold text-slate-800">{s.displayName || s.id}</span>
+                            <span className="font-semibold text-slate-800">
+                              {s.displayName || s.name || (s.email ? s.email.split('@')[0] : "অজানা ব্যবহারকারী")}
+                            </span>
                             <span className="text-xs text-slate-500">{s.email || "ইমেইল নেই"}</span>
-                            {s.displayName && (
-                              <span className="text-[10px] text-slate-400 font-mono mt-0.5" title="User ID">{s.id}</span>
-                            )}
+                            <div className="flex items-center gap-1 mt-0.5">
+                              <span className="text-[10px] text-slate-400 font-mono" title="User ID">ID: {s.id}</span>
+                              {s.id === user?.uid && (
+                                <span className="text-[10px] bg-teal-50 text-teal-600 px-1 rounded border border-teal-100">আপনি</span>
+                              )}
+                            </div>
                           </div>
                         </td>
                         <td className="py-4">
@@ -333,10 +373,10 @@ const Settings: React.FC = () => {
                             <button
                               onClick={() => handleRemoveUser(s.id)}
                               disabled={s.id === user?.uid}
-                              className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                              title="প্রতিষ্ঠান থেকে মুছে ফেলুন"
+                              className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              title="প্রতিষ্ঠান থেকে সরিয়ে দিন"
                             >
-                              <Trash2 className="w-4 h-4" />
+                              <UserMinus className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -371,6 +411,41 @@ const Settings: React.FC = () => {
               <LogOut className="w-4 h-4 mr-2" />
               সাইন আউট
             </button>
+          </div>
+          
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-rose-50/50 rounded-2xl border border-rose-100 gap-4 mt-4">
+            <div>
+              <h4 className="font-semibold text-rose-900 text-lg">অ্যাকাউন্ট মুছে ফেলুন</h4>
+              <p className="text-sm text-rose-700/80 mt-1">
+                সাবধান! আপনার অ্যাকাউন্ট এবং সমস্ত তথ্য চিরতরে মুছে ফেলা হবে।
+              </p>
+            </div>
+            {showDeleteConfirm ? (
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={() => setShowDeleteConfirm(false)}
+                  disabled={isDeleting}
+                  className="px-4 py-3 text-slate-600 bg-slate-200 hover:bg-slate-300 rounded-xl transition-colors text-sm font-medium w-full sm:w-auto"
+                >
+                  বাতিল
+                </button>
+                <button
+                  onClick={executeDeleteAccount}
+                  disabled={isDeleting}
+                  className="px-4 py-3 text-white bg-rose-600 hover:bg-rose-700 rounded-xl transition-colors text-sm font-medium flex items-center justify-center w-full sm:w-auto disabled:opacity-70"
+                >
+                  {isDeleting ? "মুছে ফেলা হচ্ছে..." : "হ্যাঁ, মুছে ফেলুন"}
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={() => setShowDeleteConfirm(true)}
+                className="flex items-center px-6 py-3 bg-rose-600 border border-rose-700 text-white rounded-xl hover:bg-rose-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center"
+              >
+                <Trash2 className="w-4 h-4 mr-2" />
+                অ্যাকাউন্ট মুছে ফেলুন
+              </button>
+            )}
           </div>
         </div>
       </div>

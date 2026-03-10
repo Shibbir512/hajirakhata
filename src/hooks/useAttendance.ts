@@ -6,6 +6,7 @@ import {
   onSnapshot,
   setDoc,
   updateDoc,
+  deleteDoc,
   query,
   where,
   writeBatch,
@@ -134,13 +135,21 @@ export const useAttendance = (
 
   const deleteAttendanceSession = useCallback(
     async (sessionId: string) => {
-      if (!user || !db || !orgId || (role !== "admin" && role !== "moderator")) {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+
+      // Allow teachers to delete attendance sessions
+      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }
+
       try {
         const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
-        await updateDoc(sessionRef, { deleted: true }); // Or use deleteDoc if you want to permanently remove it
+        // Use deleteDoc instead of updateDoc to permanently remove it as requested by "delete not working"
+        await deleteDoc(sessionRef);
         toast.success("হাজিরা সেশন মুছে ফেলা হয়েছে!");
       } catch (error) {
         console.error("Error deleting attendance:", error);
