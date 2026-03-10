@@ -106,7 +106,7 @@ const Attendance: React.FC = () => {
     if (!selectedClassId) return;
     const success = await takeAttendance(selectedClassId, attendanceState);
     if (success) {
-      navigate(-1);
+      navigate("/");
     }
   };
 
@@ -134,7 +134,7 @@ const Attendance: React.FC = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={handleSave}
-            className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-3 rounded-xl font-bold text-base"
+            className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-3 rounded-xl font-bold text-base"
           >
             <Save className="w-5 h-5 mr-2" />
             সংরক্ষণ

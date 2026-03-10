@@ -76,29 +76,29 @@ const Dashboard: React.FC = () => {
           title="মোট শিক্ষার্থী"
           value={stats.totalStudents}
           icon={Users}
-          color="bg-blue-500"
-          gradient="from-blue-500 to-cyan-400"
+          color="bg-violet-500"
+          gradient="from-violet-500 to-purple-400"
         />
         <StatCard
           title="আজ উপস্থিত"
           value={stats.presentToday}
           icon={UserCheck}
-          color="bg-teal-500"
-          gradient="from-teal-400 to-emerald-400"
+          color="bg-emerald-500"
+          gradient="from-emerald-500 to-teal-400"
         />
         <StatCard
           title="আজ অনুপস্থিত"
           value={stats.absentToday}
           icon={UserX}
-          color="bg-orange-400"
-          gradient="from-orange-400 to-pink-400"
+          color="bg-rose-500"
+          gradient="from-rose-500 to-red-400"
         />
         <StatCard
           title="মোট শ্রেণি"
           value={stats.totalClasses}
           icon={BookOpen}
-          color="bg-indigo-500"
-          gradient="from-indigo-500 to-purple-400"
+          color="bg-amber-500"
+          gradient="from-amber-500 to-orange-400"
         />
       </div>
 
@@ -156,17 +156,20 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
-}) => (
-  <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
-    <div className="relative z-10 flex-1">
-      <p className="text-sm font-medium text-slate-500 mb-1 text-center">{title}</p>
-      <p className="text-3xl font-bold text-[#26619c] text-center">{value}</p>
+}) => {
+  const textColor = color.replace('bg-', 'text-');
+  return (
+    <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
+      <div className="relative z-10 flex-1">
+        <p className="text-sm font-medium text-slate-500 mb-1 text-center">{title}</p>
+        <p className={`text-3xl font-bold ${textColor} text-center`}>{value}</p>
+      </div>
+      <div className={`relative z-10 p-4 rounded-full bg-white shadow-lg shadow-black/10 group-hover:scale-110 transition-transform duration-300 ml-4`}>
+        <Icon className={`w-7 h-7 drop-shadow-md ${textColor}`} />
+      </div>
+      <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
     </div>
-    <div className={`relative z-10 p-4 rounded-2xl bg-gradient-to-br ${gradient} text-white shadow-lg shadow-${color.replace('bg-', '')}/30 group-hover:scale-110 transition-transform duration-300 ml-4`}>
-      <Icon className="w-6 h-6" />
-    </div>
-    <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
-  </div>
-));
+  );
+});
 
 export default Dashboard;

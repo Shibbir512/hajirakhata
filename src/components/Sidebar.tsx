@@ -77,16 +77,16 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </button>
         </nav>
       </div>
-      <div className="p-6 border-t border-slate-200/60">
+      <div className="p-6 border-t border-slate-200/60 bg-[#045D5D]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-indigo-700 font-bold shadow-sm border border-white">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white">
             {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-slate-900 truncate">
+            <p className="text-sm font-medium text-[#FFFFFF] truncate">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-slate-500 truncate">{user?.email}</p>
+            <p className="text-xs text-slate-300 truncate">{user?.email}</p>
           </div>
         </div>
       </div>

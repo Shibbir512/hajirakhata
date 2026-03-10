@@ -258,7 +258,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={handleSaveOrg}
                   disabled={isSaving || !orgName.trim() || orgName === visitedOrgs[orgId || ""]}
-                  className="w-full px-6 py-4 bg-[#008080] hover:bg-[#006666] text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full px-6 py-4 bg-[#045F5F] hover:bg-[#006666] text-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 font-bold disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSaving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
                 </button>

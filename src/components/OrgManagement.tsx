@@ -119,7 +119,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                             {id}
                           </span>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center group-hover:bg-[#008080] group-hover:text-white transition-all duration-300 shadow-sm border border-teal-100 group-hover:border-transparent mr-2">
+                        <div className="w-10 h-10 rounded-full bg-teal-50 flex items-center justify-center group-hover:bg-[#045F5F] group-hover:text-white transition-all duration-300 shadow-sm border border-teal-100 group-hover:border-transparent mr-2">
                           <ArrowRight className="w-5 h-5 text-teal-600 group-hover:text-white" />
                         </div>
                       </button>
@@ -158,7 +158,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <div className="space-y-3">
                 <button
                   onClick={() => setMode("create")}
-                  className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
+                  className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
                 >
                   <Plus className="w-5 h-5" />
                   নতুন প্রতিষ্ঠান যুক্ত করুন
@@ -200,7 +200,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                     ? "যেমন: আমার প্রতিষ্ঠান"
                     : "যেমন: আমার প্রতিষ্ঠান বা আইডি"
                 }
-                className="input-premium w-full border border-teal-400 bg-teal-50/30 focus:border-[#008080] focus:bg-white transition-all"
+                className="input-premium w-full border border-teal-400 bg-teal-50/30 focus:border-[#045F5F] focus:bg-white transition-all"
                 required
                 autoFocus
               />
@@ -217,7 +217,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-bold"
+                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-bold"
               >
                 {loading
                   ? "প্রক্রিয়াধীন..."

@@ -34,6 +34,14 @@ const DashboardLayout: React.FC = () => {
     return <Navigate to="/org-management" replace />;
   }
 
+  const handleBack = () => {
+    if (location.pathname === "/attendance/history") {
+      navigate("/attendance");
+    } else {
+      navigate("/");
+    }
+  };
+
   const showBackButton = location.pathname !== "/" && location.pathname !== "/org-management";
 
   return (
@@ -52,8 +60,8 @@ const DashboardLayout: React.FC = () => {
             {showBackButton && (
               <div className="mb-6">
                 <button
-                  onClick={() => navigate(-1)}
-                  className="bg-[#008080] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold text-sm"
+                  onClick={handleBack}
+                  className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold text-sm"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   ফিরে যান

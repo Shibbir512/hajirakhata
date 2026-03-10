@@ -113,7 +113,7 @@ const Login: React.FC = () => {
         <button
           onClick={handleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#008080] hover:bg-[#006666] text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#045F5F] hover:bg-[#006666] text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-white/80" />

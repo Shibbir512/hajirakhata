@@ -108,14 +108,14 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       </div>
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-3 pl-4 border-l border-white/20">
-          <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm">
+          <div className="w-10 h-10 rounded-full bg-[#1C542D] flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm">
             {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
           </div>
           <div className="hidden md:block">
             <p className="text-sm font-medium text-white leading-none drop-shadow-sm">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-teal-100 mt-1">
+            <p className="text-xs text-white mt-1">
               {user?.email || "user@example.com"}
             </p>
           </div>
