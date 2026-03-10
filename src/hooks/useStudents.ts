@@ -66,9 +66,9 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           classId,
           roll: newRoll,
           name,
-          fatherName,
-          phone,
-          address,
+          fatherName: fatherName ?? "",
+          phone: phone ?? "",
+          address: address ?? "",
         };
         await setDoc(
           doc(db, `organizations/${orgId}/students`, studentId),
@@ -148,7 +148,11 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     async (studentId: string, data: Partial<Student>) => {
       if (!user || !db || !orgId) return;
       try {
-        await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), data);
+        // Remove undefined values to prevent Firestore errors
+        const cleanData = Object.fromEntries(
+          Object.entries(data).filter(([_, v]) => v !== undefined)
+        );
+        await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), cleanData);
         toast.success("শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating student:", error);
@@ -176,7 +180,10 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         studentsList.forEach((studentData, index) => {
           const studentId = `${classId}-student-${Date.now()}-${index}`;
           const newStudent: Student = {
-            ...studentData,
+            name: studentData.name,
+            fatherName: studentData.fatherName ?? "",
+            phone: studentData.phone ?? "",
+            address: studentData.address ?? "",
             id: studentId,
             classId,
             roll: maxRoll + index + 1,

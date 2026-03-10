@@ -82,13 +82,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
 
-            // Set initial state immediately to unblock UI
+            // Set initial state
             setRole(userRole);
             setVisitedOrgs(history);
-            setOrgName(currentOrgId ? (history[currentOrgId] || null) : null);
+            
+            let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
+            setOrgName(currentOrgName);
             setOrgId(currentOrgId);
-            setLoading(false);
-
+            
             // Perform background checks
             if (currentOrgId && userRole !== "admin") {
               try {
@@ -104,18 +105,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
 
-            if (currentOrgId && !history[currentOrgId]) {
+            if (currentOrgId && !currentOrgName) {
               try {
                 const orgRef = doc(db, "organizations", currentOrgId);
                 const orgSnap = await getDoc(orgRef);
                 if (orgSnap.exists()) {
-                  const orgName = orgSnap.data().name;
-                  setOrgName(orgName);
-                  setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: orgName }));
+                  const fetchedOrgName = orgSnap.data().name;
+                  setOrgName(fetchedOrgName);
+                  setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: fetchedOrgName }));
                   setDoc(
                     userDocRef,
                     {
-                      visitedOrgs: { [currentOrgId]: orgName },
+                      visitedOrgs: { [currentOrgId]: fetchedOrgName },
                     },
                     { merge: true },
                   ).catch(console.error);
@@ -124,14 +125,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 console.error("Error auto-populating history:", e);
               }
             }
+            
+            // Only set loading to false after we have attempted to load org data
+            setLoading(false);
           } else {
             setOrgId(null);
+            setOrgName(null);
             setVisitedOrgs({});
             setLoading(false);
           }
         });
       } else {
         setOrgId(null);
+        setOrgName(null);
         setVisitedOrgs({});
         setLoading(false);
       }
