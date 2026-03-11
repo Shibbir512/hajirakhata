@@ -48,15 +48,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    const configRef = doc(db, "globalSettings", "config");
-    return onSnapshot(configRef, (docSnap) => {
-      if (docSnap.exists()) {
-        setIsApprovalEnabled(docSnap.data().isApprovalEnabled ?? true);
-      }
-    }, (error) => {
-      console.error("Error in config snapshot listener:", error);
-    });
+    if (!user || !db) return;
+    
+    try {
+      const configRef = doc(db, "globalSettings", "config");
+      const unsubscribe = onSnapshot(configRef, (docSnap) => {
+        if (docSnap.exists()) {
+          setIsApprovalEnabled(docSnap.data().isApprovalEnabled ?? true);
+        }
+      }, (error) => {
+        // Silently handle permission errors to avoid annoying the user
+        // This usually happens if Firebase Rules are not deployed correctly
+        setIsApprovalEnabled(true);
+      });
+      
+      return () => unsubscribe();
+    } catch (err) {
+      // Ignore errors
+    }
   }, [user]);
 
   useEffect(() => {

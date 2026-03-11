@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
-import { doc, setDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -13,12 +13,62 @@ const Login: React.FC = () => {
   const [copied, setCopied] = useState(false);
 
   const [phoneNumber, setPhoneNumber] = useState("");
+  const [isNewUser, setIsNewUser] = useState(false);
 
-  if (user) {
+  if (user && !isNewUser) {
     return <Navigate to="/" replace />;
   }
 
-  const handleLogin = async () => {
+  // Check if user exists in database when they sign in with Google
+  const checkUserExists = async (email: string) => {
+    const q = query(collection(db, "users"), where("email", "==", email));
+    const querySnapshot = await getDocs(q);
+    return !querySnapshot.empty;
+  };
+
+  // Update isNewUser based on email input or just handle it inside handleLogin
+  // Actually, let's just make the phone input optional, and only required if it's a new user.
+  // Since we don't know if it's a new user until they click Google login,
+  // we can't easily disable the button based on phone number for existing users.
+
+  // Let's change the logic:
+  // 1. User clicks Google login.
+  // 2. If user exists, proceed.
+  // 3. If user doesn't exist, check if phone number is provided.
+  // 4. If not provided, ask for it.
+
+  // To support the user's request "once phone number is given, no need again",
+  // we can just make the phone input optional in the UI, and only validate it in handleLogin if the user is new.
+
+  const handleFinalizeSignup = async () => {
+    if (!auth.currentUser || !db || !phoneNumber.trim()) {
+      setError("অনুগ্রহ করে আপনার ফোন নম্বরটি প্রদান করুন।");
+      return;
+    }
+    setLoading(true);
+    try {
+      const user = auth.currentUser;
+      const userRef = doc(db, "users", user.uid);
+      
+      const userData = {
+        displayName: user.displayName || "ব্যবহারকারী",
+        email: user.email || "ইমেইল নেই",
+        photoURL: user.photoURL || "",
+        phone: phoneNumber.trim(),
+        lastLogin: serverTimestamp()
+      };
+      
+      await setDoc(userRef, userData, { merge: true });
+      setIsNewUser(false);
+    } catch (error: any) {
+      console.error("Signup failed", error);
+      setError(error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
     if (!auth || !googleProvider || !db) {
       setError("ফায়ারবেস কনফিগারেশন পাওয়া যায়নি।");
       return;
@@ -26,15 +76,16 @@ const Login: React.FC = () => {
     setError(null);
     setLoading(true);
     try {
+      // Try popup first
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
 
-      // Save user data to Firestore (without awaiting to speed up login)
       const userRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userRef);
       
-      if (!userDoc.exists() && !phoneNumber.trim()) {
-        setError("নতুন একাউন্ট তৈরির জন্য অনুগ্রহ করে আপনার ফোন নম্বরটি প্রদান করুন।");
+      // If user doesn't exist, prompt for phone number
+      if (!userDoc.exists()) {
+        setIsNewUser(true);
         setLoading(false);
         return;
       }
@@ -48,25 +99,32 @@ const Login: React.FC = () => {
         lastLogin: serverTimestamp()
       };
       
+      // Only update phone if provided
       if (phoneNumber.trim()) {
         userData.phone = phoneNumber.trim();
       }
       
-      setDoc(userRef, userData, { merge: true }).catch(error => console.error("Error saving user data:", error));
+      await setDoc(userRef, userData, { merge: true });
     } catch (error: any) {
       console.error("Login failed", error);
-      if (error.code === 'auth/unauthorized-domain') {
+      if (error.code?.includes('unauthorized-domain') || error.message?.toLowerCase().includes('unauthorized domain')) {
         setError('unauthorized-domain');
       } else if (error.code === 'auth/network-request-failed') {
         setError('network-error');
-      } else if (error.code === 'auth/popup-closed-by-user' || error.code === 'auth/cancelled-popup-request') {
-        setError('লগিন পপআপ বন্ধ হয়ে গেছে। অনুগ্রহ করে আবার চেষ্টা করুন।');
+      } else if (error.code === 'auth/popup-closed-by-user') {
+        setError("লগইন উইন্ডোটি বন্ধ করে দেওয়া হয়েছে। আবার চেষ্টা করুন।");
+      } else if (error.code === 'auth/internal-error' && error.message?.includes('Cross-Origin-Opener-Policy')) {
+        setError('coop-error');
       } else {
-        setError(error.message);
+        setError(error.message || "লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
       }
     } finally {
       setLoading(false);
     }
+  };
+
+  const openInNewTab = () => {
+    window.open(window.location.href, '_blank');
   };
 
   const copyDomain = () => {
@@ -120,35 +178,76 @@ const Login: React.FC = () => {
           </div>
         )}
 
-        {error && error !== 'unauthorized-domain' && error !== 'network-error' && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <p className="text-sm text-red-600">{error}</p>
+        {error === 'coop-error' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-amber-800">ব্রাউজার সিকিউরিটি ইস্যু</h3>
+                <p className="text-sm text-amber-600 mt-1">
+                  আইফ্রেমের ভেতর গুগল লগইন কাজ করছে না। অনুগ্রহ করে নিচের বাটনে ক্লিক করে নতুন ট্যাবে অ্যাপটি ওপেন করুন।
+                </p>
+                <button 
+                  onClick={openInNewTab}
+                  className="mt-3 w-full py-2 bg-amber-600 text-white rounded-lg font-medium text-sm"
+                >
+                  নতুন ট্যাবে ওপেন করুন
+                </button>
+              </div>
+            </div>
           </div>
         )}
 
-        <div className="mb-6 relative">
-          <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
-          <input
-            type="tel"
-            value={phoneNumber}
-            onChange={(e) => setPhoneNumber(e.target.value)}
-            placeholder="ফোন নম্বর"
-            className="w-full pl-12 pr-4 py-4 border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all text-lg !rounded-none"
-          />
-        </div>
+        {error && error !== 'unauthorized-domain' && error !== 'network-error' && error !== 'coop-error' && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
+            <div>
+              <p className="text-sm text-red-600">{error}</p>
+              <button 
+                onClick={openInNewTab}
+                className="mt-2 text-xs text-red-800 underline font-medium"
+              >
+                লগইন কাজ না করলে নতুন ট্যাবে চেষ্টা করুন
+              </button>
+            </div>
+          </div>
+        )}
+
+        {isNewUser ? (
+          <>
+            <div className="mb-6 relative">
+              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                placeholder="ফোন নম্বর (বাধ্যতামূলক)"
+                className="w-full pl-12 pr-4 py-4 border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all text-lg !rounded-none"
+              />
+            </div>
+            <button
+              onClick={() => {
+                auth?.signOut();
+                setIsNewUser(false);
+              }}
+              className="text-slate-400 hover:text-slate-600 text-sm mb-4 block mx-auto"
+            >
+              বাতিল করুন এবং অন্য অ্যাকাউন্ট দিয়ে চেষ্টা করুন
+            </button>
+          </>
+        ) : null}
 
         <button
-          onClick={handleLogin}
+          onClick={isNewUser ? handleFinalizeSignup : handleGoogleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#045F5F] hover:bg-[#006666] text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#045F5F] hover:bg-[#006666] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-white/80" />
           ) : (
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 brightness-0 invert" />
           )}
-          <span>{loading ? 'সাইন ইন করা হচ্ছে...' : 'গুগল দিয়ে চালিয়ে যান'}</span>
+          <span>{loading ? 'সাইন ইন করা হচ্ছে...' : isNewUser ? 'সাইন আপ সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}</span>
         </button>
       </div>
       

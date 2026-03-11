@@ -22,12 +22,8 @@ try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   
-  // Initialize Firestore with persistent local cache
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager()
-    })
-  });
+  // Initialize Firestore
+  db = getFirestore(app);
 
   googleProvider = new GoogleAuthProvider();
   analytics = getAnalytics(app);

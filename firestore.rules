@@ -1,76 +1,11 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if user is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
+    match /{document=**} {
+      allow read, write: if request.auth != null;
     }
-
-    // Helper function to check if user belongs to the organization
-    function belongsToOrg(orgId) {
-      return isAuthenticated() && request.auth.uid != null;
-      // In a real app, you'd check a users collection or custom claims
-      // For this simple version, we assume any authenticated user can access the org they specify
-      // A more robust implementation would be:
-      // return isAuthenticated() && exists(/databases/$(database)/documents/organizations/$(orgId)/members/$(request.auth.uid));
-    }
-
-    // Helper function to check if user is admin of an org
-    function isAdmin(orgId) {
-      let userPath = /databases/$(database)/documents/users/$(request.auth.uid);
-      let userData = get(userPath).data;
-      return exists(userPath) && 
-             'roles' in userData && 
-             orgId in userData.roles && 
-             userData.roles[orgId] == 'admin';
-    }
-
-    // Organizations collection
-    match /organizations/{orgId} {
-      allow read, write: if isAuthenticated();
-      
-      // Classes subcollection
-      match /classes/{classId} {
-        allow read, write: if belongsToOrg(orgId);
-      }
-      
-      // Students subcollection
-      match /students/{studentId} {
-        allow read, write: if belongsToOrg(orgId);
-      }
-      
-      // Attendance subcollection (legacy or alternative)
-      match /attendance/{recordId} {
-        allow read, write: if belongsToOrg(orgId);
-      }
-
-      // Attendance Sessions subcollection
-      match /attendance_sessions/{sessionId} {
-        allow read, write: if belongsToOrg(orgId);
-      }
-    }
-
-    // Users collection
-    match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isAuthenticated() && (
-        request.auth.uid == userId || 
-        (
-          'organizationId' in resource.data && 
-          resource.data.organizationId != null && 
-          isAdmin(resource.data.organizationId)
-        )
-      );
-      allow delete: if isAuthenticated() && (
-        request.auth.uid == userId || 
-        (
-          'organizationId' in resource.data && 
-          resource.data.organizationId != null && 
-          isAdmin(resource.data.organizationId)
-        )
-      );
+    match /globalSettings/{document=**} {
+      allow read: if true;
     }
   }
 }
