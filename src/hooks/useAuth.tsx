@@ -23,6 +23,7 @@ interface AuthContextType {
   role: string | null;
   status: string | null;
   phone: string | null;
+  photoURL: string | null;
   visitedOrgs: { [key: string]: string };
   isApprovalEnabled: boolean;
   loading: boolean;
@@ -43,6 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [role, setRole] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -121,12 +123,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const history = data.visitedOrgs || {};
             const userPhone = data.phone || null;
             const userStatus = data.status || "active";
+            const userPhotoURL = data.photoURL || null;
 
             // Set initial state
             setRole(userRole);
             setStatus(userStatus);
             setVisitedOrgs(history);
             setPhone(userPhone);
+            setPhotoURL(userPhotoURL);
             
             let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
             setOrgName(currentOrgName);
@@ -395,6 +399,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         role,
         status,
         phone,
+        photoURL,
         visitedOrgs,
         isApprovalEnabled,
         loading,

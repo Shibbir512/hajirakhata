@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X } from "lucide-react";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2 } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
-import { deleteUser } from "firebase/auth";
-import { db } from "../firebase";
+import { deleteUser, updateProfile } from "firebase/auth";
+import { db, auth } from "../firebase";
 import toast from "react-hot-toast";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, phone, logout, visitedOrgs, isApprovalEnabled } = useAuth();
+  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingPhone, setIsSavingPhone] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [allOrgs, setAllOrgs] = useState<any[]>([]);
@@ -159,6 +160,44 @@ const Settings: React.FC = () => {
       setIsSavingPhone(false);
     }
   };
+  
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    // Check file size (max 1MB for base64 storage in Firestore)
+    if (file.size > 1024 * 1024) {
+      toast.error("ছবিটি ১ মেগাবাইটের চেয়ে ছোট হতে হবে।");
+      return;
+    }
+
+    setIsUploading(true);
+    const toastId = toast.loading("ছবি আপলোড করা হচ্ছে...");
+
+    try {
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64String = reader.result as string;
+        
+        // 1. Update Firestore
+        const userRef = doc(db, "users", user.uid);
+        await updateDoc(userRef, { photoURL: base64String });
+        
+        // 2. Update Firebase Auth Profile
+        if (auth?.currentUser) {
+          await updateProfile(auth.currentUser, { photoURL: base64String });
+        }
+        
+        toast.success("প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!", { id: toastId });
+        setIsUploading(false);
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      toast.error("ছবি আপলোড করতে ব্যর্থ হয়েছে।", { id: toastId });
+      setIsUploading(false);
+    }
+  };
 
   const handleCopyId = () => {
     if (orgId) {
@@ -247,8 +286,23 @@ const Settings: React.FC = () => {
         {/* Profile Section */}
         <div className="card-premium p-8">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 bg-gradient-to-tr from-indigo-100 to-teal-100 rounded-full flex items-center justify-center text-teal-600 shadow-inner border border-white">
-              <User className="w-7 h-7" />
+            <div className="relative group">
+              <div className="w-20 h-20 bg-gradient-to-tr from-indigo-100 to-teal-100 rounded-full flex items-center justify-center text-teal-600 shadow-inner border-2 border-white overflow-hidden relative">
+                {photoURL ? (
+                  <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+                ) : (
+                  <User className="w-10 h-10" />
+                )}
+                {isUploading && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <Loader2 className="w-6 h-6 text-white animate-spin" />
+                  </div>
+                )}
+              </div>
+              <label className="absolute bottom-0 right-0 w-8 h-8 bg-teal-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-teal-700 transition-colors border-2 border-white">
+                <Camera className="w-4 h-4" />
+                <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
+              </label>
             </div>
             <div>
               <h3 className="text-xl font-bold text-slate-800 tracking-tight">

@@ -8,7 +8,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
-  const { user, logout, orgName, orgId, visitedOrgs, joinOrganization } = useAuth();
+  const { user, logout, orgName, orgId, visitedOrgs, joinOrganization, photoURL } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
@@ -115,8 +115,12 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <LogOut className="w-5 h-5" />
         </button>
         <div className="flex items-center gap-3 pl-2 md:pl-4 border-l border-white/20">
-          <div className="w-10 h-10 rounded-full bg-[#1C542D] flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm">
-            {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
+          <div className="w-10 h-10 rounded-full bg-[#1C542D] flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm overflow-hidden">
+            {photoURL ? (
+              <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              user?.displayName ? user.displayName.charAt(0).toUpperCase() : "U"
+            )}
           </div>
           <div className="hidden md:block">
             <p className="text-sm font-medium text-white leading-none drop-shadow-sm">

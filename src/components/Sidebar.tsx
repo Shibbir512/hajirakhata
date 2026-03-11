@@ -21,7 +21,7 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const { user } = useAuth();
+  const { user, photoURL } = useAuth();
   const navigate = useNavigate();
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
@@ -84,8 +84,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       </div>
       <div className="p-6 border-t border-slate-200/60 bg-[#045D5D]">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white">
-            {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white overflow-hidden">
+            {photoURL ? (
+              <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+            ) : (
+              user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"
+            )}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-[#FFFFFF] truncate">
