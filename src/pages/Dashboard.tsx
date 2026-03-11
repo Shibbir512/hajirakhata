@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { Users, UserCheck, UserX, BookOpen } from "lucide-react";
+import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock } from "lucide-react";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
@@ -28,6 +28,9 @@ const Dashboard: React.FC = () => {
     const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
     const todaysSessions = attendanceSessions.filter((s) => s.date === today);
 
+    const classesWithAttendanceToday = new Set(todaysSessions.map(s => s.classId)).size;
+    const classesPendingAttendanceToday = Math.max(0, totalClasses - classesWithAttendanceToday);
+
     const presentTodaySet = new Set();
     const absentTodaySet = new Set();
 
@@ -47,7 +50,7 @@ const Dashboard: React.FC = () => {
     const presentToday = presentTodaySet.size;
     const absentToday = absentTodaySet.size;
 
-    return { totalStudents, totalClasses, presentToday, absentToday };
+    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday };
   }, [students, classes, attendanceSessions]);
 
   const chartData = useMemo(() => {
@@ -88,7 +91,21 @@ const Dashboard: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-3xl font-bold gradient-text tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <StatCard
+          title="হাজিরা সম্পন্ন (শ্রেণি)"
+          value={stats.classesWithAttendanceToday}
+          icon={CheckCircle}
+          color="bg-blue-500"
+          gradient="from-blue-500 to-cyan-400"
+        />
+        <StatCard
+          title="হাজিরা বাকি (শ্রেণি)"
+          value={stats.classesPendingAttendanceToday}
+          icon={Clock}
+          color="bg-pink-500"
+          gradient="from-pink-500 to-rose-400"
+        />
         <StatCard
           title="মোট শিক্ষার্থী"
           value={stats.totalStudents}

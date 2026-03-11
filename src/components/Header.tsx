@@ -51,7 +51,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
   };
 
   return (
-    <header className="bg-[#045D5D] text-[#116062] border-b border-teal-800/50 h-20 flex items-center justify-between px-4 md:px-8 z-10 shadow-md">
+    <header className="bg-[#045D5D] text-[#116062] border-b border-teal-800/50 h-20 flex items-center justify-between px-4 md:px-8 z-[60] shadow-md">
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
@@ -63,16 +63,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           <h1 className="text-xs md:text-sm font-medium text-teal-100 tracking-tight drop-shadow-sm">{getPageTitle()}</h1>
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 text-left hover:bg-white/10 p-1 -ml-1 rounded-lg transition-colors"
+            className="flex items-center gap-2 text-left hover:bg-white/10 p-1 -ml-1 rounded-lg transition-colors w-full"
           >
-            <p className="text-lg md:text-2xl font-bold text-white drop-shadow-sm truncate max-w-[150px] md:max-w-md">
+            <p className="text-lg md:text-2xl font-bold text-white drop-shadow-sm truncate max-w-[140px] sm:max-w-[200px] md:max-w-md">
               {orgName || "প্রতিষ্ঠান নির্বাচন করুন"}
             </p>
-            <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 transition-transform flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>
           
           {isDropdownOpen && (
-            <div className="absolute top-full left-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 py-2 z-50">
+            <div className="absolute top-full left-0 mt-2 w-72 bg-white rounded-xl shadow-2xl border border-slate-200 py-2 z-[100]">
               <div className="px-4 py-2 border-b border-slate-100">
                 <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">আপনার প্রতিষ্ঠানসমূহ</p>
               </div>
@@ -106,8 +106,15 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
           )}
         </div>
       </div>
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-3 pl-4 border-l border-white/20">
+      <div className="flex items-center gap-1 md:gap-4 flex-shrink-0">
+        <button
+          onClick={logout}
+          className="p-2 rounded-full hover:bg-red-500/20 text-white/80 hover:text-red-200 transition-colors"
+          title="Sign Out"
+        >
+          <LogOut className="w-5 h-5" />
+        </button>
+        <div className="flex items-center gap-3 pl-2 md:pl-4 border-l border-white/20">
           <div className="w-10 h-10 rounded-full bg-[#1C542D] flex items-center justify-center text-white font-bold shadow-sm border border-white/30 backdrop-blur-sm">
             {user?.displayName ? user.displayName.charAt(0).toUpperCase() : "U"}
           </div>
@@ -120,13 +127,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             </p>
           </div>
         </div>
-        <button
-          onClick={logout}
-          className="p-2 rounded-full hover:bg-red-500/20 text-white/80 hover:text-red-200 transition-colors ml-2"
-          title="Sign Out"
-        >
-          <LogOut className="w-5 h-5" />
-        </button>
       </div>
     </header>
   );

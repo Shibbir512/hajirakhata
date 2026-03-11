@@ -242,7 +242,7 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSave} className="bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-medium">সংরক্ষণ করুন</button>
+            <button onClick={handleSave} className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-bold text-base">সংরক্ষণ করুন</button>
           </div>
         </div>
       )}

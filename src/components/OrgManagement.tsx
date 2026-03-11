@@ -203,7 +203,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                       ? "যেমন: আমার প্রতিষ্ঠান"
                       : "যেমন: আমার প্রতিষ্ঠান বা আইডি"
                   }
-                  className="w-full pl-14 pr-4 py-5 border-2 border-teal-400 bg-teal-50/30 focus:border-[#045F5F] focus:bg-white transition-all text-xl !rounded-none"
+                  className="w-full pl-14 pr-4 py-4 border-2 border-teal-100 bg-white focus:border-teal-400 transition-all text-base rounded-2xl"
                   required
                   autoFocus
                 />

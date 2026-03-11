@@ -1,5 +1,4 @@
 import React, { useState, useMemo, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -11,7 +10,6 @@ import clsx from "clsx";
 const ITEMS_PER_PAGE = 10;
 
 const Attendance: React.FC = () => {
-  const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
@@ -108,10 +106,7 @@ const Attendance: React.FC = () => {
       alert("এই শ্রেণিতে কোনো শিক্ষার্থী নেই। হাজিরা সংরক্ষণ করা সম্ভব নয়।");
       return;
     }
-    const success = await takeAttendance(selectedClassId, attendanceState);
-    if (success) {
-      navigate("/");
-    }
+    await takeAttendance(selectedClassId, attendanceState);
   };
 
   const markAll = (status: AttendanceStatus) => {
@@ -175,11 +170,11 @@ const Attendance: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+              className="input-premium w-full search-highlight text-xl sm:text-2xl font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10 py-3"
             >
-              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              <option value="" className="text-slate-500 font-normal text-lg">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
+                <option key={cls.id} value={cls.id} className="text-lg sm:text-xl font-medium">
                   {cls.name}
                 </option>
               ))}

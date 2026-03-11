@@ -4,14 +4,19 @@ import ReactDOM from 'react-dom/client';
 import './index.css';
 import App from './App';
 
-// Unregister service workers to ensure fresh load in dev environment
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.getRegistrations().then(function(registrations) {
-    for(let registration of registrations) {
-      registration.unregister();
+// Register service worker for PWA offline support
+import { registerSW } from 'virtual:pwa-register';
+
+const updateSW = registerSW({
+  onNeedRefresh() {
+    if (confirm('নতুন আপডেট এসেছে। রিলোড করতে চান?')) {
+      updateSW(true);
     }
-  });
-}
+  },
+  onOfflineReady() {
+    console.log('App is ready to work offline');
+  },
+});
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {
