@@ -183,10 +183,9 @@ const Settings: React.FC = () => {
         const userRef = doc(db, "users", user.uid);
         await updateDoc(userRef, { photoURL: base64String });
         
-        // 2. Update Firebase Auth Profile
-        if (auth?.currentUser) {
-          await updateProfile(auth.currentUser, { photoURL: base64String });
-        }
+        // Note: We skip updateProfile(auth.currentUser, { photoURL: base64String }) 
+        // because base64 strings are too long for Firebase Auth profile attributes.
+        // The app uses the photoURL from Firestore via the useAuth hook.
         
         toast.success("প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!", { id: toastId });
         setIsUploading(false);

@@ -95,21 +95,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         try {
           const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
           const docSnap = await getDoc(userDocRef);
+          const existingData = docSnap.exists() ? docSnap.data() : null;
+
+          const updateData: any = {
+            displayName: currentUser.displayName || fallbackName,
+            email: currentUser.email || "",
+            lastSeen: serverTimestamp()
+          };
+
+          // Only sync photoURL from Google if Firestore doesn't have one yet
+          if (!existingData?.photoURL && currentUser.photoURL) {
+            updateData.photoURL = currentUser.photoURL;
+          }
+
           if (!docSnap.exists()) {
-            await setDoc(userDocRef, {
-              displayName: currentUser.displayName || fallbackName,
-              email: currentUser.email || "",
-              photoURL: currentUser.photoURL || "",
-              status: "pending",
-              lastSeen: serverTimestamp()
-            });
+            updateData.status = "pending";
+            await setDoc(userDocRef, updateData);
           } else {
-            await setDoc(userDocRef, {
-              displayName: currentUser.displayName || fallbackName,
-              email: currentUser.email || "",
-              photoURL: currentUser.photoURL || "",
-              lastSeen: serverTimestamp()
-            }, { merge: true });
+            await setDoc(userDocRef, updateData, { merge: true });
           }
         } catch (e) {
           console.error("Error saving user info:", e);

@@ -91,13 +91,18 @@ const Login: React.FC = () => {
       }
 
       const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
+      const existingData = userDoc.data();
       
       const userData: any = {
         displayName: user.displayName || fallbackName,
         email: user.email || "ইমেইল নেই",
-        photoURL: user.photoURL || "",
         lastLogin: serverTimestamp()
       };
+      
+      // Only sync photoURL from Google if Firestore doesn't have one yet
+      if (!existingData?.photoURL && user.photoURL) {
+        userData.photoURL = user.photoURL;
+      }
       
       // Only update phone if provided
       if (phoneNumber.trim()) {

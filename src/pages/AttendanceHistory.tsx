@@ -69,9 +69,15 @@ const AttendanceHistory: React.FC = () => {
     const formattedDate = toBengaliDate(session.date);
     const formattedTime = toBengaliTime(session.time);
     const presentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Present).length;
-    const absentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length;
+    const absentStudents = session.students.filter((s: any) => s.status === AttendanceStatus.Absent);
+    const absentCount = absentStudents.length;
 
-    const text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
+    let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
+    
+    if (absentCount > 0) {
+      const absentNames = absentStudents.map((s: any, index: number) => `${toBengaliNumber(index + 1)}. ${s.studentName}`).join("\n");
+      text += `\n\nঅনুপস্থিতদের তালিকা:\n${absentNames}`;
+    }
     
     if (navigator.share) {
       try {
