@@ -1,8 +1,10 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
-import { Plus, Edit, Trash2, X, Loader2 } from "lucide-react";
+import { Plus, Edit, Trash2, X, Loader2, Users } from "lucide-react";
 import { ClassData } from "../types";
+import { collection, query, where, getDocs } from "firebase/firestore";
+import { db } from "../firebase";
 
 const Classes: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -14,15 +16,32 @@ const Classes: React.FC = () => {
 
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingClass, setEditingClass] = useState<ClassData | null>(null);
+  const [staffList, setStaffList] = useState<any[]>([]);
 
-  const handleAddClass = (name: string) => {
-    addClass(name);
+  useEffect(() => {
+    if (!orgId || role !== "admin" || !db) return;
+    
+    const fetchStaff = async () => {
+      try {
+        const q = query(collection(db, "users"), where("organizationId", "==", orgId));
+        const snapshot = await getDocs(q);
+        const staff = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setStaffList(staff);
+      } catch (error) {
+        console.error("Error fetching staff:", error);
+      }
+    };
+    fetchStaff();
+  }, [orgId, role]);
+
+  const handleAddClass = (name: string, teacherIds: string[]) => {
+    addClass(name, teacherIds);
     setIsAddModalOpen(false);
   };
 
-  const handleUpdateClass = (name: string) => {
+  const handleUpdateClass = (name: string, teacherIds: string[]) => {
     if (editingClass) {
-      updateClassName(editingClass.id, name);
+      updateClassName(editingClass.id, name, teacherIds);
       setEditingClass(null);
     }
   };
@@ -104,6 +123,7 @@ const Classes: React.FC = () => {
       {isAddModalOpen && (
         <ClassModal
           title="নতুন শ্রেণি যোগ করুন"
+          staffList={staffList}
           onClose={() => setIsAddModalOpen(false)}
           onSave={handleAddClass}
         />
@@ -114,6 +134,8 @@ const Classes: React.FC = () => {
         <ClassModal
           title="শ্রেণি সম্পাদনা করুন"
           initialValue={editingClass.name}
+          initialTeacherIds={editingClass.teacherIds || []}
+          staffList={staffList}
           onClose={() => setEditingClass(null)}
           onSave={handleUpdateClass}
         />
@@ -125,17 +147,22 @@ const Classes: React.FC = () => {
 interface ClassModalProps {
   title: string;
   initialValue?: string;
+  initialTeacherIds?: string[];
+  staffList: any[];
   onClose: () => void;
-  onSave: (name: string) => void;
+  onSave: (name: string, teacherIds: string[]) => void;
 }
 
 const ClassModal = React.memo<ClassModalProps>(({
   title,
   initialValue = "",
+  initialTeacherIds = [],
+  staffList,
   onClose,
   onSave,
 }) => {
   const [name, setName] = useState(initialValue);
+  const [teacherIds, setTeacherIds] = useState<string[]>(initialTeacherIds);
   const [error, setError] = useState("");
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -144,7 +171,13 @@ const ClassModal = React.memo<ClassModalProps>(({
       setError("শ্রেণির নাম প্রয়োজন");
       return;
     }
-    onSave(name.trim());
+    onSave(name.trim(), teacherIds);
+  };
+
+  const toggleTeacher = (id: string) => {
+    setTeacherIds(prev => 
+      prev.includes(id) ? prev.filter(tId => tId !== id) : [...prev, id]
+    );
   };
 
   return (
@@ -173,6 +206,33 @@ const ClassModal = React.memo<ClassModalProps>(({
               placeholder="শ্রেণির নাম লিখুন"
               autoFocus
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              শিক্ষক নির্ধারণ করুন
+            </label>
+            <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1">
+              {staffList.filter(s => {
+                const r = s.roles?.[s.organizationId] || s.role;
+                return r !== "banned" && r !== "pending";
+              }).map(staff => (
+                <label key={staff.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={teacherIds.includes(staff.id)}
+                    onChange={() => toggleTeacher(staff.id)}
+                    className="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500"
+                  />
+                  <span className="text-sm text-slate-700">
+                    {staff.displayName || staff.email?.split('@')[0]}
+                  </span>
+                </label>
+              ))}
+              {staffList.length === 0 && (
+                <p className="text-sm text-slate-500 text-center py-2">কোনো শিক্ষক পাওয়া যায়নি</p>
+              )}
+            </div>
           </div>
 
           {error && <p className="text-sm text-red-500">{error}</p>}

@@ -11,6 +11,7 @@ export interface Student {
 export interface ClassData {
   id: string;
   name: string;
+  teacherIds?: string[];
 }
 
 export enum AttendanceStatus {

@@ -39,6 +39,8 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         loadedStudents[key].sort((a, b) => a.roll - b.roll);
       }
       setStudents(loadedStudents);
+    }, (error) => {
+      console.error("Error fetching students:", error);
     });
 
     return () => unsubStudents();

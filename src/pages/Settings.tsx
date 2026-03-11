@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X } from "lucide-react";
-import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot } from "firebase/firestore";
+import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser } from "firebase/auth";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, phone, logout, visitedOrgs } = useAuth();
+  const { user, orgId, role, phone, logout, visitedOrgs, isApprovalEnabled } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -16,10 +16,26 @@ const Settings: React.FC = () => {
   const [loadingStaff, setLoadingStaff] = useState(false);
   const [allOrgs, setAllOrgs] = useState<any[]>([]);
   const [loadingAllOrgs, setLoadingAllOrgs] = useState(false);
+  const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+  const [loadingPendingUsers, setLoadingPendingUsers] = useState(false);
+  const [isTogglingApproval, setIsTogglingApproval] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
 
   const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+
+  const toggleApproval = async () => {
+    setIsTogglingApproval(true);
+    try {
+      await setDoc(doc(db, "globalSettings", "config"), { isApprovalEnabled: !isApprovalEnabled }, { merge: true });
+      toast.success(isApprovalEnabled ? "নতুন ব্যবহারকারী অনুমোদন সিস্টেম বন্ধ করা হয়েছে।" : "নতুন ব্যবহারকারী অনুমোদন সিস্টেম চালু করা হয়েছে।");
+    } catch (e) {
+      console.error("Error toggling approval:", e);
+      toast.error("সিস্টেম আপডেট করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setIsTogglingApproval(false);
+    }
+  };
 
   useEffect(() => {
     if (orgId && visitedOrgs[orgId]) {
@@ -87,7 +103,26 @@ const Settings: React.FC = () => {
           setLoadingAllOrgs(false);
         }
       };
+      
+      const fetchPendingUsers = () => {
+        setLoadingPendingUsers(true);
+        const q = query(collection(db, "users"), where("status", "==", "pending"));
+        return onSnapshot(q, (snapshot) => {
+          const usersData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setPendingUsers(usersData);
+          setLoadingPendingUsers(false);
+        }, (error) => {
+          console.error("Error fetching pending users:", error);
+          setLoadingPendingUsers(false);
+        });
+      };
+      
       fetchAllOrgs();
+      const unsubPending = fetchPendingUsers();
+      
+      return () => {
+        unsubPending();
+      };
     }
   }, [isSuperAdmin]);
 
@@ -414,51 +449,66 @@ const Settings: React.FC = () => {
                               ? "bg-purple-100 text-purple-700" 
                               : currentRole === "banned"
                               ? "bg-red-100 text-red-700"
+                              : currentRole === "pending"
+                              ? "bg-amber-100 text-amber-700"
                               : "bg-teal-100 text-teal-700"
                           }`}>
-                            {currentRole === "admin" ? "অ্যাডমিন" : currentRole === "banned" ? "ব্যানড" : "শিক্ষক"}
+                            {currentRole === "admin" ? "অ্যাডমিন" : currentRole === "banned" ? "ব্যানড" : currentRole === "pending" ? "অপেক্ষমান" : "শিক্ষক"}
                           </span>
                         </td>
                         <td className="py-4 text-right">
                           <div className="flex items-center justify-end gap-1">
-                            {currentRole !== "admin" ? (
+                            {currentRole === "pending" ? (
                               <button
-                                onClick={() => handleUpdateRole(s.id, "admin")}
+                                onClick={() => handleUpdateRole(s.id, "teacher")}
                                 disabled={s.id === user?.uid}
-                                className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="অ্যাডমিন/মডারেটর বানান"
+                                className="p-2 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                title="অনুমোদন করুন"
                               >
                                 <ShieldCheck className="w-4 h-4" />
                               </button>
                             ) : (
-                              <button
-                                onClick={() => handleUpdateRole(s.id, "teacher")}
-                                disabled={s.id === user?.uid}
-                                className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="শিক্ষক বানান"
-                              >
-                                <UserCog className="w-4 h-4" />
-                              </button>
-                            )}
-                            
-                            {currentRole !== "banned" ? (
-                              <button
-                                onClick={() => handleUpdateRole(s.id, "banned")}
-                                disabled={s.id === user?.uid || currentRole === "admin"}
-                                className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="ব্যান করুন"
-                              >
-                                <Ban className="w-4 h-4" />
-                              </button>
-                            ) : (
-                              <button
-                                onClick={() => handleUpdateRole(s.id, "teacher")}
-                                disabled={s.id === user?.uid}
-                                className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                                title="ব্যান তুলে নিন"
-                              >
-                                <UserCog className="w-4 h-4" />
-                              </button>
+                              <>
+                                {currentRole !== "admin" ? (
+                                  <button
+                                    onClick={() => handleUpdateRole(s.id, "admin")}
+                                    disabled={s.id === user?.uid}
+                                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="অ্যাডমিন/মডারেটর বানান"
+                                  >
+                                    <ShieldCheck className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUpdateRole(s.id, "teacher")}
+                                    disabled={s.id === user?.uid}
+                                    className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="শিক্ষক বানান"
+                                  >
+                                    <UserCog className="w-4 h-4" />
+                                  </button>
+                                )}
+                                
+                                {currentRole !== "banned" ? (
+                                  <button
+                                    onClick={() => handleUpdateRole(s.id, "banned")}
+                                    disabled={s.id === user?.uid || currentRole === "admin"}
+                                    className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="ব্যান করুন"
+                                  >
+                                    <Ban className="w-4 h-4" />
+                                  </button>
+                                ) : (
+                                  <button
+                                    onClick={() => handleUpdateRole(s.id, "teacher")}
+                                    disabled={s.id === user?.uid}
+                                    className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    title="ব্যান তুলে নিন"
+                                  >
+                                    <UserCog className="w-4 h-4" />
+                                  </button>
+                                )}
+                              </>
                             )}
 
                             <button
@@ -478,6 +528,85 @@ const Settings: React.FC = () => {
               </div>
             ) : (
               <p className="text-center text-slate-500 py-8">কোনো স্টাফ পাওয়া যায়নি।</p>
+            )}
+          </div>
+        )}
+
+        {/* Pending Users Section (Super Admin Only) */}
+        {isSuperAdmin && (
+          <div className="col-span-1 md:col-span-2 card-premium p-8">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-full flex items-center justify-center text-amber-600 shadow-inner border border-white">
+                  <Users className="w-7 h-7" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                    অপেক্ষমান ব্যবহারকারী (সুপার অ্যাডমিন)
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    যেসব ব্যবহারকারী অনুমোদনের অপেক্ষায় আছেন
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={toggleApproval}
+                disabled={isTogglingApproval}
+                className={`px-6 py-3 rounded-xl font-bold transition-all ${isApprovalEnabled ? "bg-emerald-100 text-emerald-700 hover:bg-emerald-200" : "bg-rose-100 text-rose-700 hover:bg-rose-200"}`}
+              >
+                {isTogglingApproval ? "অপেক্ষা করুন..." : isApprovalEnabled ? "অনুমোদন সিস্টেম: চালু" : "অনুমোদন সিস্টেম: বন্ধ"}
+              </button>
+            </div>
+
+            {loadingPendingUsers ? (
+              <div className="flex justify-center py-8">
+                <div className="w-8 h-8 border-4 border-teal-200 border-t-teal-600 rounded-full animate-spin"></div>
+              </div>
+            ) : pendingUsers.length > 0 ? (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left border-collapse">
+                  <thead>
+                    <tr className="border-b border-slate-200 text-slate-500 text-sm">
+                      <th className="pb-3 font-medium">নাম ও ইমেইল</th>
+                      <th className="pb-3 font-medium">ফোন নম্বর</th>
+                      <th className="pb-3 font-medium text-right">অ্যাকশন</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingUsers.map((pUser) => (
+                      <tr key={pUser.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/50 transition-colors">
+                        <td className="py-4">
+                          <div className="flex flex-col">
+                            <span className="font-semibold text-slate-800">{pUser.displayName || "অজানা"}</span>
+                            <span className="text-xs text-slate-500">{pUser.email || "ইমেইল নেই"}</span>
+                          </div>
+                        </td>
+                        <td className="py-4">
+                          <span className="text-sm text-slate-700">{pUser.phone || "দেওয়া হয়নি"}</span>
+                        </td>
+                        <td className="py-4 text-right">
+                          <button
+                            onClick={async () => {
+                              try {
+                                await updateDoc(doc(db, "users", pUser.id), { status: "active" });
+                                toast.success("ব্যবহারকারীকে অনুমোদন দেওয়া হয়েছে।");
+                              } catch (e) {
+                                console.error("Error approving user:", e);
+                                toast.error("অনুমোদন দিতে ব্যর্থ হয়েছে।");
+                              }
+                            }}
+                            className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-medium transition-colors text-sm"
+                          >
+                            অনুমোদন দিন
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <p className="text-center text-slate-500 py-8">কোনো অপেক্ষমান ব্যবহারকারী নেই।</p>
             )}
           </div>
         )}
@@ -547,7 +676,7 @@ const Settings: React.FC = () => {
                                 toast.error("ব্যর্থ হয়েছে।");
                               }
                             }}
-                            className={`p-2 rounded-lg transition-colors ${org.banned ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-rose-600 bg-rose-50 hover:bg-rose-100"}`}
+                            className={`p-2 rounded-lg transition-colors inline-flex items-center justify-center ${org.banned ? "text-emerald-600 bg-emerald-50 hover:bg-emerald-100" : "text-rose-600 bg-rose-50 hover:bg-rose-100"}`}
                             title={org.banned ? "আনব্যান করুন" : "ব্যান করুন"}
                           >
                             {org.banned ? <ShieldCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}

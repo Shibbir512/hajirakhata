@@ -42,7 +42,7 @@ const OfflineIndicator = () => {
 };
 
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth();
+  const { user, loading, status, logout, isApprovalEnabled } = useAuth();
 
   if (loading) {
     return (
@@ -54,6 +54,30 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (!user) {
     return <Navigate to="/login" replace />;
+  }
+
+  if (status === "pending" && isApprovalEnabled && user.email !== "shibbir.ahma.2025@gmail.com") {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full card-premium p-10 border-2 border-amber-100 shadow-amber-900/5 text-center">
+          <div className="w-20 h-20 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+            <div className="w-10 h-10 text-amber-600 flex items-center justify-center text-3xl">⏳</div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-4">
+            অ্যাকাউন্ট অনুমোদনের অপেক্ষায়
+          </h1>
+          <p className="text-slate-500 mb-8">
+            আপনার অ্যাকাউন্টটি সুপার অ্যাডমিনের অনুমোদনের অপেক্ষায় রয়েছে। অনুমোদন পেলে আপনি সিস্টেমে প্রবেশ করতে পারবেন।
+          </p>
+          <button
+            onClick={logout}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all duration-300 w-full py-3 rounded-xl font-bold"
+          >
+            সাইন আউট করুন
+          </button>
+        </div>
+      </div>
+    );
   }
 
   return <>{children}</>;

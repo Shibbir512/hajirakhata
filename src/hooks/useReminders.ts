@@ -22,6 +22,8 @@ export const useReminders = (orgId: string | null, user: any) => {
     const unsubReminders = onSnapshot(remindersRef, (snapshot) => {
       const loadedReminders = snapshot.docs.map((doc) => doc.id);
       setReminders(loadedReminders.sort());
+    }, (error) => {
+      console.error("Error fetching reminders:", error);
     });
 
     return () => unsubReminders();

@@ -25,9 +25,21 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
     }
 
     const classesRef = collection(db, `organizations/${orgId}/classes`);
+    
+    // If role is teacher, only fetch classes where they are assigned, or if teacherIds is not present (for backward compatibility)
+    // Actually, Firestore doesn't support "array-contains OR field-not-exists", so we fetch all and filter client-side for now since class list is small.
     const unsubClasses = onSnapshot(classesRef, (snapshot) => {
-      const loadedClasses = snapshot.docs.map((doc) => doc.data() as ClassData);
+      let loadedClasses = snapshot.docs.map((doc) => doc.data() as ClassData);
+      
+      if (role === "teacher" && user?.uid) {
+        loadedClasses = loadedClasses.filter(cls => 
+          !cls.teacherIds || cls.teacherIds.length === 0 || cls.teacherIds.includes(user.uid)
+        );
+      }
+      
       setClasses(loadedClasses);
+    }, (error) => {
+      console.error("Error fetching classes:", error);
     });
 
     return () => unsubClasses();
@@ -38,12 +50,12 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
   const [isDeleting, setIsDeleting] = useState(false);
 
   const addClass = useCallback(
-    async (name: string) => {
+    async (name: string, teacherIds: string[] = []) => {
       if (!user || !db || !orgId) return;
       setIsAdding(true);
       try {
         const newClassId = `class-${Date.now()}`;
-        const newClass = { id: newClassId, name };
+        const newClass = { id: newClassId, name, teacherIds };
         await setDoc(
           doc(db, `organizations/${orgId}/classes`, newClassId),
           newClass,
@@ -60,12 +72,13 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
   );
 
   const updateClassName = useCallback(
-    async (id: string, name: string) => {
+    async (id: string, name: string, teacherIds: string[] = []) => {
       if (!user || !db || !orgId) return;
       setIsUpdating(true);
       try {
         await updateDoc(doc(db, `organizations/${orgId}/classes`, id), {
           name,
+          teacherIds,
         });
         toast.success("শ্রেণি সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {

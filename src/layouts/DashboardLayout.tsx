@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowLeft } from "lucide-react";
 
 const DashboardLayout: React.FC = () => {
-  const { orgId, loading } = useAuth();
+  const { orgId, loading, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -32,6 +32,30 @@ const DashboardLayout: React.FC = () => {
 
   if (!orgId && location.pathname !== "/org-management") {
     return <Navigate to="/org-management" replace />;
+  }
+
+  if (role === "pending" && location.pathname !== "/org-management") {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full card-premium p-10 border-2 border-amber-100 shadow-amber-900/5 text-center">
+          <div className="w-20 h-20 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+            <div className="w-10 h-10 text-amber-600 flex items-center justify-center text-3xl">⏳</div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-4">
+            অনুমোদনের অপেক্ষায়
+          </h1>
+          <p className="text-slate-500 mb-8">
+            আপনার রিকোয়েস্ট অ্যাডমিনের কাছে পাঠানো হয়েছে। অ্যাডমিন অনুমোদন করলে আপনি ড্যাশবোর্ডে প্রবেশ করতে পারবেন।
+          </p>
+          <button
+            onClick={() => navigate("/org-management")}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all duration-300 w-full py-3 rounded-xl font-bold"
+          >
+            অন্য প্রতিষ্ঠানে যান
+          </button>
+        </div>
+      </div>
+    );
   }
 
   const handleBack = () => {

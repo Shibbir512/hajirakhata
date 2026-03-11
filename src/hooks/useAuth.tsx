@@ -21,8 +21,10 @@ interface AuthContextType {
   orgId: string | null;
   orgName: string | null;
   role: string | null;
+  status: string | null;
   phone: string | null;
   visitedOrgs: { [key: string]: string };
+  isApprovalEnabled: boolean;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   createOrganization: (name: string) => Promise<string | null>;
@@ -39,9 +41,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
+  const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user) return;
+    const configRef = doc(db, "globalSettings", "config");
+    return onSnapshot(configRef, (docSnap) => {
+      if (docSnap.exists()) {
+        setIsApprovalEnabled(docSnap.data().isApprovalEnabled ?? true);
+      }
+    }, (error) => {
+      console.error("Error in config snapshot listener:", error);
+    });
+  }, [user]);
 
   useEffect(() => {
     if (!auth) {
@@ -67,12 +83,23 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Ensure user's basic info is stored without blocking
         try {
           const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
-          setDoc(userDocRef, {
-            displayName: currentUser.displayName || fallbackName,
-            email: currentUser.email || "",
-            photoURL: currentUser.photoURL || "",
-            lastSeen: serverTimestamp()
-          }, { merge: true }).catch(e => console.error("Error saving user info:", e));
+          const docSnap = await getDoc(userDocRef);
+          if (!docSnap.exists()) {
+            await setDoc(userDocRef, {
+              displayName: currentUser.displayName || fallbackName,
+              email: currentUser.email || "",
+              photoURL: currentUser.photoURL || "",
+              status: "pending",
+              lastSeen: serverTimestamp()
+            });
+          } else {
+            await setDoc(userDocRef, {
+              displayName: currentUser.displayName || fallbackName,
+              email: currentUser.email || "",
+              photoURL: currentUser.photoURL || "",
+              lastSeen: serverTimestamp()
+            }, { merge: true });
+          }
         } catch (e) {
           console.error("Error saving user info:", e);
         }
@@ -84,9 +111,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
             const history = data.visitedOrgs || {};
             const userPhone = data.phone || null;
+            const userStatus = data.status || "active";
 
             // Set initial state
             setRole(userRole);
+            setStatus(userStatus);
             setVisitedOrgs(history);
             setPhone(userPhone);
             
@@ -138,6 +167,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setVisitedOrgs({});
             setLoading(false);
           }
+        }, (error) => {
+          console.error("Error in userDoc snapshot listener:", error);
+          setLoading(false);
         });
       } else {
         setOrgId(null);
@@ -246,20 +278,34 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
-        await setDoc(
-          doc(db, "users", user.uid),
-          {
-            displayName: user.displayName || fallbackName,
-            email: user.email || "",
-            photoURL: user.photoURL || "",
-            organizationId: targetOrgId,
-            visitedOrgs: {
-              [targetOrgId]: orgName,
-            },
-            lastSeen: serverTimestamp()
+        
+        // Check if user already has a role in this org
+        const userDocRef = doc(db, "users", user.uid);
+        const userSnap = await getDoc(userDocRef);
+        let existingRole = null;
+        if (userSnap.exists()) {
+          const userData = userSnap.data();
+          existingRole = userData.roles && userData.roles[targetOrgId];
+        }
+
+        const updates: any = {
+          displayName: user.displayName || fallbackName,
+          email: user.email || "",
+          photoURL: user.photoURL || "",
+          organizationId: targetOrgId,
+          visitedOrgs: {
+            [targetOrgId]: orgName,
           },
-          { merge: true },
-        );
+          lastSeen: serverTimestamp()
+        };
+
+        if (!existingRole) {
+          updates.roles = {
+            [targetOrgId]: "pending"
+          };
+        }
+
+        await setDoc(userDocRef, updates, { merge: true });
 
         setOrgId(targetOrgId);
         toast.success("প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!");
@@ -338,8 +384,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         orgId,
         orgName,
         role,
+        status,
         phone,
         visitedOrgs,
+        isApprovalEnabled,
         loading,
         setLoading,
         createOrganization,

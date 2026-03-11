@@ -9,6 +9,8 @@ import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
+const ITEMS_PER_PAGE = 12;
+
 const AttendanceHistory: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
@@ -20,6 +22,11 @@ const AttendanceHistory: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  React.useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedClassId, selectedDate]);
 
   const classSessions = useMemo(() => {
     let filtered = attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
@@ -29,6 +36,12 @@ const AttendanceHistory: React.FC = () => {
     }
     return filtered;
   }, [attendanceSessions, selectedClassId, selectedDate]);
+
+  const totalPages = Math.ceil(classSessions.length / ITEMS_PER_PAGE);
+  const paginatedSessions = useMemo(() => {
+    const start = (currentPage - 1) * ITEMS_PER_PAGE;
+    return classSessions.slice(start, start + ITEMS_PER_PAGE);
+  }, [classSessions, currentPage]);
 
   const handleEdit = (session: any) => {
     setSelectedSession(session);
@@ -139,7 +152,7 @@ const AttendanceHistory: React.FC = () => {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {classSessions.map(session => {
+        {paginatedSessions.map(session => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
@@ -182,7 +195,72 @@ const AttendanceHistory: React.FC = () => {
             </div>
           );
         })}
+        {classSessions.length === 0 && selectedClassId && (
+          <div className="col-span-full text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+            এই শ্রেণির জন্য কোন হাজিরা রেকর্ড পাওয়া যায়নি।
+          </div>
+        )}
+        {!selectedClassId && (
+          <div className="col-span-full text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+            হাজিরা ইতিহাস দেখতে একটি শ্রেণি নির্বাচন করুন।
+          </div>
+        )}
       </div>
+
+      {totalPages > 1 && (
+        <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
+          <div className="text-sm text-slate-500">
+            দেখানো হচ্ছে <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> থেকে <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, classSessions.length)}</span> পর্যন্ত, মোট <span className="font-medium">{classSessions.length}</span> টি রেকর্ড
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+              disabled={currentPage === 1}
+              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              পূর্ববর্তী
+            </button>
+            <div className="flex items-center gap-1">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => {
+                if (
+                  page === 1 ||
+                  page === totalPages ||
+                  (page >= currentPage - 1 && page <= currentPage + 1)
+                ) {
+                  return (
+                    <button
+                      key={page}
+                      onClick={() => setCurrentPage(page)}
+                      className={clsx(
+                        "w-10 h-10 rounded-xl text-sm font-bold transition-all duration-300",
+                        currentPage === page
+                          ? "bg-[#045F5F] text-white shadow-md"
+                          : "text-slate-600 hover:bg-slate-100"
+                      )}
+                    >
+                      {page}
+                    </button>
+                  );
+                }
+                if (
+                  page === currentPage - 2 ||
+                  page === currentPage + 2
+                ) {
+                  return <span key={page} className="px-2 text-slate-400">...</span>;
+                }
+                return null;
+              })}
+            </div>
+            <button
+              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+              disabled={currentPage === totalPages}
+              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+            >
+              পরবর্তী
+            </button>
+          </div>
+        </div>
+      )}
 
       {viewingSession && (
         <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
@@ -242,7 +320,7 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSave} className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-bold text-base">সংরক্ষণ করুন</button>
+            <button onClick={handleSave} className="bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-bold text-base">সংরক্ষণ করুন</button>
           </div>
         </div>
       )}
