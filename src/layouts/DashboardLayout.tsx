@@ -1,16 +1,138 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Outlet, useLocation, Navigate, useNavigate } from "react-router-dom";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Bell } from "lucide-react";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
+import { db } from "../firebase";
+import toast from "react-hot-toast";
 
 const DashboardLayout: React.FC = () => {
-  const { orgId, loading, role } = useAuth();
+  const { orgId, loading, role, user } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  
+  // Notification sound
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+  const prevPendingCountRef = useRef<number>(0);
+  const prevJoinCountRef = useRef<number>(0);
+
+  useEffect(() => {
+    audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
+  }, []);
+
+  const playNotificationSound = () => {
+    if (audioRef.current) {
+      audioRef.current.play().catch(e => console.error("Error playing sound:", e));
+    }
+  };
+
+  // Listen for pending sign-up requests (Super Admin only)
+  useEffect(() => {
+    if (!user || user.email !== "shibbir.ahma.2025@gmail.com" || !db) return;
+
+    const q = query(collection(db, "users"), where("status", "==", "pending"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const count = snapshot.size;
+      if (count > prevPendingCountRef.current) {
+        playNotificationSound();
+        toast.custom((t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-teal-100 flex items-center justify-center">
+                    <Bell className="h-6 w-6 text-teal-600" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    নতুন সাইন-আপ রিকোয়েস্ট!
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {count} জন ইউজার অনুমোদনের অপেক্ষায় আছেন।
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate("/super-admin");
+                }}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-teal-600 hover:text-teal-500 focus:outline-none"
+              >
+                দেখুন
+              </button>
+            </div>
+          </div>
+        ), { duration: 6000 });
+      }
+      prevPendingCountRef.current = count;
+    });
+
+    return () => unsubscribe();
+  }, [user, db, navigate]);
+
+  // Listen for pending join requests (Org Admin only)
+  useEffect(() => {
+    if (!user || !orgId || role !== "admin" || !db) return;
+
+    const q = query(collection(db, "users"), where(`roles.${orgId}`, "==", "pending"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const count = snapshot.size;
+      if (count > prevJoinCountRef.current) {
+        playNotificationSound();
+        toast.custom((t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <Bell className="h-6 w-6 text-indigo-600" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    নতুন জয়েন রিকোয়েস্ট!
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    আপনার প্রতিষ্ঠানে {count} জন নতুন শিক্ষক যুক্ত হতে চাচ্ছেন।
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate("/settings");
+                }}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+              >
+                দেখুন
+              </button>
+            </div>
+          </div>
+        ), { duration: 6000 });
+      }
+      prevJoinCountRef.current = count;
+    });
+
+    return () => unsubscribe();
+  }, [user, orgId, role, db, navigate]);
 
   // Handle mobile hardware back button
   useEffect(() => {

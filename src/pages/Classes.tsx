@@ -19,7 +19,7 @@ const Classes: React.FC = () => {
   const [staffList, setStaffList] = useState<any[]>([]);
 
   useEffect(() => {
-    if (!orgId || role !== "admin" || !db) return;
+    if (!orgId || (role !== "admin" && role !== "moderator") || !db) return;
     
     const fetchStaff = async () => {
       try {
@@ -60,14 +60,16 @@ const Classes: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold gradient-text tracking-tight">শ্রেণি</h2>
-        <button
-          onClick={() => setIsAddModalOpen(true)}
-          disabled={isAdding}
-          className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
-          {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
-        </button>
+        {(role === "admin" || role === "moderator") && (
+          <button
+            onClick={() => setIsAddModalOpen(true)}
+            disabled={isAdding}
+            className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
+            {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
+          </button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -93,21 +95,37 @@ const Classes: React.FC = () => {
                     {cls.name}
                   </h3>
                   <p className={`text-sm ${color.sub} mt-1 font-mono opacity-80`}>আইডি: {cls.id}</p>
+                  
+                  {cls.teacherIds && cls.teacherIds.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {cls.teacherIds.map(tId => {
+                        const teacher = staffList.find(s => s.id === tId);
+                        if (!teacher) return null;
+                        return (
+                          <span key={tId} className={`text-[10px] px-2 py-0.5 rounded-full bg-white/60 border ${color.border} ${color.text} font-medium`}>
+                            {teacher.displayName || teacher.email?.split('@')[0]}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
-                <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => setEditingClass(cls)}
-                    className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
-                  >
-                    <Edit className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => handleDeleteClass(cls.id)}
-                    className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {(role === "admin" || role === "moderator") && (
+                  <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => setEditingClass(cls)}
+                      className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDeleteClass(cls.id)}
+                      className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           );

@@ -22,8 +22,6 @@ const normalizeBengali = (text: string) => {
     .toLowerCase();
 };
 
-const ITEMS_PER_PAGE = 10;
-
 const Students: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
@@ -33,6 +31,7 @@ const Students: React.FC = () => {
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -76,12 +75,19 @@ const Students: React.FC = () => {
     return fuse.search(normalizedQuery).map(result => result.item);
   }, [fuse, searchQuery, allStudentsList]);
 
-  const totalPages = Math.ceil(filteredStudents.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
+
+  // Ensure current page is valid when total pages or items per page change
+  React.useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
 
   const paginatedStudents = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredStudents.slice(start, start + ITEMS_PER_PAGE);
-  }, [filteredStudents, currentPage]);
+    const start = (currentPage - 1) * itemsPerPage;
+    return filteredStudents.slice(start, start + itemsPerPage);
+  }, [filteredStudents, currentPage, itemsPerPage]);
 
   const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string) => {
     if (selectedClassId) {
@@ -348,10 +354,27 @@ const Students: React.FC = () => {
           </table>
         </div>
 
-        {totalPages > 1 && (
+        {totalPages >= 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-            <div className="text-sm text-slate-500">
-              দেখানো হচ্ছে <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> থেকে <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, filteredStudents.length)}</span> পর্যন্ত, মোট <span className="font-medium">{filteredStudents.length}</span> জন শিক্ষার্থী
+            <div className="flex flex-col sm:flex-row items-center gap-4">
+              <div className="text-sm text-slate-500">
+                দেখানো হচ্ছে <span className="font-medium">{filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> থেকে <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> পর্যন্ত, মোট <span className="font-medium">{filteredStudents.length}</span> জন শিক্ষার্থী
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-slate-500">প্রতি পাতায়:</span>
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => {
+                    setItemsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                >
+                  {[5, 10, 20, 50, 100].map(val => (
+                    <option key={val} value={val}>{val}</option>
+                  ))}
+                </select>
+              </div>
             </div>
             <div className="flex gap-2">
               <button
@@ -396,7 +419,7 @@ const Students: React.FC = () => {
               </div>
               <button
                 onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                disabled={currentPage === totalPages}
+                disabled={currentPage === totalPages || totalPages === 0}
                 className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 পরবর্তী
