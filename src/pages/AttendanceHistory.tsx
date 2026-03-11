@@ -151,18 +151,44 @@ const AttendanceHistory: React.FC = () => {
         </div>
       </div>
 
+      {selectedClassId && classSessions.length > 0 && (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="card-premium p-4 bg-white border-l-4 border-l-indigo-500">
+            <p className="text-sm font-medium text-slate-500 mb-1">মোট সেশন</p>
+            <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(classSessions.length)} টি</p>
+          </div>
+          <div className="card-premium p-4 bg-white border-l-4 border-l-teal-500">
+            <p className="text-sm font-medium text-slate-500 mb-1">গড় উপস্থিতি</p>
+            <p className="text-2xl font-bold text-teal-600">
+              {toBengaliNumber(Math.round(classSessions.reduce((acc, s) => acc + (s.students.filter((st: any) => st.status === AttendanceStatus.Present).length / s.students.length) * 100, 0) / classSessions.length))}%
+            </p>
+          </div>
+          <div className="card-premium p-4 bg-rose-50 border-l-4 border-l-rose-500">
+            <p className="text-sm font-medium text-rose-600 mb-1">মোট অনুপস্থিতি (সেশন ভিত্তিক)</p>
+            <p className="text-2xl font-bold text-rose-700">
+              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Absent).length, 0))} জন
+            </p>
+          </div>
+          <div className="card-premium p-4 bg-emerald-50 border-l-4 border-l-emerald-500">
+            <p className="text-sm font-medium text-emerald-600 mb-1">মোট উপস্থিতি (সেশন ভিত্তিক)</p>
+            <p className="text-2xl font-bold text-emerald-700">
+              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {paginatedSessions.map(session => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
-            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100" onClick={() => setViewingSession(session)}>
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => setViewingSession(session)}>
               <div className="flex justify-between items-start mb-4">
-                <div className="text-sm text-slate-600 space-y-2">
+                <div className="text-sm text-slate-600 space-y-2 flex-1">
                   <p className="text-lg font-bold text-teal-700 mb-1">{className}</p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">তারিখঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span></p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">সময়ঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.time ? toBengaliTime(session.time) : ""}</span></p>
-                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">হাজিরা নিয়েছেনঃ</span> <span className="text-indigo-700 font-semibold">{session.takenBy?.name || "N/A"}</span></p>
                 </div>
                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
                   <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
@@ -174,22 +200,42 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               </div>
               
-              <div className="border-t border-slate-100 pt-4 mt-2">
-                <p className="font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                  <span className={clsx("w-2 h-2 rounded-full", absentStudents.length > 0 ? "bg-rose-500" : "bg-emerald-500")}></span>
-                  {absentStudents.length > 0 ? `অনুপস্থিত ছাত্র (${toBengaliNumber(absentStudents.length)} জন):` : "সবাই উপস্থিত"}
-                </p>
-                {absentStudents.length > 0 && (
-                  <ul className="space-y-2">
-                    {absentStudents.slice(0, 3).map((s: any) => (
-                      <li key={s.studentId} className="text-sm text-slate-700 bg-rose-50/80 border border-rose-100 px-3 py-1.5 rounded-md flex items-center gap-2">
-                        {s.studentName}
-                      </li>
-                    ))}
-                    {absentStudents.length > 3 && (
-                      <li className="text-xs text-slate-500 italic pl-2">আরও {toBengaliNumber(absentStudents.length - 3)} জন...</li>
-                    )}
-                  </ul>
+              <div className="mt-auto pt-4 border-t border-slate-100">
+                <div className="flex items-center justify-between mb-3">
+                  <p className="font-semibold text-slate-900 flex items-center gap-2">
+                    <span className={clsx("w-2.5 h-2.5 rounded-full", absentStudents.length > 0 ? "bg-rose-500 animate-pulse" : "bg-emerald-500")}></span>
+                    {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
+                  </p>
+                  <div className="flex items-center gap-1">
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
+                      {toBengaliNumber(session.students.length - absentStudents.length)}
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
+                      {toBengaliNumber(absentStudents.length)}
+                    </span>
+                  </div>
+                </div>
+
+                {absentStudents.length > 0 ? (
+                  <div className="bg-rose-50/50 rounded-xl p-3 border border-rose-100/50">
+                    <ul className="space-y-1.5">
+                      {absentStudents.slice(0, 3).map((s: any) => (
+                        <li key={s.studentId} className="text-xs font-medium text-rose-700 flex items-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-rose-400"></span>
+                          {s.studentName}
+                        </li>
+                      ))}
+                      {absentStudents.length > 3 && (
+                        <li className="text-[10px] text-rose-500 italic pl-3">
+                          আরও {toBengaliNumber(absentStudents.length - 3)} জন...
+                        </li>
+                      )}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="bg-emerald-50/50 rounded-xl p-3 border border-emerald-100/50 flex items-center justify-center">
+                    <p className="text-xs font-medium text-emerald-700">চমৎকার! সবাই উপস্থিত আছে।</p>
+                  </div>
                 )}
               </div>
             </div>
@@ -273,16 +319,28 @@ const AttendanceHistory: React.FC = () => {
               </div>
             </div>
             <div className="space-y-3">
-              {viewingSession.students.map((student: any) => (
-                <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
-                  <span className="font-medium text-slate-800 flex items-center gap-3">
+              {viewingSession.students.sort((a: any, b: any) => {
+                if (a.status === b.status) return 0;
+                return a.status === AttendanceStatus.Absent ? -1 : 1;
+              }).map((student: any) => (
+                <div key={student.studentId} className={clsx(
+                  "flex justify-between items-center p-4 border rounded-2xl transition-all duration-300",
+                  student.status === AttendanceStatus.Absent 
+                    ? "bg-rose-50 border-rose-200 shadow-sm" 
+                    : "bg-white border-slate-100"
+                )}>
+                  <span className={clsx(
+                    "font-medium flex items-center gap-3",
+                    student.status === AttendanceStatus.Absent ? "text-rose-700" : "text-slate-800"
+                  )}>
+                    {student.status === AttendanceStatus.Absent && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>}
                     {student.studentName}
                   </span>
                   <span className={clsx(
-                    "px-4 py-2 rounded-xl text-sm font-bold",
+                    "px-4 py-2 rounded-xl text-sm font-bold shadow-sm",
                     student.status === AttendanceStatus.Present 
-                      ? "bg-emerald-100 text-emerald-800" 
-                      : "bg-rose-100 text-rose-800"
+                      ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
+                      : "bg-rose-600 text-white border border-rose-700"
                   )}>
                     {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
                   </span>
