@@ -45,7 +45,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       )}
     >
       <div className="flex items-center justify-between h-20 border-b border-slate-200/60 px-6">
-        <span className="text-2xl font-bold gradient-text tracking-tight">হাজিরা খাতা</span>
+        <div className="flex items-center gap-2">
+          <img src="/src/assets/logo.svg" alt="হাজিরা খাতা" className="h-10 w-auto" />
+          <span className="text-2xl font-bold gradient-text tracking-tight">হাজিরা খাতা</span>
+        </div>
         <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-full">
           <X className="w-6 h-6" />
         </button>
@@ -82,20 +85,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </button>
         </nav>
       </div>
-      <div className="p-6 border-t border-slate-200/60 bg-[#045D5D]">
-        <div className="flex items-center gap-3">
+      <div className="p-6 border-t border-slate-200/60 bg-[#045D5D] h-[63.4034px] w-[239.091px]">
+        <div className="flex items-center gap-3 -mt-[9px] ml-[-13px]">
           <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white overflow-hidden">
             {photoURL ? (
-              <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
+              <img src={photoURL} alt="Profile" className="w-full h-full object-cover mt-0" />
             ) : (
               user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#FFFFFF] truncate">
+            <p className="text-sm font-medium text-[#FFFFFF] truncate mt-[-3px] ml-[-5px] mr-0 mb-[-3px]">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-slate-300 truncate">{user?.email}</p>
+            <p className="text-xs text-slate-300 truncate mt-0 ml-[-6px]">{user?.email}</p>
           </div>
         </div>
       </div>

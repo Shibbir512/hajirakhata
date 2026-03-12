@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2 } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock } from "lucide-react";
 import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -49,10 +49,10 @@ const AttendanceHistory: React.FC = () => {
     setIsEditMode(true);
   };
 
-  const handleStatusToggle = (studentId: string) => {
+  const handleStatusToggle = (studentId: string, status: AttendanceStatus) => {
     setEditedStudents(prev => prev.map(s => 
       s.studentId === studentId 
-        ? { ...s, status: s.status === AttendanceStatus.Present ? AttendanceStatus.Absent : AttendanceStatus.Present }
+        ? { ...s, status }
         : s
     ));
   };
@@ -71,8 +71,9 @@ const AttendanceHistory: React.FC = () => {
     const presentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Present).length;
     const absentStudents = session.students.filter((s: any) => s.status === AttendanceStatus.Absent);
     const absentCount = absentStudents.length;
+    const lateCount = session.students.filter((s: any) => s.status === AttendanceStatus.Late).length;
 
-    let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
+    let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন\nবিলম্বিত: ${toBengaliNumber(lateCount)} জন`;
     
     if (absentCount > 0) {
       const absentNames = absentStudents.map((s: any, index: number) => `${toBengaliNumber(index + 1)}. ${s.studentName}`).join("\n");
@@ -181,6 +182,12 @@ const AttendanceHistory: React.FC = () => {
               {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
             </p>
           </div>
+          <div className="card-premium p-4 bg-amber-50 border-l-4 border-l-amber-500">
+            <p className="text-sm font-medium text-amber-600 mb-1">মোট বিলম্বিত (সেশন ভিত্তিক)</p>
+            <p className="text-2xl font-bold text-amber-700">
+              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Late).length, 0))} জন
+            </p>
+          </div>
         </div>
       )}
 
@@ -213,11 +220,14 @@ const AttendanceHistory: React.FC = () => {
                     {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
                   </p>
                   <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700">
-                      {toBengaliNumber(session.students.length - absentStudents.length)}
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-700" title="উপস্থিত">
+                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Present).length)}
                     </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700">
-                      {toBengaliNumber(absentStudents.length)}
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700" title="অনুপস্থিত">
+                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length)}
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700" title="বিলম্বিত">
+                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Late).length)}
                     </span>
                   </div>
                 </div>
@@ -346,9 +356,11 @@ const AttendanceHistory: React.FC = () => {
                     "px-4 py-2 rounded-xl text-sm font-bold shadow-sm",
                     student.status === AttendanceStatus.Present 
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
-                      : "bg-rose-600 text-white border border-rose-700"
+                      : student.status === AttendanceStatus.Absent
+                      ? "bg-rose-600 text-white border border-rose-700"
+                      : "bg-amber-100 text-amber-800 border border-amber-200"
                   )}>
-                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : student.status === AttendanceStatus.Absent ? "অনুপস্থিত" : "বিলম্বিত"}
                   </span>
                 </div>
               ))}
@@ -370,17 +382,41 @@ const AttendanceHistory: React.FC = () => {
                   <span className="font-medium text-slate-800 flex items-center gap-3">
                     {student.studentName}
                   </span>
-                  <button 
-                    onClick={() => handleStatusToggle(student.studentId)}
-                    className={clsx(
-                      "px-4 py-2 rounded-xl text-sm font-bold transition-all duration-300 border-2",
-                      student.status === AttendanceStatus.Present 
-                        ? "bg-emerald-100 text-emerald-800 border-emerald-400 shadow-[0_0_10px_rgba(34,197,94,0.15)]" 
-                        : "bg-rose-100 text-rose-800 border-rose-400 shadow-[0_0_10px_rgba(239,68,68,0.15)]"
-                    )}
-                  >
-                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
-                  </button>
+                  <div className="flex gap-1">
+                    <button 
+                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Present)}
+                      className={clsx(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                        student.status === AttendanceStatus.Present 
+                          ? "bg-emerald-500 text-white border-emerald-600" 
+                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                      )}
+                    >
+                      উপস্থিত
+                    </button>
+                    <button 
+                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Absent)}
+                      className={clsx(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                        student.status === AttendanceStatus.Absent 
+                          ? "bg-rose-500 text-white border-rose-600" 
+                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                      )}
+                    >
+                      অনুপস্থিত
+                    </button>
+                    <button 
+                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Late)}
+                      className={clsx(
+                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                        student.status === AttendanceStatus.Late 
+                          ? "bg-amber-500 text-white border-amber-600" 
+                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                      )}
+                    >
+                      বিলম্বিত
+                    </button>
+                  </div>
                 </div>
               ))}
             </div>

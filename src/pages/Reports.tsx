@@ -55,23 +55,26 @@ const Reports: React.FC = () => {
       .map((student) => {
         let present = 0;
         let absent = 0;
+        let late = 0;
         
         filteredSessions.forEach(session => {
           const studentRecord = session.students.find((st: any) => st.studentId === student.id);
           if (studentRecord) {
             if (studentRecord.status === "present") present++;
+            else if (studentRecord.status === "late") late++;
             else absent++;
           }
         });
 
-        const total = present + absent;
-        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+        const total = present + absent + late;
+        const percentage = total > 0 ? Math.round(((present + late) / total) * 100) : 0;
 
         return {
           name: student.name,
           roll: student.roll,
           present,
           absent,
+          late,
           percentage,
         };
       })
@@ -113,6 +116,7 @@ const Reports: React.FC = () => {
       Name: s.name,
       Present: s.present,
       Absent: s.absent,
+      Late: s.late,
       Percentage: `${s.percentage}%`
     })));
     const csvWithBOM = "\uFEFF" + csv;
@@ -130,13 +134,15 @@ const Reports: React.FC = () => {
       0,
     );
     const totalAbsent = reportData.reduce((acc, curr) => acc + curr.absent, 0);
+    const totalLate = reportData.reduce((acc, curr) => acc + curr.late, 0);
     return [
       { name: "Present", value: totalPresent },
       { name: "Absent", value: totalAbsent },
+      { name: "Late", value: totalLate },
     ];
   }, [reportData]);
 
-  const COLORS = ["#22c55e", "#ef4444"];
+  const COLORS = ["#22c55e", "#ef4444", "#f59e0b"];
 
   return (
     <div className="space-y-6">
@@ -267,14 +273,21 @@ const Reports: React.FC = () => {
                       name="উপস্থিত"
                       fill="#22c55e"
                       radius={[4, 4, 0, 0]}
-                      barSize={20}
+                      barSize={15}
                     />
                     <Bar
                       dataKey="absent"
                       name="অনুপস্থিত"
                       fill="#ef4444"
                       radius={[4, 4, 0, 0]}
-                      barSize={20}
+                      barSize={15}
+                    />
+                    <Bar
+                      dataKey="late"
+                      name="বিলম্বিত"
+                      fill="#f59e0b"
+                      radius={[4, 4, 0, 0]}
+                      barSize={15}
                     />
                   </BarChart>
                 </ResponsiveContainer>
@@ -298,6 +311,9 @@ const Reports: React.FC = () => {
                     <th className="hidden sm:table-cell text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       অনুপস্থিত
                     </th>
+                    <th className="hidden sm:table-cell text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
+                      বিলম্বিত
+                    </th>
                     <th className="text-center py-3 px-2 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-[10px] sm:text-sm">
                       শতকরা
                     </th>
@@ -320,6 +336,9 @@ const Reports: React.FC = () => {
                       </td>
                       <td className="hidden sm:table-cell py-3 px-2 sm:px-4 text-center text-rose-600 font-medium text-[10px] sm:text-sm">
                         {student.absent}
+                      </td>
+                      <td className="hidden sm:table-cell py-3 px-2 sm:px-4 text-center text-amber-600 font-medium text-[10px] sm:text-sm">
+                        {student.late}
                       </td>
                       <td className="py-3 px-2 sm:px-4 text-center">
                         <span

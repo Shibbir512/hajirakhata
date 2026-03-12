@@ -17,6 +17,7 @@ export interface ClassData {
 export enum AttendanceStatus {
   Present = "present",
   Absent = "absent",
+  Late = "late",
 }
 
 export interface AttendanceRecord {

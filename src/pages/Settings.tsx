@@ -638,20 +638,36 @@ const Settings: React.FC = () => {
                           <span className="text-sm text-slate-700">{pUser.phone || "দেওয়া হয়নি"}</span>
                         </td>
                         <td className="py-4 text-right">
-                          <button
-                            onClick={async () => {
-                              try {
-                                await updateDoc(doc(db, "users", pUser.id), { status: "active" });
-                                toast.success("ব্যবহারকারীকে অনুমোদন দেওয়া হয়েছে।");
-                              } catch (e) {
-                                console.error("Error approving user:", e);
-                                toast.error("অনুমোদন দিতে ব্যর্থ হয়েছে।");
-                              }
-                            }}
-                            className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-medium transition-colors text-sm"
-                          >
-                            অনুমোদন দিন
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await updateDoc(doc(db, "users", pUser.id), { status: "active" });
+                                  toast.success("ব্যবহারকারীকে অনুমোদন দেওয়া হয়েছে।");
+                                } catch (e) {
+                                  console.error("Error approving user:", e);
+                                  toast.error("অনুমোদন দিতে ব্যর্থ হয়েছে।");
+                                }
+                              }}
+                              className="px-4 py-2 bg-emerald-50 text-emerald-600 hover:bg-emerald-100 rounded-lg font-medium transition-colors text-sm"
+                            >
+                              অনুমোদন দিন
+                            </button>
+                            <button
+                              onClick={async () => {
+                                try {
+                                  await updateDoc(doc(db, "users", pUser.id), { status: "rejected" });
+                                  toast.success("ব্যবহারকারীকে বাতিল করা হয়েছে।");
+                                } catch (e) {
+                                  console.error("Error rejecting user:", e);
+                                  toast.error("বাতিল করতে ব্যর্থ হয়েছে।");
+                                }
+                              }}
+                              className="px-4 py-2 bg-rose-50 text-rose-600 hover:bg-rose-100 rounded-lg font-medium transition-colors text-sm"
+                            >
+                              বাতিল করুন
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

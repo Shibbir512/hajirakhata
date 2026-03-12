@@ -1,8 +1,12 @@
 <svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-  <!-- Book -->
-  <path d="M30 40 L100 20 L170 40 L170 160 L100 140 L30 160 Z" fill="#F0FDF4" stroke="#059669" stroke-width="4"/>
-  <!-- H -->
-  <path d="M70 70 L70 130 M130 70 L130 130" stroke="#065F46" stroke-width="12" stroke-linecap="round"/>
-  <!-- Checkmark as crossbar -->
-  <path d="M70 100 L100 120 L130 80" stroke="#059669" stroke-width="12" stroke-linecap="round" fill="none"/>
+  <!-- Background Circle -->
+  <circle cx="100" cy="100" r="95" fill="#f0fdfa" stroke="#0d9488" stroke-width="2"/>
+  <!-- Open Book Icon -->
+  <path d="M60 70 C60 60 80 55 100 65 C120 55 140 60 140 70 L140 140 C140 130 120 125 100 135 C80 125 60 130 60 140 Z" fill="#0d9488" />
+  <path d="M100 65 L100 135" stroke="#f0fdfa" stroke-width="2" />
+  <!-- Graduation Cap / Student Icon simplified -->
+  <path d="M100 45 L120 55 L100 65 L80 55 Z" fill="#0f766e" />
+  <path d="M120 55 L120 65" stroke="#0f766e" stroke-width="2" />
+  <!-- Text representation -->
+  <text x="100" y="170" font-family="Arial, sans-serif" font-size="24" font-weight="bold" fill="#0f766e" text-anchor="middle">হাজিরা খাতা</text>
 </svg>
