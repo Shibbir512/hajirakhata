@@ -446,69 +446,76 @@ const Students: React.FC = () => {
       )}
 
       {viewingStudent && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-white/20">
-            <div className="flex justify-between items-center p-6 border-b border-slate-100">
-              <h3 className="text-lg font-semibold text-slate-800">শিক্ষার্থীর বিস্তারিত</h3>
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+            {/* Header */}
+            <div className="bg-gradient-to-r from-teal-700 to-teal-800 p-6 text-white relative">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="text-slate-400 hover:text-slate-600 transition-colors"
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold border-2 border-white/30 shadow-sm text-white">
+                  {viewingStudent.name.charAt(0)}
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
+                  <p className="text-teal-50 text-sm opacity-90">রোল: {viewingStudent.roll}</p>
+                </div>
+              </div>
             </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">নাম</div>
-                <div className="col-span-2 text-sm text-slate-900 font-medium">{viewingStudent.name}</div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">রোল নম্বর</div>
-                <div className="col-span-2 text-sm text-slate-900">{viewingStudent.roll}</div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">পিতার নাম</div>
-                <div className="col-span-2 text-sm text-slate-900">{viewingStudent.fatherName || "-"}</div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">ফোন</div>
-                <div className="col-span-2 text-sm text-slate-900">{viewingStudent.phone || "-"}</div>
-              </div>
-              <div className="grid grid-cols-3 gap-4 border-b border-slate-100 pb-4">
-                <div className="col-span-1 text-sm font-medium text-slate-500">ঠিকানা</div>
-                <div className="col-span-2 text-sm text-slate-900 whitespace-pre-wrap">{viewingStudent.address || "-"}</div>
+
+            {/* Details */}
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">পিতার নাম</p>
+                  <p className="text-slate-800 font-medium">{viewingStudent.fatherName || "-"}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ফোন নম্বর</p>
+                  <p className="text-slate-800 font-medium">{viewingStudent.phone || "-"}</p>
+                </div>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 md:col-span-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ঠিকানা</p>
+                  <p className="text-slate-800 font-medium">{viewingStudent.address || "-"}</p>
+                </div>
               </div>
               
-              <div className="pt-2">
-                <h4 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-teal-500" />
+              {/* Attendance */}
+              <div>
+                <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
+                  <Calendar className="w-4 h-4 text-teal-600" />
                   সাম্প্রতিক হাজিরা
                 </h4>
-                <div className="max-h-48 overflow-y-auto space-y-2">
+                <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
                   {studentAttendance.length > 0 ? (
                     studentAttendance.map((record, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-2 bg-slate-50 rounded-lg text-sm">
-                        <span className="text-slate-600">{record.date}</span>
+                      <div key={idx} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl text-sm shadow-sm">
+                        <span className="text-slate-600 font-medium">{record.date}</span>
                         <span className={clsx(
-                          "font-medium px-2 py-0.5 rounded-full text-xs",
-                          record.status === 'present' ? "bg-emerald-100 text-emerald-700" : "bg-rose-100 text-rose-700"
+                          "font-bold px-3 py-1 rounded-full text-xs",
+                          record.status === 'present' ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
                         )}>
                           {record.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-400 italic">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
+                    <p className="text-sm text-slate-400 italic bg-slate-50 p-4 rounded-xl text-center">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
                   )}
                 </div>
               </div>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end">
+            
+            {/* Footer */}
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+                className="bg-teal-700 hover:bg-teal-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-xl font-bold shadow-md hover:shadow-lg"
               >
-                <X className="w-5 h-5 mr-2" />
                 বন্ধ করুন
               </button>
             </div>

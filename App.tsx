@@ -1,19 +1,26 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { WifiOff } from "lucide-react";
-import OrgManagementPage from "./src/pages/OrgManagementPage";
-import DashboardLayout from "./src/layouts/DashboardLayout";
-import Login from "./src/pages/Login";
-import Dashboard from "./src/pages/Dashboard";
-import Attendance from "./src/pages/Attendance";
-import AttendanceHistory from "./src/pages/AttendanceHistory";
-import Students from "./src/pages/Students";
-import Classes from "./src/pages/Classes";
-import Reports from "./src/pages/Reports";
-import Settings from "./src/pages/Settings";
-import SuperAdminDashboard from "./src/pages/SuperAdminDashboard";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
+
+const OrgManagementPage = lazy(() => import("./src/pages/OrgManagementPage"));
+const DashboardLayout = lazy(() => import("./src/layouts/DashboardLayout"));
+const Login = lazy(() => import("./src/pages/Login"));
+const Dashboard = lazy(() => import("./src/pages/Dashboard"));
+const Attendance = lazy(() => import("./src/pages/Attendance"));
+const AttendanceHistory = lazy(() => import("./src/pages/AttendanceHistory"));
+const Students = lazy(() => import("./src/pages/Students"));
+const Classes = lazy(() => import("./src/pages/Classes"));
+const Reports = lazy(() => import("./src/pages/Reports"));
+const Settings = lazy(() => import("./src/pages/Settings"));
+const SuperAdminDashboard = lazy(() => import("./src/pages/SuperAdminDashboard"));
+
+const LoadingFallback = () => (
+  <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
+    <div className="w-12 h-12 border-4 border-indigo-200 border-t-teal-500 rounded-full animate-spin"></div>
+  </div>
+);
 
 const OfflineIndicator = () => {
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
@@ -45,11 +52,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading, status, logout, isApprovalEnabled } = useAuth();
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-teal-500 rounded-full animate-spin"></div>
-      </div>
-    );
+    return <LoadingFallback />;
   }
 
   if (!user) {
@@ -89,28 +92,30 @@ const App: React.FC = () => {
       <BrowserRouter>
         <OfflineIndicator />
         <Toaster position="top-right" />
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
+        <Suspense fallback={<LoadingFallback />}>
+          <Routes>
+            <Route path="/login" element={<Login />} />
+            <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <DashboardLayout />
-              </ProtectedRoute>
-            }
-          >
-            <Route index element={<Dashboard />} />
-            <Route path="attendance" element={<Attendance />} />
-            <Route path="attendance/history" element={<AttendanceHistory />} />
-            <Route path="students" element={<Students />} />
-            <Route path="classes" element={<Classes />} />
-            <Route path="reports" element={<Reports />} />
-            <Route path="settings" element={<Settings />} />
-            <Route path="super-admin" element={<SuperAdminDashboard />} />
-          </Route>
-        </Routes>
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <DashboardLayout />
+                </ProtectedRoute>
+              }
+            >
+              <Route index element={<Dashboard />} />
+              <Route path="attendance" element={<Attendance />} />
+              <Route path="attendance/history" element={<AttendanceHistory />} />
+              <Route path="students" element={<Students />} />
+              <Route path="classes" element={<Classes />} />
+              <Route path="reports" element={<Reports />} />
+              <Route path="settings" element={<Settings />} />
+              <Route path="super-admin" element={<SuperAdminDashboard />} />
+            </Route>
+          </Routes>
+        </Suspense>
       </BrowserRouter>
     </AuthProvider>
   );
