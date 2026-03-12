@@ -198,8 +198,8 @@ const StatCard = React.memo<StatCardProps>(({
         <p className="text-sm font-medium text-slate-500 mb-1 text-center">{title}</p>
         <p className={`text-3xl font-bold ${textColor} text-center`}>{value}</p>
       </div>
-      <div className={`relative z-10 p-4 rounded-full bg-white shadow-lg shadow-black/10 group-hover:scale-110 transition-transform duration-300 ml-4`}>
-        <Icon className={`w-7 h-7 drop-shadow-md ${textColor}`} />
+      <div className={`relative z-10 p-4 rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300 ml-4`}>
+        <Icon className={`w-7 h-7 ${textColor}`} />
       </div>
       <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
     </div>

@@ -26,7 +26,12 @@ const DashboardLayout: React.FC = () => {
 
   const playNotificationSound = () => {
     if (audioRef.current) {
-      audioRef.current.play().catch(e => console.error("Error playing sound:", e));
+      audioRef.current.play().catch(e => {
+        // Ignore NotAllowedError (autoplay policy)
+        if (e.name !== 'NotAllowedError') {
+          console.error("Error playing sound:", e);
+        }
+      });
     }
   };
 
@@ -188,8 +193,6 @@ const DashboardLayout: React.FC = () => {
     }
   };
 
-  const showBackButton = location.pathname !== "/" && location.pathname !== "/org-management";
-
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
       {orgId && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
@@ -203,17 +206,6 @@ const DashboardLayout: React.FC = () => {
         {orgId && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] p-4 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto w-full">
-            {showBackButton && (
-              <div className="mb-6">
-                <button
-                  onClick={handleBack}
-                  className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold text-sm"
-                >
-                  <ArrowLeft className="w-4 h-4 mr-2" />
-                  ফিরে যান
-                </button>
-              </div>
-            )}
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}

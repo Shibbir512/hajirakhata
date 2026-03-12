@@ -117,15 +117,15 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+            className="flex-1 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center px-3 py-2 rounded-xl font-bold text-sm"
           >
-            <X className="w-5 h-5 mr-2" />
+            <X className="w-4 h-4 mr-1.5" />
             বাতিল
           </button>
           <button
             type="submit"
             form="edit-student-form"
-            className="bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2 rounded-xl font-bold"
+            className="flex-1 bg-[#045F5F] hover:bg-[#034f4f] text-white shadow-md hover:shadow-lg transition-all duration-300 px-3 py-2 rounded-xl font-bold text-sm flex items-center justify-center"
           >
             সংরক্ষণ করুন
           </button>
