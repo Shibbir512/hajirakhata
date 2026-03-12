@@ -30,8 +30,10 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     const unsubStudents = onSnapshot(studentsRef, (snapshot) => {
       const loadedStudents: { [key: string]: Student[] } = {};
       snapshot.docs.forEach((doc) => {
-        const student = doc.data() as Student;
-        const classId = student.id.split("-student-")[0];
+        const data = doc.data();
+        const studentId = doc.id;
+        const classId = data.classId || studentId.split("-student-")[0];
+        const student = { ...data, id: studentId, classId } as Student;
         if (!loadedStudents[classId]) loadedStudents[classId] = [];
         loadedStudents[classId].push(student);
       });
@@ -86,12 +88,14 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   );
 
   const deleteStudent = useCallback(
-    async (studentId: string, classId: string) => {
+    async (studentId: string, classId?: string) => {
       if (!user || !db || !orgId) {
         toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
         return;
       }
       
+      const resolvedClassId = classId || studentId.split("-student-")[0];
+
       // Allow teachers to delete students as well
       if (role !== "admin" && role !== "moderator" && role !== "teacher") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
@@ -118,7 +122,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         // 3. Reorder remaining students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
         // Remove orderBy to avoid composite index requirement
-        const q = query(studentsRef, where("classId", "==", classId));
+        const q = query(studentsRef, where("classId", "==", resolvedClassId));
         const remainingStudents = await getDocs(q);
         
         // Sort client-side instead

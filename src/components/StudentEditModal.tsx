@@ -37,8 +37,8 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden max-h-[90vh] flex flex-col border border-white/20">
+    <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
+      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-white/20 max-h-[90vh]">
         <div className="flex justify-between items-center p-6 border-b border-slate-100">
           <h3 className="text-xl font-bold text-slate-800 tracking-tight">শিক্ষার্থীর তথ্য সম্পাদনা</h3>
           <button
@@ -49,63 +49,66 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           </button>
         </div>
 
-        <div className="overflow-y-auto p-6">
+        <div className="overflow-y-auto p-6 space-y-4">
           <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-4">
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
+              <span className="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-lg font-bold">#</span>
+              <div>
+                <p className="text-xs text-slate-500 font-medium">রোল নম্বর</p>
+                <p className="font-bold text-slate-800 text-lg">{student.roll}</p>
+              </div>
+            </div>
+            
             <div>
-              <p className="text-sm text-slate-500 mb-4 bg-slate-50/50 p-4 rounded-2xl border border-slate-100 flex items-center gap-2">
-                <span className="w-6 h-6 rounded-full bg-slate-200 text-slate-700 flex items-center justify-center text-xs font-bold">#</span>
-                রোল নম্বর:{" "}
-                <span className="font-bold text-slate-800 text-base">{student.roll}</span>
-              </p>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 শিক্ষার্থীর নাম *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="input-premium"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                 placeholder="শিক্ষার্থীর নাম লিখুন"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 পিতার নাম
               </label>
               <input
                 type="text"
                 value={fatherName}
                 onChange={(e) => setFatherName(e.target.value)}
-                className="input-premium"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                 placeholder="পিতার নাম লিখুন"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 ফোন নম্বর
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="input-premium"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">
                 ঠিকানা
               </label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="input-premium"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
                 placeholder="ঠিকানা লিখুন"
-                rows={3}
+                rows={2}
               />
             </div>
 
@@ -117,15 +120,14 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center px-3 py-2 rounded-xl font-bold text-sm"
+            className="flex-1 bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 shadow-sm hover:shadow transition-all duration-300 flex items-center justify-center px-4 py-3 rounded-xl font-bold text-sm"
           >
-            <X className="w-4 h-4 mr-1.5" />
             বাতিল
           </button>
           <button
             type="submit"
             form="edit-student-form"
-            className="flex-1 bg-[#045F5F] hover:bg-[#034f4f] text-white shadow-md hover:shadow-lg transition-all duration-300 px-3 py-2 rounded-xl font-bold text-sm flex items-center justify-center"
+            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center"
           >
             সংরক্ষণ করুন
           </button>

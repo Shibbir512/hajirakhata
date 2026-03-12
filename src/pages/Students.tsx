@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User } from "lucide-react";
 import { Student } from "../types";
 import clsx from "clsx";
 import StudentAddModal from "../components/StudentAddModal";
@@ -449,38 +449,38 @@ const Students: React.FC = () => {
         <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
             {/* Header */}
-            <div className="bg-gradient-to-r from-teal-700 to-teal-800 p-6 text-white relative">
+            <div className="bg-teal-600 p-4 text-white relative">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
+                className="absolute top-2 right-2 text-white/70 hover:text-white transition-colors"
               >
-                <X className="w-6 h-6" />
+                <X className="w-5 h-5" />
               </button>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-white/20 flex items-center justify-center text-2xl font-bold border-2 border-white/30 shadow-sm text-white">
-                  {viewingStudent.name.charAt(0)}
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border-2 border-white/20 shadow-sm">
+                  <User className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
-                  <p className="text-teal-50 text-sm opacity-90">রোল: {viewingStudent.roll}</p>
+                  <h3 className="text-lg font-bold text-white">{viewingStudent.name}</h3>
+                  <p className="text-teal-50 text-xs opacity-90">রোল: {viewingStudent.roll}</p>
                 </div>
               </div>
             </div>
 
             {/* Details */}
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">পিতার নাম</p>
-                  <p className="text-slate-800 font-medium">{viewingStudent.fatherName || "-"}</p>
+            <div className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">পিতার নাম</p>
+                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.fatherName || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ফোন নম্বর</p>
-                  <p className="text-slate-800 font-medium">{viewingStudent.phone || "-"}</p>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">ফোন নম্বর</p>
+                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.phone || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 md:col-span-2">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ঠিকানা</p>
-                  <p className="text-slate-800 font-medium">{viewingStudent.address || "-"}</p>
+                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 md:col-span-2">
+                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">ঠিকানা</p>
+                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.address || "-"}</p>
                 </div>
               </div>
               
