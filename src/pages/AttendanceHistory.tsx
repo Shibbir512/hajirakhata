@@ -128,12 +128,13 @@ const AttendanceHistory: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
       
-      <div className="card-premium p-6 flex flex-col sm:flex-row gap-4">
-        <div className="relative max-w-xs">
+      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center">
+        <div className="relative w-full max-w-xs">
+          <label className="block text-lg font-bold text-slate-700 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
           <select
             value={selectedClassId}
             onChange={(e) => setSelectedClassId(e.target.value)}
-            className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+            className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-2 border-teal-300 bg-teal-50/30 text-center appearance-none pr-10 rounded-xl py-3"
           >
             <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
             {classes.map((cls) => (
@@ -142,19 +143,22 @@ const AttendanceHistory: React.FC = () => {
               </option>
             ))}
           </select>
-          <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+          <ChevronDown className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
         </div>
 
-        <div className="relative max-w-xs">
-          <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-teal-500 w-4 h-4" />
-          <DatePicker
-            selected={selectedDate}
-            onChange={(date: Date | null) => setSelectedDate(date)}
-            dateFormat="dd MM yyyy"
-            placeholderText="তারিখ নির্বাচন করুন"
-            className="input-premium pl-10 w-full"
-            isClearable
-          />
+        <div className="relative w-full max-w-xs">
+          <label className="block text-lg font-bold text-slate-700 mb-2 text-center">তারিখ নির্বাচন করুন</label>
+          <div className="relative">
+            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5 z-10" />
+            <DatePicker
+              selected={selectedDate}
+              onChange={(date: Date | null) => setSelectedDate(date)}
+              dateFormat="dd MM yyyy"
+              placeholderText="তারিখ নির্বাচন করুন"
+              className="input-premium pl-12 w-full text-lg font-bold text-teal-700 border-2 border-teal-300 bg-teal-50/30 text-center rounded-xl py-3"
+              isClearable
+            />
+          </div>
         </div>
       </div>
 
