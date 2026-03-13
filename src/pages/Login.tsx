@@ -5,6 +5,7 @@ import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs
 import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import logo from '../assets/logo.png';
 
 const Login: React.FC = () => {
   const { user } = useAuth();
@@ -144,7 +145,7 @@ const Login: React.FC = () => {
       <div className="max-w-md w-full card-premium p-10 text-center border-2 border-teal-100 shadow-teal-900/5">
         <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-teal-50 overflow-hidden">
           <img 
-            src="/src/assets/logo.svg" 
+            src={logo} 
             alt="হাজিরা খাতা" 
             className="w-full h-full object-contain p-2" 
           />
