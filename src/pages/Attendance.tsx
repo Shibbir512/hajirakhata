@@ -81,13 +81,11 @@ const Attendance: React.FC = () => {
   const liveCounter = useMemo(() => {
     let present = 0;
     let absent = 0;
-    let late = 0;
     attendanceState.forEach((val) => {
       if (val.status === AttendanceStatus.Present) present++;
       else if (val.status === AttendanceStatus.Absent) absent++;
-      else if (val.status === AttendanceStatus.Late) late++;
     });
-    return { total: attendanceState.size, present, absent, late };
+    return { total: attendanceState.size, present, absent };
   }, [attendanceState]);
 
   const filteredAndSortedStudents = useMemo(() => {

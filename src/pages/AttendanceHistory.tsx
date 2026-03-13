@@ -71,9 +71,8 @@ const AttendanceHistory: React.FC = () => {
     const presentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Present).length;
     const absentStudents = session.students.filter((s: any) => s.status === AttendanceStatus.Absent);
     const absentCount = absentStudents.length;
-    const lateCount = session.students.filter((s: any) => s.status === AttendanceStatus.Late).length;
 
-    let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন\nবিলম্বিত: ${toBengaliNumber(lateCount)} জন`;
+    let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
     
     if (absentCount > 0) {
       const absentNames = absentStudents.map((s: any, index: number) => `${toBengaliNumber(index + 1)}. ${s.studentName}`).join("\n");
@@ -188,12 +187,6 @@ const AttendanceHistory: React.FC = () => {
               {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
             </p>
           </div>
-          <div className="card-premium p-4 bg-amber-50 border-l-4 border-l-amber-500">
-            <p className="text-sm font-medium text-amber-600 mb-1">মোট বিলম্বিত (সেশন ভিত্তিক)</p>
-            <p className="text-2xl font-bold text-amber-700">
-              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Late).length, 0))} জন
-            </p>
-          </div>
         </div>
       )}
 
@@ -231,9 +224,6 @@ const AttendanceHistory: React.FC = () => {
                     </span>
                     <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-rose-100 text-rose-700" title="অনুপস্থিত">
                       {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length)}
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700" title="বিলম্বিত">
-                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Late).length)}
                     </span>
                   </div>
                 </div>
@@ -362,11 +352,9 @@ const AttendanceHistory: React.FC = () => {
                     "px-4 py-2 rounded-xl text-sm font-bold shadow-sm",
                     student.status === AttendanceStatus.Present 
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
-                      : student.status === AttendanceStatus.Absent
-                      ? "bg-rose-600 text-white border border-rose-700"
-                      : "bg-amber-100 text-amber-800 border border-amber-200"
+                      : "bg-rose-600 text-white border border-rose-700"
                   )}>
-                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : student.status === AttendanceStatus.Absent ? "অনুপস্থিত" : "বিলম্বিত"}
+                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
                   </span>
                 </div>
               ))}
@@ -410,17 +398,6 @@ const AttendanceHistory: React.FC = () => {
                       )}
                     >
                       অনুপস্থিত
-                    </button>
-                    <button 
-                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Late)}
-                      className={clsx(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                        student.status === AttendanceStatus.Late 
-                          ? "bg-amber-500 text-white border-amber-600" 
-                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
-                      )}
-                    >
-                      বিলম্বিত
                     </button>
                   </div>
                 </div>
