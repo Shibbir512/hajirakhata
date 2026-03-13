@@ -196,10 +196,10 @@ const Students: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedClassId}
             className={clsx(
-              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-lg transition-all duration-300 text-sm sm:text-base",
+              "flex items-center justify-center px-4 py-2 rounded-2xl font-bold shadow-md transition-all duration-300 text-sm sm:text-base border border-teal-100",
               selectedClassId 
-                ? "bg-[#4CAF50] hover:bg-[#43a047] hover:shadow-green-200" 
-                : "bg-slate-300 cursor-not-allowed"
+                ? "bg-white text-teal-600 hover:bg-teal-50 hover:shadow-lg" 
+                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
             )}
           >
             <Plus className="w-4 h-4 mr-2" />

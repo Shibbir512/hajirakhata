@@ -127,7 +127,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="submit"
             form="edit-student-form"
-            className="flex-1 bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-xl font-bold text-sm flex items-center justify-center"
+            className="flex-1 bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center"
           >
             সংরক্ষণ করুন
           </button>

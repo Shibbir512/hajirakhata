@@ -127,7 +127,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           <button
             type="submit"
             form="add-student-form"
-            className="bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2 rounded-xl font-bold"
+            className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
           >
             যোগ করুন
           </button>

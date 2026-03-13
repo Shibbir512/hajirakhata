@@ -64,7 +64,7 @@ const Classes: React.FC = () => {
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={isAdding}
-            className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-4 py-2 rounded-xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex items-center px-4 py-2 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
             {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
@@ -266,7 +266,7 @@ const ClassModal = React.memo<ClassModalProps>(({
             </button>
             <button
               type="submit"
-              className="bg-[#4CAF50] hover:bg-[#43a047] text-white shadow-md hover:shadow-lg transition-all duration-300 px-6 py-2 rounded-xl font-bold"
+              className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
             >
               সংরক্ষণ
             </button>

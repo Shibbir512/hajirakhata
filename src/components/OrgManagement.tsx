@@ -159,7 +159,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <div className="space-y-3">
                 <button
                   onClick={() => setMode("create")}
-                  className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
+                  className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
                 >
                   <Plus className="w-5 h-5" />
                   নতুন প্রতিষ্ঠান যুক্ত করুন
@@ -213,7 +213,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="button"
                 onClick={() => setMode("select")}
-                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-xl font-bold"
+                className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold"
               >
                 <ArrowLeft className="w-4 h-4" />
                 ফিরে যান
@@ -221,7 +221,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-md hover:shadow-lg transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-xl font-bold"
+                className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed py-3 rounded-2xl font-bold"
               >
                 {loading
                   ? "প্রক্রিয়াধীন..."

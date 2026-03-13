@@ -130,32 +130,34 @@ const AttendanceHistory: React.FC = () => {
       
       <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center">
         <div className="relative w-full max-w-xs">
-          <label className="block text-lg font-bold text-slate-700 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-2 border-teal-300 bg-teal-50/30 text-center appearance-none pr-10 rounded-xl py-3"
-          >
-            <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
-            {classes.map((cls) => (
-              <option key={cls.id} value={cls.id}>
-                {cls.name}
-              </option>
-            ))}
-          </select>
-          <ChevronDown className="absolute right-4 top-[60%] transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
+          <div className="relative">
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center appearance-none px-4 rounded-xl py-3 shadow-sm hover:border-teal-500 transition-colors"
+            >
+              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+          </div>
         </div>
 
         <div className="relative w-full max-w-xs">
-          <label className="block text-lg font-bold text-slate-700 mb-2 text-center">তারিখ নির্বাচন করুন</label>
-          <div className="relative">
-            <Calendar className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5 z-10" />
+          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">তারিখ নির্বাচন করুন</label>
+          <div className="relative flex items-center">
+            <Calendar className="absolute left-4 text-teal-500 w-5 h-5 z-10 pointer-events-none" />
             <DatePicker
               selected={selectedDate}
               onChange={(date: Date | null) => setSelectedDate(date)}
               dateFormat="dd MM yyyy"
               placeholderText="তারিখ নির্বাচন করুন"
-              className="input-premium pl-12 w-full text-lg font-bold text-teal-700 border-2 border-teal-300 bg-teal-50/30 text-center rounded-xl py-3"
+              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-teal-500 transition-colors"
               isClearable
             />
           </div>
@@ -424,7 +426,7 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSave} className="bg-teal-600 hover:bg-teal-700 text-white shadow-md hover:shadow-lg transition-all duration-300 w-full mt-8 py-3 rounded-xl font-bold text-base">সংরক্ষণ করুন</button>
+            <button onClick={handleSave} className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 w-full mt-8 py-3 rounded-2xl font-bold text-base">সংরক্ষণ করুন</button>
           </div>
         </div>
       )}

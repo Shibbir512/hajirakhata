@@ -360,7 +360,7 @@ const Attendance: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isTakingAttendance}
-                className="bg-[#045F5F] hover:bg-[#006666] text-white shadow-lg hover:shadow-xl transition-all duration-300 flex items-center px-8 py-3 rounded-xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
+                className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
               >
                 {isTakingAttendance ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
