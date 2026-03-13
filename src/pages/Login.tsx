@@ -5,7 +5,7 @@ import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs
 import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import logo from '../assets/logo.png';
+import logo from '../assets/app-logo.png';
 
 const Login: React.FC = () => {
   const { user } = useAuth();

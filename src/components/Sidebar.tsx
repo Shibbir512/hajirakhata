@@ -20,7 +20,7 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
-import logo from '../assets/logo.png';
+import logo from '../assets/app-logo.png';
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL } = useAuth();
