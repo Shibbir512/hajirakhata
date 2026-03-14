@@ -86,20 +86,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </button>
         </nav>
       </div>
-      <div className="p-6 border-t border-slate-200/60 bg-[#045D5D] h-[63.4034px] w-[239.091px]">
-        <div className="flex items-center gap-3 -mt-[9px] ml-[-13px]">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white overflow-hidden">
+      <div className="p-4 border-t border-slate-200/60 bg-[#045D5D] w-full">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white overflow-hidden shrink-0">
             {photoURL ? (
-              <img src={photoURL} alt="Profile" className="w-full h-full object-cover mt-0" />
+              <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
             ) : (
               user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#FFFFFF] truncate mt-[-3px] ml-[-5px] mr-0 mb-[-3px]">
+            <p className="text-sm font-medium text-[#FFFFFF] truncate">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-slate-300 truncate mt-0 ml-[-6px]">{user?.email}</p>
+            <p className="text-xs text-slate-300 truncate">{user?.email}</p>
           </div>
         </div>
       </div>
