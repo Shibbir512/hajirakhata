@@ -70,15 +70,13 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
   const handleRemoveOrg = async (e: React.MouseEvent, id: string) => {
     e.preventDefault();
     e.stopPropagation();
-    if (window.confirm("আপনি কি নিশ্চিত যে আপনি এই প্রতিষ্ঠানটি তালিকা থেকে মুছে ফেলতে চান?")) {
-      setLoading(true);
-      try {
-        if (onRemoveVisitedOrg) {
-          await onRemoveVisitedOrg(id);
-        }
-      } finally {
-        setLoading(false);
+    setLoading(true);
+    try {
+      if (onRemoveVisitedOrg) {
+        await onRemoveVisitedOrg(id);
       }
+    } finally {
+      setLoading(false);
     }
   };
 

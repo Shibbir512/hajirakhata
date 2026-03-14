@@ -210,7 +210,6 @@ const Settings: React.FC = () => {
       toast.error("আপনি নিজেকে মুছে ফেলতে পারবেন না।");
       return;
     }
-    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি এই ব্যবহারকারীকে প্রতিষ্ঠান থেকে মুছে ফেলতে চান?")) return;
     
     try {
       const userRef = doc(db, "users", userId);

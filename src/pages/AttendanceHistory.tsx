@@ -7,6 +7,7 @@ import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search } from "lucide-react";
 import clsx from "clsx";
+import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
@@ -122,7 +123,7 @@ const AttendanceHistory: React.FC = () => {
     } else {
       // Fallback: Copy to clipboard
       navigator.clipboard.writeText(text);
-      alert('রিপোর্ট কপি করা হয়েছে!');
+      toast.success('রিপোর্ট কপি করা হয়েছে!');
     }
   };
 

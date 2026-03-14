@@ -22,9 +22,8 @@ try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   
-  // Initialize Firestore with long polling and persistent cache
+  // Initialize Firestore with persistent cache
   db = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
     localCache: persistentLocalCache({
       tabManager: persistentMultipleTabManager(),
     }),

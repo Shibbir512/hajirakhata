@@ -135,7 +135,7 @@ const Students: React.FC = () => {
       }).filter(s => s.name);
       bulkAddStudents(selectedClassId, studentsList);
     } else {
-      alert("Unsupported file type. Please upload a CSV or DOCX file.");
+      toast.error("Unsupported file type. Please upload a CSV or DOCX file.");
     }
     if (fileInputRef.current) fileInputRef.current.value = "";
   };

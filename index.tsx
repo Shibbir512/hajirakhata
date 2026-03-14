@@ -9,9 +9,8 @@ import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm('নতুন আপডেট এসেছে। রিলোড করতে চান?')) {
-      updateSW(true);
-    }
+    // Auto update or use a custom toast instead of confirm
+    updateSW(true);
   },
   onOfflineReady() {
     console.log('App is ready to work offline');

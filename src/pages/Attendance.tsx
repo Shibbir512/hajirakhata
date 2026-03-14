@@ -6,6 +6,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users } from "lucide-react";
 import clsx from "clsx";
+import toast from "react-hot-toast";
 
 interface StatCardProps {
   title: string;
@@ -133,7 +134,7 @@ const Attendance: React.FC = () => {
   const handleSave = async () => {
     if (!selectedClassId) return;
     if (attendanceState.size === 0) {
-      alert("এই শ্রেণিতে কোনো শিক্ষার্থী নেই। হাজিরা সংরক্ষণ করা সম্ভব নয়।");
+      toast.error("এই শ্রেণিতে কোনো শিক্ষার্থী নেই। হাজিরা সংরক্ষণ করা সম্ভব নয়।");
       return;
     }
     await takeAttendance(selectedClassId, attendanceState);

@@ -2,7 +2,6 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
-import logo from '../assets/app-logo.png';
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -15,6 +14,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import clsx from "clsx";
+import logo from '../assets/app-logo.png';
 
 interface SidebarProps {
   isOpen: boolean;

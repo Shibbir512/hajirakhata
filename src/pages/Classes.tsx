@@ -47,13 +47,7 @@ const Classes: React.FC = () => {
   };
 
   const handleDeleteClass = (id: string) => {
-    if (
-      window.confirm(
-        "Are you sure you want to delete this class? All students and attendance records associated with this class might be affected.",
-      )
-    ) {
-      deleteClass(id);
-    }
+    deleteClass(id);
   };
 
   return (
