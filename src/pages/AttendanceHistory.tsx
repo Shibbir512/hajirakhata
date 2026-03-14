@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useCallback } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -27,9 +27,17 @@ const AttendanceHistory: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
+  const [mainSearchQuery, setMainSearchQuery] = useState("");
+
+  const getStudentRoll = useCallback((classId: string, studentId: string) => {
+    const classStudents = students[classId] || [];
+    const student = classStudents.find(s => s.id === studentId);
+    return student ? student.roll : "";
+  }, [students]);
+
   React.useEffect(() => {
     setCurrentPage(1);
-  }, [selectedClassId, selectedDate]);
+  }, [selectedClassId, selectedDate, mainSearchQuery]);
 
   const classSessions = useMemo(() => {
     let filtered = attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
@@ -37,8 +45,21 @@ const AttendanceHistory: React.FC = () => {
       const dateStr = selectedDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' ');
       filtered = filtered.filter(s => s.date === dateStr);
     }
+    
+    if (mainSearchQuery) {
+      const searchLower = mainSearchQuery.toLowerCase();
+      filtered = filtered.filter(session => {
+        return session.students.some((student: any) => {
+          const roll = getStudentRoll(session.classId, student.studentId).toString();
+          const name = student.studentName || "";
+          const matchesSearch = name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+          return matchesSearch && student.status === AttendanceStatus.Absent;
+        });
+      });
+    }
+    
     return filtered;
-  }, [attendanceSessions, selectedClassId, selectedDate]);
+  }, [attendanceSessions, selectedClassId, selectedDate, mainSearchQuery, students]);
 
   const totalPages = Math.ceil(classSessions.length / ITEMS_PER_PAGE);
   const paginatedSessions = useMemo(() => {
@@ -56,12 +77,6 @@ const AttendanceHistory: React.FC = () => {
   const handleView = (session: any) => {
     setViewingSession(session);
     setSearchQuery("");
-  };
-
-  const getStudentRoll = (classId: string, studentId: string) => {
-    const classStudents = students[classId] || [];
-    const student = classStudents.find(s => s.id === studentId);
-    return student ? student.roll : "";
   };
 
   const handleStatusToggle = (studentId: string, status: AttendanceStatus) => {
@@ -143,7 +158,7 @@ const AttendanceHistory: React.FC = () => {
     <div className="space-y-6">
       <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
       
-      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center">
+      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap">
         <div className="relative w-full max-w-xs">
           <label className="block text-xl font-bold text-slate-700 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
           <div className="relative">
@@ -174,6 +189,20 @@ const AttendanceHistory: React.FC = () => {
               placeholderText="তারিখ নির্বাচন করুন"
               className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-teal-500 transition-colors"
               isClearable
+            />
+          </div>
+        </div>
+
+        <div className="relative w-full max-w-xs">
+          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">অনুপস্থিত শিক্ষার্থী খুঁজুন</label>
+          <div className="relative flex items-center">
+            <Search className="absolute left-4 text-teal-500 w-5 h-5 z-10 pointer-events-none" />
+            <input
+              type="text"
+              placeholder="নাম বা রোল নম্বর..."
+              value={mainSearchQuery}
+              onChange={(e) => setMainSearchQuery(e.target.value)}
+              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-teal-500 transition-colors placeholder-slate-400"
             />
           </div>
         </div>
