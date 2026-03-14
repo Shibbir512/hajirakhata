@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
+import logo from '../assets/app-logo.png';
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -19,8 +20,6 @@ interface SidebarProps {
   isOpen: boolean;
   setIsOpen: (isOpen: boolean) => void;
 }
-
-import logo from '../assets/app-logo.png';
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL } = useAuth();
