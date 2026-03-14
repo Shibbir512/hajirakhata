@@ -5,6 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users } from "lucide-react";
+import { toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 
@@ -28,7 +29,7 @@ const StatCard = React.memo<StatCardProps>(({
     <div className="card-premium p-2 sm:p-6 flex flex-col sm:flex-row items-center justify-center sm:justify-between relative overflow-hidden group">
       <div className="relative z-10 flex-1">
         <p className="text-[10px] sm:text-sm font-medium text-slate-500 mb-0.5 sm:mb-1 text-center sm:text-left">{title}</p>
-        <p className={`text-lg sm:text-3xl font-bold ${textColor} text-center sm:text-left`}>{value}</p>
+        <p className={`text-lg sm:text-3xl font-bold ${textColor} text-center sm:text-left`}>{toBengaliNumber(value)}</p>
       </div>
       <div className={`relative z-10 p-1.5 sm:p-4 rounded-lg sm:rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-sm sm:shadow-lg group-hover:scale-110 transition-transform duration-300 mt-1 sm:mt-0 sm:ml-4`}>
         <Icon className={`w-4 h-4 sm:w-7 sm:h-7 ${textColor}`} />
@@ -93,7 +94,7 @@ const Attendance: React.FC = () => {
     let result = classStudents.filter(
       (student) =>
         student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        student.roll.toString().includes(searchQuery),
+        (student.roll?.toString() || "").includes(searchQuery),
     );
 
     result.sort((a, b) => {
@@ -262,7 +263,7 @@ const Attendance: React.FC = () => {
                         className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group"
                       >
                         <td className="py-3 px-2 sm:py-4 sm:px-4 text-slate-800 font-mono text-sm sm:text-base w-10 sm:w-16">
-                          {student.roll}
+                          {toBengaliNumber(student.roll)}
                         </td>
                         <td className="py-3 px-2 sm:py-4 sm:px-4 text-slate-800 font-bold text-sm sm:text-xl w-full">
                           <div className="flex flex-col">
@@ -331,7 +332,7 @@ const Attendance: React.FC = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 px-2">
                 <p className="text-sm text-slate-500">
-                  <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> থেকে <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length)}</span> পর্যন্ত, মোট <span className="font-medium">{filteredAndSortedStudents.length}</span> জন শিক্ষার্থী
+                  <span className="font-medium">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredAndSortedStudents.length)}</span> জন শিক্ষার্থী
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -342,7 +343,7 @@ const Attendance: React.FC = () => {
                     <ChevronLeft className="w-4 h-4" />
                   </button>
                   <span className="text-sm font-medium text-slate-700">
-                    পৃষ্ঠা {currentPage} এর {totalPages}
+                    পৃষ্ঠা {toBengaliNumber(currentPage)} এর {toBengaliNumber(totalPages)}
                   </span>
                   <button
                     onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}

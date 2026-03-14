@@ -6,7 +6,9 @@ import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User } from "lucide-react";
 import { Student } from "../types";
+import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
 import clsx from "clsx";
+import toast from "react-hot-toast";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -304,7 +306,7 @@ const Students: React.FC = () => {
                   key={student.id}
                   className="border-b border-slate-100 hover:bg-slate-50 transition-colors group"
                 >
-                  <td className="py-4 px-4 text-slate-800">{student.roll}</td>
+                  <td className="py-4 px-4 text-slate-800">{toBengaliNumber(student.roll)}</td>
                   <td className="py-4 px-4 text-slate-800 font-medium">
                     <div className="flex items-center gap-3">
                       {student.name}
@@ -358,7 +360,7 @@ const Students: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="text-sm text-slate-500">
-                দেখানো হচ্ছে <span className="font-medium">{filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0}</span> থেকে <span className="font-medium">{Math.min(currentPage * itemsPerPage, filteredStudents.length)}</span> পর্যন্ত, মোট <span className="font-medium">{filteredStudents.length}</span> জন শিক্ষার্থী
+                দেখানো হচ্ছে <span className="font-medium">{toBengaliNumber(filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * itemsPerPage, filteredStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredStudents.length)}</span> জন শিক্ষার্থী
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">প্রতি পাতায়:</span>
@@ -371,7 +373,7 @@ const Students: React.FC = () => {
                   className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
                 >
                   {[5, 10, 20, 50, 100].map(val => (
-                    <option key={val} value={val}>{val}</option>
+                    <option key={val} value={val}>{toBengaliNumber(val)}</option>
                   ))}
                 </select>
               </div>
@@ -403,7 +405,7 @@ const Students: React.FC = () => {
                             : "text-slate-600 hover:bg-slate-100"
                         )}
                       >
-                        {page}
+                        {toBengaliNumber(page)}
                       </button>
                     );
                   }
@@ -446,65 +448,65 @@ const Students: React.FC = () => {
       )}
 
       {viewingStudent && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
             {/* Header */}
-            <div className="bg-teal-600 p-4 text-white relative">
+            <div className="bg-slate-800 p-6 text-white relative">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="absolute top-2 right-2 text-white/70 hover:text-white transition-colors"
+                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
               >
-                <X className="w-5 h-5" />
+                <X className="w-6 h-6" />
               </button>
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center border-2 border-white/20 shadow-sm">
-                  <User className="w-6 h-6 text-white" />
+              <div className="flex items-center gap-4">
+                <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center border-2 border-teal-500/30 shadow-sm">
+                  <User className="w-8 h-8 text-teal-400" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-bold text-white">{viewingStudent.name}</h3>
-                  <p className="text-teal-50 text-xs opacity-90">রোল: {viewingStudent.roll}</p>
+                  <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
+                  <p className="text-slate-300 text-sm">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
                 </div>
               </div>
             </div>
 
             {/* Details */}
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">পিতার নাম</p>
+            <div className="p-6 space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">পিতার নাম</p>
                   <p className="text-sm text-slate-800 font-medium">{viewingStudent.fatherName || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">ফোন নম্বর</p>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ফোন নম্বর</p>
                   <p className="text-sm text-slate-800 font-medium">{viewingStudent.phone || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-3 rounded-xl border border-slate-100 md:col-span-2">
-                  <p className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-0.5">ঠিকানা</p>
+                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 md:col-span-2">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ঠিকানা</p>
                   <p className="text-sm text-slate-800 font-medium">{viewingStudent.address || "-"}</p>
                 </div>
               </div>
               
               {/* Attendance */}
               <div>
-                <h4 className="text-sm font-bold text-slate-700 mb-3 flex items-center gap-2">
-                  <Calendar className="w-4 h-4 text-teal-600" />
+                <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-teal-600" />
                   সাম্প্রতিক হাজিরা
                 </h4>
-                <div className="max-h-48 overflow-y-auto space-y-2 pr-2">
+                <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
                   {studentAttendance.length > 0 ? (
                     studentAttendance.map((record, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-3 bg-white border border-slate-100 rounded-xl text-sm shadow-sm">
-                        <span className="text-slate-600 font-medium">{record.date}</span>
+                      <div key={idx} className="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl text-sm shadow-sm">
+                        <span className="text-slate-600 font-medium">{toBengaliDate(record.date)}</span>
                         <span className={clsx(
-                          "font-bold px-3 py-1 rounded-full text-xs",
-                          record.status === 'present' ? "bg-emerald-50 text-emerald-700" : "bg-rose-50 text-rose-700"
+                          "font-bold px-4 py-1.5 rounded-full text-xs",
+                          record.status === 'present' ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
                         )}>
                           {record.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-400 italic bg-slate-50 p-4 rounded-xl text-center">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
+                    <p className="text-sm text-slate-400 italic bg-slate-50 p-6 rounded-2xl text-center">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
                   )}
                 </div>
               </div>
@@ -514,7 +516,7 @@ const Students: React.FC = () => {
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="bg-teal-700 hover:bg-teal-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-xl font-bold shadow-md hover:shadow-lg"
+                className="bg-teal-700 hover:bg-teal-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold shadow-md hover:shadow-lg"
               >
                 বন্ধ করুন
               </button>

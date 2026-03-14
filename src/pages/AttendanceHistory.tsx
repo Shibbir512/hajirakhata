@@ -6,6 +6,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search } from "lucide-react";
+import { toBengaliDate, toBengaliTime, toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -51,7 +52,8 @@ const AttendanceHistory: React.FC = () => {
       const searchLower = mainSearchQuery.toLowerCase();
       filtered = filtered.filter(session => {
         return session.students.some((student: any) => {
-          const roll = getStudentRoll(session.classId, student.studentId).toString();
+          const rollValue = getStudentRoll(session.classId, student.studentId);
+          const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
           const name = student.studentName || "";
           const matchesSearch = name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
           return matchesSearch && student.status === AttendanceStatus.Absent;
@@ -125,34 +127,6 @@ const AttendanceHistory: React.FC = () => {
       navigator.clipboard.writeText(text);
       toast.success('রিপোর্ট কপি করা হয়েছে!');
     }
-  };
-
-  const toBengaliNumber = (num: string | number) => {
-    const bengaliNumbers = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
-    return num.toString().split("").map(char => bengaliNumbers[parseInt(char)] || char).join("");
-  };
-
-  const toBengaliDate = (dateStr: string) => {
-    if (!dateStr || typeof dateStr !== 'string') return "";
-    const separator = dateStr.includes("-") ? "-" : " ";
-    return dateStr.split(separator).map(toBengaliNumber).join("-");
-  };
-
-  const toBengaliTime = (timeStr: string) => {
-    if (!timeStr || typeof timeStr !== 'string') return "";
-    
-    // Convert all digits to Bengali digits
-    let result = timeStr.replace(/\d/g, (match) => toBengaliNumber(match));
-    
-    // Handle our custom format "hh mm ss-AM/PM" (from useAttendance.ts)
-    if (timeStr.includes("-")) {
-      const [timePart, ampm] = result.split("-");
-      const formattedTime = timePart.trim().replace(/\s+/g, ":");
-      return `${formattedTime} ${ampm || ""}`;
-    }
-    
-    // Handle standard format "hh:mm:ss AM/PM" or others
-    return result;
   };
 
   return (
@@ -314,7 +288,7 @@ const AttendanceHistory: React.FC = () => {
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
           <div className="text-sm text-slate-500">
-            দেখানো হচ্ছে <span className="font-medium">{(currentPage - 1) * ITEMS_PER_PAGE + 1}</span> থেকে <span className="font-medium">{Math.min(currentPage * ITEMS_PER_PAGE, classSessions.length)}</span> পর্যন্ত, মোট <span className="font-medium">{classSessions.length}</span> টি রেকর্ড
+            দেখানো হচ্ছে <span className="font-medium">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, classSessions.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(classSessions.length)}</span> টি রেকর্ড
           </div>
           <div className="flex gap-2">
             <button
@@ -342,7 +316,7 @@ const AttendanceHistory: React.FC = () => {
                           : "text-slate-600 hover:bg-slate-100"
                       )}
                     >
-                      {page}
+                      {toBengaliNumber(page)}
                     </button>
                   );
                 }
@@ -390,7 +364,8 @@ const AttendanceHistory: React.FC = () => {
             </div>
             <div className="space-y-3">
               {viewingSession.students.filter((student: any) => {
-                const roll = getStudentRoll(viewingSession.classId, student.studentId).toString();
+                const rollValue = getStudentRoll(viewingSession.classId, student.studentId);
+                const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
                 const searchLower = searchQuery.toLowerCase();
                 const name = student.studentName || "";
                 return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
@@ -409,7 +384,7 @@ const AttendanceHistory: React.FC = () => {
                     student.status === AttendanceStatus.Absent ? "text-rose-700" : "text-slate-800"
                   )}>
                     {student.status === AttendanceStatus.Absent && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>}
-                    <span className="text-slate-500 font-mono text-sm mr-2">{getStudentRoll(viewingSession.classId, student.studentId)}</span>
+                    <span className="text-slate-500 font-mono text-sm mr-2">{toBengaliNumber(getStudentRoll(viewingSession.classId, student.studentId))}</span>
                     {student.studentName}
                   </span>
                   <span className={clsx(
@@ -448,14 +423,15 @@ const AttendanceHistory: React.FC = () => {
             </div>
             <div className="space-y-3">
               {editedStudents.filter((student: any) => {
-                const roll = getStudentRoll(selectedSession.classId, student.studentId).toString();
+                const rollValue = getStudentRoll(selectedSession.classId, student.studentId);
+                const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
                 const searchLower = searchQuery.toLowerCase();
                 const name = student.studentName || "";
                 return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
               }).map((student: any) => (
                 <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
                   <span className="font-medium text-slate-800 flex items-center gap-3">
-                    <span className="text-slate-500 font-mono text-sm mr-2">{getStudentRoll(selectedSession.classId, student.studentId)}</span>
+                    <span className="text-slate-500 font-mono text-sm mr-2">{toBengaliNumber(getStudentRoll(selectedSession.classId, student.studentId))}</span>
                     {student.studentName}
                   </span>
                   <div className="flex gap-1">

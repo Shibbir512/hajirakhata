@@ -4,6 +4,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
 import { useAuth } from "../hooks/useAuth";
+import { toBengaliNumber } from "../utils/dateFormatter";
 import {
   BarChart,
   Bar,
@@ -105,6 +106,11 @@ const Dashboard: React.FC = () => {
           icon={Clock}
           color="bg-pink-500"
           gradient="from-pink-500 to-rose-400"
+          titleColor="#7b8289"
+          valueColor="#0f1cb8"
+          iconBg="#fafafa"
+          iconBorder="rgba(255, 255, 255, 0.5)"
+          iconColor="#0a4599"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
@@ -182,6 +188,11 @@ interface StatCardProps {
   icon: React.ElementType;
   color: string;
   gradient: string;
+  titleColor?: string;
+  valueColor?: string;
+  iconBg?: string;
+  iconBorder?: string;
+  iconColor?: string;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -190,16 +201,27 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
+  titleColor,
+  valueColor,
+  iconBg,
+  iconBorder,
+  iconColor,
 }) => {
   const textColor = color.replace('bg-', 'text-');
   return (
     <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
       <div className="relative z-10 flex-1">
-        <p className="text-sm font-medium text-slate-500 mb-1 text-center">{title}</p>
-        <p className={`text-3xl font-bold ${textColor} text-center`}>{value}</p>
+        <p className="text-sm font-medium text-slate-500 mb-1 text-center" style={titleColor ? { color: titleColor } : {}}>{title}</p>
+        <p className={`text-3xl font-bold ${textColor} text-center`} style={valueColor ? { color: valueColor } : {}}>{toBengaliNumber(value)}</p>
       </div>
-      <div className={`relative z-10 p-4 rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300 ml-4`}>
-        <Icon className={`w-7 h-7 ${textColor}`} />
+      <div 
+        className={`relative z-10 p-4 rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300 ml-4`}
+        style={{
+          backgroundColor: iconBg,
+          borderColor: iconBorder,
+        }}
+      >
+        <Icon className={`w-7 h-7 ${textColor}`} style={iconColor ? { color: iconColor } : {}} />
       </div>
       <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
     </div>

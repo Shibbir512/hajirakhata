@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { X } from "lucide-react";
 import { Student } from "../types";
+import { toBengaliNumber } from "../utils/dateFormatter";
 
 interface StudentEditModalProps {
   student: Student;
@@ -39,11 +40,11 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   return (
     <div className="fixed inset-0 z-[100] flex items-end sm:items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col border border-white/20 max-h-[90vh]">
-        <div className="flex justify-between items-center p-6 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 tracking-tight">শিক্ষার্থীর তথ্য সম্পাদনা</h3>
+        <div className="flex justify-between items-center p-6 border-b border-slate-100 bg-slate-800 text-white">
+          <h3 className="text-xl font-bold tracking-tight">শিক্ষার্থীর তথ্য সম্পাদনা</h3>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"
+            className="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-2 rounded-full"
           >
             <X className="w-5 h-5" />
           </button>
@@ -52,10 +53,10 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
         <div className="overflow-y-auto p-6 space-y-4">
           <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-              <span className="w-10 h-10 rounded-full bg-teal-100 text-teal-700 flex items-center justify-center text-lg font-bold">#</span>
+              <span className="w-10 h-10 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center text-lg font-bold">#</span>
               <div>
                 <p className="text-xs text-slate-500 font-medium">রোল নম্বর</p>
-                <p className="font-bold text-slate-800 text-lg">{student.roll}</p>
+                <p className="font-bold text-slate-800 text-lg">{toBengaliNumber(student.roll)}</p>
               </div>
             </div>
             
@@ -127,7 +128,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="submit"
             form="edit-student-form"
-            className="flex-1 bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center"
+            className="flex-1 bg-teal-700 hover:bg-teal-800 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center"
           >
             সংরক্ষণ করুন
           </button>

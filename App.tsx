@@ -4,17 +4,17 @@ import { Toaster } from "react-hot-toast";
 import { WifiOff } from "lucide-react";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
 
-const OrgManagementPage = lazy(() => import("@/src/pages/OrgManagementPage"));
-const DashboardLayout = lazy(() => import("@/src/layouts/DashboardLayout"));
-const Login = lazy(() => import("@/src/pages/Login"));
-const Dashboard = lazy(() => import("@/src/pages/Dashboard"));
-const Attendance = lazy(() => import("@/src/pages/Attendance"));
-const AttendanceHistory = lazy(() => import("@/src/pages/AttendanceHistory"));
-const Students = lazy(() => import("@/src/pages/Students"));
-const Classes = lazy(() => import("@/src/pages/Classes"));
-const Reports = lazy(() => import("@/src/pages/Reports"));
-const Settings = lazy(() => import("@/src/pages/Settings"));
-const SuperAdminDashboard = lazy(() => import("@/src/pages/SuperAdminDashboard"));
+const OrgManagementPage = lazy(() => import("./src/pages/OrgManagementPage"));
+const DashboardLayout = lazy(() => import("./src/layouts/DashboardLayout"));
+const Login = lazy(() => import("./src/pages/Login"));
+const Dashboard = lazy(() => import("./src/pages/Dashboard"));
+const Attendance = lazy(() => import("./src/pages/Attendance"));
+const AttendanceHistory = lazy(() => import("./src/pages/AttendanceHistory"));
+const Students = lazy(() => import("./src/pages/Students"));
+const Classes = lazy(() => import("./src/pages/Classes"));
+const Reports = lazy(() => import("./src/pages/Reports"));
+const Settings = lazy(() => import("./src/pages/Settings"));
+const SuperAdminDashboard = lazy(() => import("./src/pages/SuperAdminDashboard"));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
