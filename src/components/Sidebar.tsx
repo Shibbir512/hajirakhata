@@ -14,7 +14,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 import clsx from "clsx";
-import logo from '../assets/app-logo.png';
+import logo from '../assets/logo.svg';
 
 interface SidebarProps {
   isOpen: boolean;
