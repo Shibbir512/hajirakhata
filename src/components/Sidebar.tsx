@@ -20,6 +20,8 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
+import logo from '../assets/app-logo.png';
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL } = useAuth();
   const navigate = useNavigate();
@@ -46,7 +48,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     >
       <div className="flex items-center justify-between h-20 border-b border-slate-200/60 px-6">
         <div className="flex items-center gap-2">
-          <img src="/app-logo.png" alt="হাজিরা খাতা" className="h-10 w-auto" />
+          <img src={logo} alt="হাজিরা খাতা" className="h-10 w-auto" />
           <span className="text-2xl font-bold gradient-text tracking-tight">হাজিরা খাতা</span>
         </div>
         <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-full">

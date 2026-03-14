@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
+import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search } from "lucide-react";
 import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -14,7 +15,8 @@ const ITEMS_PER_PAGE = 12;
 const AttendanceHistory: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
-  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, {}, role);
+  const { students } = useStudents(orgId, user, role);
+  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, students, role);
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
@@ -23,6 +25,7 @@ const AttendanceHistory: React.FC = () => {
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
 
   React.useEffect(() => {
     setCurrentPage(1);
@@ -47,6 +50,18 @@ const AttendanceHistory: React.FC = () => {
     setSelectedSession(session);
     setEditedStudents(session.students);
     setIsEditMode(true);
+    setSearchQuery("");
+  };
+
+  const handleView = (session: any) => {
+    setViewingSession(session);
+    setSearchQuery("");
+  };
+
+  const getStudentRoll = (classId: string, studentId: string) => {
+    const classStudents = students[classId] || [];
+    const student = classStudents.find(s => s.id === studentId);
+    return student ? student.roll : "";
   };
 
   const handleStatusToggle = (studentId: string, status: AttendanceStatus) => {
@@ -62,6 +77,7 @@ const AttendanceHistory: React.FC = () => {
     await updateAttendanceSession(selectedSession.id, editedStudents);
     setIsEditMode(false);
     setSelectedSession(null);
+    setSearchQuery("");
   };
 
   const handleShare = async (session: any) => {
@@ -195,7 +211,7 @@ const AttendanceHistory: React.FC = () => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
-            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => setViewingSession(session)}>
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => handleView(session)}>
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2 flex-1">
                   <p className="text-lg font-bold text-teal-700 mb-1">{className}</p>
@@ -327,11 +343,28 @@ const AttendanceHistory: React.FC = () => {
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা বিস্তারিত</h3>
               <div className="flex items-center gap-2">
                 <button onClick={() => handleShare(viewingSession)} className="text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full"><Share2 className="w-5 h-5" /></button>
-                <button onClick={() => setViewingSession(null)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+                <button onClick={() => { setViewingSession(null); setSearchQuery(""); }} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
               </div>
             </div>
+            <div className="mb-4 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors"
+              />
+            </div>
             <div className="space-y-3">
-              {viewingSession.students.sort((a: any, b: any) => {
+              {viewingSession.students.filter((student: any) => {
+                const roll = getStudentRoll(viewingSession.classId, student.studentId).toString();
+                const searchLower = searchQuery.toLowerCase();
+                const name = student.studentName || "";
+                return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+              }).sort((a: any, b: any) => {
                 if (a.status === b.status) return 0;
                 return a.status === AttendanceStatus.Absent ? -1 : 1;
               }).map((student: any) => (
@@ -346,6 +379,7 @@ const AttendanceHistory: React.FC = () => {
                     student.status === AttendanceStatus.Absent ? "text-rose-700" : "text-slate-800"
                   )}>
                     {student.status === AttendanceStatus.Absent && <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>}
+                    <span className="text-slate-500 font-mono text-sm mr-2">{getStudentRoll(viewingSession.classId, student.studentId)}</span>
                     {student.studentName}
                   </span>
                   <span className={clsx(
@@ -368,12 +402,30 @@ const AttendanceHistory: React.FC = () => {
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/20 p-4 sm:p-8">
             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা সম্পাদনা</h3>
-              <button onClick={() => setIsEditMode(false)} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setIsEditMode(false); setSearchQuery(""); }} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="mb-4 relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <Search className="h-5 w-5 text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors"
+              />
             </div>
             <div className="space-y-3">
-              {editedStudents.map((student: any) => (
+              {editedStudents.filter((student: any) => {
+                const roll = getStudentRoll(selectedSession.classId, student.studentId).toString();
+                const searchLower = searchQuery.toLowerCase();
+                const name = student.studentName || "";
+                return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+              }).map((student: any) => (
                 <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
                   <span className="font-medium text-slate-800 flex items-center gap-3">
+                    <span className="text-slate-500 font-mono text-sm mr-2">{getStudentRoll(selectedSession.classId, student.studentId)}</span>
                     {student.studentName}
                   </span>
                   <div className="flex gap-1">
