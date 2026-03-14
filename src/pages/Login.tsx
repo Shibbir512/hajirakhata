@@ -2,10 +2,9 @@ import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
-import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
+import { AlertCircle, Loader2, Copy, Check, Phone, BookOpen } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import logo from '../assets/logo.svg';
 
 const Login: React.FC = () => {
   const { user } = useAuth();
@@ -143,12 +142,8 @@ const Login: React.FC = () => {
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
       <div className="max-w-md w-full card-premium p-10 text-center border-2 border-teal-100 shadow-teal-900/5">
-        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-teal-50 overflow-hidden">
-          <img 
-            src={logo} 
-            alt="হাজিরা খাতা" 
-            className="w-full h-full object-contain p-2" 
-          />
+        <div className="w-24 h-24 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-teal-100">
+          <BookOpen className="w-12 h-12 text-teal-600" />
         </div>
         
         <h1 className="text-3xl font-bold gradient-text mb-3 tracking-tight">হাজিরা খাতা</h1>
