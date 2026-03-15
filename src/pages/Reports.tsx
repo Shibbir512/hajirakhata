@@ -160,13 +160,13 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div id="report-container" className="card-premium p-4 sm:p-8">
+      <div id="report-container" className="card-premium p-4 sm:p-8 bg-white border border-[#0a6ba3]">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative min-w-[240px]">
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-base font-medium text-slate-700 border border-slate-200 bg-white text-center appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all"
+              className="input-premium w-full text-base font-medium text-[#0a4c87] border-[#0a6ba3] bg-white text-center appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all text-base"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -185,17 +185,17 @@ const Reports: React.FC = () => {
                   selected={startDate}
                   onChange={(date: Date | null) => date && setStartDate(date)}
                   dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-slate-700 border border-slate-200 bg-white rounded-xl py-3 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all"
+                  className="input-premium pl-10 w-full text-base font-medium text-[#0766a9] border-[#0a6ba3] bg-white rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all"
                 />
               </div>
-              <span className="text-slate-500 font-medium text-xs sm:text-sm">থেকে</span>
+              <span className="text-[#0a6ba3] font-medium text-xs sm:text-sm">থেকে</span>
               <div className="relative flex-1 sm:flex-none">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <DatePicker
                   selected={endDate}
                   onChange={(date: Date | null) => date && setEndDate(date)}
                   dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-slate-700 border border-slate-200 bg-white rounded-xl py-3 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all"
+                  className="input-premium pl-10 w-full text-base font-medium text-[#1d92e6] border-[#0a6ba3] bg-white rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all"
                 />
               </div>
             </div>
@@ -350,7 +350,7 @@ const Reports: React.FC = () => {
           </>
         ) : (
           <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-            <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
+            <p className="text-lg font-medium text-[#0a6ba3] mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
             <p className="text-sm">রিপোর্ট দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
         )}

@@ -247,7 +247,7 @@ const Students: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight text-lg font-bold text-indigo-700 border-indigo-200 bg-indigo-50/30 text-center appearance-none pr-10"
+              className="input-premium w-full search-highlight font-bold text-[#106db3] border-[#106db3] bg-indigo-50/30 text-center appearance-none pr-10 text-[17.875px]"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -298,9 +298,9 @@ const Students: React.FC = () => {
                   key={student.id}
                   className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200 group"
                 >
-                  <td className="py-4 px-5 text-slate-800 font-medium">{toBengaliNumber(student.roll)}</td>
+                  <td className="py-4 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
                   <td className="py-4 px-5 text-slate-800 font-medium">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-3 text-[16px]">
                       {student.name}
                     </div>
                   </td>
@@ -391,10 +391,10 @@ const Students: React.FC = () => {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={clsx(
-                          "w-9 h-9 rounded-xl text-sm font-medium transition-all duration-300",
+                          "w-9 h-9 rounded-xl text-sm transition-all duration-300",
                           currentPage === page
-                            ? "bg-[#0D9488] text-white shadow-sm"
-                            : "text-slate-600 hover:bg-slate-100"
+                            ? "bg-[#0967b0] text-white shadow-sm font-bold"
+                            : "text-slate-600 hover:bg-slate-100 font-medium"
                         )}
                       >
                         {toBengaliNumber(page)}
