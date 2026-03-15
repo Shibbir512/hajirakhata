@@ -84,8 +84,8 @@ const Login: React.FC = () => {
       const userRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userRef);
       
-      // If user doesn't exist, prompt for phone number
-      if (!userDoc.exists()) {
+      // If user doesn't exist or phone is missing, prompt for phone number
+      if (!userDoc.exists() || !userDoc.data()?.phone) {
         setIsNewUser(true);
         setLoading(false);
         return;
@@ -142,8 +142,8 @@ const Login: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full card-premium p-10 text-center border-2 border-teal-100 shadow-teal-900/5">
-        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-teal-50 overflow-hidden">
+      <div className="max-w-md w-full card-premium p-10 text-center border-2 border-[#164460] shadow-[#0a5682]/5">
+        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#0a5682]/5 overflow-hidden">
           <img 
             src={logo} 
             alt="হাজিরা খাতা" 
@@ -151,8 +151,8 @@ const Login: React.FC = () => {
           />
         </div>
         
-        <h1 className="text-3xl font-bold gradient-text mb-3 tracking-tight">হাজিরা খাতা</h1>
-        <p className="text-slate-500 mb-8">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
+        <h1 className="text-3xl font-bold text-[#0a5682] mb-3 tracking-tight">হাজিরা খাতা</h1>
+        <p className="text-[#094b89] mb-8">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
 
         {error === 'unauthorized-domain' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
@@ -224,13 +224,13 @@ const Login: React.FC = () => {
         {isNewUser ? (
           <>
             <div className="mb-6 relative">
-              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
+              <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#0a5682]/40 w-5 h-5" />
               <input
                 type="tel"
                 value={phoneNumber}
                 onChange={(e) => setPhoneNumber(e.target.value)}
                 placeholder="ফোন নম্বর (বাধ্যতামূলক)"
-                className="w-full pl-12 pr-4 py-4 border border-teal-100 bg-teal-50/30 focus:border-teal-500 focus:bg-white transition-all text-lg !rounded-none"
+                className="w-full pl-12 pr-4 py-4 border-2 border-slate-100 bg-white focus:border-[#0a5682]/30 focus:ring-4 focus:ring-[#0a5682]/10 transition-all text-lg rounded-2xl outline-none"
               />
             </div>
             <button
@@ -248,7 +248,7 @@ const Login: React.FC = () => {
         <button
           onClick={isNewUser ? handleFinalizeSignup : handleGoogleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#045F5F] hover:bg-[#006666] disabled:bg-slate-300 disabled:cursor-not-allowed text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#0a5682] hover:bg-[#0a5682]/90 hover:-translate-y-0.5 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-white/80" />

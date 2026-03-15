@@ -65,9 +65,9 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               />
             </div>
 
-            <div className="bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100/50 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center font-bold text-sm">i</div>
-              <p className="text-sm text-indigo-700 font-medium">
+            <div className="bg-[#0a5682]/10 p-4 rounded-2xl border border-[#0a5682]/20 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#0a5682]/20 text-[#0a5682] flex items-center justify-center font-bold text-sm">i</div>
+              <p className="text-sm text-[#0a5682] font-medium">
                 রোল নম্বর স্বয়ংক্রিয়ভাবে বরাদ্দ করা হবে।
               </p>
             </div>
@@ -127,7 +127,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           <button
             type="submit"
             form="add-student-form"
-            className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
+            className="bg-white text-[#0a5682] border border-[#0a5682]/20 shadow-md hover:shadow-lg hover:bg-[#0a5682]/10 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
           >
             যোগ করুন
           </button>

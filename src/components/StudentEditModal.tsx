@@ -53,7 +53,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
         <div className="overflow-y-auto p-6 space-y-4">
           <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-4">
             <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 flex items-center gap-3">
-              <span className="w-10 h-10 rounded-full bg-teal-500/10 text-teal-600 flex items-center justify-center text-lg font-bold">#</span>
+              <span className="w-10 h-10 rounded-full bg-[#0a5682]/10 text-[#0a5682] flex items-center justify-center text-lg font-bold">#</span>
               <div>
                 <p className="text-xs text-slate-500 font-medium">রোল নম্বর</p>
                 <p className="font-bold text-slate-800 text-lg">{toBengaliNumber(student.roll)}</p>
@@ -68,7 +68,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                 placeholder="শিক্ষার্থীর নাম লিখুন"
                 autoFocus
               />
@@ -82,7 +82,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                 type="text"
                 value={fatherName}
                 onChange={(e) => setFatherName(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                 placeholder="পিতার নাম লিখুন"
               />
             </div>
@@ -95,7 +95,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />
             </div>
@@ -107,7 +107,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 transition-all outline-none"
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 transition-all outline-none"
                 placeholder="ঠিকানা লিখুন"
                 rows={2}
               />
@@ -128,7 +128,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="submit"
             form="edit-student-form"
-            className="flex-1 bg-teal-700 hover:bg-teal-800 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center"
+            className="flex-1 bg-[#0a5682] hover:bg-[#0a5682]/90 text-white shadow-md hover:shadow-lg transition-all duration-300 px-4 py-3 rounded-2xl font-bold text-sm flex items-center justify-center"
           >
             সংরক্ষণ করুন
           </button>

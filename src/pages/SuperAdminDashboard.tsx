@@ -69,28 +69,28 @@ const SuperAdminDashboard: React.FC = () => {
 
   return (
     <div className="p-8 space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড</h2>
+      <h2 className="text-3xl font-bold text-slate-800 tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড</h2>
       <div className="grid grid-cols-1 gap-6">
         {orgStats.map((org) => (
           <div key={org.id} className="card-premium p-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
-                <h3 className="text-xl font-bold text-teal-800">{org.name}</h3>
+                <h3 className="text-xl font-bold text-slate-800">{org.name}</h3>
                 <p className="text-sm text-slate-500 font-mono truncate max-w-[200px] sm:max-w-none">{org.id}</p>
               </div>
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-violet-500" />
-                  <span className="font-bold">{org.studentCount} ছাত্র</span>
+                  <Users className="w-5 h-5 text-[#0a5682]" />
+                  <span className="font-bold text-slate-700">{org.studentCount} ছাত্র</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-amber-500" />
-                  <span className="font-bold">{org.teacherCount} শিক্ষক</span>
+                  <span className="font-bold text-slate-700">{org.teacherCount} শিক্ষক</span>
                 </div>
                 <button
                   onClick={() => toggleBlockStatus(org.id, org.isBlocked || false)}
-                  className={`p-2 rounded-full ${
-                    org.isBlocked ? "bg-red-100 text-red-600" : "bg-emerald-100 text-emerald-600"
+                  className={`p-2 rounded-full transition-colors ${
+                    org.isBlocked ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
                   }`}
                   title={org.isBlocked ? "আনব্লক করুন" : "ব্লক করুন"}
                 >

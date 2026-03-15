@@ -131,16 +131,16 @@ const AttendanceHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
+      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা ইতিহাস</h2>
       
-      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap">
+      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-none border-inset">
         <div className="relative w-full max-w-xs">
-          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
+          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
           <div className="relative">
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center appearance-none px-4 rounded-xl py-3 shadow-sm hover:border-teal-500 transition-colors"
+              className="input-premium w-full text-base font-medium text-slate-700 border border-slate-200 bg-white text-center appearance-none px-4 rounded-xl py-3 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -149,35 +149,35 @@ const AttendanceHistory: React.FC = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
         </div>
 
         <div className="relative w-full max-w-xs">
-          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">তারিখ নির্বাচন করুন</label>
+          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">তারিখ নির্বাচন করুন</label>
           <div className="relative flex items-center">
-            <Calendar className="absolute left-4 text-teal-500 w-5 h-5 z-10 pointer-events-none" />
+            <Calendar className="absolute left-4 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <DatePicker
               selected={selectedDate}
               onChange={(date: Date | null) => setSelectedDate(date)}
               dateFormat="dd MM yyyy"
               placeholderText="তারিখ নির্বাচন করুন"
-              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-teal-500 transition-colors"
+              className="input-premium w-full text-base font-medium text-slate-700 border border-slate-200 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all"
               isClearable
             />
           </div>
         </div>
 
         <div className="relative w-full max-w-xs">
-          <label className="block text-xl font-bold text-slate-700 mb-2 text-center">অনুপস্থিত শিক্ষার্থী খুঁজুন</label>
+          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">অনুপস্থিত শিক্ষার্থী খুঁজুন</label>
           <div className="relative flex items-center">
-            <Search className="absolute left-4 text-teal-500 w-5 h-5 z-10 pointer-events-none" />
+            <Search className="absolute left-4 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <input
               type="text"
               placeholder="নাম বা রোল নম্বর..."
               value={mainSearchQuery}
               onChange={(e) => setMainSearchQuery(e.target.value)}
-              className="input-premium w-full text-lg font-bold text-teal-700 border border-teal-400 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-teal-500 transition-colors placeholder-slate-400"
+              className="input-premium w-full text-base font-medium text-slate-700 border border-slate-200 bg-white text-center rounded-xl py-3 px-10 shadow-sm hover:border-[#0a5682]/30 focus:border-[#0a5682] focus:ring-2 focus:ring-[#0a5682]/20 transition-all placeholder-slate-400"
             />
           </div>
         </div>
@@ -185,13 +185,13 @@ const AttendanceHistory: React.FC = () => {
 
       {selectedClassId && classSessions.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card-premium p-4 bg-white border-l-4 border-l-indigo-500">
+          <div className="card-premium p-4 bg-white border-l-4 border-l-[#0a5682]">
             <p className="text-sm font-medium text-slate-500 mb-1">মোট সেশন</p>
             <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(classSessions.length)} টি</p>
           </div>
-          <div className="card-premium p-4 bg-white border-l-4 border-l-teal-500">
+          <div className="card-premium p-4 bg-white border-l-4 border-l-[#0a5682]">
             <p className="text-sm font-medium text-slate-500 mb-1">গড় উপস্থিতি</p>
-            <p className="text-2xl font-bold text-teal-600">
+            <p className="text-2xl font-bold text-[#0a5682]">
               {toBengaliNumber(Math.round(classSessions.reduce((acc, s) => acc + (s.students.filter((st: any) => st.status === AttendanceStatus.Present).length / s.students.length) * 100, 0) / classSessions.length))}%
             </p>
           </div>
@@ -215,18 +215,18 @@ const AttendanceHistory: React.FC = () => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
-            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-teal-500 bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => handleView(session)}>
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-[#0a5682] bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => handleView(session)}>
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2 flex-1">
-                  <p className="text-lg font-bold text-teal-700 mb-1">{className}</p>
+                  <p className="text-lg font-bold text-[#0a5682] mb-1">{className}</p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">তারিখঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span></p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">সময়ঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.time ? toBengaliTime(session.time) : ""}</span></p>
                 </div>
                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleEdit(session)} className="text-indigo-600 hover:text-indigo-800 p-2 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
+                  <button onClick={() => handleEdit(session)} className="text-slate-400 hover:text-[#0a5682] p-2 hover:bg-[#0a5682]/10 rounded-xl transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setSessionToDelete(session)} className="text-rose-600 hover:text-rose-800 p-2 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
+                  <button onClick={() => setSessionToDelete(session)} className="text-slate-400 hover:text-pink-600 p-2 hover:bg-pink-50 rounded-xl transition-colors">
                     <Trash2 className="w-4 h-4" />
                   </button>
                 </div>
@@ -294,7 +294,7 @@ const AttendanceHistory: React.FC = () => {
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 rounded-[11.25px] text-sm font-bold text-white bg-[#0e70a7] hover:bg-[#0e70a7]/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               পূর্ববর্তী
             </button>
@@ -332,7 +332,7 @@ const AttendanceHistory: React.FC = () => {
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               পরবর্তী
             </button>
@@ -346,7 +346,7 @@ const AttendanceHistory: React.FC = () => {
             <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
               <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা বিস্তারিত</h3>
               <div className="flex items-center gap-2">
-                <button onClick={() => handleShare(viewingSession)} className="text-indigo-600 hover:text-indigo-800 transition-colors bg-indigo-50 hover:bg-indigo-100 p-2 rounded-full"><Share2 className="w-5 h-5" /></button>
+                <button onClick={() => handleShare(viewingSession)} className="text-[#0a5682] hover:text-[#0a5682]/80 transition-colors bg-[#0a5682]/10 hover:bg-[#0a5682]/20 p-2 rounded-full"><Share2 className="w-5 h-5" /></button>
                 <button onClick={() => { setViewingSession(null); setSearchQuery(""); }} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
               </div>
             </div>
@@ -359,7 +359,7 @@ const AttendanceHistory: React.FC = () => {
                 placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors"
+                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
               />
             </div>
             <div className="space-y-3">
@@ -388,7 +388,7 @@ const AttendanceHistory: React.FC = () => {
                     {student.studentName}
                   </span>
                   <span className={clsx(
-                    "px-4 py-2 rounded-xl text-sm font-bold shadow-sm",
+                    "px-4 py-2 rounded-xl text-sm font-bold shadow-sm text-[#0a5682]",
                     student.status === AttendanceStatus.Present 
                       ? "bg-emerald-100 text-emerald-800 border border-emerald-200" 
                       : "bg-rose-600 text-white border border-rose-700"
@@ -418,7 +418,7 @@ const AttendanceHistory: React.FC = () => {
                 placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-teal-500 focus:border-teal-500 sm:text-sm transition-colors"
+                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm transition-colors"
               />
             </div>
             <div className="space-y-3">
@@ -461,7 +461,7 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               ))}
             </div>
-            <button onClick={handleSave} className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 w-full mt-8 py-3 rounded-2xl font-bold text-base">সংরক্ষণ করুন</button>
+            <button onClick={handleSave} className="btn-primary w-full mt-8 py-3 text-base">সংরক্ষণ করুন</button>
           </div>
         </div>
       )}

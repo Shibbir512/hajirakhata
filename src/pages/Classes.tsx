@@ -58,7 +58,7 @@ const Classes: React.FC = () => {
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={isAdding}
-            className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex items-center px-4 py-2 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-white text-indigo-600 border border-indigo-100 shadow-md hover:shadow-lg hover:bg-indigo-50 transition-all duration-300 flex items-center px-4 py-2 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
             {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
@@ -70,7 +70,7 @@ const Classes: React.FC = () => {
         {classes.map((cls, index) => {
           const colors = [
             { bg: "bg-orange-50/80", border: "border-orange-100", text: "text-orange-700", sub: "text-orange-500" },
-            { bg: "bg-emerald-50/80", border: "border-emerald-100", text: "text-emerald-700", sub: "text-emerald-500" },
+            { bg: "bg-indigo-50/80", border: "border-indigo-100", text: "text-indigo-700", sub: "text-indigo-500" },
             { bg: "bg-blue-50/80", border: "border-blue-100", text: "text-blue-700", sub: "text-blue-500" },
             { bg: "bg-amber-50/80", border: "border-amber-100", text: "text-amber-700", sub: "text-amber-500" },
             { bg: "bg-rose-50/80", border: "border-rose-100", text: "text-rose-700", sub: "text-rose-500" },
@@ -234,7 +234,7 @@ const ClassModal = React.memo<ClassModalProps>(({
                     type="checkbox"
                     checked={teacherIds.includes(staff.id)}
                     onChange={() => toggleTeacher(staff.id)}
-                    className="w-4 h-4 text-teal-600 rounded border-slate-300 focus:ring-teal-500"
+                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
                   />
                   <span className="text-sm text-slate-700">
                     {staff.displayName || staff.email?.split('@')[0]}
@@ -260,7 +260,7 @@ const ClassModal = React.memo<ClassModalProps>(({
             </button>
             <button
               type="submit"
-              className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
+              className="bg-white text-indigo-600 border border-indigo-100 shadow-md hover:shadow-lg hover:bg-indigo-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
             >
               সংরক্ষণ
             </button>

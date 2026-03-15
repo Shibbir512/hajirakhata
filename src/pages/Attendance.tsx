@@ -24,17 +24,15 @@ const StatCard = React.memo<StatCardProps>(({
   color,
   gradient,
 }) => {
-  const textColor = color.replace('bg-', 'text-');
   return (
-    <div className="card-premium p-2 sm:p-6 flex flex-col sm:flex-row items-center justify-center sm:justify-between relative overflow-hidden group">
+    <div className="card-premium p-4 sm:p-6 flex items-center justify-between group cursor-default">
       <div className="relative z-10 flex-1">
-        <p className="text-[10px] sm:text-sm font-medium text-slate-500 mb-0.5 sm:mb-1 text-center sm:text-left">{title}</p>
-        <p className={`text-lg sm:text-3xl font-bold ${textColor} text-center sm:text-left`}>{toBengaliNumber(value)}</p>
+        <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1">{title}</p>
+        <p className="text-xl sm:text-3xl font-bold text-slate-800">{toBengaliNumber(value)}</p>
       </div>
-      <div className={`relative z-10 p-1.5 sm:p-4 rounded-lg sm:rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-sm sm:shadow-lg group-hover:scale-110 transition-transform duration-300 mt-1 sm:mt-0 sm:ml-4`}>
-        <Icon className={`w-4 h-4 sm:w-7 sm:h-7 ${textColor}`} />
+      <div className={`relative z-10 p-2 sm:p-3.5 rounded-[14px] ${gradient} group-hover:scale-110 transition-transform duration-300 ml-2 sm:ml-4`}>
+        <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color}`} strokeWidth={2} />
       </div>
-      <div className={`absolute -bottom-4 -right-4 w-12 h-12 sm:w-24 sm:h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-xl sm:blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
     </div>
   );
 });
@@ -161,7 +159,7 @@ const Attendance: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা</h2>
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা</h2>
       </div>
 
       {/* Live Counter */}
@@ -171,22 +169,22 @@ const Attendance: React.FC = () => {
             title="মোট শিক্ষার্থী"
             value={liveCounter.total}
             icon={Users}
-            color="bg-slate-500"
-            gradient="from-slate-500 to-slate-400"
+            color="text-slate-600"
+            gradient="bg-slate-50"
           />
           <StatCard
             title="উপস্থিত"
             value={liveCounter.present}
             icon={CheckCircle}
-            color="bg-emerald-500"
-            gradient="from-emerald-500 to-teal-400"
+            color="text-emerald-600"
+            gradient="bg-emerald-50"
           />
           <StatCard
             title="অনুপস্থিত"
             value={liveCounter.absent}
             icon={XCircle}
-            color="bg-rose-500"
-            gradient="from-rose-500 to-red-400"
+            color="text-rose-600"
+            gradient="bg-rose-50"
           />
         </div>
       )}
@@ -197,7 +195,7 @@ const Attendance: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight text-xl sm:text-2xl font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10 py-3"
+              className="input-premium w-full search-highlight text-xl sm:text-2xl font-bold text-[#0a6fb0] border-[#126bc8] bg-[#0a5682]/5 text-center appearance-none pr-10 py-3"
             >
               <option value="" className="text-slate-500 font-normal text-lg">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -206,7 +204,7 @@ const Attendance: React.FC = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#0a5682] w-5 h-5 pointer-events-none" />
           </div>
         </div>
 
@@ -229,12 +227,12 @@ const Attendance: React.FC = () => {
               </button>
             </div>
 
-            <div className="overflow-x-auto border border-slate-200/60 rounded-2xl shadow-sm">
+            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px] shadow-sm">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
+                <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                   <tr>
                     <th 
-                      className="py-3 px-2 sm:py-4 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 cursor-pointer hover:bg-slate-100/50 transition-colors text-xs sm:text-sm w-10 sm:w-16"
+                      className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-10 sm:w-16"
                       onClick={() => handleSort('roll')}
                     >
                       <div className="flex items-center gap-1 sm:gap-2">
@@ -242,14 +240,14 @@ const Attendance: React.FC = () => {
                       </div>
                     </th>
                     <th 
-                      className="py-3 px-2 sm:py-4 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 cursor-pointer hover:bg-slate-100/50 transition-colors text-xs sm:text-sm w-full"
+                      className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-full"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center gap-1 sm:gap-2">
                         শিক্ষার্থীর নাম <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                       </div>
                     </th>
-                    <th className="text-left py-3 px-2 sm:py-4 sm:px-4 font-semibold text-slate-600 border-b border-slate-200/60 text-xs sm:text-sm whitespace-nowrap">
+                    <th className="text-left py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] whitespace-nowrap">
                       অবস্থা
                     </th>
                   </tr>
@@ -260,17 +258,17 @@ const Attendance: React.FC = () => {
                     return (
                       <tr
                         key={student.id}
-                        className="border-b border-slate-100 hover:bg-slate-50/50 transition-colors group"
+                        className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors group"
                       >
-                        <td className="py-3 px-2 sm:py-4 sm:px-4 text-slate-800 font-mono text-sm sm:text-base w-10 sm:w-16">
+                        <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base w-10 sm:w-16">
                           {toBengaliNumber(student.roll)}
                         </td>
-                        <td className="py-3 px-2 sm:py-4 sm:px-4 text-slate-800 font-bold text-sm sm:text-xl w-full">
+                        <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base w-full">
                           <div className="flex flex-col">
                             <span>{student.name}</span>
                           </div>
                         </td>
-                        <td className="py-3 px-1 sm:py-4 sm:px-4 whitespace-nowrap">
+                        <td className="py-4 px-5 whitespace-nowrap">
                           <div className="flex flex-row justify-start gap-1.5 sm:gap-2">
                             <button
                               onClick={() =>
@@ -287,7 +285,7 @@ const Attendance: React.FC = () => {
                                   : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
                               )}
                             >
-                              <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4" />
+                              <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 text-[#116ed0]" />
                               <span className="font-bold hidden sm:inline">উপস্থিত</span>
                             </button>
                             <button
@@ -305,7 +303,7 @@ const Attendance: React.FC = () => {
                                   : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
                               )}
                             >
-                              <XCircle className="w-5 h-5 sm:w-4 sm:h-4" />
+                              <XCircle className="w-5 h-5 sm:w-4 sm:h-4 text-[#116ed0]" />
                               <span className="font-bold hidden sm:inline">অনুপস্থিত</span>
                             </button>
                           </div>
@@ -317,7 +315,7 @@ const Attendance: React.FC = () => {
                     <tr>
                       <td
                         colSpan={3}
-                        className="text-center py-8 text-slate-500"
+                        className="text-center py-12 text-slate-500"
                       >
                         কোন শিক্ষার্থী পাওয়া যায়নি।
                       </td>
@@ -360,7 +358,7 @@ const Attendance: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isTakingAttendance}
-                className="bg-white text-teal-600 border border-teal-100 shadow-md hover:shadow-lg hover:bg-teal-50 transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold text-base disabled:opacity-50 disabled:cursor-not-allowed transform hover:-translate-y-1 active:scale-95"
+                className="btn-primary px-8 py-3 text-base"
               >
                 {isTakingAttendance ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />

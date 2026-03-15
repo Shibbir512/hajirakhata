@@ -3,9 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
 
 @theme {
-  --color-bg-main: #FAF9F7;
-  --color-primary-start: #1e1b4b; /* Deep navy/purple */
-  --color-primary-end: #14b8a6; /* Aqua/teal */
+  --color-bg-main: #F4F7F6;
+  --color-primary-start: #0a5682;
+  --color-primary-end: #0a5682;
   --color-pastel-peach: #ffdab9;
   --color-pastel-orange: #ffd8b1;
   --color-pastel-pink: #ffb6c1;
@@ -22,22 +22,25 @@
 
 @layer components {
   .card-premium {
-    @apply bg-white rounded-3xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/40 backdrop-blur-sm;
+    @apply bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100;
   }
   .btn-primary {
-    @apply bg-gradient-to-r from-indigo-900 to-teal-400 text-white rounded-2xl shadow-[0_4px_14px_0_rgb(0,118,255,0.39)] hover:shadow-[0_6px_20px_rgba(0,118,255,0.23)] hover:opacity-90 transition-all duration-200 font-medium px-6 py-3 border-none;
+    @apply bg-[#0a5682] text-white rounded-[12px] shadow-[0_4px_14px_rgba(10,86,130,0.2)] hover:shadow-[0_6px_20px_rgba(10,86,130,0.3)] hover:bg-[#0a5682] transition-all duration-300 font-medium px-5 py-2.5 border-none flex items-center justify-center gap-2;
   }
   .btn-secondary {
-    @apply bg-white text-slate-700 rounded-2xl shadow-[0_4px_14px_0_rgb(0,0,0,0.05)] hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)] transition-all duration-200 font-medium px-6 py-3 border border-slate-100;
+    @apply bg-[#0a5682]/10 text-[#0a5682] rounded-[12px] hover:bg-[#0a5682]/20 transition-all duration-300 font-medium px-5 py-2.5 border border-[#0a5682]/10 flex items-center justify-center gap-2;
+  }
+  .btn-outline {
+    @apply bg-white text-slate-600 rounded-[12px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 font-medium px-5 py-2.5 border border-slate-200 shadow-sm flex items-center justify-center gap-2;
   }
   .input-premium {
-    @apply w-full px-4 py-3 bg-white border-2 border-slate-200 rounded-2xl focus:outline-none focus:ring-4 focus:ring-teal-500/20 focus:border-teal-400 transition-all shadow-sm font-medium;
+    @apply w-full px-4 py-3 bg-white border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[#0a5682]/20 focus:border-[#0a5682] transition-all shadow-sm font-medium;
   }
   .search-highlight {
-    @apply border-teal-400 shadow-[0_0_15px_rgba(20,184,166,0.2)] ring-2 ring-teal-400/20;
+    @apply border-[#0a5682] shadow-[0_0_15px_rgba(10,86,130,0.1)] ring-2 ring-[#0a5682]/20;
   }
   .toggle-premium {
-    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2;
+    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#0a5682] focus:ring-offset-2;
   }
   .toggle-thumb {
     @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform;
@@ -55,9 +58,9 @@
     @apply bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100;
   }
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-teal-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#0a5682] to-violet-500;
   }
   .active-nav-item {
-    @apply bg-gradient-to-r from-indigo-900/10 to-teal-400/10 text-indigo-900 font-medium border-r-4 border-teal-400;
+    @apply bg-[#0a5682]/10 text-[#0a5682] font-medium border-r-4 border-[#0a5682];
   }
 }

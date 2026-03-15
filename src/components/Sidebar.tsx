@@ -2,6 +2,7 @@ import React from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
+import IconBadge from "./IconBadge";
 import {
   LayoutDashboard,
   CalendarCheck,
@@ -41,20 +42,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-slate-200/60 h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
+        "fixed inset-y-0 left-0 z-50 w-64 bg-[#0a5682] border-r border-white/20 h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
     >
-      <div className="flex items-center justify-between h-20 border-b border-slate-200/60 px-6">
+      <div className="flex items-center justify-between h-20 border-b border-white/20 px-6">
         <div className="flex items-center gap-2">
           <img src={logo} alt="হাজিরা খাতা" className="h-10 w-auto" />
-          <span className="text-2xl font-bold gradient-text tracking-tight">হাজিরা খাতা</span>
+          <span className="text-2xl font-bold text-white tracking-tight">হাজিরা খাতা</span>
         </div>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-slate-500 hover:bg-slate-100 rounded-full">
+        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto py-4 text-[#08457e]">
+      <div className="flex-1 overflow-y-auto py-4 text-white">
         <nav className="px-4 space-y-2">
           {links.map((link) => (
             <NavLink
@@ -63,15 +64,23 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               onClick={() => setIsOpen(false)}
               className={({ isActive }) =>
                 clsx(
-                  "flex items-center px-4 py-3 rounded-xl transition-all duration-200",
+                  "flex items-center px-4 py-3 rounded-xl transition-all duration-200 font-medium",
                   isActive
-                    ? "active-nav-item"
-                    : "hover:bg-slate-50 hover:text-[#08457e]/80",
+                    ? "bg-white/20 text-white shadow-sm"
+                    : "hover:bg-white/10 hover:text-white",
                 )
               }
             >
-              <link.icon className="w-5 h-5 mr-3" />
-              {link.name}
+              {({ isActive }) => (
+                <>
+                  <IconBadge 
+                    icon={link.icon} 
+                    badgeClassName={clsx("mr-3", isActive ? "bg-white/20" : "bg-white/10")} 
+                    iconClassName={isActive ? "text-white" : "text-white/70"} 
+                  />
+                  {link.name}
+                </>
+              )}
             </NavLink>
           ))}
           <button
@@ -79,16 +88,20 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               setIsOpen(false);
               navigate("/org-management");
             }}
-            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 hover:bg-slate-50 hover:text-[#08457e]/80"
+            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white font-medium text-white"
           >
-            <Building2 className="w-5 h-5 mr-3" />
+            <IconBadge 
+              icon={Building2} 
+              badgeClassName="bg-white/10 mr-3" 
+              iconClassName="text-white/70" 
+            />
             প্রতিষ্ঠান পরিবর্তন
           </button>
         </nav>
       </div>
-      <div className="p-4 border-t border-slate-200/60 bg-[#045D5D] w-full">
+      <div className="p-4 border-t border-white/20 bg-[#0a5682] w-full">
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-indigo-100 to-teal-100 flex items-center justify-center text-[#FFFFFF] font-bold shadow-sm border border-white overflow-hidden shrink-0">
+          <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#0a5682]/10 to-purple-100 flex items-center justify-center text-[#0a5682] font-bold shadow-sm border border-white overflow-hidden shrink-0">
             {photoURL ? (
               <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
             ) : (
@@ -96,10 +109,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             )}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-[#FFFFFF] truncate">
+            <p className="text-sm font-medium text-white truncate">
               {user?.displayName || "User"}
             </p>
-            <p className="text-xs text-slate-300 truncate">{user?.email}</p>
+            <p className="text-xs text-white/70 truncate">{user?.email}</p>
           </div>
         </div>
       </div>

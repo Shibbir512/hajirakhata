@@ -5,6 +5,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
 import { useAuth } from "../hooks/useAuth";
 import { toBengaliNumber } from "../utils/dateFormatter";
+import clsx from "clsx";
 import {
   BarChart,
   Bar,
@@ -90,87 +91,91 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
+      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
           title="হাজিরা সম্পন্ন (শ্রেণি)"
           value={stats.classesWithAttendanceToday}
           icon={CheckCircle}
-          color="bg-blue-500"
-          gradient="from-blue-500 to-cyan-400"
+          color="text-blue-600"
+          gradient="bg-blue-50"
+          valueColor="text-[#c212f4]"
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
           value={stats.classesPendingAttendanceToday}
           icon={Clock}
-          color="bg-pink-500"
-          gradient="from-pink-500 to-rose-400"
-          titleColor="#7b8289"
-          valueColor="#0f1cb8"
-          iconBg="#fafafa"
-          iconBorder="rgba(255, 255, 255, 0.5)"
-          iconColor="#0a4599"
+          color="text-pink-600"
+          gradient="bg-pink-50"
+          valueColor="text-[#05857d]"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
           value={stats.totalStudents}
           icon={Users}
-          color="bg-violet-500"
-          gradient="from-violet-500 to-purple-400"
+          color="text-violet-600"
+          gradient="bg-violet-50"
+          valueColor="text-[#ed623a]"
         />
         <StatCard
           title="আজ উপস্থিত"
           value={stats.presentToday}
           icon={UserCheck}
-          color="bg-emerald-500"
-          gradient="from-emerald-500 to-teal-400"
+          color="text-emerald-600"
+          gradient="bg-emerald-50"
+          valueColor="text-[#1ac8b3]"
         />
         <StatCard
           title="আজ অনুপস্থিত"
           value={stats.absentToday}
           icon={UserX}
-          color="bg-rose-500"
-          gradient="from-rose-500 to-red-400"
+          color="text-rose-600"
+          gradient="bg-rose-50"
+          valueColor="text-[#e60a31]"
         />
         <StatCard
           title="মোট শ্রেণি"
           value={stats.totalClasses}
           icon={BookOpen}
-          color="bg-amber-500"
-          gradient="from-amber-500 to-orange-400"
+          color="text-amber-600"
+          gradient="bg-amber-50"
+          valueColor="text-[#f5b80a]"
         />
       </div>
 
       <div className="card-premium p-8">
-        <h3 className="text-[19.75px] leading-[27.25px] font-bold text-[#26619c] mb-6 tracking-tight">
+        <h3 className="text-lg font-bold text-[#0661a4] mb-6 tracking-tight">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} />
-              <YAxis axisLine={false} tickLine={false} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 500 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 500 }} dx={-10} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#fff",
-                  borderRadius: "8px",
+                  borderRadius: "12px",
                   border: "none",
-                  boxShadow: "0 4px 6px -1px rgb(0 0, 0 / 0.1)",
+                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+                  padding: "12px",
                 }}
-                cursor={{ fill: "transparent" }}
+                cursor={{ fill: "#F3F4F6" }}
               />
-              <Legend />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500, color: '#4B5563' }} />
               <Bar
                 dataKey="Present"
-                fill="#14b8a6"
+                name="উপস্থিত"
+                fill="#2b7e2f"
                 radius={[6, 6, 0, 0]}
                 barSize={32}
               />
               <Bar
                 dataKey="Absent"
-                fill="#fb923c"
+                name="অনুপস্থিত"
+                fill="#F43F5E"
                 radius={[6, 6, 0, 0]}
                 barSize={32}
               />
@@ -188,11 +193,7 @@ interface StatCardProps {
   icon: React.ElementType;
   color: string;
   gradient: string;
-  titleColor?: string;
   valueColor?: string;
-  iconBg?: string;
-  iconBorder?: string;
-  iconColor?: string;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -201,29 +202,17 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
-  titleColor,
-  valueColor,
-  iconBg,
-  iconBorder,
-  iconColor,
+  valueColor = "text-slate-800",
 }) => {
-  const textColor = color.replace('bg-', 'text-');
   return (
-    <div className="card-premium p-6 flex items-center justify-between relative overflow-hidden group">
+    <div className="card-premium p-6 flex items-center justify-between group cursor-default">
       <div className="relative z-10 flex-1">
-        <p className="text-sm font-medium text-slate-500 mb-1 text-center" style={titleColor ? { color: titleColor } : {}}>{title}</p>
-        <p className={`text-3xl font-bold ${textColor} text-center`} style={valueColor ? { color: valueColor } : {}}>{toBengaliNumber(value)}</p>
+        <p className="text-sm font-semibold text-[#0a5682] mb-1">{title}</p>
+        <p className={clsx("text-3xl font-bold", valueColor)}>{toBengaliNumber(value)}</p>
       </div>
-      <div 
-        className={`relative z-10 p-4 rounded-2xl bg-white/30 backdrop-blur-md border border-white/50 shadow-lg group-hover:scale-110 transition-transform duration-300 ml-4`}
-        style={{
-          backgroundColor: iconBg,
-          borderColor: iconBorder,
-        }}
-      >
-        <Icon className={`w-7 h-7 ${textColor}`} style={iconColor ? { color: iconColor } : {}} />
+      <div className={clsx("relative z-10 p-3 rounded-full group-hover:scale-110 transition-transform duration-300 ml-4 bg-[#0e99cd]/15")}>
+        <Icon className="w-6 h-6 text-[#0e99cd]" strokeWidth={2} />
       </div>
-      <div className={`absolute -bottom-4 -right-4 w-24 h-24 rounded-full bg-gradient-to-br ${gradient} opacity-10 blur-2xl group-hover:scale-150 transition-transform duration-500`}></div>
     </div>
   );
 });

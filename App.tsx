@@ -18,7 +18,7 @@ const SuperAdminDashboard = lazy(() => import("./src/pages/SuperAdminDashboard")
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
-    <div className="w-12 h-12 border-4 border-indigo-200 border-t-teal-500 rounded-full animate-spin"></div>
+    <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
   </div>
 );
 

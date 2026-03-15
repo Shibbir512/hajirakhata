@@ -185,8 +185,8 @@ const Students: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight">শিক্ষার্থী</h2>
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-2 w-full sm:w-auto">
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থী</h2>
+        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 w-full sm:w-auto">
           <input
             type="file"
             ref={fileInputRef}
@@ -198,52 +198,44 @@ const Students: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedClassId}
             className={clsx(
-              "flex items-center justify-center px-4 py-2 rounded-2xl font-bold shadow-md transition-all duration-300 text-sm sm:text-base border border-teal-100",
-              selectedClassId 
-                ? "bg-white text-teal-600 hover:bg-teal-50 hover:shadow-lg" 
-                : "bg-slate-100 text-slate-400 border-slate-200 cursor-not-allowed"
+              "btn-primary",
+              !selectedClassId && "opacity-50 cursor-not-allowed"
             )}
           >
-            <Plus className="w-4 h-4 mr-2" />
+            <Plus className="w-4 h-4" />
             শিক্ষার্থী যোগ
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
             disabled={!selectedClassId}
             className={clsx(
-              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
-              selectedClassId 
-                ? "bg-amber-500 hover:bg-amber-600 hover:shadow-amber-100" 
-                : "bg-slate-300 cursor-not-allowed"
+              "btn-secondary",
+              !selectedClassId && "opacity-50 cursor-not-allowed"
             )}
           >
-            <Upload className="w-4 h-4 mr-2" />
+            <Upload className="w-4 h-4" />
             আমদানি
           </button>
           <button
             onClick={() => handleExport('csv')}
             disabled={allStudentsList.length === 0}
             className={clsx(
-              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
-              (allStudentsList.length === 0)
-                ? "bg-slate-300 cursor-not-allowed"
-                : "bg-sky-500 hover:bg-sky-600 hover:shadow-sky-100"
+              "btn-outline",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4" />
             CSV এক্সপোর্ট
           </button>
           <button
             onClick={() => handleExport('docx')}
             disabled={allStudentsList.length === 0}
             className={clsx(
-              "flex items-center justify-center px-4 py-2 rounded-xl font-bold text-white shadow-md transition-all duration-300 text-sm sm:text-base",
-              (allStudentsList.length === 0)
-                ? "bg-slate-300 cursor-not-allowed"
-                : "bg-rose-500 hover:bg-rose-600 hover:shadow-rose-100"
+              "btn-outline",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-4 h-4" />
             DOCX এক্সপোর্ট
           </button>
         </div>
@@ -255,7 +247,7 @@ const Students: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight text-lg font-bold text-teal-700 border-teal-200 bg-teal-50/30 text-center appearance-none pr-10"
+              className="input-premium w-full search-highlight text-lg font-bold text-indigo-700 border-indigo-200 bg-indigo-50/30 text-center appearance-none pr-10"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -264,11 +256,11 @@ const Students: React.FC = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-teal-600 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-indigo-600 w-5 h-5 pointer-events-none" />
           </div>
 
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-teal-500 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-500 w-5 h-5" />
             <input
               type="text"
               placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
@@ -279,23 +271,23 @@ const Students: React.FC = () => {
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-slate-200 rounded-lg">
+        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
           <table className="w-full text-left border-collapse">
-            <thead className="bg-slate-50/80 backdrop-blur-sm sticky top-0 z-10">
+            <thead className="bg-[#F8F9FA] sticky top-0 z-10">
               <tr>
-                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
                   রোল
                 </th>
-                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শিক্ষার্থীর নাম
                 </th>
-                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শ্রেণি
                 </th>
-                <th className="py-3 px-4 font-semibold text-slate-600 border-b border-slate-200 hidden md:table-cell">
+                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] hidden md:table-cell">
                   ফোন
                 </th>
-                <th className="text-right py-3 px-4 font-semibold text-slate-600 border-b border-slate-200">
+                <th className="text-right py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
                   কার্যক্রম
                 </th>
               </tr>
@@ -304,42 +296,42 @@ const Students: React.FC = () => {
               {paginatedStudents.map((student) => (
                 <tr
                   key={student.id}
-                  className="border-b border-slate-100 hover:bg-slate-50 transition-colors group"
+                  className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200 group"
                 >
-                  <td className="py-4 px-4 text-slate-800">{toBengaliNumber(student.roll)}</td>
-                  <td className="py-4 px-4 text-slate-800 font-medium">
+                  <td className="py-4 px-5 text-slate-800 font-medium">{toBengaliNumber(student.roll)}</td>
+                  <td className="py-4 px-5 text-slate-800 font-medium">
                     <div className="flex items-center gap-3">
                       {student.name}
                     </div>
                   </td>
-                  <td className="py-4 px-4 text-slate-600">
+                  <td className="py-4 px-5 text-slate-600">
                     {classes.find(c => c.id === student.classId)?.name || "N/A"}
                   </td>
-                  <td className="py-4 px-4 text-slate-500 hidden md:table-cell">
+                  <td className="py-4 px-5 text-slate-500 hidden md:table-cell">
                     {student.phone || "-"}
                   </td>
-                  <td className="py-4 px-4 text-right">
-                    <div className="flex justify-end gap-1 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <td className="py-4 px-5 text-right">
+                    <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setViewingStudent(student)}
-                        className="p-2 text-slate-400 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-colors"
+                        className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                         title="বিস্তারিত দেখুন"
                       >
-                        <Eye className="w-4 h-4" />
+                        <Eye className="w-4 h-4" strokeWidth={2} />
                       </button>
                       <button
                         onClick={() => setEditingStudent(student)}
-                        className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-xl transition-colors"
+                        className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
                         title="সম্পাদনা"
                       >
-                        <Edit className="w-4 h-4" />
+                        <Edit className="w-4 h-4" strokeWidth={2} />
                       </button>
                       <button
                         onClick={() => handleDeleteStudent(student)}
-                        className="p-2 text-slate-400 hover:text-pink-600 hover:bg-pink-50 rounded-xl transition-colors"
+                        className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
                         title="মুছুন"
                       >
-                        <Trash2 className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" strokeWidth={2} />
                       </button>
                     </div>
                   </td>
@@ -347,7 +339,7 @@ const Students: React.FC = () => {
               ))}
               {paginatedStudents.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-8 text-slate-500">
+                  <td colSpan={5} className="text-center py-12 text-slate-500">
                     কোন শিক্ষার্থী পাওয়া যায়নি।
                   </td>
                 </tr>
@@ -360,7 +352,7 @@ const Students: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4">
               <div className="text-sm text-slate-500">
-                দেখানো হচ্ছে <span className="font-medium">{toBengaliNumber(filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * itemsPerPage, filteredStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredStudents.length)}</span> জন শিক্ষার্থী
+                দেখানো হচ্ছে <span className="font-medium text-slate-700">{toBengaliNumber(filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)}</span> থেকে <span className="font-medium text-slate-700">{toBengaliNumber(Math.min(currentPage * itemsPerPage, filteredStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium text-slate-700">{toBengaliNumber(filteredStudents.length)}</span> জন শিক্ষার্থী
               </div>
               <div className="flex items-center gap-2">
                 <span className="text-sm text-slate-500">প্রতি পাতায়:</span>
@@ -370,7 +362,7 @@ const Students: React.FC = () => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-white border border-slate-200 rounded-lg px-2 py-1 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-teal-500/20"
+                  className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
                 >
                   {[5, 10, 20, 50, 100].map(val => (
                     <option key={val} value={val}>{toBengaliNumber(val)}</option>
@@ -399,9 +391,9 @@ const Students: React.FC = () => {
                         key={page}
                         onClick={() => setCurrentPage(page)}
                         className={clsx(
-                          "w-10 h-10 rounded-xl text-sm font-bold transition-all duration-300",
+                          "w-9 h-9 rounded-xl text-sm font-medium transition-all duration-300",
                           currentPage === page
-                            ? "bg-[#045F5F] text-white shadow-md"
+                            ? "bg-[#0D9488] text-white shadow-sm"
                             : "text-slate-600 hover:bg-slate-100"
                         )}
                       >
@@ -459,8 +451,8 @@ const Students: React.FC = () => {
                 <X className="w-6 h-6" />
               </button>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-teal-500/20 flex items-center justify-center border-2 border-teal-500/30 shadow-sm">
-                  <User className="w-8 h-8 text-teal-400" />
+                <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center border-2 border-indigo-500/30 shadow-sm">
+                  <User className="w-8 h-8 text-indigo-400" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
@@ -489,7 +481,7 @@ const Students: React.FC = () => {
               {/* Attendance */}
               <div>
                 <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-teal-600" />
+                  <Calendar className="w-5 h-5 text-indigo-600" />
                   সাম্প্রতিক হাজিরা
                 </h4>
                 <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
@@ -516,7 +508,7 @@ const Students: React.FC = () => {
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="bg-teal-700 hover:bg-teal-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold shadow-md hover:shadow-lg"
+                className="bg-indigo-700 hover:bg-indigo-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold shadow-md hover:shadow-lg"
               >
                 বন্ধ করুন
               </button>
