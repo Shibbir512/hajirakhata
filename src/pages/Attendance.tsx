@@ -15,6 +15,7 @@ interface StatCardProps {
   icon: React.ElementType;
   color: string;
   gradient: string;
+  valueColor?: string;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -23,12 +24,13 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
+  valueColor = "text-slate-800",
 }) => {
   return (
     <div className="card-premium p-4 sm:p-6 flex items-center justify-between group cursor-default">
       <div className="relative z-10 flex-1">
         <p className="text-xs sm:text-sm font-semibold text-slate-500 mb-1">{title}</p>
-        <p className="text-xl sm:text-3xl font-bold text-slate-800">{toBengaliNumber(value)}</p>
+        <p className={clsx("text-xl sm:text-3xl font-bold", valueColor)}>{toBengaliNumber(value)}</p>
       </div>
       <div className={`relative z-10 p-2 sm:p-3.5 rounded-[14px] ${gradient} group-hover:scale-110 transition-transform duration-300 ml-2 sm:ml-4`}>
         <Icon className={`w-5 h-5 sm:w-6 sm:h-6 ${color}`} strokeWidth={2} />
@@ -171,6 +173,7 @@ const Attendance: React.FC = () => {
             icon={Users}
             color="text-slate-600"
             gradient="bg-slate-50"
+            valueColor="text-[#0e5fb7]"
           />
           <StatCard
             title="উপস্থিত"
@@ -178,6 +181,7 @@ const Attendance: React.FC = () => {
             icon={CheckCircle}
             color="text-emerald-600"
             gradient="bg-emerald-50"
+            valueColor="text-[#0b7b5f]"
           />
           <StatCard
             title="অনুপস্থিত"
@@ -185,6 +189,7 @@ const Attendance: React.FC = () => {
             icon={XCircle}
             color="text-rose-600"
             gradient="bg-rose-50"
+            valueColor="text-[#dc3218]"
           />
         </div>
       )}
@@ -214,6 +219,7 @@ const Attendance: React.FC = () => {
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
                 className="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-bold px-3 py-2 rounded-xl hover:bg-emerald-50 transition-all duration-300 border border-emerald-100 flex items-center gap-2"
+                style={{ width: '122.891px', height: '33.75px' }}
               >
                 <CheckCircle className="w-4 h-4" />
                 সবাই উপস্থিত
@@ -221,6 +227,7 @@ const Attendance: React.FC = () => {
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
                 className="text-xs sm:text-sm text-rose-600 hover:text-rose-700 font-bold px-3 py-2 rounded-xl hover:bg-rose-50 transition-all duration-300 border border-rose-100 flex items-center gap-2"
+                style={{ height: '33.75px', width: '123.656px' }}
               >
                 <XCircle className="w-4 h-4" />
                 সবাই অনুপস্থিত
@@ -260,12 +267,12 @@ const Attendance: React.FC = () => {
                         key={student.id}
                         className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors group"
                       >
-                        <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base w-10 sm:w-16">
+                        <td className="py-4 px-5 text-slate-800 font-bold text-[15px] w-10 sm:w-16">
                           {toBengaliNumber(student.roll)}
                         </td>
                         <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base w-full">
                           <div className="flex flex-col">
-                            <span>{student.name}</span>
+                            <span className="text-[17px] font-normal">{student.name}</span>
                           </div>
                         </td>
                         <td className="py-4 px-5 whitespace-nowrap">
@@ -330,7 +337,7 @@ const Attendance: React.FC = () => {
             {totalPages > 1 && (
               <div className="flex items-center justify-between mt-4 px-2">
                 <p className="text-sm text-slate-500">
-                  <span className="font-medium">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredAndSortedStudents.length)}</span> জন শিক্ষার্থী
+                  <span className="font-bold">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredAndSortedStudents.length)}</span> জন শিক্ষার্থী
                 </p>
                 <div className="flex items-center gap-2">
                   <button
@@ -359,6 +366,7 @@ const Attendance: React.FC = () => {
                 onClick={handleSave}
                 disabled={isTakingAttendance}
                 className="btn-primary px-8 py-3 text-base"
+                style={{ backgroundColor: '#0e6ea4' }}
               >
                 {isTakingAttendance ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />
