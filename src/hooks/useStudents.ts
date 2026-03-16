@@ -52,7 +52,6 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     async (classId: string, name: string, fatherName?: string, phone?: string, address?: string) => {
       if (!user || !db || !orgId) return;
       try {
-        // Find max roll in class
         const studentsRef = collection(db, `organizations/${orgId}/students`);
         const q = query(studentsRef, where("classId", "==", classId));
         const querySnapshot = await getDocs(q);
@@ -64,9 +63,15 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         });
         const newRoll = maxRoll + 1;
 
+        // Generate Unique ID: [Year][Serial]
+        const year = new Date().getFullYear();
+        const totalStudentsSnapshot = await getDocs(studentsRef);
+        const studentUid = `${year}${String(totalStudentsSnapshot.size + 1).padStart(4, '0')}`;
+
         const studentId = `${classId}-student-${Date.now()}`;
         const newStudent: Student = {
           id: studentId,
+          studentUid,
           classId,
           roll: newRoll,
           name,
@@ -78,7 +83,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           doc(db, `organizations/${orgId}/students`, studentId),
           newStudent,
         );
-        toast.success("শিক্ষার্থী সফলভাবে যোগ করা হয়েছে!");
+        toast.success(`শিক্ষার্থী সফলভাবে যোগ করা হয়েছে! আইডি: ${studentUid}`);
       } catch (error) {
         console.error("Error adding student:", error);
         toast.error("শিক্ষার্থী যোগ করতে ব্যর্থ হয়েছে।");
@@ -169,7 +174,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   );
 
   const bulkAddStudents = useCallback(
-    async (classId: string, studentsList: Omit<Student, 'id' | 'classId' | 'roll'>[]) => {
+    async (classId: string, studentsList: Omit<Student, 'id' | 'classId' | 'roll' | 'studentUid'>[]) => {
       if (!user || !db || !orgId) return;
       try {
         const studentsRef = collection(db, `organizations/${orgId}/students`);
@@ -182,8 +187,14 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           if (roll > maxRoll) maxRoll = roll;
         });
 
+        const allStudentsSnapshot = await getDocs(studentsRef);
+        let totalCount = allStudentsSnapshot.size;
+        const year = new Date().getFullYear();
+
         const batch = writeBatch(db);
         studentsList.forEach((studentData, index) => {
+          totalCount++;
+          const studentUid = `${year}${String(totalCount).padStart(4, '0')}`;
           const studentId = `${classId}-student-${Date.now()}-${index}`;
           const newStudent: Student = {
             name: studentData.name,
@@ -191,6 +202,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
             phone: studentData.phone ?? "",
             address: studentData.address ?? "",
             id: studentId,
+            studentUid,
             classId,
             roll: maxRoll + index + 1,
           };

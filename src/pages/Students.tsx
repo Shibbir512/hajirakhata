@@ -279,6 +279,9 @@ const Students: React.FC = () => {
                   রোল
                 </th>
                 <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  আইডি
+                </th>
+                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শিক্ষার্থীর নাম
                 </th>
                 <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
@@ -299,6 +302,7 @@ const Students: React.FC = () => {
                   className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200 group"
                 >
                   <td className="py-4 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
+                  <td className="py-4 px-5 text-indigo-600 font-mono text-sm font-bold">{student.studentUid || "-"}</td>
                   <td className="py-4 px-5 text-slate-800 font-medium">
                     <div className="flex items-center gap-3 text-[16px]">
                       {student.name}
@@ -339,7 +343,7 @@ const Students: React.FC = () => {
               ))}
               {paginatedStudents.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-slate-500">
+                  <td colSpan={6} className="text-center py-12 text-slate-500">
                     কোন শিক্ষার্থী পাওয়া যায়নি।
                   </td>
                 </tr>

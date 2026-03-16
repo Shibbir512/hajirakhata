@@ -170,6 +170,9 @@ const ResultEntry: React.FC = () => {
         <div className="w-48 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 truncate">
           {student.name}
         </div>
+        <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-50/30">
+          {student.studentUid || "N/A"}
+        </div>
         {filteredSubjects.map((s, colIdx) => {
           const mark = studentResults.find(r => r.subject_id === s.id)?.marks ?? "";
           const isBelowPass = mark !== "" && Number(mark) < s.passMarks;
@@ -253,7 +256,7 @@ const ResultEntry: React.FC = () => {
       {classId && examId && academicYearId && (
         <div className="card-premium p-0 overflow-hidden border border-slate-200 shadow-xl">
           <div className="overflow-x-auto">
-            <div style={{ minWidth: `${16 + 48 + filteredSubjects.length * 24 + 20 + 20 + 20 + 32 + 20}rem` }}>
+            <div style={{ minWidth: `${16 + 48 + 32 + filteredSubjects.length * 24 + 20 + 20 + 20 + 32 + 20}rem` }}>
               {/* Header */}
               <div className="flex bg-slate-100 border-b border-slate-200 sticky top-0 z-20">
                 <div className="w-16 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sticky left-0 bg-slate-100 z-30">
@@ -261,6 +264,9 @@ const ResultEntry: React.FC = () => {
                 </div>
                 <div className="w-48 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center sticky left-16 bg-slate-100 z-30">
                   নাম
+                </div>
+                <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center bg-slate-100">
+                  আইডি
                 </div>
                 {filteredSubjects.map(s => (
                   <div key={s.id} className="w-24 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center text-center">
