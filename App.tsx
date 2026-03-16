@@ -22,6 +22,7 @@ const Subjects = lazy(() => import("./src/pages/Subjects"));
 const Exams = lazy(() => import("./src/pages/Exams"));
 const ResultEntry = lazy(() => import("./src/pages/ResultEntry"));
 const ResultReports = lazy(() => import("./src/pages/ResultReports"));
+const Marksheet = lazy(() => import("./src/pages/Marksheet"));
 const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
 const StudentProfile = lazy(() => import("./src/pages/StudentProfile"));
 
@@ -129,6 +130,7 @@ const App: React.FC = () => {
               <Route path="exams" element={<Exams />} />
               <Route path="result-entry" element={<ResultEntry />} />
               <Route path="result-reports" element={<ResultReports />} />
+              <Route path="marksheet" element={<Marksheet />} />
               <Route path="academic-years" element={<AcademicYears />} />
               <Route path="student-profile/:studentId" element={<StudentProfile />} />
             </Route>

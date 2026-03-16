@@ -11,7 +11,9 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
+import { convertNumber } from "../utils/numeralConverter";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
 
@@ -28,6 +30,7 @@ const ResultReports: React.FC = () => {
   const [selectedExamId, setSelectedExamId] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
+  const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);
@@ -110,24 +113,47 @@ const ResultReports: React.FC = () => {
     window.print();
   };
 
-  const exportToPDF = () => {
-    const doc = new jsPDF("l", "pt", "a4");
-    const tableData = filteredStudents.map(student => {
-      const studentResults = results.filter(r => r.student_id === student.id);
-      const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
-      const row = [student.roll, student.name];
-      filteredSubjects.forEach(s => {
-        row.push(studentResults.find(r => r.subject_id === s.id)?.marks || 0);
-      });
-      row.push(totalMarks, totalFullMarks, `${percentage}%`, grade, rank);
-      return row;
-    });
+  const exportToPDF = async () => {
+    const input = document.getElementById('tabulation-sheet-container');
+    if (!input) return;
 
-    autoTable(doc, {
-      head: [["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "গ্রেড", "র‍্যাঙ্ক"]],
-      body: tableData,
-    });
-    doc.save("tabulation_sheet.pdf");
+    setLoading(true);
+    try {
+      const canvas = await html2canvas(input, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF("l", "mm", "a4");
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
+
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+      heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save("tabulation_sheet.pdf");
+      toast.success("PDF ডাউনলোড সফল হয়েছে!");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportToDOCX = async () => {
@@ -166,22 +192,29 @@ const ResultReports: React.FC = () => {
           <FileText className="w-6 h-6 text-indigo-600" />
           ট্যাবুলেশন শিট
         </h2>
-        {results.length > 0 && (
-          <div className="flex gap-2">
-            <button onClick={handlePrint} className="btn-primary">
-              <Printer className="w-4 h-4" />
-              প্রিন্ট করুন
-            </button>
-            <button onClick={exportToPDF} className="btn-secondary">
-              <Download className="w-4 h-4" />
-              PDF
-            </button>
-            <button onClick={exportToDOCX} className="btn-secondary">
-              <Download className="w-4 h-4" />
-              DOCX
-            </button>
-          </div>
-        )}
+        <div className="flex gap-2">
+          <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium">
+            <option value="en">English (0-9)</option>
+            <option value="bn">Bengali (০-৯)</option>
+            <option value="ar">Arabic (٠-٩)</option>
+          </select>
+          {results.length > 0 && (
+            <>
+              <button onClick={handlePrint} className="btn-primary">
+                <Printer className="w-4 h-4" />
+                প্রিন্ট করুন
+              </button>
+              <button onClick={exportToPDF} className="btn-secondary">
+                <Download className="w-4 h-4" />
+                PDF
+              </button>
+              <button onClick={exportToDOCX} className="btn-secondary">
+                <Download className="w-4 h-4" />
+                DOCX
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       <div className="card-premium p-6 print:hidden">
@@ -250,7 +283,7 @@ const ResultReports: React.FC = () => {
       </div>
 
       {results.length > 0 ? (
-        <div className="card-premium p-8 print:shadow-none print:border-none print:p-0">
+        <div id="tabulation-sheet-container" className="card-premium p-8 print:shadow-none print:border-none print:p-0 bg-white">
           <div className="text-center mb-8">
             <h1 className="text-2xl font-bold text-slate-800 mb-2">
               {classes.find(c => c.id === selectedClassId)?.name} - {exams.find(e => e.id === selectedExamId)?.name}
@@ -275,7 +308,7 @@ const ResultReports: React.FC = () => {
                   <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-[80px] bg-[#F8F9FA] z-10">নাম</th>
                   {filteredSubjects.map(subject => (
                     <th key={subject.id} className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">
-                      {subject.name} <br/> <span className="text-[10px] font-normal">({subject.fullMarks})</span>
+                      {subject.name} <br/> <span className="text-[10px] font-normal">({convertNumber(subject.fullMarks, numeralFormat)})</span>
                     </th>
                   ))}
                   <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">মোট</th>
@@ -295,7 +328,7 @@ const ResultReports: React.FC = () => {
 
                   return (
                     <tr key={student.id} className={`border-b border-[#E5E7EB] print:border-black hover:bg-gray-50 transition-all duration-200 print:hover:bg-transparent ${isTop3 ? 'bg-yellow-50' : ''}`}>
-                      <td className="py-4 px-5 text-slate-800 font-medium sticky left-0 bg-white z-10">{student.roll}</td>
+                      <td className="py-4 px-5 text-slate-800 font-medium sticky left-0 bg-white z-10">{convertNumber(student.roll, numeralFormat)}</td>
                       <td className="py-4 px-5 text-slate-800 sticky left-[80px] bg-white z-10">{student.name}</td>
                       {filteredSubjects.map(subject => {
                         const result = results.find(r => r.student_id === student.id && r.subject_id === subject.id);
@@ -304,16 +337,16 @@ const ResultReports: React.FC = () => {
                         return (
                           <td key={subject.id} className="py-4 px-5 text-center">
                             <span className={isFail ? "text-rose-600 font-bold" : "text-slate-700"}>
-                              {result?.marks ?? "-"}
+                              {result ? convertNumber(result.marks, numeralFormat) : "-"}
                             </span>
                           </td>
                         );
                       })}
-                      <td className="py-4 px-5 text-center font-bold text-slate-800">{totalMarks}</td>
-                      <td className="py-4 px-5 text-center font-bold text-slate-800">{totalFullMarks}</td>
-                      <td className="py-4 px-5 text-center font-bold text-slate-800">{percentage}%</td>
+                      <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalMarks, numeralFormat)}</td>
+                      <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalFullMarks, numeralFormat)}</td>
+                      <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(percentage, numeralFormat)}%</td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{grade}</td>
-                      <td className="py-4 px-5 text-center font-bold text-slate-800">{rank}</td>
+                      <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(rank, numeralFormat)}</td>
                     </tr>
                   );
                 })}
@@ -324,27 +357,27 @@ const ResultReports: React.FC = () => {
           <div className="mt-8 grid grid-cols-2 md:grid-cols-6 gap-4 print:grid-cols-6">
             <div className="p-4 bg-slate-50 rounded-xl text-center border border-slate-100">
               <p className="text-xs text-slate-500 mb-1">মোট শিক্ষার্থী</p>
-              <p className="text-xl font-bold text-slate-800">{statistics.total}</p>
+              <p className="text-xl font-bold text-slate-800">{convertNumber(statistics.total, numeralFormat)}</p>
             </div>
             <div className="p-4 bg-emerald-50 rounded-xl text-center border border-emerald-100">
               <p className="text-xs text-emerald-600 mb-1">মুমতায</p>
-              <p className="text-xl font-bold text-emerald-700">{statistics.mumtaz}</p>
+              <p className="text-xl font-bold text-emerald-700">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
             </div>
             <div className="p-4 bg-blue-50 rounded-xl text-center border border-blue-100">
               <p className="text-xs text-blue-600 mb-1">জায়্যিদ জিদ্দান</p>
-              <p className="text-xl font-bold text-blue-700">{statistics.jayyidJiddan}</p>
+              <p className="text-xl font-bold text-blue-700">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
             </div>
             <div className="p-4 bg-indigo-50 rounded-xl text-center border border-indigo-100">
               <p className="text-xs text-indigo-600 mb-1">জায়্যিদ</p>
-              <p className="text-xl font-bold text-indigo-700">{statistics.jayyid}</p>
+              <p className="text-xl font-bold text-indigo-700">{convertNumber(statistics.jayyid, numeralFormat)}</p>
             </div>
             <div className="p-4 bg-amber-50 rounded-xl text-center border border-amber-100">
               <p className="text-xs text-amber-600 mb-1">মকবুল</p>
-              <p className="text-xl font-bold text-amber-700">{statistics.maqbul}</p>
+              <p className="text-xl font-bold text-amber-700">{convertNumber(statistics.maqbul, numeralFormat)}</p>
             </div>
             <div className="p-4 bg-rose-50 rounded-xl text-center border border-rose-100">
               <p className="text-xs text-rose-600 mb-1">রাসেব</p>
-              <p className="text-xl font-bold text-rose-700">{statistics.raseb}</p>
+              <p className="text-xl font-bold text-rose-700">{convertNumber(statistics.raseb, numeralFormat)}</p>
             </div>
           </div>
         </div>

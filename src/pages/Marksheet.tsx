@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from "docx";
 import { saveAs } from "file-saver";
@@ -126,14 +127,34 @@ const Marksheet: React.FC = () => {
     })).sort((a, b) => a.year.localeCompare(b.year));
   }, [academicHistory, academicYears, exams, classes]);
 
-  const exportToPDF = () => {
-    const doc = new jsPDF('p', 'pt', 'a4');
-    doc.text("Marksheet", 40, 40);
-    autoTable(doc, {
-      head: [['Subject', 'Full Marks', 'Obtained']],
-      body: filteredSubjects.map(s => [s.name, s.fullMarks, results.find(r => r.subject_id === s.id)?.marks || 0]),
-    });
-    doc.save(`marksheet_${selectedStudent?.name}.pdf`);
+  const exportToPDF = async () => {
+    const input = document.getElementById('marksheet-container');
+    if (!input) return;
+
+    setLoading(true);
+    try {
+      const canvas = await html2canvas(input, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF("p", "mm", "a4");
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.save(`marksheet_${selectedStudent?.name}.pdf`);
+      toast.success("PDF ডাউনলোড সফল হয়েছে!");
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportToDOCX = async () => {
@@ -272,7 +293,7 @@ const Marksheet: React.FC = () => {
       </div>
 
       {results.length > 0 && selectedStudent && (
-        <div className="card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto">
+        <div id="marksheet-container" className="card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto bg-white">
           <div className="text-center mb-8 border-b-2 border-slate-800 pb-6">
             <h1 className="text-3xl font-bold text-slate-800 mb-2">মাদরাসা ফলাফল পত্র</h1>
             <h2 className="text-xl font-semibold text-slate-700 mb-1">

@@ -45,7 +45,7 @@ const ResultEntry: React.FC = () => {
     });
   }, [filteredStudents, results]);
 
-  // Focus management
+// Focus management
   const [focusedCell, setFocusedCell] = useState<{ rowIndex: number; colIndex: number } | null>(null);
   const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
@@ -56,28 +56,21 @@ const ResultEntry: React.FC = () => {
     const nextRow = Math.max(0, Math.min(filteredStudents.length - 1, focusedCell.rowIndex + rowDelta));
     const nextCol = Math.max(0, Math.min(filteredSubjects.length - 1, focusedCell.colIndex + colDelta));
     
-    if (nextRow !== focusedCell.rowIndex) {
-      // Scroll logic removed as virtualization is disabled
-    }
-    
     setFocusedCell({ rowIndex: nextRow, colIndex: nextCol });
   };
 
   useEffect(() => {
     if (focusedCell) {
-      const timer = setTimeout(() => {
-        const key = getCellKey(focusedCell.rowIndex, focusedCell.colIndex);
-        const input = inputRefs.current[key];
-        if (input) {
-          input.focus();
-          input.select();
-        }
-      }, 50);
-      return () => clearTimeout(timer);
+      const key = getCellKey(focusedCell.rowIndex, focusedCell.colIndex);
+      const input = inputRefs.current[key];
+      if (input && document.activeElement !== input) {
+        input.focus();
+        input.select();
+      }
     }
   }, [focusedCell]);
 
-  const handleMarkChange = (studentId: string, subjectId: string, value: string, fullMarks: number) => {
+  const handleMarkChange = useCallback((studentId: string, subjectId: string, value: string, fullMarks: number) => {
     const marks = Math.min(Number(value), fullMarks);
     const resultId = `result-${academicYearId}-${examId}-${classId}-${studentId}-${subjectId}`;
     saveResult({
@@ -90,7 +83,7 @@ const ResultEntry: React.FC = () => {
       subject_id: subjectId,
       marks
     });
-  };
+  }, [academicYearId, examId, classId, orgId, saveResult]);
 
   const handleKeyDown = (e: React.KeyboardEvent, rowIndex: number, colIndex: number) => {
     switch (e.key) {
@@ -152,62 +145,6 @@ const ResultEntry: React.FC = () => {
     });
     toast.success("ডেটা পেস্ট করা হয়েছে!");
   };
-
-  const Row = useCallback(({ index, style }: { index: number; style: React.CSSProperties }) => {
-    const student = filteredStudents[index];
-    const studentResults = results.filter(r => r.student_id === student.id);
-    const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
-
-    return (
-      <div style={style} className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-        <div className="w-16 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-600 sticky left-0 bg-white z-10 group-hover:bg-slate-50">
-          {student.roll}
-        </div>
-        <div className="w-48 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 truncate">
-          {student.name}
-        </div>
-        <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-50/30">
-          {student.studentUid || "N/A"}
-        </div>
-        {filteredSubjects.map((s, colIdx) => {
-          const mark = studentResults.find(r => r.subject_id === s.id)?.marks ?? "";
-          const isBelowPass = mark !== "" && Number(mark) < s.passMarks;
-          return (
-            <div key={s.id} className="w-24 border-r border-slate-200 flex items-center justify-center p-0">
-              <input
-                ref={(el) => { inputRefs.current[getCellKey(index, colIdx)] = el; }}
-                type="number"
-                value={mark}
-                onChange={(e) => handleMarkChange(student.id, s.id, e.target.value, s.fullMarks)}
-                onKeyDown={(e) => handleKeyDown(e, index, colIdx)}
-                onPaste={(e) => handlePaste(e, index, colIdx)}
-                onFocus={() => setFocusedCell({ rowIndex: index, colIndex: colIdx })}
-                className={`w-full h-full text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
-                  isBelowPass ? "bg-slate-200 text-slate-600" : "bg-transparent text-slate-800"
-                }`}
-                placeholder="-"
-              />
-            </div>
-          );
-        })}
-        <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-700 bg-slate-50/50">
-          {totalMarks}
-        </div>
-        <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-500 text-sm">
-          {totalFullMarks}
-        </div>
-        <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-600 font-medium">
-          {percentage}%
-        </div>
-        <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-indigo-600">
-          {grade}
-        </div>
-        <div className="w-20 py-3 px-3 flex items-center justify-center font-black text-slate-900">
-          {rank}
-        </div>
-      </div>
-    );
-  }, [filteredStudents, results, filteredSubjects, allStudentResults, handleMarkChange, handleKeyDown, handlePaste]);
 
   return (
     <div className="space-y-6">
@@ -289,7 +226,20 @@ const ResultEntry: React.FC = () => {
               {/* Student List */}
               <div className="flex flex-col">
                 {filteredStudents.map((student, index) => (
-                  <Row key={student.id} index={index} style={{}} />
+                  <ResultRow
+                    key={student.id}
+                    index={index}
+                    student={student}
+                    results={results}
+                    filteredSubjects={filteredSubjects}
+                    allStudentResults={allStudentResults}
+                    handleMarkChange={handleMarkChange}
+                    handleKeyDown={handleKeyDown}
+                    handlePaste={handlePaste}
+                    setFocusedCell={setFocusedCell}
+                    inputRefs={inputRefs}
+                    getCellKey={getCellKey}
+                  />
                 ))}
               </div>
             </div>
@@ -308,5 +258,121 @@ const ResultEntry: React.FC = () => {
     </div>
   );
 };
+
+const ResultCell = React.memo(({ 
+  studentId, 
+  subject, 
+  rowIndex, 
+  colIdx, 
+  initialMark, 
+  handleMarkChange, 
+  handleKeyDown, 
+  handlePaste, 
+  setFocusedCell, 
+  inputRefs, 
+  getCellKey 
+}: any) => {
+  const [localValue, setLocalValue] = useState(initialMark);
+
+  useEffect(() => {
+    setLocalValue(initialMark);
+  }, [initialMark]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setLocalValue(e.target.value);
+  };
+
+  const handleBlur = () => {
+    if (localValue !== initialMark) {
+      handleMarkChange(studentId, subject.id, localValue, subject.fullMarks);
+    }
+  };
+
+  const isBelowPass = localValue !== "" && Number(localValue) < subject.passMarks;
+
+  return (
+    <div className="w-24 border-r border-slate-200 flex items-center justify-center p-0">
+      <input
+        ref={(el) => { inputRefs.current[getCellKey(rowIndex, colIdx)] = el; }}
+        type="number"
+        value={localValue}
+        onChange={handleChange}
+        onBlur={handleBlur}
+        onKeyDown={(e) => handleKeyDown(e, rowIndex, colIdx)}
+        onPaste={(e) => handlePaste(e, rowIndex, colIdx)}
+        onFocus={() => setFocusedCell({ rowIndex, colIndex: colIdx })}
+        className={`w-full h-full text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
+          isBelowPass ? "bg-slate-200 text-slate-600" : "bg-transparent text-slate-800"
+        }`}
+        placeholder="-"
+      />
+    </div>
+  );
+});
+
+const ResultRow = React.memo(({ 
+  index, 
+  student, 
+  results, 
+  filteredSubjects, 
+  allStudentResults, 
+  handleMarkChange, 
+  handleKeyDown, 
+  handlePaste, 
+  setFocusedCell, 
+  inputRefs, 
+  getCellKey 
+}: any) => {
+  const studentResults = useMemo(() => results.filter((r: any) => r.student_id === student.id), [results, student.id]);
+  const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+
+  return (
+    <div className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors group">
+      <div className="w-16 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-600 sticky left-0 bg-white z-10 group-hover:bg-slate-50">
+        {student.roll}
+      </div>
+      <div className="w-48 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 truncate">
+        {student.name}
+      </div>
+      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-50/30">
+        {student.studentUid || "N/A"}
+      </div>
+      {filteredSubjects.map((s: any, colIdx: number) => {
+        const mark = studentResults.find((r: any) => r.subject_id === s.id)?.marks ?? "";
+        return (
+          <ResultCell
+            key={s.id}
+            studentId={student.id}
+            subject={s}
+            rowIndex={index}
+            colIdx={colIdx}
+            initialMark={mark}
+            handleMarkChange={handleMarkChange}
+            handleKeyDown={handleKeyDown}
+            handlePaste={handlePaste}
+            setFocusedCell={setFocusedCell}
+            inputRefs={inputRefs}
+            getCellKey={getCellKey}
+          />
+        );
+      })}
+      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-700 bg-slate-50/50">
+        {totalMarks}
+      </div>
+      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-500 text-sm">
+        {totalFullMarks}
+      </div>
+      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-600 font-medium">
+        {percentage}%
+      </div>
+      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-indigo-600">
+        {grade}
+      </div>
+      <div className="w-20 py-3 px-3 flex items-center justify-center font-black text-slate-900">
+        {rank}
+      </div>
+    </div>
+  );
+});
 
 export default ResultEntry;
