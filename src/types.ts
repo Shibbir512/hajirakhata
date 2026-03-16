@@ -1,6 +1,6 @@
 export interface Student {
   id: string;
-  studentUid: string; // Unique ID like 202401001
+  studentUid?: string; // Unique ID like 202401001 (Optional for backward compatibility)
   classId: string;
   roll: number;
   name: string;

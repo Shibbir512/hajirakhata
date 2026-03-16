@@ -9,8 +9,6 @@ import { useClasses } from "../hooks/useClasses";
 import { ClipboardEdit } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
-import * as ReactWindow from "react-window";
-const FixedSizeList = (ReactWindow as any).FixedSizeList || (ReactWindow as any).default?.FixedSizeList || ReactWindow;
 import toast from "react-hot-toast";
 
 const ResultEntry: React.FC = () => {
@@ -53,15 +51,13 @@ const ResultEntry: React.FC = () => {
 
   const getCellKey = (rowIndex: number, colIndex: number) => `${rowIndex}-${colIndex}`;
 
-  const listRef = useRef<any>(null);
-
   const moveFocus = (rowDelta: number, colDelta: number) => {
     if (!focusedCell) return;
     const nextRow = Math.max(0, Math.min(filteredStudents.length - 1, focusedCell.rowIndex + rowDelta));
     const nextCol = Math.max(0, Math.min(filteredSubjects.length - 1, focusedCell.colIndex + colDelta));
     
     if (nextRow !== focusedCell.rowIndex) {
-      listRef.current?.scrollToItem(nextRow, "smart");
+      // Scroll logic removed as virtualization is disabled
     }
     
     setFocusedCell({ rowIndex: nextRow, colIndex: nextCol });
@@ -290,16 +286,12 @@ const ResultEntry: React.FC = () => {
                 </div>
               </div>
 
-              {/* Virtualized List */}
-              <FixedSizeList
-                ref={listRef}
-                height={600}
-                itemCount={filteredStudents.length}
-                itemSize={50}
-                width="100%"
-              >
-                {Row}
-              </FixedSizeList>
+              {/* Student List */}
+              <div className="flex flex-col">
+                {filteredStudents.map((student, index) => (
+                  <Row key={student.id} index={index} style={{}} />
+                ))}
+              </div>
             </div>
           </div>
           <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
