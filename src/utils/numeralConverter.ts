@@ -2,7 +2,8 @@ export const bengaliNumerals = ['০', '১', '২', '৩', '৪', '৫', '৬',
 export const arabicNumerals = ['٠', '١', '٢', '٣', '٤', '٥', '٦', '٧', '٨', '٩'];
 export const englishNumerals = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9'];
 
-export const convertNumber = (num: number | string, format: 'bn' | 'ar' | 'en'): string => {
+export const convertNumber = (num: number | string | undefined | null, format: 'bn' | 'ar' | 'en'): string => {
+  if (num === undefined || num === null) return "";
   const str = num.toString();
   let result = '';
   for (let i = 0; i < str.length; i++) {

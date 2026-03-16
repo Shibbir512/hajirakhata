@@ -55,9 +55,17 @@ const ResultReports: React.FC = () => {
     return filteredStudents.map(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
       const totalMarks = studentResults.reduce((sum, r) => sum + r.marks, 0);
-      return { studentId: student.id, totalMarks };
+      
+      // Check if failed in any subject
+      const hasFailed = filteredSubjects.some(subject => {
+        const result = studentResults.find(r => r.subject_id === subject.id);
+        const marks = result ? result.marks : 0;
+        return marks < subject.passMarks;
+      });
+      
+      return { studentId: student.id, totalMarks, hasFailed };
     });
-  }, [filteredStudents, results]);
+  }, [filteredStudents, results, filteredSubjects]);
 
   const statistics = useMemo(() => {
     const stats = {
@@ -159,8 +167,9 @@ const ResultReports: React.FC = () => {
   const exportToDOCX = async () => {
     const tableRows = filteredStudents.map(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
-      const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
-      const cells = [student.roll, student.name, ...filteredSubjects.map(s => studentResults.find(r => r.subject_id === s.id)?.marks || 0), totalMarks, totalFullMarks, `${percentage}%`, grade, rank].map(text => new TableCell({ children: [new Paragraph(String(text))] }));
+      const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+      const statusText = statusKey === 'pass' ? 'Pass' : 'Fail';
+      const cells = [student.roll, student.name, ...filteredSubjects.map(s => studentResults.find(r => r.subject_id === s.id)?.marks || 0), totalMarks, totalFullMarks, `${percentage}%`, `${statusText} (${grade})`, rank].map(text => new TableCell({ children: [new Paragraph(String(text))] }));
       return new TableRow({ children: cells });
     });
 
@@ -321,10 +330,11 @@ const ResultReports: React.FC = () => {
               <tbody>
                 {filteredStudents.map((student) => {
                   const studentResults = results.filter(r => r.student_id === student.id);
-                  const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+                  const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
                   
                   const rankNum = parseInt(rank);
                   const isTop3 = !isNaN(rankNum) && rankNum <= 3;
+                  const statusText = statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য';
 
                   return (
                     <tr key={student.id} className={`border-b border-[#E5E7EB] print:border-black hover:bg-gray-50 transition-all duration-200 print:hover:bg-transparent ${isTop3 ? 'bg-yellow-50' : ''}`}>
@@ -345,7 +355,11 @@ const ResultReports: React.FC = () => {
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalMarks, numeralFormat)}</td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalFullMarks, numeralFormat)}</td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(percentage, numeralFormat)}%</td>
-                      <td className="py-4 px-5 text-center font-bold text-slate-800">{grade}</td>
+                      <td className="py-4 px-5 text-center font-bold text-slate-800">
+                        <span className={statusKey === 'fail' ? 'text-rose-600' : 'text-emerald-600'}>
+                          {statusText} ({grade})
+                        </span>
+                      </td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(rank, numeralFormat)}</td>
                     </tr>
                   );

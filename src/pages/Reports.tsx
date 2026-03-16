@@ -21,6 +21,7 @@ import clsx from "clsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import DatePicker from "react-datepicker";
+import toast from "react-hot-toast";
 
 import Papa from "papaparse";
 
@@ -35,6 +36,7 @@ const Reports: React.FC = () => {
     new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Default to start of current month
   );
   const [endDate, setEndDate] = useState<Date>(new Date());
+  const [isExporting, setIsExporting] = useState(false);
 
   const reportData = useMemo(() => {
     if (!selectedClassId) return [];
@@ -82,29 +84,54 @@ const Reports: React.FC = () => {
     const input = document.getElementById('report-container');
     if (!input) return;
 
-    const canvas = await html2canvas(input, { scale: 2 });
-    const imgData = canvas.toDataURL('image/png');
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    
-    const imgProps = pdf.getImageProperties(imgData);
-    const pdfWidth = pdf.internal.pageSize.getWidth();
-    const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+    setIsExporting(true);
+    const toastId = toast.loading("PDF তৈরি হচ্ছে...");
 
-    let heightLeft = pdfHeight;
-    let position = 0;
-    const pageHeight = pdf.internal.pageSize.getHeight();
+    try {
+      const canvas = await html2canvas(input, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        windowWidth: input.scrollWidth,
+        windowHeight: input.scrollHeight,
+        onclone: (clonedDoc) => {
+          const clonedElement = clonedDoc.getElementById('report-container');
+          if (clonedElement) {
+            clonedElement.style.width = `${input.offsetWidth}px`;
+          }
+        }
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
-    pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-    heightLeft -= pageHeight;
+      let heightLeft = pdfHeight;
+      let position = 0;
+      const pageHeight = pdf.internal.pageSize.getHeight();
 
-    while (heightLeft > 0) {
-      position = heightLeft - pdfHeight;
-      pdf.addPage();
       pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pageHeight;
+
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
+        heightLeft -= pageHeight;
+      }
+      
+      pdf.save(`attendance-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      toast.success("PDF ডাউনলোড সফল হয়েছে!", { id: toastId });
+    } catch (error) {
+      console.error("PDF Export Error:", error);
+      toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।", { id: toastId });
+    } finally {
+      setIsExporting(false);
     }
-    
-    pdf.save("attendance-report.pdf");
   };
 
   const handleExportCSV = () => {
@@ -152,10 +179,11 @@ const Reports: React.FC = () => {
           </button>
           <button 
             onClick={handleExportPDF}
-            className="bg-[#0a6ba3] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0a6ba3]/90 transition-all duration-300 font-medium shadow-sm"
+            disabled={isExporting}
+            className="bg-[#0a6ba3] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0a6ba3]/90 transition-all duration-300 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4 mr-2" />
-            PDF এক্সপোর্ট
+            {isExporting ? "প্রসেসিং..." : "PDF এক্সপোর্ট"}
           </button>
         </div>
       </div>
