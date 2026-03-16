@@ -1,6 +1,6 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 
 @theme {
   --color-bg-main: #F4F7F6;
@@ -14,7 +14,7 @@
 
 @layer base {
   body {
-    font-family: 'Inter', 'Noto Sans Bengali', sans-serif;
+    font-family: 'Inter', 'Noto Sans Bengali', 'Noto Sans Arabic', sans-serif;
     background-color: var(--color-bg-main);
     color: #334155;
   }

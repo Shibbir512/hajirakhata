@@ -1,9 +1,47 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      allow read, write: if request.auth != null;
+    
+    function isAuthenticated() {
+      return request.auth != null;
     }
+
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function getRole(orgId) {
+      return getUserData().roles[orgId];
+    }
+
+    function isAdmin(orgId) {
+      return isAuthenticated() && getRole(orgId) == 'admin';
+    }
+
+    function isTeacher(orgId) {
+      return isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher');
+    }
+
+    function isViewer(orgId) {
+      return isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher' || getRole(orgId) == 'viewer');
+    }
+
+    function isMember(orgId) {
+      return isAuthenticated() && getUserData().roles.keys().hasAny([orgId]);
+    }
+
+    match /organizations/{orgId} {
+      match /results/{resultId} {
+        allow read: if isTeacher(orgId) || (resource.data.status == 'published' && isViewer(orgId));
+        allow create: if isTeacher(orgId);
+        allow update: if isTeacher(orgId);
+        allow delete: if isAdmin(orgId);
+      }
+      match /{document=**} {
+        allow read, write: if isMember(orgId);
+      }
+    }
+    
     match /globalSettings/{document=**} {
       allow read: if true;
     }

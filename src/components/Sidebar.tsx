@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
@@ -13,6 +13,13 @@ import {
   Building2,
   X,
   ShieldAlert,
+  GraduationCap,
+  Book,
+  FileText,
+  ClipboardEdit,
+  ChevronDown,
+  ChevronRight,
+  CalendarDays,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -25,6 +32,7 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL } = useAuth();
   const navigate = useNavigate();
+  const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
@@ -37,6 +45,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "সেটিংস", path: "/settings", icon: Settings },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
+  ];
+
+  const resultLinks = [
+    { name: "বিষয়", path: "/subjects", icon: Book },
+    { name: "পরীক্ষা", path: "/exams", icon: FileText },
+    { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
+    { name: "ট্যাবুলেশন শিট", path: "/result-reports", icon: FileText },
+    { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
+    { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
   ];
 
   return (
@@ -83,12 +100,58 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               )}
             </NavLink>
           ))}
+
+          {/* Result Management Section */}
+          <div className="pt-2">
+            <button
+              onClick={() => setIsResultMenuOpen(!isResultMenuOpen)}
+              className="w-full flex items-center justify-between px-4 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white font-medium text-white"
+            >
+              <div className="flex items-center">
+                <IconBadge 
+                  icon={GraduationCap} 
+                  badgeClassName="bg-white/10 mr-3" 
+                  iconClassName="text-white/70" 
+                />
+                ফলাফল ব্যবস্থাপনা
+              </div>
+              {isResultMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+            </button>
+            
+            {isResultMenuOpen && (
+              <div className="pl-4 mt-1 space-y-1">
+                {resultLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 py-2.5 rounded-xl transition-all duration-200 font-medium text-sm",
+                        isActive
+                          ? "bg-white/20 text-white shadow-sm"
+                          : "hover:bg-white/10 hover:text-white text-white/80",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <link.icon className={clsx("w-4 h-4 mr-3", isActive ? "text-white" : "text-white/70")} />
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            )}
+          </div>
+
           <button
             onClick={() => {
               setIsOpen(false);
               navigate("/org-management");
             }}
-            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white font-medium text-white"
+            className="w-full flex items-center px-4 py-3 rounded-xl transition-all duration-200 hover:bg-white/10 hover:text-white font-medium text-white mt-2"
           >
             <IconBadge 
               icon={Building2} 

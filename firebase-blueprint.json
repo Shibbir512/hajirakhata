@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "Result": {
+      "title": "Result",
+      "description": "Student exam result record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "institution_id": { "type": "string" },
+        "student_id": { "type": "string" },
+        "class_id": { "type": "string" },
+        "academic_year_id": { "type": "string" },
+        "exam_id": { "type": "string" },
+        "subject_id": { "type": "string" },
+        "marks": { "type": "number" },
+        "status": { "type": "string", "enum": ["draft", "published"] },
+        "created_by": { "type": "string" },
+        "updated_by": { "type": "string" },
+        "created_at": { "type": "number" },
+        "updated_at": { "type": "number" }
+      },
+      "required": ["institution_id", "student_id", "class_id", "academic_year_id", "exam_id", "subject_id", "marks", "status"]
+    },
+    "Student": {
+      "title": "Student",
+      "description": "Student record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "institution_id": { "type": "string" },
+        "classId": { "type": "string" },
+        "roll": { "type": "number" },
+        "name": { "type": "string" },
+        "fatherName": { "type": "string" },
+        "phone": { "type": "string" },
+        "address": { "type": "string" }
+      },
+      "required": ["name", "roll", "classId"]
+    }
+  },
+  "firestore": {
+    "organizations/{orgId}/results/{resultId}": {
+      "schema": "Result",
+      "description": "Results collection nested under organization"
+    },
+    "organizations/{orgId}/students/{studentId}": {
+      "schema": "Student",
+      "description": "Students collection nested under organization"
+    }
+  }
+}

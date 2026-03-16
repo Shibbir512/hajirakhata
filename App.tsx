@@ -14,7 +14,16 @@ const Students = lazy(() => import("./src/pages/Students"));
 const Classes = lazy(() => import("./src/pages/Classes"));
 const Reports = lazy(() => import("./src/pages/Reports"));
 const Settings = lazy(() => import("./src/pages/Settings"));
+const ResultCard = lazy(() => import("./src/pages/ResultCard"));
 const SuperAdminDashboard = lazy(() => import("./src/pages/SuperAdminDashboard"));
+
+// Result Management Pages
+const Subjects = lazy(() => import("./src/pages/Subjects"));
+const Exams = lazy(() => import("./src/pages/Exams"));
+const ResultEntry = lazy(() => import("./src/pages/ResultEntry"));
+const ResultReports = lazy(() => import("./src/pages/ResultReports"));
+const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
+const StudentProfile = lazy(() => import("./src/pages/StudentProfile"));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
@@ -95,6 +104,7 @@ const App: React.FC = () => {
         <Suspense fallback={<LoadingFallback />}>
           <Routes>
             <Route path="/login" element={<Login />} />
+            <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
             <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
             <Route
@@ -113,6 +123,14 @@ const App: React.FC = () => {
               <Route path="reports" element={<Reports />} />
               <Route path="settings" element={<Settings />} />
               <Route path="super-admin" element={<SuperAdminDashboard />} />
+              
+              {/* Result Management Routes */}
+              <Route path="subjects" element={<Subjects />} />
+              <Route path="exams" element={<Exams />} />
+              <Route path="result-entry" element={<ResultEntry />} />
+              <Route path="result-reports" element={<ResultReports />} />
+              <Route path="academic-years" element={<AcademicYears />} />
+              <Route path="student-profile/:studentId" element={<StudentProfile />} />
             </Route>
           </Routes>
         </Suspense>

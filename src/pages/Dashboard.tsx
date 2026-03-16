@@ -17,6 +17,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+import StudentSearch from "../components/StudentSearch";
+
 const Dashboard: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { students } = useStudents(orgId, user, role);
@@ -91,7 +93,10 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-bold text-slate-800 tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
+        <StudentSearch />
+      </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         <StatCard
