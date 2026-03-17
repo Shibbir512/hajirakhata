@@ -86,7 +86,10 @@ const Classes: React.FC = () => {
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className="text-[20px] font-bold text-slate-800 tracking-tight">
+                  <h3 
+                    className="text-[20px] font-bold tracking-tight"
+                    style={{ color: index % 2 === 0 ? '#0c8fad' : '#0f89be' }}
+                  >
                     {cls.name}
                   </h3>
                   <p className="text-[14px] text-slate-500 mt-1 font-mono opacity-80">আইডি: {cls.id}</p>

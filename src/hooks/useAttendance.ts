@@ -78,7 +78,9 @@ export const useAttendance = (
       try {
         const now = new Date();
         const date = now.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
-        const time = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true }).replace(/:/g, ' ').replace(' ', '-'); // hh mm ss-AM/PM
+        const timeStr = now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
+        const timeParts = timeStr.split(' ');
+        const time = timeParts[0].replace(/:/g, ' ') + '-' + (timeParts[1] || ''); // hh mm ss-AM/PM
 
         // Duplicate Protection: Check if session exists
         const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);

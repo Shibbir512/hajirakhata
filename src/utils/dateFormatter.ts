@@ -27,15 +27,22 @@ export const toBengaliNumber = (num: string | number | undefined | null) => {
 export const toBengaliTime = (timeStr: string) => {
   if (!timeStr || typeof timeStr !== 'string') return "";
   
-  // Input format: "hh mm ss-AM/PM"
-  const [timePart, ampm] = timeStr.split("-");
-  const [hour, minute] = timePart.trim().split(" ");
+  // Handle various formats like "hh mm ss-AM/PM" or "hh-mm ss AM/PM"
+  // The issue was .replace(' ', '-') in useAttendance only replaced the first space
+  const normalized = timeStr.replace(/-/g, ' ').trim();
+  const parts = normalized.split(/\s+/);
+  
+  if (parts.length < 2) return timeStr;
+
+  const hour = parts[0];
+  const minute = parts[1];
+  const ampm = parts[parts.length - 1].toUpperCase();
   
   const hourNum = parseInt(hour);
   
   // Determine Bengali AM/PM/Time of day
   let timeOfDay = "";
-  if (ampm === "AM") {
+  if (ampm.includes("AM")) {
     timeOfDay = hourNum >= 5 && hourNum < 12 ? "সকাল" : "রাত";
   } else {
     timeOfDay = hourNum >= 12 || hourNum < 5 ? "দুপুর" : "সন্ধ্যা";
