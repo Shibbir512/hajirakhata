@@ -163,7 +163,9 @@ const Marksheet: React.FC = () => {
   }, [subjects, selectedClassId]);
 
   const filteredStudents = useMemo(() => {
-    return (students[selectedClassId] || []).sort((a, b) => a.roll - b.roll);
+    return (students[selectedClassId] || [])
+      .filter(s => s.isActive !== false)
+      .sort((a, b) => a.roll - b.roll);
   }, [students, selectedClassId]);
 
   const selectedStudent = useMemo(() => {

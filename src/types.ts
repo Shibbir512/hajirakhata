@@ -8,6 +8,8 @@ export interface Student {
   phone?: string;
   address?: string;
   version?: number;
+  isActive?: boolean;
+  archivedAt?: number;
 }
 
 export interface ClassData {

@@ -125,6 +125,11 @@ const StudentProfile: React.FC = () => {
               <User className="w-12 h-12 text-[#0F5C7A]" />
             </div>
             <h3 className="text-xl font-bold text-slate-800">{student.name}</h3>
+            {student.isActive === false && (
+              <span className="px-2 py-0.5 bg-rose-100 text-rose-600 text-[10px] font-bold rounded-full mt-1">
+                আর্কাইভ করা
+              </span>
+            )}
             <p className="text-[#0F5C7A] font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
             <p className="text-slate-500 text-sm">রোল: {student.roll}</p>
           </div>

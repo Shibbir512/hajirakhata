@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -27,18 +27,20 @@ const normalizeBengali = (text: string) => {
 const Students: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
-  const { students, addStudent, updateStudent, deleteStudent, bulkAddStudents } =
+  const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents } =
     useStudents(orgId, user, role);
   const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
+  const [showArchived, setShowArchived] = useState(false);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [studentToPermanentDelete, setStudentToPermanentDelete] = useState<Student | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -63,17 +65,14 @@ const Students: React.FC = () => {
   const handleDeleteSelected = () => {
     if (selectedStudents.size === 0) return;
     
-    // Using ConfirmationDialog for bulk delete
-    // We need to adapt ConfirmationDialog or create a new one for bulk
-    // For now, let's just trigger a delete for each
     selectedStudents.forEach(studentId => {
       const student = allStudentsList.find(s => s.id === studentId);
       if (student) {
-        deleteStudent(student.id, student.classId);
+        archiveStudent(student.id, student.classId);
       }
     });
     setSelectedStudents(new Set());
-    toast.success(`${toBengaliNumber(selectedStudents.size)} জন শিক্ষার্থী মুছে ফেলা হয়েছে।`);
+    toast.success(`${toBengaliNumber(selectedStudents.size)} জন শিক্ষার্থীকে আর্কাইভ করা হয়েছে।`);
   };
 
   React.useEffect(() => {
@@ -84,12 +83,15 @@ const Students: React.FC = () => {
   const studentAttendance = useStudentAttendance(viewingStudent?.id || "", attendanceSessions);
 
   const allStudentsList = useMemo(() => {
+    let list: Student[] = [];
     if (selectedClassId) {
-      return students[selectedClassId] || [];
+      list = students[selectedClassId] || [];
+    } else {
+      list = Object.values(students).flat();
     }
-    // Flatten all students from all classes
-    return Object.values(students).flat();
-  }, [selectedClassId, students]);
+    
+    return list.filter(s => showArchived ? !s.isActive : s.isActive !== false);
+  }, [selectedClassId, students, showArchived]);
 
   const fuse = useMemo(() => {
     const normalizedStudents = allStudentsList.map(s => {
@@ -316,6 +318,18 @@ const Students: React.FC = () => {
               className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
             />
           </div>
+          
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
+            <label className="text-sm font-medium text-slate-600 cursor-pointer flex items-center gap-2">
+              <input 
+                type="checkbox" 
+                checked={showArchived} 
+                onChange={(e) => setShowArchived(e.target.checked)}
+                className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
+              />
+              আর্কাইভ করা শিক্ষার্থী দেখুন
+            </label>
+          </div>
         </div>
 
         <div className="overflow-x-auto bg-white rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">
@@ -397,13 +411,37 @@ const Students: React.FC = () => {
                       >
                         <Edit className="w-4 h-4" strokeWidth={2} />
                       </button>
-                      <button
-                        onClick={() => handleDeleteStudent(student)}
-                        className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                        title="মুছুন"
-                      >
-                        <Trash2 className="w-4 h-4" strokeWidth={2} />
-                      </button>
+                      {student.isActive === false ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => {
+                              updateStudent(student.id, { isActive: true }, student.version);
+                              toast.success(`${student.name}-কে পুনরায় সক্রিয় করা হয়েছে।`);
+                            }}
+                            className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+                            title="পুনরায় সক্রিয় করুন"
+                          >
+                            <CheckCircle className="w-4 h-4" strokeWidth={2} />
+                          </button>
+                          {role === 'admin' && (
+                            <button
+                              onClick={() => setStudentToPermanentDelete(student)}
+                              className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                              title="স্থায়ীভাবে মুছুন"
+                            >
+                              <Trash2 className="w-4 h-4" strokeWidth={2} />
+                            </button>
+                          )}
+                        </div>
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteStudent(student)}
+                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                          title="আর্কাইভ করুন"
+                        >
+                          <Trash2 className="w-4 h-4" strokeWidth={2} />
+                        </button>
+                      )}
                     </div>
                   </td>
                 </tr>
@@ -598,12 +636,27 @@ const Students: React.FC = () => {
           onClose={() => setStudentToDelete(null)}
           onConfirm={() => {
             if (studentToDelete) {
-              deleteStudent(studentToDelete.id, studentToDelete.classId);
+              archiveStudent(studentToDelete.id, studentToDelete.classId);
             }
             setStudentToDelete(null);
           }}
-          title="শিক্ষার্থী মুছে ফেলুন"
-          message={`আপনি কি নিশ্চিত যে শিক্ষার্থী ${studentToDelete.name}-কে মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।`}
+          title="শিক্ষার্থী আর্কাইভ করুন"
+          message={`আপনি কি নিশ্চিত যে শিক্ষার্থী ${studentToDelete.name}-কে আর্কাইভ করতে চান? আর্কাইভ করলে তার আগের সব রেকর্ড (হাজিরা, ফলাফল) সংরক্ষিত থাকবে কিন্তু সে বর্তমান তালিকা থেকে সরে যাবে।`}
+        />
+      )}
+
+      {studentToPermanentDelete && (
+        <ConfirmationDialog
+          isOpen={!!studentToPermanentDelete}
+          onClose={() => setStudentToPermanentDelete(null)}
+          onConfirm={() => {
+            if (studentToPermanentDelete) {
+              permanentDeleteStudent(studentToPermanentDelete.id, studentToPermanentDelete.classId);
+            }
+            setStudentToPermanentDelete(null);
+          }}
+          title="স্থায়ীভাবে মুছে ফেলুন"
+          message={`আপনি কি নিশ্চিত যে শিক্ষার্থী ${studentToPermanentDelete.name}-কে স্থায়ীভাবে মুছে ফেলতে চান? এটি করলে তার হাজিরা এবং ফলাফল সহ যাবতীয় রেকর্ড চিরতরে মুছে যাবে এবং তা আর ফিরে পাওয়া যাবে না।`}
         />
       )}
     </div>

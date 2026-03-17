@@ -63,7 +63,7 @@ const Attendance: React.FC = () => {
 
   const classStudents = useMemo(() => {
     if (!selectedClassId) return [];
-    return students[selectedClassId] || [];
+    return (students[selectedClassId] || []).filter(s => s.isActive !== false);
   }, [selectedClassId, students]);
 
   // Initialize attendance state with Default Present

@@ -79,6 +79,8 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           fatherName: fatherName ?? "",
           phone: phone ?? "",
           address: address ?? "",
+          isActive: true,
+          version: 1,
         };
         await setDoc(
           doc(db, `organizations/${orgId}/students`, studentId),
@@ -93,7 +95,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     [user, orgId],
   );
 
-  const deleteStudent = useCallback(
+  const archiveStudent = useCallback(
     async (studentId: string, classId?: string) => {
       if (!user || !db || !orgId) {
         toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
@@ -102,37 +104,28 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
       
       const resolvedClassId = classId || studentId.split("-student-")[0];
 
-      // Allow teachers to delete students as well
       if (role !== "admin" && role !== "moderator" && role !== "teacher") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }
 
       try {
-        // 1. Delete the student document
-        await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
+        const studentRef = doc(db, `organizations/${orgId}/students`, studentId);
         
-        // 2. Delete associated attendance records
-        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
-        const attendanceQuery = query(attendanceRef, where("studentId", "==", studentId));
-        const attendanceSnapshot = await getDocs(attendanceQuery);
-
-        const batch = writeBatch(db);
+        // Soft delete: set isActive to false
+        await updateDoc(studentRef, { 
+          isActive: false, 
+          archivedAt: Date.now(),
+          roll: 9999 // Move to end of list
+        });
         
-        if (!attendanceSnapshot.empty) {
-          attendanceSnapshot.docs.forEach(doc => {
-            batch.delete(doc.ref);
-          });
-        }
-
-        // 3. Reorder remaining students
+        // Reorder remaining active students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
-        // Remove orderBy to avoid composite index requirement
-        const q = query(studentsRef, where("classId", "==", resolvedClassId));
-        const remainingStudents = await getDocs(q);
+        const q = query(studentsRef, where("classId", "==", resolvedClassId), where("isActive", "==", true));
+        const activeStudents = await getDocs(q);
         
-        // Sort client-side instead
-        const sortedDocs = remainingStudents.docs.sort((a, b) => {
+        const batch = writeBatch(db);
+        const sortedDocs = activeStudents.docs.sort((a, b) => {
           const rollA = a.data().roll || 0;
           const rollB = b.data().roll || 0;
           return rollA - rollB;
@@ -147,10 +140,10 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
 
         await batch.commit();
 
-        toast.success("শিক্ষার্থী মুছে ফেলা হয়েছে এবং রোল নম্বর পুনরায় সাজানো হয়েছে!");
+        toast.success("শিক্ষার্থীকে আর্কাইভ করা হয়েছে এবং রোল নম্বর পুনরায় সাজানো হয়েছে!");
       } catch (error) {
-        console.error("Error deleting student:", error);
-        toast.error("শিক্ষার্থী মুছে ফেলতে ব্যর্থ হয়েছে।");
+        console.error("Error archiving student:", error);
+        toast.error("শিক্ষার্থী আর্কাইভ করতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId, role],
@@ -211,6 +204,8 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
             studentUid,
             classId,
             roll: maxRoll + index + 1,
+            isActive: true,
+            version: 1,
           };
           batch.set(doc(db, `organizations/${orgId}/students`, studentId), newStudent);
         });
@@ -225,5 +220,76 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     [user, orgId],
   );
 
-  return { students, addStudent, updateStudent, deleteStudent, bulkAddStudents };
+  const permanentDeleteStudent = useCallback(
+    async (studentId: string, classId?: string) => {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+      
+      const resolvedClassId = classId || studentId.split("-student-")[0];
+
+      if (role !== "admin") {
+        toast.error("শুধুমাত্র অ্যাডমিন স্থায়ীভাবে মুছে ফেলতে পারেন।");
+        return;
+      }
+
+      try {
+        // 1. Delete the student document
+        await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
+        
+        // 2. Delete associated attendance records
+        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
+        const attendanceQuery = query(attendanceRef, where("studentId", "==", studentId));
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+
+        const batch = writeBatch(db);
+        
+        if (!attendanceSnapshot.empty) {
+          attendanceSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+        }
+
+        // 3. Delete associated results
+        const resultsRef = collection(db, `organizations/${orgId}/results`);
+        const resultsQuery = query(resultsRef, where("student_id", "==", studentId));
+        const resultsSnapshot = await getDocs(resultsQuery);
+        
+        if (!resultsSnapshot.empty) {
+          resultsSnapshot.docs.forEach(doc => {
+            batch.delete(doc.ref);
+          });
+        }
+
+        // 4. Reorder remaining active students
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("classId", "==", resolvedClassId), where("isActive", "==", true));
+        const activeStudents = await getDocs(q);
+        
+        const sortedDocs = activeStudents.docs.sort((a, b) => {
+          const rollA = a.data().roll || 0;
+          const rollB = b.data().roll || 0;
+          return rollA - rollB;
+        });
+
+        sortedDocs.forEach((doc, index) => {
+          const newRoll = index + 1;
+          if (doc.data().roll !== newRoll) {
+            batch.update(doc.ref, { roll: newRoll });
+          }
+        });
+
+        await batch.commit();
+
+        toast.success("শিক্ষার্থী এবং তার যাবতীয় রেকর্ড স্থায়ীভাবে মুছে ফেলা হয়েছে!");
+      } catch (error) {
+        console.error("Error permanently deleting student:", error);
+        toast.error("স্থায়ীভাবে মুছতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId, role],
+  );
+
+  return { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents };
 };
