@@ -194,74 +194,83 @@ const ClassModal = React.memo<ClassModalProps>(({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden border border-white/20">
-        <div className="flex justify-between items-center p-6 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 tracking-tight">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+      <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+              <Users className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-lg font-bold">{title}</h3>
+          </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors"
+            className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              শ্রেণির নাম
-            </label>
-            <input
-              type="text"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="input-premium"
-              placeholder="শ্রেণির নাম লিখুন"
-              autoFocus
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
-              শিক্ষক নির্ধারণ করুন
-            </label>
-            <div className="max-h-40 overflow-y-auto border border-slate-200 rounded-xl p-2 space-y-1">
-              {staffList.filter(s => {
-                const r = s.roles?.[s.organizationId] || s.role;
-                return r !== "banned" && r !== "pending";
-              }).map(staff => (
-                <label key={staff.id} className="flex items-center gap-3 p-2 hover:bg-slate-50 rounded-lg cursor-pointer">
-                  <input
-                    type="checkbox"
-                    checked={teacherIds.includes(staff.id)}
-                    onChange={() => toggleTeacher(staff.id)}
-                    className="w-4 h-4 text-[#0F5C7A] rounded border-slate-300 focus:ring-[#0F5C7A]"
-                  />
-                  <span className="text-sm text-slate-700">
-                    {staff.displayName || staff.email?.split('@')[0]}
-                  </span>
-                </label>
-              ))}
-              {staffList.length === 0 && (
-                <p className="text-sm text-slate-500 text-center py-2">কোনো শিক্ষক পাওয়া যায়নি</p>
-              )}
+        <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
+          {/* Body */}
+          <div className="p-5 space-y-5 overflow-y-auto max-h-[50vh]">
+            <div>
+              <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                শ্রেণির নাম
+              </label>
+              <input
+                type="text"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                placeholder="শ্রেণির নাম লিখুন"
+                autoFocus
+              />
             </div>
+
+            <div>
+              <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                শিক্ষক নির্ধারণ করুন
+              </label>
+              <div className="max-h-40 overflow-y-auto border border-[#E5E7EB] rounded-[16px] p-2 space-y-1 bg-[#F4F7FB]">
+                {staffList.filter(s => {
+                  const r = s.roles?.[s.organizationId] || s.role;
+                  return r !== "banned" && r !== "pending";
+                }).map(staff => (
+                  <label key={staff.id} className="flex items-center gap-3 p-2 hover:bg-white rounded-[12px] cursor-pointer transition-colors">
+                    <input
+                      type="checkbox"
+                      checked={teacherIds.includes(staff.id)}
+                      onChange={() => toggleTeacher(staff.id)}
+                      className="w-5 h-5 text-[#0F5C7A] rounded border-[#E5E7EB] focus:ring-[#0F5C7A]"
+                    />
+                    <span className="text-[14px] text-[#1F2937]">
+                      {staff.displayName || staff.email?.split('@')[0]}
+                    </span>
+                  </label>
+                ))}
+                {staffList.length === 0 && (
+                  <p className="text-[13px] text-[#6B7280] text-center py-2">কোনো শিক্ষক পাওয়া যায়নি</p>
+                )}
+              </div>
+            </div>
+
+            {error && <p className="text-[13px] text-[#EF4444]">{error}</p>}
           </div>
 
-          {error && <p className="text-sm text-[#EF4444]">{error}</p>}
-
-          <div className="flex justify-end gap-3 mt-8">
+          {/* Footer */}
+          <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
             <button
               type="button"
               onClick={onClose}
-              className="bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+              className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
             >
-              <X className="w-5 h-5 mr-2" />
               বাতিল
             </button>
             <button
               type="submit"
-              className="btn-primary px-6 py-2"
+              className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
             >
               সংরক্ষণ
             </button>

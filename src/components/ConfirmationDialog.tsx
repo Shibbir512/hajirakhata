@@ -13,31 +13,46 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ isOpen, onClose
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-white/20">
-        <div className="p-6">
-          <div className="flex items-center gap-3 mb-4 text-[#EF4444]">
-            <AlertTriangle className="w-8 h-8" />
-            <h3 className="text-xl font-bold text-slate-800">{title}</h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+      <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+              <AlertTriangle className="w-7 h-7 text-white" />
+            </div>
+            <h3 className="text-lg font-bold">{title}</h3>
           </div>
-          <p className="text-slate-600 mb-6">{message}</p>
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 px-4 py-2 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors"
-            >
-              বাতিল
-            </button>
-            <button
-              onClick={() => {
-                onConfirm();
-                onClose();
-              }}
-              className="flex-1 px-4 py-2 rounded-xl font-bold text-white bg-[#EF4444] hover:bg-[#EF4444]/90 transition-colors"
-            >
-              নিশ্চিত করুন
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+          >
+            <X className="w-5 h-5 text-white" />
+          </button>
+        </div>
+
+        {/* Body */}
+        <div className="p-5">
+          <p className="text-[14px] text-[#6B7280]">{message}</p>
+        </div>
+        
+        {/* Footer */}
+        <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
+          >
+            বাতিল
+          </button>
+          <button
+            onClick={() => {
+              onConfirm();
+              onClose();
+            }}
+            className="flex-1 bg-[#EF4444] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#DC2626] transition-colors"
+          >
+            নিশ্চিত করুন
+          </button>
         </div>
       </div>
     </div>

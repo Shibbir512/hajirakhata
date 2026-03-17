@@ -39,10 +39,46 @@ const Students: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const toggleStudentSelection = (studentId: string) => {
+    const newSelected = new Set(selectedStudents);
+    if (newSelected.has(studentId)) {
+      newSelected.delete(studentId);
+    } else {
+      newSelected.add(studentId);
+    }
+    setSelectedStudents(newSelected);
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedStudents.size === paginatedStudents.length) {
+      setSelectedStudents(new Set());
+    } else {
+      setSelectedStudents(new Set(paginatedStudents.map(s => s.id)));
+    }
+  };
+
+  const handleDeleteSelected = () => {
+    if (selectedStudents.size === 0) return;
+    
+    // Using ConfirmationDialog for bulk delete
+    // We need to adapt ConfirmationDialog or create a new one for bulk
+    // For now, let's just trigger a delete for each
+    selectedStudents.forEach(studentId => {
+      const student = allStudentsList.find(s => s.id === studentId);
+      if (student) {
+        deleteStudent(student.id, student.classId);
+      }
+    });
+    setSelectedStudents(new Set());
+    toast.success(`${toBengaliNumber(selectedStudents.size)} জন শিক্ষার্থী মুছে ফেলা হয়েছে।`);
+  };
 
   React.useEffect(() => {
     setCurrentPage(1);
+    setSelectedStudents(new Set());
   }, [searchQuery, selectedClassId]);
 
   const studentAttendance = useStudentAttendance(viewingStudent?.id || "", attendanceSessions);
@@ -186,7 +222,17 @@ const Students: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থী</h2>
-        <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 w-full sm:w-auto">
+        <div className="flex items-center gap-3">
+          {selectedStudents.size > 0 && (
+            <button
+              onClick={handleDeleteSelected}
+              className="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition-colors flex items-center gap-2"
+            >
+              <Trash2 className="w-4 h-4" />
+              মুছে ফেলুন ({toBengaliNumber(selectedStudents.size)})
+            </button>
+          )}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 w-full sm:w-auto">
           <input
             type="file"
             ref={fileInputRef}
@@ -240,6 +286,7 @@ const Students: React.FC = () => {
           </button>
         </div>
       </div>
+    </div>
 
       <div className="card-premium p-8">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
@@ -276,6 +323,14 @@ const Students: React.FC = () => {
             <thead className="bg-[#F8F9FA] sticky top-0 z-10">
               <tr>
                 <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  <input
+                    type="checkbox"
+                    checked={selectedStudents.size === paginatedStudents.length && paginatedStudents.length > 0}
+                    onChange={toggleAllSelection}
+                    className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
+                  />
+                </th>
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   রোল
                 </th>
                 <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
@@ -299,9 +354,20 @@ const Students: React.FC = () => {
               {paginatedStudents.map((student) => (
                 <tr
                   key={student.id}
-                  className="border-b border-[#E5E7EB] hover:bg-slate-50 transition-all duration-200 group"
+                  className={clsx(
+                    "border-b border-[#E5E7EB] hover:bg-slate-50 transition-all duration-200 group",
+                    selectedStudents.has(student.id) && "bg-[#0F5C7A]/5"
+                  )}
                   style={{ height: '72px' }}
                 >
+                  <td className="py-2 px-5">
+                    <input
+                      type="checkbox"
+                      checked={selectedStudents.has(student.id)}
+                      onChange={() => toggleStudentSelection(student.id)}
+                      className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
+                    />
+                  </td>
                   <td className="py-2 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
                   <td className="py-2 px-5 text-[#0F5C7A] font-mono text-[13px] font-semibold">{student.studentUid || "-"}</td>
                   <td className="py-2 px-5 text-slate-800 font-medium">
@@ -445,75 +511,80 @@ const Students: React.FC = () => {
       )}
 
       {viewingStudent && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden border border-slate-100">
+        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+          <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
             {/* Header */}
-            <div className="bg-slate-800 p-6 text-white relative">
-              <button
-                onClick={() => setViewingStudent(null)}
-                className="absolute top-4 right-4 text-white/70 hover:text-white transition-colors"
-              >
-                <X className="w-6 h-6" />
-              </button>
-              <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-[#0F5C7A]/20 flex items-center justify-center border-2 border-[#0F5C7A]/30 shadow-sm">
-                  <User className="w-8 h-8 text-[#0F5C7A]" />
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <User className="w-7 h-7 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
-                  <p className="text-slate-300 text-sm">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
+                  <h3 className="text-lg font-bold">বিস্তারিত</h3>
+                  <p className="text-xs text-white/80">শিক্ষার্থীর তথ্য</p>
                 </div>
               </div>
+              <button
+                onClick={() => setViewingStudent(null)}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
 
-            {/* Details */}
-            <div className="p-6 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">পিতার নাম</p>
-                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.fatherName || "-"}</p>
+            {/* Body */}
+            <div className="p-5 space-y-5 overflow-y-auto max-h-[60vh]">
+              <div className="bg-[#F4F7FB] p-4 rounded-[16px] border border-[#E5E7EB]">
+                <h4 className="text-[16px] font-bold text-[#1F2937] mb-1">{viewingStudent.name}</h4>
+                <p className="text-[14px] text-[#6B7280]">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
+                  <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">পিতার নাম</p>
+                  <p className="text-[14px] text-[#1F2937] font-medium">{viewingStudent.fatherName || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ফোন নম্বর</p>
-                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.phone || "-"}</p>
+                <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
+                  <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">ফোন নম্বর</p>
+                  <p className="text-[14px] text-[#1F2937] font-medium">{viewingStudent.phone || "-"}</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-2xl border border-slate-100 md:col-span-2">
-                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1">ঠিকানা</p>
-                  <p className="text-sm text-slate-800 font-medium">{viewingStudent.address || "-"}</p>
+                <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
+                  <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">ঠিকানা</p>
+                  <p className="text-[14px] text-[#1F2937] font-medium">{viewingStudent.address || "-"}</p>
                 </div>
               </div>
               
               {/* Attendance */}
               <div>
-                <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
+                <h4 className="text-[15px] font-bold text-[#1F2937] mb-3 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-[#0F5C7A]" />
                   সাম্প্রতিক হাজিরা
                 </h4>
-                <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
+                <div className="space-y-2">
                   {studentAttendance.length > 0 ? (
                     studentAttendance.map((record, idx) => (
-                      <div key={idx} className="flex justify-between items-center p-4 bg-white border border-slate-100 rounded-2xl text-sm shadow-sm">
-                        <span className="text-slate-600 font-medium">{toBengaliDate(record.date)}</span>
+                      <div key={idx} className="flex justify-between items-center p-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[14px] text-[13px]">
+                        <span className="text-[#6B7280] font-medium">{toBengaliDate(record.date)}</span>
                         <span className={clsx(
-                          "font-bold px-4 py-1.5 rounded-full text-xs",
-                          record.status === 'present' ? "bg-emerald-50 text-emerald-700 border border-emerald-100" : "bg-rose-50 text-rose-700 border border-rose-100"
+                          "font-bold px-3 py-1 rounded-full text-[11px]",
+                          record.status === 'present' ? "bg-[#DCFCE7] text-[#166534]" : "bg-[#FEE2E2] text-[#991B1B]"
                         )}>
                           {record.status === 'present' ? 'উপস্থিত' : 'অনুপস্থিত'}
                         </span>
                       </div>
                     ))
                   ) : (
-                    <p className="text-sm text-slate-400 italic bg-slate-50 p-6 rounded-2xl text-center">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
+                    <p className="text-[13px] text-[#6B7280] italic bg-[#F4F7FB] p-4 rounded-[14px] text-center">কোন হাজিরা রেকর্ড পাওয়া যায়নি।</p>
                   )}
                 </div>
               </div>
             </div>
             
             {/* Footer */}
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="p-5 border-t border-[#E5E7EB]">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="btn-primary px-8 py-3 rounded-2xl shadow-md hover:shadow-lg"
+                className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
               >
                 বন্ধ করুন
               </button>

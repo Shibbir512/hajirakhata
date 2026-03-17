@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { X } from "lucide-react";
+import { X, UserPlus } from "lucide-react";
 
 interface StudentAddModalProps {
   isOpen: boolean;
@@ -35,79 +35,79 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm">
-      <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden max-h-[90vh] flex flex-col border border-white/20">
-        <div className="flex justify-between items-center p-6 border-b border-slate-100">
-          <h3 className="text-xl font-bold text-slate-800 tracking-tight">
-            নতুন শিক্ষার্থী যোগ করুন
-          </h3>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px]">
+      <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+        {/* Header */}
+        <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+          <div className="flex items-center gap-3">
+            <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+              <UserPlus className="w-7 h-7 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg font-bold">নতুন শিক্ষার্থী</h3>
+              <p className="text-xs text-white/80">তথ্য যোগ করুন</p>
+            </div>
+          </div>
           <button
             onClick={onClose}
-            className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"
+            className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
           >
-            <X className="w-5 h-5" />
+            <X className="w-5 h-5 text-white" />
           </button>
         </div>
 
-        <div className="overflow-y-auto p-6">
+        {/* Body */}
+        <div className="p-5 overflow-y-auto max-h-[60vh]">
           <form id="add-student-form" onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 শিক্ষার্থীর নাম *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="input-premium"
-                placeholder="শিক্ষার্থীর নাম লিখুন"
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                placeholder="নাম লিখুন"
                 autoFocus
               />
             </div>
 
-            <div className="bg-[#0F5C7A]/10 p-4 rounded-2xl border border-[#0F5C7A]/20 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/20 text-[#0F5C7A] flex items-center justify-center font-bold text-sm">i</div>
-              <p className="text-sm text-[#0F5C7A] font-medium">
-                রোল নম্বর স্বয়ংক্রিয়ভাবে বরাদ্দ করা হবে।
-              </p>
-            </div>
-
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 পিতার নাম
               </label>
               <input
                 type="text"
                 value={fatherName}
                 onChange={(e) => setFatherName(e.target.value)}
-                className="input-premium"
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="পিতার নাম লিখুন"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 ফোন নম্বর
               </label>
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                className="input-premium"
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 ঠিকানা
               </label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="input-premium"
+                className="w-full h-[100px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 py-3 focus:border-[#14B8A6] outline-none"
                 placeholder="ঠিকানা লিখুন"
-                rows={3}
               />
             </div>
 
@@ -115,19 +115,19 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           </form>
         </div>
         
-        <div className="p-6 border-t border-slate-100 bg-slate-50/50 flex justify-end gap-3">
+        {/* Footer */}
+        <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
           <button
             type="button"
             onClick={onClose}
-            className="bg-[#EF4444] hover:bg-[#EF4444]/90 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
           >
-            <X className="w-5 h-5 mr-2" />
             বাতিল
           </button>
           <button
             type="submit"
             form="add-student-form"
-            className="bg-white text-[#0F5C7A] border border-[#0F5C7A]/20 shadow-md hover:shadow-lg hover:bg-[#0F5C7A]/10 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
+            className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] shadow-[0_6px_15px_rgba(15,92,122,0.35)] font-bold hover:bg-[#0C4A63] transition-colors"
           >
             যোগ করুন
           </button>

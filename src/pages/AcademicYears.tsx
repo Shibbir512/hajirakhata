@@ -113,35 +113,83 @@ const AcademicYears: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-800">{editingYear ? "শিক্ষাবর্ষ সম্পাদনা" : "নতুন শিক্ষাবর্ষ যোগ"}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+          <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <CalendarDays className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-lg font-bold">{editingYear ? "শিক্ষাবর্ষ সম্পাদনা" : "নতুন শিক্ষাবর্ষ"}</h3>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষাবর্ষের নাম</label>
-                <input type="text" required value={yearName} onChange={(e) => setYearName(e.target.value)} className="input-premium w-full" placeholder="যেমন: ২০২৫-২০২৬" />
+
+            <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
+              {/* Body */}
+              <div className="p-5 space-y-5 overflow-y-auto max-h-[50vh]">
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                    শিক্ষাবর্ষের নাম
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={yearName}
+                    onChange={(e) => setYearName(e.target.value)}
+                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    placeholder="যেমন: ২০২৫-২০২৬"
+                    autoFocus
+                  />
+                </div>
+                <div>
+                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                    হিজরি সন
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={hijriYear}
+                    onChange={(e) => setHijriYear(e.target.value)}
+                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    placeholder="যেমন: ১৪৪৭ হিজরি"
+                  />
+                </div>
+                <div className="flex items-center gap-3 p-3 bg-[#F4F7FB] rounded-[16px] border border-[#E5E7EB]">
+                  <input 
+                    type="checkbox" 
+                    id="isActive" 
+                    checked={isActive} 
+                    onChange={(e) => setIsActive(e.target.checked)} 
+                    className="w-5 h-5 text-[#0F5C7A] rounded border-[#E5E7EB] focus:ring-[#0F5C7A]"
+                  />
+                  <label htmlFor="isActive" className="text-[14px] font-medium text-[#1F2937] cursor-pointer">
+                    এটি সক্রিয় শিক্ষাবর্ষ হিসেবে সেট করুন
+                  </label>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">হিজরি সন</label>
-                <input type="text" required value={hijriYear} onChange={(e) => setHijriYear(e.target.value)} className="input-premium w-full" placeholder="যেমন: ১৪৪৭ হিজরি" />
-              </div>
-              <div className="flex items-center gap-2 mt-2">
-                <input 
-                  type="checkbox" 
-                  id="isActive" 
-                  checked={isActive} 
-                  onChange={(e) => setIsActive(e.target.checked)} 
-                  className="w-4 h-4 text-[#0F5C7A] rounded border-gray-300 focus:ring-[#0F5C7A]"
-                />
-                <label htmlFor="isActive" className="text-sm font-medium text-slate-700 cursor-pointer">
-                  এটি সক্রিয় শিক্ষাবর্ষ হিসেবে সেট করুন
-                </label>
-              </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-outline">বাতিল</button>
-                <button type="submit" className="btn-primary">সংরক্ষণ করুন</button>
+
+              {/* Footer */}
+              <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
+                >
+                  সংরক্ষণ
+                </button>
               </div>
             </form>
           </div>

@@ -114,50 +114,130 @@ const Subjects: React.FC = () => {
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden">
-            <div className="px-6 py-4 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-lg font-bold text-slate-800">{editingSubject ? "বিষয় সম্পাদনা" : "নতুন বিষয় যোগ"}</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+          <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <Book className="w-7 h-7 text-white" />
+                </div>
+                <h3 className="text-lg font-bold">{editingSubject ? "বিষয় সম্পাদনা" : "নতুন বিষয়"}</h3>
+              </div>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
-            <form onSubmit={handleSubmit} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">বিষয়ের নাম</label>
-                <input type="text" required value={name} onChange={(e) => setName(e.target.value)} className="input-premium w-full" placeholder="যেমন: বাংলা" />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি</label>
-                <select required value={classId} onChange={(e) => setClassId(e.target.value)} className="input-premium w-full">
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
+
+            <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
+              {/* Body */}
+              <div className="p-5 space-y-5 overflow-y-auto max-h-[50vh]">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">পূর্ণমান</label>
-                  <input type="number" required min="1" value={fullMarks} onChange={(e) => setFullMarks(Number(e.target.value))} className="input-premium w-full" />
+                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                    বিষয়ের নাম
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    placeholder="যেমন: বাংলা"
+                    autoFocus
+                  />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">পাস নম্বর</label>
-                  <input type="number" required min="1" value={passMarks} onChange={(e) => setPassMarks(Number(e.target.value))} className="input-premium w-full" />
-                </div>
-              </div>
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">ধরন</label>
-                  <select required value={subjectType} onChange={(e) => setSubjectType(e.target.value as any)} className="input-premium w-full">
-                    <option value="written">Written</option>
-                    <option value="oral">Oral</option>
-                    <option value="practical">Practical</option>
+                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                    শ্রেণি
+                  </label>
+                  <select
+                    required
+                    value={classId}
+                    onChange={(e) => setClassId(e.target.value)}
+                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                  >
+                    <option value="">শ্রেণি নির্বাচন করুন</option>
+                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">অর্ডার</label>
-                  <input type="number" required min="1" value={subjectOrder} onChange={(e) => setSubjectOrder(Number(e.target.value))} className="input-premium w-full" />
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                      পূর্ণমান
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={fullMarks}
+                      onChange={(e) => setFullMarks(Number(e.target.value))}
+                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                      পাস নম্বর
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={passMarks}
+                      onChange={(e) => setPassMarks(Number(e.target.value))}
+                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                      ধরন
+                    </label>
+                    <select
+                      required
+                      value={subjectType}
+                      onChange={(e) => setSubjectType(e.target.value as any)}
+                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    >
+                      <option value="written">Written</option>
+                      <option value="oral">Oral</option>
+                      <option value="practical">Practical</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                      অর্ডার
+                    </label>
+                    <input
+                      type="number"
+                      required
+                      min="1"
+                      value={subjectOrder}
+                      onChange={(e) => setSubjectOrder(Number(e.target.value))}
+                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                    />
+                  </div>
                 </div>
               </div>
-              <div className="flex justify-end gap-3 pt-4">
-                <button type="button" onClick={() => setIsModalOpen(false)} className="btn-outline">বাতিল</button>
-                <button type="submit" className="btn-primary">সংরক্ষণ করুন</button>
+
+              {/* Footer */}
+              <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
+                >
+                  বাতিল
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
+                >
+                  সংরক্ষণ
+                </button>
               </div>
             </form>
           </div>
