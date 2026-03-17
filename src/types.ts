@@ -63,6 +63,7 @@ export interface Subject {
   id: string;
   institution_id: string;
   name: string;
+  nameAr?: string;
   classId: string;
   fullMarks: number;
   passMarks: number;

@@ -21,31 +21,19 @@ export const calculateResultMetrics = (
 
   const percentage = totalFullMarks > 0 ? (totalMarks / totalFullMarks) * 100 : 0;
 
-  let grade = "রাসেব"; // Default to Fail
-  
-  if (!hasFailed) {
-    if (percentage >= 80) grade = "মুমতায";
-    else if (percentage >= 65) grade = "জায়্যিদ জিদ্দান";
-    else if (percentage >= 50) grade = "জায়্যিদ";
-    else if (percentage >= 35) grade = "মকবুল";
-  }
+  let grade = "রাসেব";
+  if (percentage >= 80) grade = "মুমতায";
+  else if (percentage >= 65) grade = "জায়্যিদ জিদ্দান";
+  else if (percentage >= 50) grade = "জায়্যিদ";
+  else if (percentage >= 35) grade = "মকবুল";
 
   let rank = "-";
   if (allStudentResults) {
-    const sorted = [...allStudentResults].sort((a, b) => {
-      // First sort by pass/fail (passers first)
-      if (a.hasFailed !== b.hasFailed) {
-        return a.hasFailed ? 1 : -1;
-      }
-      // Then by total marks
-      return b.totalMarks - a.totalMarks;
-    });
+    const sorted = [...allStudentResults].sort((a, b) => b.totalMarks - a.totalMarks);
 
     const rankIndex = sorted.findIndex(r => r.studentId === (results[0]?.student_id || ""));
-    if (rankIndex !== -1 && !hasFailed) {
+    if (rankIndex !== -1 && grade !== "রাসেব") {
       rank = (rankIndex + 1).toString();
-    } else if (hasFailed) {
-      rank = "-";
     }
   }
 
@@ -56,6 +44,6 @@ export const calculateResultMetrics = (
     grade,
     rank,
     hasFailed,
-    statusKey: hasFailed ? "fail" : "pass"
+    statusKey: grade !== "রাসেব" ? "pass" : "fail"
   };
 };

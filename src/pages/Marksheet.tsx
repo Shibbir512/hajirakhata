@@ -155,7 +155,7 @@ const Marksheet: React.FC = () => {
   }, [academicYears, selectedAcademicYearId]);
 
   const filteredExams = useMemo(() => {
-    return exams.filter(e => e.classId === selectedClassId && e.academicYearId === selectedAcademicYearId);
+    return exams.filter(e => (e.classId === selectedClassId || e.classId === "all") && e.academicYearId === selectedAcademicYearId);
   }, [exams, selectedClassId, selectedAcademicYearId]);
 
   const filteredSubjects = useMemo(() => {
@@ -324,6 +324,19 @@ const Marksheet: React.FC = () => {
         windowWidth: width,
         windowHeight: height,
         onclone: (clonedDoc) => {
+          // Fix for oklab/oklch color parsing error in html2canvas
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
           const clonedElement = clonedDoc.getElementById('marksheet-container');
           if (clonedElement) {
             clonedElement.style.height = 'auto';
@@ -377,12 +390,26 @@ const Marksheet: React.FC = () => {
       const canvas = await html2canvas(input, { 
         scale: 2,
         useCORS: true,
+        logging: false,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
         windowWidth: width,
         windowHeight: height,
         onclone: (clonedDoc) => {
+          // Fix for oklab/oklch color parsing error in html2canvas
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
           const clonedElement = clonedDoc.getElementById('marksheet-container');
           if (clonedElement) {
             clonedElement.style.height = 'auto';

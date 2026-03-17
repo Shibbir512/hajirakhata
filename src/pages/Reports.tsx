@@ -99,6 +99,19 @@ const Reports: React.FC = () => {
         windowWidth: input.scrollWidth,
         windowHeight: input.scrollHeight,
         onclone: (clonedDoc) => {
+          // Fix for oklab/oklch color parsing error in html2canvas
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
           const clonedElement = clonedDoc.getElementById('report-container');
           if (clonedElement) {
             clonedElement.style.width = `${input.offsetWidth}px`;

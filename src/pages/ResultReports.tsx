@@ -40,7 +40,7 @@ const ResultReports: React.FC = () => {
   }, [academicYears, selectedAcademicYearId]);
 
   const filteredExams = useMemo(() => {
-    return exams.filter(e => e.classId === selectedClassId && e.academicYearId === selectedAcademicYearId);
+    return exams.filter(e => (e.classId === selectedClassId || e.classId === "all") && e.academicYearId === selectedAcademicYearId);
   }, [exams, selectedClassId, selectedAcademicYearId]);
 
   const filteredSubjects = useMemo(() => {
@@ -131,7 +131,21 @@ const ResultReports: React.FC = () => {
         scale: 2,
         useCORS: true,
         logging: false,
-        backgroundColor: '#ffffff'
+        backgroundColor: '#ffffff',
+        onclone: (clonedDoc) => {
+          // Fix for oklab/oklch color parsing error in html2canvas
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+        }
       });
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF("l", "mm", "a4");

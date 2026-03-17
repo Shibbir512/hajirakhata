@@ -10,6 +10,7 @@ import { ClipboardEdit } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import toast from "react-hot-toast";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const ResultEntry: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -31,10 +32,15 @@ const ResultEntry: React.FC = () => {
     return results.length > 0 && results.every(r => r.status === 'published');
   }, [results]);
 
+  const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+
   const handlePublish = async () => {
-    if (window.confirm("আপনি কি নিশ্চিত যে আপনি এই ফলাফলটি প্রকাশ করতে চান? একবার প্রকাশিত হলে এটি সবার জন্য দৃশ্যমান হবে।")) {
-      await publishResults(academicYearId, examId, classId);
-    }
+    setIsPublishModalOpen(true);
+  };
+
+  const confirmPublish = async () => {
+    await publishResults(academicYearId, examId, classId);
+    setIsPublishModalOpen(false);
   };
 
   const allStudentResults = useMemo(() => {
@@ -254,6 +260,15 @@ const ResultEntry: React.FC = () => {
             </div>
           </div>
         </div>
+      )}
+      {isPublishModalOpen && (
+        <ConfirmationDialog
+          isOpen={isPublishModalOpen}
+          onClose={() => setIsPublishModalOpen(false)}
+          onConfirm={confirmPublish}
+          title="ফলাফল প্রকাশ করুন"
+          message="আপনি কি নিশ্চিত যে আপনি এই ফলাফলটি প্রকাশ করতে চান? একবার প্রকাশিত হলে এটি সবার জন্য দৃশ্যমান হবে।"
+        />
       )}
     </div>
   );

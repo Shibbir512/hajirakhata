@@ -38,11 +38,11 @@ export const useSubjects = (orgId: string | null, user: any) => {
   }, [user, orgId]);
 
   const addSubject = useCallback(
-    async (name: string, classId: string, fullMarks: number, passMarks: number, subjectOrder: number, subjectType: 'written' | 'oral' | 'practical') => {
+    async (name: string, nameAr: string | undefined, classId: string, fullMarks: number, passMarks: number, subjectOrder: number, subjectType: 'written' | 'oral' | 'practical') => {
       if (!user || !db || !orgId) return;
       try {
         const newSubjectId = `subject-${Date.now()}`;
-        const newSubject: Subject = { id: newSubjectId, institution_id: orgId, name, classId, fullMarks, passMarks, subjectOrder, subjectType };
+        const newSubject: Subject = { id: newSubjectId, institution_id: orgId, name, nameAr, classId, fullMarks, passMarks, subjectOrder, subjectType };
         await setDoc(
           doc(db, `organizations/${orgId}/subjects`, newSubjectId),
           newSubject,

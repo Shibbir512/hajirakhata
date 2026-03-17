@@ -16,41 +16,50 @@ const Subjects: React.FC = () => {
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
 
-  const [name, setName] = useState("");
+  const [subjectsList, setSubjectsList] = useState<{ name: string; nameAr: string; fullMarks: number; passMarks: number; subjectType: 'written' | 'oral' | 'practical'; subjectOrder: number }[]>(
+    Array.from({ length: 7 }, (_, i) => ({ name: "", nameAr: "", fullMarks: 100, passMarks: 35, subjectType: 'written', subjectOrder: i + 1 }))
+  );
   const [classId, setClassId] = useState("");
-  const [fullMarks, setFullMarks] = useState(100);
-  const [passMarks, setPassMarks] = useState(35);
-  const [subjectOrder, setSubjectOrder] = useState(1);
-  const [subjectType, setSubjectType] = useState<'written' | 'oral' | 'practical'>('written');
 
   const openAddModal = () => {
-    setName("");
+    setSubjectsList(Array.from({ length: 7 }, (_, i) => ({ name: "", nameAr: "", fullMarks: 100, passMarks: 35, subjectType: 'written', subjectOrder: i + 1 })));
     setClassId(classes[0]?.id || "");
-    setFullMarks(100);
-    setPassMarks(35);
-    setSubjectOrder(subjects.length + 1);
-    setSubjectType('written');
     setEditingSubject(null);
     setIsModalOpen(true);
   };
 
   const openEditModal = (subject: Subject) => {
-    setName(subject.name);
+    setSubjectsList([{ 
+      name: subject.name, 
+      nameAr: subject.nameAr || "", 
+      fullMarks: subject.fullMarks, 
+      passMarks: subject.passMarks, 
+      subjectOrder: subject.subjectOrder, 
+      subjectType: subject.subjectType 
+    }]);
     setClassId(subject.classId);
-    setFullMarks(subject.fullMarks);
-    setPassMarks(subject.passMarks);
-    setSubjectOrder(subject.subjectOrder);
-    setSubjectType(subject.subjectType);
     setEditingSubject(subject);
     setIsModalOpen(true);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSubject) {
-      updateSubject(editingSubject.id, { name, classId, fullMarks, passMarks, subjectOrder, subjectType });
+      updateSubject(editingSubject.id, { 
+        name: subjectsList[0].name, 
+        nameAr: subjectsList[0].nameAr, 
+        classId, 
+        fullMarks: subjectsList[0].fullMarks, 
+        passMarks: subjectsList[0].passMarks, 
+        subjectOrder: subjectsList[0].subjectOrder, 
+        subjectType: subjectsList[0].subjectType 
+      });
     } else {
-      addSubject(name, classId, fullMarks, passMarks, subjectOrder, subjectType);
+      for (const subject of subjectsList) {
+        if (subject.name.trim() !== "") {
+          await addSubject(subject.name, subject.nameAr, classId, subject.fullMarks, subject.passMarks, subject.subjectOrder, subject.subjectType);
+        }
+      }
     }
     setIsModalOpen(false);
   };
@@ -134,21 +143,7 @@ const Subjects: React.FC = () => {
 
             <form onSubmit={handleSubmit} className="flex flex-col overflow-hidden">
               {/* Body */}
-              <div className="p-5 space-y-5 overflow-y-auto max-h-[50vh]">
-                <div>
-                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                    বিষয়ের নাম
-                  </label>
-                  <input
-                    type="text"
-                    required
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                    placeholder="যেমন: বাংলা"
-                    autoFocus
-                  />
-                </div>
+              <div className="p-5 space-y-5 overflow-y-auto max-h-[60vh]">
                 <div>
                   <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
                     শ্রেণি
@@ -163,64 +158,35 @@ const Subjects: React.FC = () => {
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                      পূর্ণমান
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      value={fullMarks}
-                      onChange={(e) => setFullMarks(Number(e.target.value))}
-                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                    />
+                
+                {subjectsList.map((subject, index) => (
+                  <div key={index} className="p-4 border border-[#E5E7EB] rounded-[16px] space-y-3">
+                    <div className="flex justify-between items-center">
+                      <h4 className="font-bold text-[#0F5C7A]">বিষয় {index + 1}</h4>
+                      {subjectsList.length > 1 && (
+                        <button type="button" onClick={() => setSubjectsList(subjectsList.filter((_, i) => i !== index))} className="text-rose-500">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <input type="text" placeholder="নাম (বাংলা)" value={subject.name} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], name: e.target.value }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <input type="text" placeholder="নাম (আরবি)" value={subject.nameAr} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], nameAr: e.target.value }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2">
+                      <input type="number" placeholder="পূর্ণমান" value={subject.fullMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], fullMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <input type="number" placeholder="পাস" value={subject.passMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], passMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <select value={subject.subjectType} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], subjectType: e.target.value as any }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]">
+                        <option value="written">Written</option>
+                        <option value="oral">Oral</option>
+                        <option value="practical">Practical</option>
+                      </select>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                      পাস নম্বর
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      value={passMarks}
-                      onChange={(e) => setPassMarks(Number(e.target.value))}
-                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                    />
-                  </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                      ধরন
-                    </label>
-                    <select
-                      required
-                      value={subjectType}
-                      onChange={(e) => setSubjectType(e.target.value as any)}
-                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                    >
-                      <option value="written">Written</option>
-                      <option value="oral">Oral</option>
-                      <option value="practical">Practical</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                      অর্ডার
-                    </label>
-                    <input
-                      type="number"
-                      required
-                      min="1"
-                      value={subjectOrder}
-                      onChange={(e) => setSubjectOrder(Number(e.target.value))}
-                      className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                    />
-                  </div>
-                </div>
+                ))}
+                <button type="button" onClick={() => setSubjectsList([...subjectsList, { name: "", nameAr: "", fullMarks: 100, passMarks: 35, subjectType: 'written', subjectOrder: subjectsList.length + 1 }])} className="w-full py-3 border-2 border-dashed border-[#0F5C7A] text-[#0F5C7A] rounded-[16px] font-bold">
+                  + নতুন বিষয় যোগ করুন
+                </button>
               </div>
 
               {/* Footer */}

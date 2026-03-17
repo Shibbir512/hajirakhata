@@ -2,6 +2,10 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 @import "react-datepicker/dist/react-datepicker.css";
 
+:root {
+  color-scheme: light;
+}
+
 @theme {
   --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-bengali: "Noto Sans Bengali", sans-serif;
