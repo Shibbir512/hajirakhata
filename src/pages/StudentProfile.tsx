@@ -98,7 +98,7 @@ const StudentProfile: React.FC = () => {
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#0F5C7A]"></div>
       </div>
     );
   }
@@ -121,11 +121,11 @@ const StudentProfile: React.FC = () => {
         {/* Student Info Card */}
         <div className="card-premium p-6 space-y-6">
           <div className="flex flex-col items-center text-center">
-            <div className="w-24 h-24 rounded-full bg-indigo-100 flex items-center justify-center mb-4">
-              <User className="w-12 h-12 text-indigo-600" />
+            <div className="w-24 h-24 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center mb-4">
+              <User className="w-12 h-12 text-[#0F5C7A]" />
             </div>
             <h3 className="text-xl font-bold text-slate-800">{student.name}</h3>
-            <p className="text-indigo-600 font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
+            <p className="text-[#0F5C7A] font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
             <p className="text-slate-500 text-sm">রোল: {student.roll}</p>
           </div>
 
@@ -155,7 +155,7 @@ const StudentProfile: React.FC = () => {
         <div className="lg:col-span-2 space-y-6">
           <div className="card-premium p-6">
             <h3 className="text-lg font-bold text-slate-800 mb-6 flex items-center gap-2">
-              <BookOpen className="w-5 h-5 text-indigo-600" />
+              <BookOpen className="w-5 h-5 text-[#0F5C7A]" />
               একাডেমিক ইতিহাস
             </h3>
 
@@ -180,7 +180,7 @@ const StudentProfile: React.FC = () => {
                         <td className="py-4 px-4 text-sm text-slate-700 border-b">{item.class}</td>
                         <td className="py-4 px-4 text-sm text-slate-700 border-b text-center font-medium">{item.totalMarks}</td>
                         <td className="py-4 px-4 text-sm text-slate-700 border-b text-center">{item.percentage}%</td>
-                        <td className="py-4 px-4 text-sm font-bold text-indigo-600 border-b text-center">{item.grade}</td>
+                        <td className="py-4 px-4 text-sm font-bold text-[#0F5C7A] border-b text-center">{item.grade}</td>
                       </tr>
                     ))
                   ) : (

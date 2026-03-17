@@ -173,7 +173,7 @@ const Attendance: React.FC = () => {
             icon={Users}
             color="text-slate-600"
             gradient="bg-slate-50"
-            valueColor="text-[#0e5fb7]"
+            valueColor="text-[#0F5C7A]"
           />
           <StatCard
             title="উপস্থিত"
@@ -181,7 +181,7 @@ const Attendance: React.FC = () => {
             icon={CheckCircle}
             color="text-emerald-600"
             gradient="bg-emerald-50"
-            valueColor="text-[#0b7b5f]"
+            valueColor="text-[#22C55E]"
           />
           <StatCard
             title="অনুপস্থিত"
@@ -189,7 +189,7 @@ const Attendance: React.FC = () => {
             icon={XCircle}
             color="text-rose-600"
             gradient="bg-rose-50"
-            valueColor="text-[#dc3218]"
+            valueColor="text-[#EF4444]"
           />
         </div>
       )}
@@ -200,16 +200,17 @@ const Attendance: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight text-xl sm:text-2xl font-bold text-[#0a6fb0] border-[#126bc8] bg-[#0a5682]/5 text-center appearance-none pr-10 py-3"
+              className="w-full text-[16px] font-medium text-slate-700 bg-white appearance-none px-4 pr-10 outline-none focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A] transition-all"
+              style={{ height: '50px', borderRadius: '16px', border: '1px solid #D1D5DB' }}
             >
-              <option value="" className="text-slate-500 font-normal text-lg">শ্রেণি নির্বাচন করুন</option>
+              <option value="" className="text-slate-500 font-normal text-[16px]">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
-                <option key={cls.id} value={cls.id} className="text-lg sm:text-xl font-medium">
+                <option key={cls.id} value={cls.id} className="text-[16px] font-medium">
                   {cls.name}
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-[#0a5682] w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
         </div>
 
@@ -218,28 +219,28 @@ const Attendance: React.FC = () => {
             <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
-                className="text-xs sm:text-sm text-emerald-600 hover:text-emerald-700 font-bold px-3 py-2 rounded-xl hover:bg-emerald-50 transition-all duration-300 border border-emerald-100 flex items-center gap-2"
-                style={{ width: '122.891px', height: '33.75px' }}
+                className="text-white font-bold px-4 py-2 hover:bg-emerald-600 transition-all duration-300 flex items-center justify-center gap-2"
+                style={{ backgroundColor: '#22C55E', borderRadius: '14px', height: '44px' }}
               >
                 <CheckCircle className="w-4 h-4" />
                 সবাই উপস্থিত
               </button>
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
-                className="text-xs sm:text-sm text-rose-600 hover:text-rose-700 font-bold px-3 py-2 rounded-xl hover:bg-rose-50 transition-all duration-300 border border-rose-100 flex items-center gap-2"
-                style={{ height: '33.75px', width: '123.656px' }}
+                className="text-[#EF4444] font-bold px-4 py-2 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center gap-2"
+                style={{ backgroundColor: 'white', border: '1px solid #EF4444', borderRadius: '14px', height: '44px' }}
               >
                 <XCircle className="w-4 h-4" />
                 সবাই অনুপস্থিত
               </button>
             </div>
 
-            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px] shadow-sm">
+            <div className="overflow-x-auto bg-white rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                   <tr>
                     <th 
-                      className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-10 sm:w-16"
+                      className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-10 sm:w-16"
                       onClick={() => handleSort('roll')}
                     >
                       <div className="flex items-center gap-1 sm:gap-2">
@@ -247,14 +248,14 @@ const Attendance: React.FC = () => {
                       </div>
                     </th>
                     <th 
-                      className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-full"
+                      className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-full"
                       onClick={() => handleSort('name')}
                     >
                       <div className="flex items-center gap-1 sm:gap-2">
                         শিক্ষার্থীর নাম <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
                       </div>
                     </th>
-                    <th className="text-left py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] whitespace-nowrap">
+                    <th className="text-left py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] whitespace-nowrap">
                       অবস্থা
                     </th>
                   </tr>
@@ -265,18 +266,19 @@ const Attendance: React.FC = () => {
                     return (
                       <tr
                         key={student.id}
-                        className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors group"
+                        className="border-b border-[#E5E7EB] hover:bg-slate-50 transition-colors group"
+                        style={{ height: '72px' }}
                       >
-                        <td className="py-4 px-5 text-slate-800 font-bold text-[15px] w-10 sm:w-16">
+                        <td className="py-2 px-5 text-slate-800 font-bold text-[15px] w-10 sm:w-16">
                           {toBengaliNumber(student.roll)}
                         </td>
-                        <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base w-full">
+                        <td className="py-2 px-5 text-slate-800 font-medium text-sm sm:text-base w-full">
                           <div className="flex flex-col">
-                            <span className="text-[17px] font-normal">{student.name}</span>
+                            <span className="text-[14px] font-medium">{student.name}</span>
                           </div>
                         </td>
-                        <td className="py-4 px-5 whitespace-nowrap">
-                          <div className="flex flex-row justify-start gap-1.5 sm:gap-2">
+                        <td className="py-2 px-5 whitespace-nowrap">
+                          <div className="flex flex-row justify-start gap-2">
                             <button
                               onClick={() =>
                                 handleStatusChange(
@@ -286,14 +288,15 @@ const Attendance: React.FC = () => {
                               }
                               title="উপস্থিত"
                               className={clsx(
-                                "p-2 sm:px-3 sm:py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 border-2 text-[10px] sm:text-xs",
+                                "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
                                 status === AttendanceStatus.Present
-                                  ? "bg-emerald-500 text-white border-emerald-600 shadow-lg scale-105"
-                                  : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
+                                  ? "bg-[#22C55E] text-white shadow-md"
+                                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
                               )}
+                              style={{ borderRadius: '12px', padding: '10px 18px' }}
                             >
-                              <CheckCircle className="w-5 h-5 sm:w-4 sm:h-4 text-[#116ed0]" />
-                              <span className="font-bold hidden sm:inline">উপস্থিত</span>
+                              <CheckCircle className="w-4 h-4" />
+                              <span className="hidden sm:inline">উপস্থিত</span>
                             </button>
                             <button
                               onClick={() =>
@@ -304,14 +307,15 @@ const Attendance: React.FC = () => {
                               }
                               title="অনুপস্থিত"
                               className={clsx(
-                                "p-2 sm:px-3 sm:py-2 rounded-xl transition-all duration-300 flex items-center justify-center gap-1 sm:gap-2 border-2 text-[10px] sm:text-xs",
+                                "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
                                 status === AttendanceStatus.Absent
-                                  ? "bg-rose-500 text-white border-rose-600 shadow-lg scale-105"
-                                  : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50 hover:text-slate-600",
+                                  ? "bg-[#FEE2E2] text-[#EF4444] shadow-md"
+                                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
                               )}
+                              style={{ borderRadius: '12px', padding: '10px 18px' }}
                             >
-                              <XCircle className="w-5 h-5 sm:w-4 sm:h-4 text-[#116ed0]" />
-                              <span className="font-bold hidden sm:inline">অনুপস্থিত</span>
+                              <XCircle className="w-4 h-4" />
+                              <span className="hidden sm:inline">অনুপস্থিত</span>
                             </button>
                           </div>
                         </td>
@@ -366,7 +370,7 @@ const Attendance: React.FC = () => {
                 onClick={handleSave}
                 disabled={isTakingAttendance}
                 className="btn-primary px-8 py-3 text-base"
-                style={{ backgroundColor: '#0e6ea4' }}
+                style={{ backgroundColor: '#0F5C7A' }}
               >
                 {isTakingAttendance ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />

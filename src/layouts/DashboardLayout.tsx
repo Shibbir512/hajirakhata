@@ -54,8 +54,8 @@ const DashboardLayout: React.FC = () => {
             <div className="flex-1 w-0 p-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Bell className="h-6 w-6 text-indigo-600" />
+                  <div className="h-10 w-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center">
+                    <Bell className="h-6 w-6 text-[#0F5C7A]" />
                   </div>
                 </div>
                 <div className="ml-3 flex-1">
@@ -74,7 +74,7 @@ const DashboardLayout: React.FC = () => {
                   toast.dismiss(t.id);
                   navigate("/settings");
                 }}
-                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#0F5C7A] hover:text-[#0C6C8A] focus:outline-none"
               >
                 দেখুন
               </button>
@@ -106,8 +106,8 @@ const DashboardLayout: React.FC = () => {
             <div className="flex-1 w-0 p-4">
               <div className="flex items-start">
                 <div className="flex-shrink-0 pt-0.5">
-                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                    <Bell className="h-6 w-6 text-indigo-600" />
+                  <div className="h-10 w-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center">
+                    <Bell className="h-6 w-6 text-[#0F5C7A]" />
                   </div>
                 </div>
                 <div className="ml-3 flex-1">
@@ -126,7 +126,7 @@ const DashboardLayout: React.FC = () => {
                   toast.dismiss(t.id);
                   navigate("/settings");
                 }}
-                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-indigo-600 hover:text-indigo-500 focus:outline-none"
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-[#0F5C7A] hover:text-[#0C6C8A] focus:outline-none"
               >
                 দেখুন
               </button>
@@ -153,7 +153,7 @@ const DashboardLayout: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
-        <div className="w-12 h-12 border-4 border-indigo-200 border-t-indigo-500 rounded-full animate-spin"></div>
+        <div className="w-12 h-12 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
       </div>
     );
   }

@@ -247,7 +247,7 @@ const Students: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full search-highlight font-bold text-[#106db3] border-[#106db3] bg-indigo-50/30 text-center appearance-none pr-10 text-[17.875px]"
+              className="input-premium w-full text-base font-medium text-[#0F5C7A] bg-white appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -256,41 +256,41 @@ const Students: React.FC = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-indigo-600 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
 
           <div className="relative flex-1">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-indigo-500 w-5 h-5" />
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
               placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-premium pl-12 search-highlight"
+              className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
             />
           </div>
         </div>
 
-        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
+        <div className="overflow-x-auto bg-white rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">
           <table className="w-full text-left border-collapse">
             <thead className="bg-[#F8F9FA] sticky top-0 z-10">
               <tr>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   রোল
                 </th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   আইডি
                 </th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শিক্ষার্থীর নাম
                 </th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শ্রেণি
                 </th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] hidden md:table-cell">
+                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] hidden md:table-cell">
                   ফোন
                 </th>
-                <th className="text-right py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="text-right py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   কার্যক্রম
                 </th>
               </tr>
@@ -299,33 +299,34 @@ const Students: React.FC = () => {
               {paginatedStudents.map((student) => (
                 <tr
                   key={student.id}
-                  className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200 group"
+                  className="border-b border-[#E5E7EB] hover:bg-slate-50 transition-all duration-200 group"
+                  style={{ height: '72px' }}
                 >
-                  <td className="py-4 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
-                  <td className="py-4 px-5 text-indigo-600 font-mono text-sm font-bold">{student.studentUid || "-"}</td>
-                  <td className="py-4 px-5 text-slate-800 font-medium">
-                    <div className="flex items-center gap-3 text-[16px]">
+                  <td className="py-2 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
+                  <td className="py-2 px-5 text-[#0F5C7A] font-mono text-[13px] font-semibold">{student.studentUid || "-"}</td>
+                  <td className="py-2 px-5 text-slate-800 font-medium">
+                    <div className="flex items-center gap-3 text-[14px]">
                       {student.name}
                     </div>
                   </td>
-                  <td className="py-4 px-5 text-slate-600">
+                  <td className="py-2 px-5 text-slate-600 text-[14px]">
                     {classes.find(c => c.id === student.classId)?.name || "N/A"}
                   </td>
-                  <td className="py-4 px-5 text-slate-500 hidden md:table-cell">
+                  <td className="py-2 px-5 text-slate-500 text-[14px] hidden md:table-cell">
                     {student.phone || "-"}
                   </td>
-                  <td className="py-4 px-5 text-right">
+                  <td className="py-2 px-5 text-right">
                     <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setViewingStudent(student)}
-                        className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                        className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors"
                         title="বিস্তারিত দেখুন"
                       >
                         <Eye className="w-4 h-4" strokeWidth={2} />
                       </button>
                       <button
                         onClick={() => setEditingStudent(student)}
-                        className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors"
+                        className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors"
                         title="সম্পাদনা"
                       >
                         <Edit className="w-4 h-4" strokeWidth={2} />
@@ -397,7 +398,7 @@ const Students: React.FC = () => {
                         className={clsx(
                           "w-9 h-9 rounded-xl text-sm transition-all duration-300",
                           currentPage === page
-                            ? "bg-[#0967b0] text-white shadow-sm font-bold"
+                            ? "bg-[#0F5C7A] text-white shadow-sm font-bold"
                             : "text-slate-600 hover:bg-slate-100 font-medium"
                         )}
                       >
@@ -455,8 +456,8 @@ const Students: React.FC = () => {
                 <X className="w-6 h-6" />
               </button>
               <div className="flex items-center gap-4">
-                <div className="w-16 h-16 rounded-full bg-indigo-500/20 flex items-center justify-center border-2 border-indigo-500/30 shadow-sm">
-                  <User className="w-8 h-8 text-indigo-400" />
+                <div className="w-16 h-16 rounded-full bg-[#0F5C7A]/20 flex items-center justify-center border-2 border-[#0F5C7A]/30 shadow-sm">
+                  <User className="w-8 h-8 text-[#0F5C7A]" />
                 </div>
                 <div>
                   <h3 className="text-xl font-bold text-white">{viewingStudent.name}</h3>
@@ -485,7 +486,7 @@ const Students: React.FC = () => {
               {/* Attendance */}
               <div>
                 <h4 className="text-base font-bold text-slate-800 mb-4 flex items-center gap-2">
-                  <Calendar className="w-5 h-5 text-indigo-600" />
+                  <Calendar className="w-5 h-5 text-[#0F5C7A]" />
                   সাম্প্রতিক হাজিরা
                 </h4>
                 <div className="max-h-60 overflow-y-auto space-y-3 pr-2">
@@ -512,7 +513,7 @@ const Students: React.FC = () => {
             <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
               <button
                 onClick={() => setViewingStudent(null)}
-                className="bg-indigo-700 hover:bg-indigo-800 text-white transition-all duration-300 flex items-center px-8 py-3 rounded-2xl font-bold shadow-md hover:shadow-lg"
+                className="btn-primary px-8 py-3 rounded-2xl shadow-md hover:shadow-lg"
               >
                 বন্ধ করুন
               </button>

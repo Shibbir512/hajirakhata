@@ -285,7 +285,7 @@ const Settings: React.FC = () => {
         <div className="card-premium p-8">
           <div className="flex items-center gap-4 mb-8">
             <div className="relative group">
-              <div className="w-20 h-20 bg-gradient-to-tr from-indigo-50 to-purple-50 rounded-full flex items-center justify-center text-indigo-600 shadow-inner border-2 border-white overflow-hidden relative">
+              <div className="w-20 h-20 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center text-[#0F5C7A] shadow-inner border-2 border-white overflow-hidden relative">
                 {photoURL ? (
                   <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
                 ) : (
@@ -297,7 +297,7 @@ const Settings: React.FC = () => {
                   </div>
                 )}
               </div>
-              <label className="absolute bottom-0 right-0 w-8 h-8 bg-indigo-600 text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-indigo-700 transition-colors border-2 border-white">
+              <label className="absolute bottom-0 right-0 w-8 h-8 bg-[#0F5C7A] text-white rounded-full flex items-center justify-center cursor-pointer shadow-lg hover:bg-[#0C6C8A] transition-colors border-2 border-white">
                 <Camera className="w-4 h-4" />
                 <input type="file" className="hidden" accept="image/*" onChange={handleImageUpload} disabled={isUploading} />
               </label>
@@ -351,7 +351,7 @@ const Settings: React.FC = () => {
                   type="text"
                   value={role === "admin" ? "অ্যাডমিন" : "শিক্ষক"}
                   disabled
-                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70 font-medium text-indigo-700"
+                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70 font-medium text-[#0F5C7A]"
                 />
               </div>
             </div>
@@ -373,7 +373,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={handleSavePhone}
                   disabled={isSavingPhone || userPhone === (phone || "")}
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-indigo-700 transition-colors"
+                  className="px-4 py-2 bg-[#0F5C7A] text-white rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-[#0C6C8A] transition-colors"
                 >
                   {isSavingPhone ? "..." : "সেভ"}
                 </button>
@@ -385,7 +385,7 @@ const Settings: React.FC = () => {
         {/* Organization Section */}
         <div className="card-premium p-8">
           <div className="flex items-center gap-4 mb-8">
-            <div className="w-14 h-14 bg-gradient-to-tr from-purple-100 to-pink-100 rounded-full flex items-center justify-center text-purple-600 shadow-inner border border-white">
+            <div className="w-14 h-14 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center text-[#0F5C7A] shadow-inner border border-white">
               <Building className="w-7 h-7" />
             </div>
             <div>
@@ -421,7 +421,7 @@ const Settings: React.FC = () => {
                 </code>
                 <button
                   onClick={handleCopyId}
-                  className="px-4 py-3 text-sm font-medium text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-xl transition-colors border border-indigo-100"
+                  className="px-4 py-3 text-sm font-medium text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20"
                 >
                   কপি
                 </button>
@@ -449,7 +449,7 @@ const Settings: React.FC = () => {
         {role === "admin" && (
           <div className="col-span-1 md:col-span-2 card-premium p-8">
             <div className="flex items-center gap-4 mb-8">
-              <div className="w-14 h-14 bg-gradient-to-tr from-blue-50 to-cyan-50 rounded-full flex items-center justify-center text-blue-600 shadow-inner border border-white">
+              <div className="w-14 h-14 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center text-[#0F5C7A] shadow-inner border border-white">
                 <Users className="w-7 h-7" />
               </div>
               <div>
@@ -464,7 +464,7 @@ const Settings: React.FC = () => {
 
             {loadingStaff ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
               </div>
             ) : staff.length > 0 ? (
               <div className="overflow-x-auto">
@@ -490,7 +490,7 @@ const Settings: React.FC = () => {
                             <div className="flex items-center gap-1 mt-0.5">
                               <span className="text-[10px] text-slate-400 font-mono" title="User ID">ID: {s.id}</span>
                               {s.id === user?.uid && (
-                                <span className="text-[10px] bg-indigo-50 text-indigo-600 px-1 rounded border border-indigo-100">আপনি</span>
+                                <span className="text-[10px] bg-[#0F5C7A]/10 text-[#0F5C7A] px-1 rounded border border-[#0F5C7A]/20">আপনি</span>
                               )}
                             </div>
                           </div>
@@ -498,12 +498,12 @@ const Settings: React.FC = () => {
                         <td className="py-4">
                           <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                             currentRole === "admin" 
-                              ? "bg-purple-100 text-purple-700" 
+                              ? "bg-[#14B8A6]/10 text-[#14B8A6]" 
                               : currentRole === "banned"
                               ? "bg-red-100 text-red-700"
                               : currentRole === "pending"
                               ? "bg-amber-100 text-amber-700"
-                              : "bg-indigo-100 text-indigo-700"
+                              : "bg-[#0F5C7A]/10 text-[#0F5C7A]"
                           }`}>
                             {currentRole === "admin" ? "অ্যাডমিন" : currentRole === "banned" ? "ব্যানড" : currentRole === "pending" ? "অপেক্ষমান" : "শিক্ষক"}
                           </span>
@@ -514,7 +514,7 @@ const Settings: React.FC = () => {
                               <button
                                 onClick={() => handleUpdateRole(s.id, "teacher")}
                                 disabled={s.id === user?.uid}
-                                className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                className="p-2 text-slate-400 hover:text-[#0F5C7A] hover:bg-[#0F5C7A]/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                 title="অনুমোদন করুন"
                               >
                                 <ShieldCheck className="w-4 h-4" />
@@ -525,7 +525,7 @@ const Settings: React.FC = () => {
                                   <button
                                     onClick={() => handleUpdateRole(s.id, "admin")}
                                     disabled={s.id === user?.uid}
-                                    className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-2 text-slate-400 hover:text-[#14B8A6] hover:bg-[#14B8A6]/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="অ্যাডমিন/মডারেটর বানান"
                                   >
                                     <ShieldCheck className="w-4 h-4" />
@@ -534,7 +534,7 @@ const Settings: React.FC = () => {
                                   <button
                                     onClick={() => handleUpdateRole(s.id, "teacher")}
                                     disabled={s.id === user?.uid}
-                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-2 text-slate-400 hover:text-[#0F5C7A] hover:bg-[#0F5C7A]/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="শিক্ষক বানান"
                                   >
                                     <UserCog className="w-4 h-4" />
@@ -545,7 +545,7 @@ const Settings: React.FC = () => {
                                   <button
                                     onClick={() => handleUpdateRole(s.id, "banned")}
                                     disabled={s.id === user?.uid || currentRole === "admin"}
-                                    className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="ব্যান করুন"
                                   >
                                     <Ban className="w-4 h-4" />
@@ -554,7 +554,7 @@ const Settings: React.FC = () => {
                                   <button
                                     onClick={() => handleUpdateRole(s.id, "teacher")}
                                     disabled={s.id === user?.uid}
-                                    className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                                    className="p-2 text-slate-400 hover:text-[#0F5C7A] hover:bg-[#0F5C7A]/10 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                                     title="ব্যান তুলে নিন"
                                   >
                                     <UserCog className="w-4 h-4" />
@@ -566,7 +566,7 @@ const Settings: React.FC = () => {
                             <button
                               onClick={() => handleRemoveUser(s.id)}
                               disabled={s.id === user?.uid}
-                              className="p-2 text-slate-400 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                              className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                               title="প্রতিষ্ঠান থেকে সরিয়ে দিন"
                             >
                               <UserMinus className="w-4 h-4" />
@@ -604,7 +604,7 @@ const Settings: React.FC = () => {
               <button
                 onClick={toggleApproval}
                 disabled={isTogglingApproval}
-                className={`px-6 py-3 rounded-xl font-bold transition-all ${isApprovalEnabled ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200" : "bg-rose-100 text-rose-700 hover:bg-rose-200"}`}
+                className={`px-6 py-3 rounded-xl font-bold transition-all ${isApprovalEnabled ? "bg-[#0F5C7A]/10 text-[#0F5C7A] hover:bg-[#0F5C7A]/20" : "bg-rose-100 text-rose-700 hover:bg-rose-200"}`}
               >
                 {isTogglingApproval ? "অপেক্ষা করুন..." : isApprovalEnabled ? "অনুমোদন সিস্টেম: চালু" : "অনুমোদন সিস্টেম: বন্ধ"}
               </button>
@@ -612,7 +612,7 @@ const Settings: React.FC = () => {
 
             {loadingPendingUsers ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
               </div>
             ) : pendingUsers.length > 0 ? (
               <div className="overflow-x-auto">
@@ -648,7 +648,7 @@ const Settings: React.FC = () => {
                                   toast.error("অনুমোদন দিতে ব্যর্থ হয়েছে।");
                                 }
                               }}
-                              className="px-4 py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 rounded-lg font-medium transition-colors text-sm"
+                              className="px-4 py-2 bg-[#0F5C7A]/10 text-[#0F5C7A] hover:bg-[#0F5C7A]/20 rounded-lg font-medium transition-colors text-sm"
                             >
                               অনুমোদন দিন
                             </button>
@@ -698,7 +698,7 @@ const Settings: React.FC = () => {
 
             {loadingAllOrgs ? (
               <div className="flex justify-center py-8">
-                <div className="w-8 h-8 border-4 border-indigo-200 border-t-indigo-600 rounded-full animate-spin"></div>
+                <div className="w-8 h-8 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
               </div>
             ) : allOrgs.length > 0 ? (
               <div className="overflow-x-auto">
@@ -744,7 +744,7 @@ const Settings: React.FC = () => {
                                 toast.error("ব্যর্থ হয়েছে।");
                               }
                             }}
-                            className={`p-2 rounded-lg transition-colors inline-flex items-center justify-center ${org.banned ? "text-indigo-600 bg-indigo-50 hover:bg-indigo-100" : "text-rose-600 bg-rose-50 hover:bg-rose-100"}`}
+                            className={`p-2 rounded-lg transition-colors inline-flex items-center justify-center ${org.banned ? "text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20" : "text-rose-600 bg-rose-50 hover:bg-rose-100"}`}
                             title={org.banned ? "আনব্যান করুন" : "ব্যান করুন"}
                           >
                             {org.banned ? <ShieldCheck className="w-4 h-4" /> : <Ban className="w-4 h-4" />}
@@ -754,8 +754,8 @@ const Settings: React.FC = () => {
                     ))}
                   </tbody>
                 </table>
-                <div className="mt-4 p-4 bg-indigo-50 rounded-xl border border-indigo-100">
-                  <p className="text-indigo-800 font-bold">মোট প্রতিষ্ঠান: {allOrgs.length}টি</p>
+                <div className="mt-4 p-4 bg-[#0F5C7A]/10 rounded-xl border border-[#0F5C7A]/20">
+                  <p className="text-[#0F5C7A] font-bold">মোট প্রতিষ্ঠান: {allOrgs.length}টি</p>
                 </div>
               </div>
             ) : (

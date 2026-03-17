@@ -464,7 +464,7 @@ const Marksheet: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <FileBadge className="w-6 h-6 text-indigo-600" />
+          <FileBadge className="w-6 h-6 text-[#0F5C7A]" />
           মার্কশিট
         </h2>
         <div className="flex gap-2">
@@ -636,7 +636,7 @@ const Marksheet: React.FC = () => {
             <div className="space-y-2">
               <p><span className="font-semibold w-32 inline-block">{t.fatherName}:</span> {selectedStudent.fatherName || "N/A"}</p>
               <p><span className="font-semibold w-32 inline-block">{t.rank}:</span> <span className="font-bold">{convertNumber(rank, numeralFormat)}</span></p>
-              <p><span className="font-semibold w-32 inline-block">{t.result}:</span> <span className={`font-bold ${statusKey === 'pass' ? 'text-green-600' : 'text-red-600'}`}>{t[statusKey as keyof typeof t]} ({grade})</span></p>
+              <p><span className="font-semibold w-32 inline-block">{t.result}:</span> <span className={`font-bold ${statusKey === 'pass' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{t[statusKey as keyof typeof t]} ({grade})</span></p>
             </div>
           </div>
 
@@ -660,13 +660,13 @@ const Marksheet: React.FC = () => {
                       <td className={`p-4 text-slate-800 font-medium ${marksheetLanguage === 'ar' ? 'text-right border-l' : 'text-left border-r'} border-slate-300`}>{subject.name}</td>
                       <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.fullMarks, numeralFormat)}</td>
                       <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.passMarks, numeralFormat)}</td>
-                      <td className={`p-4 text-center font-bold ${isFail ? 'text-red-600' : 'text-slate-800'}`}>
+                      <td className={`p-4 text-center font-bold ${isFail ? 'text-[#EF4444]' : 'text-slate-800'}`}>
                         {isEditing ? (
                           <input
                             type="number"
                             value={result?.marks ?? 0}
                             onChange={(e) => handleMarkChange(subject.id, e.target.value)}
-                            className="w-20 px-2 py-1 border border-slate-300 rounded text-center focus:ring-2 focus:ring-indigo-500 outline-none"
+                            className="w-20 px-2 py-1 border border-slate-300 rounded text-center focus:ring-2 focus:ring-[#0F5C7A] outline-none"
                             max={subject.fullMarks}
                             min={0}
                           />

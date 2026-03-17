@@ -3,9 +3,12 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
+import { AttendanceStatus } from "../types";
 import {
   BarChart,
   Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -47,7 +50,7 @@ const Reports: React.FC = () => {
 
     // Filter sessions by date range and class
     const filteredSessions = attendanceSessions.filter((s) => {
-      const [day, month, year] = s.date.split("-").map(Number);
+      const [day, month, year] = s.date.split(" ").map(Number);
       const sDate = new Date(year, month - 1, day);
       return s.classId === selectedClassId && sDate >= start && sDate <= end;
     });
@@ -61,7 +64,7 @@ const Reports: React.FC = () => {
         filteredSessions.forEach(session => {
           const studentRecord = session.students.find((st: any) => st.studentId === student.id);
           if (studentRecord) {
-            if (studentRecord.status === "present") present++;
+            if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) present++;
             else absent++;
           }
         });
@@ -151,6 +154,78 @@ const Reports: React.FC = () => {
     a.click();
   };
 
+  const trendData = useMemo(() => {
+    if (!selectedClassId) return [];
+    
+    // Aggregate present/total by date
+    const dailyData: { [date: string]: { present: number, total: number } } = {};
+    
+    attendanceSessions.filter(s => s.classId === selectedClassId).forEach(session => {
+      if (!dailyData[session.date]) {
+        dailyData[session.date] = { present: 0, total: 0 };
+      }
+      
+      session.students.forEach((st: any) => {
+        dailyData[session.date].total++;
+        if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+          dailyData[session.date].present++;
+        }
+      });
+    });
+    
+    return Object.entries(dailyData).map(([date, data]) => ({
+      date,
+      percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
+    })).sort((a, b) => {
+        const [d1, m1, y1] = a.date.split(" ").map(Number);
+        const [d2, m2, y2] = b.date.split(" ").map(Number);
+        return new Date(y1, m1 - 1, d1).getTime() - new Date(y2, m2 - 1, d2).getTime();
+    });
+  }, [selectedClassId, attendanceSessions]);
+
+  const sessionData = useMemo(() => {
+    if (!selectedClassId) return [];
+    
+    return attendanceSessions.filter(s => s.classId === selectedClassId).map(session => {
+        let present = 0;
+        let total = session.students.length;
+        session.students.forEach((st: any) => {
+            if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+                present++;
+            }
+        });
+        return {
+            session: session.date + " " + session.time,
+            percentage: total > 0 ? Math.round((present / total) * 100) : 0
+        };
+    });
+  }, [selectedClassId, attendanceSessions]);
+
+  const heatmapData = useMemo(() => {
+    if (!selectedClassId) return [];
+    
+    // Aggregate present/total by date
+    const dailyData: { [date: string]: { present: number, total: number } } = {};
+    
+    attendanceSessions.filter(s => s.classId === selectedClassId).forEach(session => {
+      if (!dailyData[session.date]) {
+        dailyData[session.date] = { present: 0, total: 0 };
+      }
+      
+      session.students.forEach((st: any) => {
+        dailyData[session.date].total++;
+        if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+          dailyData[session.date].present++;
+        }
+      });
+    });
+    
+    return Object.entries(dailyData).map(([date, data]) => ({
+      date,
+      percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
+    }));
+  }, [selectedClassId, attendanceSessions]);
+
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(
       (acc, curr) => acc + curr.present,
@@ -172,7 +247,7 @@ const Reports: React.FC = () => {
         <div className="flex gap-2">
           <button 
             onClick={handleExportCSV}
-            className="bg-[#0a6ba3] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0a6ba3]/90 transition-all duration-300 font-medium shadow-sm"
+            className="bg-[#0F5C7A] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0C6C8A] transition-all duration-300 font-medium shadow-sm"
           >
             <Download className="w-4 h-4 mr-2" />
             CSV এক্সপোর্ট
@@ -180,7 +255,7 @@ const Reports: React.FC = () => {
           <button 
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="bg-[#0a6ba3] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0a6ba3]/90 transition-all duration-300 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-[#0F5C7A] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0C6C8A] transition-all duration-300 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Download className="w-4 h-4 mr-2" />
             {isExporting ? "প্রসেসিং..." : "PDF এক্সপোর্ট"}
@@ -188,13 +263,13 @@ const Reports: React.FC = () => {
         </div>
       </div>
 
-      <div id="report-container" className="card-premium p-4 sm:p-8 bg-white border border-[#0a6ba3]">
+      <div id="report-container" className="card-premium p-4 sm:p-8 bg-white border border-[#E5E7EB]">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative min-w-[240px]">
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-base font-medium text-[#0a4c87] border-[#0a6ba3] bg-white text-center appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all text-base"
+              className="input-premium w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white text-center appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-base"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -213,17 +288,17 @@ const Reports: React.FC = () => {
                   selected={startDate}
                   onChange={(date: Date | null) => date && setStartDate(date)}
                   dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-[#0766a9] border-[#0a6ba3] bg-white rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all"
+                  className="input-premium pl-10 w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                 />
               </div>
-              <span className="text-[#0a6ba3] font-medium text-xs sm:text-sm">থেকে</span>
+              <span className="text-[#0F5C7A] font-medium text-xs sm:text-sm">থেকে</span>
               <div className="relative flex-1 sm:flex-none">
                 <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                 <DatePicker
                   selected={endDate}
                   onChange={(date: Date | null) => date && setEndDate(date)}
                   dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-[#1d92e6] border-[#0a6ba3] bg-white rounded-xl py-3 shadow-sm hover:border-[#0a6ba3]/30 focus:border-[#0a6ba3] focus:ring-2 focus:ring-[#0a6ba3]/20 transition-all"
+                  className="input-premium pl-10 w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                 />
               </div>
             </div>
@@ -232,7 +307,7 @@ const Reports: React.FC = () => {
         {selectedClassId ? (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="h-80 bg-slate-50/50 rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-inner overflow-hidden">
+              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
                   হাজিরা ওভারভিউ
                 </h3>
@@ -270,7 +345,54 @@ const Reports: React.FC = () => {
               </div>
               </div>
 
-              <div className="h-80 bg-slate-50/50 rounded-2xl p-4 sm:p-6 border border-slate-100 shadow-inner overflow-hidden">
+              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+                  হাজিরা ট্রেন্ড (লাইন চার্ট)
+                </h3>
+                <div className="w-full h-[calc(100%-2rem)]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="date" axisLine={false} tickLine={false} />
+                      <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
+                      <Tooltip />
+                      <Line type="monotone" dataKey="percentage" stroke="#0F5C7A" strokeWidth={2} />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+                  সেশন অনুযায়ী উপস্থিতি (%)
+                </h3>
+                <div className="w-full h-[calc(100%-2rem)]">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={sessionData}>
+                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                      <XAxis dataKey="session" axisLine={false} tickLine={false} />
+                      <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
+                      <Tooltip />
+                      <Bar dataKey="percentage" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+                  দৈনিক হাজিরার হিটম্যাপ
+                </h3>
+                <div className="flex flex-wrap gap-2 overflow-y-auto h-[calc(100%-2rem)]">
+                  {heatmapData.map(d => (
+                    <div key={d.date} className={clsx("w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold text-white", d.percentage > 75 ? "bg-emerald-500" : d.percentage > 50 ? "bg-amber-500" : "bg-rose-500")} title={`${d.date}: ${d.percentage}%`}>
+                      {d.percentage}%
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
                   শিক্ষার্থীর পারফরম্যান্স (সেরা ১০)
                 </h3>
@@ -310,7 +432,7 @@ const Reports: React.FC = () => {
               </div>
             </div>
 
-            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px] shadow-sm max-w-full">
+            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] max-w-full">
               <table className="w-full text-left border-collapse">
                 <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                   <tr>
@@ -378,7 +500,7 @@ const Reports: React.FC = () => {
           </>
         ) : (
           <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-            <p className="text-lg font-medium text-[#0a6ba3] mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
+            <p className="text-lg font-medium text-[#0F5C7A] mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
             <p className="text-sm">রিপোর্ট দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
         )}

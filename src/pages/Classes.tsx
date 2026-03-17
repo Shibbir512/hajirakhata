@@ -58,7 +58,7 @@ const Classes: React.FC = () => {
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={isAdding}
-            className="bg-white text-indigo-600 border border-indigo-100 shadow-md hover:shadow-lg hover:bg-indigo-50 transition-all duration-300 flex items-center px-4 py-2 rounded-2xl font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+            className="btn-primary flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isAdding ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Plus className="w-4 h-4 mr-2" />}
             {isAdding ? 'যোগ করা হচ্ছে...' : 'শ্রেণি যোগ করুন'}
@@ -81,14 +81,15 @@ const Classes: React.FC = () => {
           return (
             <div
               key={cls.id}
-              className={`p-6 rounded-3xl border ${color.bg} ${color.border} hover:-translate-y-1 transition-all duration-300 group shadow-sm hover:shadow-md`}
+              className="bg-white border border-[#E5E7EB] hover:-translate-y-1 transition-all duration-300 group"
+              style={{ borderRadius: '18px', padding: '20px', boxShadow: '0px 10px 25px rgba(0,0,0,0.08)' }}
             >
               <div className="flex justify-between items-start">
                 <div>
-                  <h3 className={`text-xl font-bold ${color.text} tracking-tight`}>
+                  <h3 className="text-[20px] font-bold text-slate-800 tracking-tight">
                     {cls.name}
                   </h3>
-                  <p className={`text-sm ${color.sub} mt-1 font-mono opacity-80`}>আইডি: {cls.id}</p>
+                  <p className="text-[14px] text-slate-500 mt-1 font-mono opacity-80">আইডি: {cls.id}</p>
                   
                   {cls.teacherIds && cls.teacherIds.length > 0 && (
                     <div className="mt-4 flex flex-wrap gap-2">
@@ -96,7 +97,7 @@ const Classes: React.FC = () => {
                         const teacher = staffList.find(s => s.id === tId);
                         if (!teacher) return null;
                         return (
-                          <span key={tId} className={`text-[10px] px-2 py-0.5 rounded-full bg-white/60 border ${color.border} ${color.text} font-medium`}>
+                          <span key={tId} className="text-[12px] px-3 py-1 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] font-medium">
                             {teacher.displayName || teacher.email?.split('@')[0]}
                           </span>
                         );
@@ -108,13 +109,13 @@ const Classes: React.FC = () => {
                   <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => setEditingClass(cls)}
-                      className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                      className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
                       onClick={() => handleDeleteClass(cls.id)}
-                      className={`p-2 ${color.text} hover:bg-white/50 rounded-xl transition-colors`}
+                      className="p-2 text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 rounded-xl transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
@@ -234,7 +235,7 @@ const ClassModal = React.memo<ClassModalProps>(({
                     type="checkbox"
                     checked={teacherIds.includes(staff.id)}
                     onChange={() => toggleTeacher(staff.id)}
-                    className="w-4 h-4 text-indigo-600 rounded border-slate-300 focus:ring-indigo-500"
+                    className="w-4 h-4 text-[#0F5C7A] rounded border-slate-300 focus:ring-[#0F5C7A]"
                   />
                   <span className="text-sm text-slate-700">
                     {staff.displayName || staff.email?.split('@')[0]}
@@ -247,20 +248,20 @@ const ClassModal = React.memo<ClassModalProps>(({
             </div>
           </div>
 
-          {error && <p className="text-sm text-red-500">{error}</p>}
+          {error && <p className="text-sm text-[#EF4444]">{error}</p>}
 
           <div className="flex justify-end gap-3 mt-8">
             <button
               type="button"
               onClick={onClose}
-              className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+              className="bg-[#EF4444] hover:bg-[#DC2626] text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
             >
               <X className="w-5 h-5 mr-2" />
               বাতিল
             </button>
             <button
               type="submit"
-              className="bg-white text-indigo-600 border border-indigo-100 shadow-md hover:shadow-lg hover:bg-indigo-50 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
+              className="btn-primary px-6 py-2"
             >
               সংরক্ষণ
             </button>

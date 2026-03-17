@@ -59,7 +59,7 @@ const Subjects: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <Book className="w-6 h-6 text-indigo-600" />
+          <Book className="w-6 h-6 text-[#0F5C7A]" />
           বিষয় ব্যবস্থাপনা
         </h2>
         <button onClick={openAddModal} className="btn-primary">
@@ -93,7 +93,7 @@ const Subjects: React.FC = () => {
                   <td className="py-4 px-5 text-slate-600">{subject.subjectOrder}</td>
                   <td className="py-4 px-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => openEditModal(subject)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
+                      <button onClick={() => openEditModal(subject)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button onClick={() => setSubjectToDelete(subject)} className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
@@ -105,7 +105,7 @@ const Subjects: React.FC = () => {
               ))}
               {subjects.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-slate-500">কোন বিষয় পাওয়া যায়নি।</td>
+                  <td colSpan={7} className="text-center py-12 text-slate-500">কোন বিষয় পাওয়া যায়নি।</td>
                 </tr>
               )}
             </tbody>

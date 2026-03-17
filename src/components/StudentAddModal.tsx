@@ -65,9 +65,9 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               />
             </div>
 
-            <div className="bg-[#0a5682]/10 p-4 rounded-2xl border border-[#0a5682]/20 flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-[#0a5682]/20 text-[#0a5682] flex items-center justify-center font-bold text-sm">i</div>
-              <p className="text-sm text-[#0a5682] font-medium">
+            <div className="bg-[#0F5C7A]/10 p-4 rounded-2xl border border-[#0F5C7A]/20 flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/20 text-[#0F5C7A] flex items-center justify-center font-bold text-sm">i</div>
+              <p className="text-sm text-[#0F5C7A] font-medium">
                 রোল নম্বর স্বয়ংক্রিয়ভাবে বরাদ্দ করা হবে।
               </p>
             </div>
@@ -111,7 +111,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               />
             </div>
 
-            {error && <p className="text-sm text-rose-500 font-medium">{error}</p>}
+            {error && <p className="text-sm text-[#EF4444] font-medium">{error}</p>}
           </form>
         </div>
         
@@ -119,7 +119,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="bg-rose-500 hover:bg-rose-600 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
+            className="bg-[#EF4444] hover:bg-[#EF4444]/90 text-white shadow-md hover:shadow-lg transition-all duration-300 flex items-center px-6 py-2 rounded-xl font-bold"
           >
             <X className="w-5 h-5 mr-2" />
             বাতিল
@@ -127,7 +127,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           <button
             type="submit"
             form="add-student-form"
-            className="bg-white text-[#0a5682] border border-[#0a5682]/20 shadow-md hover:shadow-lg hover:bg-[#0a5682]/10 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
+            className="bg-white text-[#0F5C7A] border border-[#0F5C7A]/20 shadow-md hover:shadow-lg hover:bg-[#0F5C7A]/10 transition-all duration-300 px-6 py-2 rounded-2xl font-bold"
           >
             যোগ করুন
           </button>

@@ -150,19 +150,19 @@ const ResultEntry: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <ClipboardEdit className="w-6 h-6 text-indigo-600" />
+          <ClipboardEdit className="w-6 h-6 text-[#0F5C7A]" />
           ফলাফল এন্ট্রি (Spreadsheet Mode)
         </h2>
         {academicYearId && examId && classId && results.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPublished ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'}`}>
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
               {isPublished ? 'প্রকাশিত' : 'খসড়া (Draft)'}
             </span>
             {role === 'admin' && (
               <button
                 onClick={handlePublish}
                 disabled={isPublished}
-                className={`btn-primary ${isPublished ? 'opacity-50 cursor-not-allowed bg-emerald-600' : ''}`}
+                className={`btn-primary ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E]' : ''}`}
               >
                 {isPublished ? 'প্রকাশিত' : 'ফলাফল প্রকাশ করুন'}
               </button>
@@ -250,7 +250,7 @@ const ResultEntry: React.FC = () => {
               <span>Enter: নিচের সেল</span>
               <span>Tab: পরের সেল</span>
               <span>Arrows: নেভিগেশন</span>
-              <span className="text-indigo-600 font-bold">Excel থেকে কপি-পেস্ট সাপোর্ট করে</span>
+              <span className="text-[#0F5C7A] font-bold">Excel থেকে কপি-পেস্ট সাপোর্ট করে</span>
             </div>
           </div>
         </div>
@@ -301,7 +301,7 @@ const ResultCell = React.memo(({
         onKeyDown={(e) => handleKeyDown(e, rowIndex, colIdx)}
         onPaste={(e) => handlePaste(e, rowIndex, colIdx)}
         onFocus={() => setFocusedCell({ rowIndex, colIndex: colIdx })}
-        className={`w-full h-full text-center focus:outline-none focus:ring-2 focus:ring-indigo-500/50 transition-all ${
+        className={`w-full h-full text-center focus:outline-none focus:ring-2 focus:ring-[#0F5C7A]/50 transition-all ${
           isBelowPass ? "bg-slate-200 text-slate-600" : "bg-transparent text-slate-800"
         }`}
         placeholder="-"
@@ -365,7 +365,7 @@ const ResultRow = React.memo(({
       <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-600 font-medium">
         {percentage}%
       </div>
-      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-indigo-600">
+      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-[#0F5C7A]">
         {grade}
       </div>
       <div className="w-20 py-3 px-3 flex items-center justify-center font-black text-slate-900">

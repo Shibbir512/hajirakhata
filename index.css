@@ -1,19 +1,22 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Outfit:wght@300;400;500;600;700&family=Hind+Siliguri:wght@300;400;500;600;700&family=Amiri:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
 @import "react-datepicker/dist/react-datepicker.css";
 
 @theme {
-  --font-sans: "Outfit", "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-bengali: "Hind Siliguri", "Noto Sans Bengali", sans-serif;
-  --font-arabic: "Amiri", "Noto Sans Arabic", serif;
+  --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: "Noto Sans Bengali", sans-serif;
+  --font-arabic: "Noto Sans Arabic", serif;
   
-  --color-bg-main: #F4F7F6;
-  --color-primary-start: #0a5682;
-  --color-primary-end: #0a5682;
-  --color-pastel-peach: #ffdab9;
-  --color-pastel-orange: #ffd8b1;
-  --color-pastel-pink: #ffb6c1;
-  --color-pastel-blue: #add8e6;
+  --color-bg-main: #F4F7FB;
+  --color-primary-start: #0F5C7A;
+  --color-primary-end: #14B8A6;
+  --color-primary: #0F5C7A;
+  --color-secondary: #14B8A6;
+  --color-accent: #1EC8A5;
+  --color-card-bg: #FFFFFF;
+  --color-divider: #E5E7EB;
+  --color-success: #22C55E;
+  --color-danger: #EF4444;
 
   /* Slate Palette */
   --color-slate-50: #f8fafc;
@@ -293,25 +296,25 @@
 
 @layer components {
   .card-premium {
-    @apply bg-white rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100;
+    @apply bg-white rounded-[18px] shadow-[0_10px_25px_rgba(0,0,0,0.08)] border border-transparent;
   }
   .btn-primary {
-    @apply bg-[#0a5682] text-white rounded-[12px] shadow-[0_4px_14px_rgba(10,86,130,0.2)] hover:shadow-[0_6px_20px_rgba(10,86,130,0.3)] hover:bg-[#0a5682] transition-all duration-300 font-medium px-5 py-2.5 border-none flex items-center justify-center gap-2;
+    @apply bg-[#0F5C7A] text-white rounded-[14px] shadow-[0_4px_14px_rgba(15,92,122,0.2)] hover:shadow-[0_6px_20px_rgba(15,92,122,0.3)] hover:bg-[#0C4A62] transition-all duration-300 font-medium px-5 py-2.5 border-none flex items-center justify-center gap-2;
   }
   .btn-secondary {
-    @apply bg-[rgba(10,86,130,0.1)] text-[#0a5682] rounded-[12px] hover:bg-[rgba(10,86,130,0.2)] transition-all duration-300 font-medium px-5 py-2.5 border border-[rgba(10,86,130,0.1)] flex items-center justify-center gap-2;
+    @apply bg-[rgba(20,184,166,0.1)] text-[#14B8A6] rounded-[14px] hover:bg-[rgba(20,184,166,0.2)] transition-all duration-300 font-medium px-5 py-2.5 border border-[rgba(20,184,166,0.1)] flex items-center justify-center gap-2;
   }
   .btn-outline {
-    @apply bg-white text-slate-600 rounded-[12px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 font-medium px-5 py-2.5 border border-slate-200 shadow-sm flex items-center justify-center gap-2;
+    @apply bg-white text-slate-600 rounded-[14px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 font-medium px-5 py-2.5 border border-[#D1D5DB] shadow-sm flex items-center justify-center gap-2;
   }
   .input-premium {
-    @apply w-full px-4 py-3 bg-white border border-slate-200 rounded-[12px] focus:outline-none focus:ring-2 focus:ring-[rgba(10,86,130,0.2)] focus:border-[#0a5682] transition-all shadow-sm font-medium;
+    @apply w-full px-4 py-3 bg-white border border-[#D1D5DB] rounded-[16px] focus:outline-none focus:ring-2 focus:ring-[rgba(20,184,166,0.2)] focus:border-[#14B8A6] transition-all shadow-sm font-medium h-[50px];
   }
   .search-highlight {
-    @apply border-[#0a5682] shadow-[0_0_15px_rgba(10,86,130,0.1)] ring-2 ring-[rgba(10,86,130,0.2)];
+    @apply border-[#14B8A6] shadow-[0_0_15px_rgba(20,184,166,0.1)] ring-2 ring-[rgba(20,184,166,0.2)];
   }
   .toggle-premium {
-    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#0a5682] focus:ring-offset-2;
+    @apply relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#14B8A6] focus:ring-offset-2;
   }
   .toggle-thumb {
     @apply inline-block h-4 w-4 transform rounded-full bg-white transition-transform;
@@ -330,15 +333,15 @@
   }
   .gradient-text {
     @apply bg-clip-text text-transparent;
-    background-image: linear-gradient(to right, #0a5682, var(--color-violet-500));
+    background-image: linear-gradient(120deg, #0F5C7A, #14B8A6);
   }
   .active-nav-item {
-    @apply bg-[rgba(10,86,130,0.1)] text-[#0a5682] font-medium border-r-4 border-[#0a5682];
+    @apply bg-[rgba(255,255,255,0.18)] text-white font-medium border-l-4 border-[#1EC8A5];
   }
   .font-modern {
-    font-family: "Outfit", "Hind Siliguri", "Amiri", sans-serif;
+    font-family: "Poppins", "Inter", sans-serif;
   }
   .font-classic {
-    font-family: "Inter", "Noto Sans Bengali", "Noto Sans Arabic", sans-serif;
+    font-family: "Inter", "Poppins", sans-serif;
   }
 }

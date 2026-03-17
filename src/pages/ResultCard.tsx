@@ -53,10 +53,10 @@ const ResultCard: React.FC = () => {
   };
 
   return (
-    <div className="p-4 max-w-lg mx-auto min-h-screen bg-slate-50">
+    <div className="p-4 max-w-lg mx-auto min-h-screen bg-[#F8FAFC]">
       <div className="card-premium p-6 shadow-lg">
-        <h2 className="text-2xl font-bold mb-6 text-center text-slate-800">Result Card</h2>
-        <div className="space-y-3 text-slate-700">
+        <h2 className="text-2xl font-bold mb-6 text-center text-[#1E293B]">Result Card</h2>
+        <div className="space-y-3 text-[#334155]">
             <p><span className="font-semibold">Name:</span> {result.studentName}</p>
             <p><span className="font-semibold">Roll:</span> {convertNumber(result.roll, numeralFormat)}</p>
             <p><span className="font-semibold">Class:</span> {result.className}</p>

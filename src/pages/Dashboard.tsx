@@ -103,54 +103,54 @@ const Dashboard: React.FC = () => {
           title="হাজিরা সম্পন্ন (শ্রেণি)"
           value={stats.classesWithAttendanceToday}
           icon={CheckCircle}
-          color="text-blue-600"
-          gradient="bg-blue-50"
-          valueColor="text-[#c212f4]"
+          color="text-[#0F5C7A]"
+          gradient="bg-[#0F5C7A]/10"
+          valueColor="text-[#0F5C7A]"
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
           value={stats.classesPendingAttendanceToday}
           icon={Clock}
-          color="text-pink-600"
-          gradient="bg-pink-50"
-          valueColor="text-[#05857d]"
+          color="text-[#F59E0B]"
+          gradient="bg-[#F59E0B]/10"
+          valueColor="text-[#F59E0B]"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
           value={stats.totalStudents}
           icon={Users}
-          color="text-violet-600"
-          gradient="bg-violet-50"
-          valueColor="text-[#ed623a]"
+          color="text-[#14B8A6]"
+          gradient="bg-[#14B8A6]/10"
+          valueColor="text-[#14B8A6]"
         />
         <StatCard
           title="আজ উপস্থিত"
           value={stats.presentToday}
           icon={UserCheck}
-          color="text-emerald-600"
-          gradient="bg-emerald-50"
-          valueColor="text-[#1ac8b3]"
+          color="text-[#22C55E]"
+          gradient="bg-[#22C55E]/10"
+          valueColor="text-[#22C55E]"
         />
         <StatCard
           title="আজ অনুপস্থিত"
           value={stats.absentToday}
           icon={UserX}
-          color="text-rose-600"
-          gradient="bg-rose-50"
-          valueColor="text-[#e60a31]"
+          color="text-[#EF4444]"
+          gradient="bg-[#EF4444]/10"
+          valueColor="text-[#EF4444]"
         />
         <StatCard
           title="মোট শ্রেণি"
           value={stats.totalClasses}
           icon={BookOpen}
-          color="text-amber-600"
-          gradient="bg-amber-50"
-          valueColor="text-[#f5b80a]"
+          color="text-[#0F5C7A]"
+          gradient="bg-[#0F5C7A]/10"
+          valueColor="text-[#0F5C7A]"
         />
       </div>
 
       <div className="card-premium p-8">
-        <h3 className="text-lg font-bold text-[#0661a4] mb-6 tracking-tight">
+        <h3 className="text-lg font-bold text-[#0F5C7A] mb-6 tracking-tight">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
@@ -173,14 +173,14 @@ const Dashboard: React.FC = () => {
               <Bar
                 dataKey="Present"
                 name="উপস্থিত"
-                fill="#2b7e2f"
+                fill="#22C55E"
                 radius={[6, 6, 0, 0]}
                 barSize={32}
               />
               <Bar
                 dataKey="Absent"
                 name="অনুপস্থিত"
-                fill="#F43F5E"
+                fill="#EF4444"
                 radius={[6, 6, 0, 0]}
                 barSize={32}
               />
@@ -210,13 +210,13 @@ const StatCard = React.memo<StatCardProps>(({
   valueColor = "text-slate-800",
 }) => {
   return (
-    <div className="card-premium p-6 flex items-center justify-between group cursor-default">
+    <div className="card-premium p-[20px] flex items-center justify-between group cursor-default">
       <div className="relative z-10 flex-1">
-        <p className="text-sm font-semibold text-[#0a5682] mb-1">{title}</p>
-        <p className={clsx("text-3xl font-bold", valueColor)}>{toBengaliNumber(value)}</p>
+        <p className="text-[14px] font-medium text-slate-500 mb-1">{title}</p>
+        <p className={clsx("text-[26px] font-bold", valueColor)}>{toBengaliNumber(value)}</p>
       </div>
-      <div className={clsx("relative z-10 p-3 rounded-full group-hover:scale-110 transition-transform duration-300 ml-4 bg-[#0e99cd]/15")}>
-        <Icon className="w-6 h-6 text-[#0e99cd]" strokeWidth={2} />
+      <div className={clsx("relative z-10 w-[40px] h-[40px] flex items-center justify-center rounded-full group-hover:scale-110 transition-transform duration-300 ml-4", gradient)}>
+        <Icon className={clsx("w-5 h-5", color)} strokeWidth={2} />
       </div>
     </div>
   );

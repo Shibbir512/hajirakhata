@@ -51,7 +51,7 @@ const Exams: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <FileText className="w-6 h-6 text-indigo-600" />
+          <FileText className="w-6 h-6 text-[#0F5C7A]" />
           পরীক্ষা ব্যবস্থাপনা
         </h2>
         <button onClick={openAddModal} className="btn-primary">
@@ -77,7 +77,7 @@ const Exams: React.FC = () => {
                   <td className="py-4 px-5 text-slate-600">{academicYears.find(ay => ay.id === exam.academicYearId)?.year_name || "N/A"}</td>
                   <td className="py-4 px-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => openEditModal(exam)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
+                      <button onClick={() => openEditModal(exam)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button onClick={() => setExamToDelete(exam)} className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">

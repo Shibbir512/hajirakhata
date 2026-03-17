@@ -82,10 +82,10 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full card-premium p-10 border-2 border-indigo-50 shadow-indigo-900/5">
+      <div className="max-w-md w-full card-premium p-10 border-2 border-[#0F5C7A]/10 shadow-[#0F5C7A]/5">
         <div className="text-center mb-8">
-          <div className="w-20 h-20 bg-gradient-to-tr from-[#0a5682]/10 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
-            <Building2 className="w-10 h-10 text-[#0a5682]" />
+          <div className="w-20 h-20 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+            <Building2 className="w-10 h-10 text-[#0F5C7A]" />
           </div>
           <h1 className="text-3xl font-bold text-slate-800 tracking-tight">
             প্রতিষ্ঠান সেটআপ
@@ -104,21 +104,21 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                 </h3>
                 <div className="space-y-3">
                   {Object.entries(visitedOrgs).map(([id, name]) => (
-                    <div key={id} className="relative group flex items-center bg-white border-2 border-slate-100 hover:border-[#0a5682]/20 hover:bg-[#0a5682]/5 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md">
+                    <div key={id} className="relative group flex items-center bg-white border-2 border-slate-100 hover:border-[#0F5C7A]/20 hover:bg-[#0F5C7A]/5 rounded-2xl transition-all duration-300 shadow-sm hover:shadow-md">
                       <button
                         onClick={() => handleQuickJoin(id)}
                         disabled={loading}
                         className="flex-1 flex items-center justify-between p-4 text-left rounded-l-2xl"
                       >
                         <div>
-                          <span className="block font-bold text-slate-800 group-hover:text-[#0a5682]/90">
+                          <span className="block font-bold text-slate-800 group-hover:text-[#0F5C7A]/90">
                             {name}
                           </span>
                           <span className="block text-xs text-slate-500 font-mono mt-1">
                             {id}
                           </span>
                         </div>
-                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0a5682] group-hover:text-white transition-all duration-300 shadow-sm border border-slate-100 group-hover:border-transparent mr-2">
+                        <div className="w-10 h-10 rounded-full bg-slate-50 flex items-center justify-center group-hover:bg-[#0F5C7A] group-hover:text-white transition-all duration-300 shadow-sm border border-slate-100 group-hover:border-transparent mr-2">
                           <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-white" />
                         </div>
                       </button>
@@ -139,16 +139,16 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                 <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
                   <button
                     onClick={() => setMode("join")}
-                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0a5682]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0a5682] border border-slate-100 hover:border-[#0a5682]/10 hover:shadow-sm"
+                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm"
                   >
-                    <LogIn className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0a5682]" />
+                    <LogIn className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0F5C7A]" />
                     <span className="text-sm font-bold">অন্যটিতে যোগ দিন</span>
                   </button>
                   <button
                     onClick={() => setMode("create")}
-                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0a5682]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0a5682] border border-slate-100 hover:border-[#0a5682]/10 hover:shadow-sm"
+                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm"
                   >
-                    <Plus className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0a5682]" />
+                    <Plus className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0F5C7A]" />
                     <span className="text-sm font-bold">নতুন তৈরি করুন</span>
                   </button>
                 </div>
@@ -157,7 +157,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <div className="space-y-3">
                 <button
                   onClick={() => setMode("create")}
-                  className="bg-white text-[#0a5682] border border-[#0a5682]/10 shadow-sm hover:shadow-md hover:bg-[#0a5682]/10 transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
+                  className="bg-white text-[#0F5C7A] border border-[#0F5C7A]/10 shadow-sm hover:shadow-md hover:bg-[#0F5C7A]/10 transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
                 >
                   <Plus className="w-5 h-5" />
                   নতুন প্রতিষ্ঠান যুক্ত করুন
@@ -191,7 +191,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                   : "প্রতিষ্ঠানের নাম বা আইডি"}
               </label>
               <div className="relative w-full">
-                <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#0a5682]/40 w-6 h-6" />
+                <Building className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#0F5C7A]/40 w-6 h-6" />
                 <input
                   type="text"
                   value={input}
@@ -201,7 +201,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                       ? "যেমন: আমার প্রতিষ্ঠান"
                       : "যেমন: আমার প্রতিষ্ঠান বা আইডি"
                   }
-                  className="w-full pl-14 pr-4 py-4 border-2 border-slate-100 bg-white focus:border-[#0a5682]/30 focus:ring-4 focus:ring-[#0a5682]/5 transition-all text-base rounded-2xl outline-none"
+                  className="input-premium pl-14"
                   required
                   autoFocus
                 />
@@ -219,7 +219,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-[#0a5682] text-white shadow-md hover:shadow-lg hover:bg-[#0a5682]/90 hover:-translate-y-0.5 transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 py-3 rounded-2xl font-bold"
+                className="bg-[#0F5C7A] text-white shadow-md hover:shadow-lg hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 py-3 rounded-2xl font-bold"
               >
                 {loading
                   ? "প্রক্রিয়াধীন..."

@@ -80,17 +80,17 @@ const SuperAdminDashboard: React.FC = () => {
               </div>
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="flex items-center gap-2">
-                  <Users className="w-5 h-5 text-[#0a5682]" />
+                  <Users className="w-5 h-5 text-[#0F5C7A]" />
                   <span className="font-bold text-slate-700">{org.studentCount} ছাত্র</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-amber-500" />
+                  <BookOpen className="w-5 h-5 text-[#F59E0B]" />
                   <span className="font-bold text-slate-700">{org.teacherCount} শিক্ষক</span>
                 </div>
                 <button
                   onClick={() => toggleBlockStatus(org.id, org.isBlocked || false)}
                   className={`p-2 rounded-full transition-colors ${
-                    org.isBlocked ? "bg-red-50 text-red-600 hover:bg-red-100" : "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                    org.isBlocked ? "bg-[#EF4444]/10 text-[#EF4444] hover:bg-[#EF4444]/20" : "bg-[#22C55E]/10 text-[#22C55E] hover:bg-[#22C55E]/20"
                   }`}
                   title={org.isBlocked ? "আনব্লক করুন" : "ব্লক করুন"}
                 >

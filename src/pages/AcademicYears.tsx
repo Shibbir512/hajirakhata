@@ -47,7 +47,7 @@ const AcademicYears: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <CalendarDays className="w-6 h-6 text-indigo-600" />
+          <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
           শিক্ষাবর্ষ ব্যবস্থাপনা
         </h2>
         <button onClick={openAddModal} className="btn-primary">
@@ -77,7 +77,7 @@ const AcademicYears: React.FC = () => {
                       onClick={() => !year.is_active && setActiveAcademicYear(year.id)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
                         year.is_active 
-                          ? "bg-emerald-100 text-emerald-700 cursor-default" 
+                          ? "bg-[#22C55E]/10 text-[#22C55E] cursor-default" 
                           : "bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
                       }`}
                     >
@@ -87,12 +87,12 @@ const AcademicYears: React.FC = () => {
                   </td>
                   <td className="py-4 px-5 text-right">
                     <div className="flex justify-end gap-2">
-                      <button onClick={() => openEditModal(year)} className="p-2 text-indigo-600 bg-indigo-50 hover:bg-indigo-100 rounded-lg transition-colors">
+                      <button onClick={() => openEditModal(year)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
                         <Edit className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => setYearToDelete(year)} 
-                        className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                        className="p-2 text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 rounded-lg transition-colors"
                         disabled={year.is_active}
                         title={year.is_active ? "সক্রিয় শিক্ষাবর্ষ মুছে ফেলা যাবে না" : "মুছে ফেলুন"}
                       >
@@ -133,7 +133,7 @@ const AcademicYears: React.FC = () => {
                   id="isActive" 
                   checked={isActive} 
                   onChange={(e) => setIsActive(e.target.checked)} 
-                  className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                  className="w-4 h-4 text-[#0F5C7A] rounded border-gray-300 focus:ring-[#0F5C7A]"
                 />
                 <label htmlFor="isActive" className="text-sm font-medium text-slate-700 cursor-pointer">
                   এটি সক্রিয় শিক্ষাবর্ষ হিসেবে সেট করুন

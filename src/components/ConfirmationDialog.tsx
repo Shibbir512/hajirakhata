@@ -16,7 +16,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ isOpen, onClose
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
       <div className="bg-white rounded-3xl shadow-2xl w-full max-w-sm overflow-hidden border border-white/20">
         <div className="p-6">
-          <div className="flex items-center gap-3 mb-4 text-rose-600">
+          <div className="flex items-center gap-3 mb-4 text-[#EF4444]">
             <AlertTriangle className="w-8 h-8" />
             <h3 className="text-xl font-bold text-slate-800">{title}</h3>
           </div>
@@ -33,7 +33,7 @@ const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({ isOpen, onClose
                 onConfirm();
                 onClose();
               }}
-              className="flex-1 px-4 py-2 rounded-xl font-bold text-white bg-rose-600 hover:bg-rose-700 transition-colors"
+              className="flex-1 px-4 py-2 rounded-xl font-bold text-white bg-[#EF4444] hover:bg-[#EF4444]/90 transition-colors"
             >
               নিশ্চিত করুন
             </button>

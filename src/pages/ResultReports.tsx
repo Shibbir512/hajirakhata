@@ -198,7 +198,7 @@ const ResultReports: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <FileText className="w-6 h-6 text-indigo-600" />
+          <FileText className="w-6 h-6 text-[#0F5C7A]" />
           ট্যাবুলেশন শিট
         </h2>
         <div className="flex gap-2">
@@ -303,7 +303,7 @@ const ResultReports: React.FC = () => {
             </p>
             <p className="text-slate-600 mt-1">ট্যাবুলেশন শিট</p>
             {results[0]?.status === 'draft' && (
-              <span className="inline-block mt-2 px-3 py-1 bg-amber-100 text-amber-700 rounded-full text-xs font-bold">
+              <span className="inline-block mt-2 px-3 py-1 bg-[#F59E0B]/10 text-[#F59E0B] rounded-full text-xs font-bold">
                 খসড়া (Draft)
               </span>
             )}
@@ -356,7 +356,7 @@ const ResultReports: React.FC = () => {
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalFullMarks, numeralFormat)}</td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(percentage, numeralFormat)}%</td>
                       <td className="py-4 px-5 text-center font-bold text-slate-800">
-                        <span className={statusKey === 'fail' ? 'text-rose-600' : 'text-emerald-600'}>
+                        <span className={statusKey === 'fail' ? 'text-[#EF4444]' : 'text-[#22C55E]'}>
                           {statusText} ({grade})
                         </span>
                       </td>
@@ -373,25 +373,25 @@ const ResultReports: React.FC = () => {
               <p className="text-xs text-slate-500 mb-1">মোট শিক্ষার্থী</p>
               <p className="text-xl font-bold text-slate-800">{convertNumber(statistics.total, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-emerald-50 rounded-xl text-center border border-emerald-100">
-              <p className="text-xs text-emerald-600 mb-1">মুমতায</p>
-              <p className="text-xl font-bold text-emerald-700">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
+            <div className="p-4 bg-[#22C55E]/10 rounded-xl text-center border border-[#22C55E]/20">
+              <p className="text-xs text-[#22C55E] mb-1">মুমতায</p>
+              <p className="text-xl font-bold text-[#22C55E]">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-blue-50 rounded-xl text-center border border-blue-100">
-              <p className="text-xs text-blue-600 mb-1">জায়্যিদ জিদ্দান</p>
-              <p className="text-xl font-bold text-blue-700">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
+            <div className="p-4 bg-[#14B8A6]/10 rounded-xl text-center border border-[#14B8A6]/20">
+              <p className="text-xs text-[#14B8A6] mb-1">জায়্যিদ জিদ্দান</p>
+              <p className="text-xl font-bold text-[#14B8A6]">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-indigo-50 rounded-xl text-center border border-indigo-100">
-              <p className="text-xs text-indigo-600 mb-1">জায়্যিদ</p>
-              <p className="text-xl font-bold text-indigo-700">{convertNumber(statistics.jayyid, numeralFormat)}</p>
+            <div className="p-4 bg-[#0F5C7A]/10 rounded-xl text-center border border-[#0F5C7A]/20">
+              <p className="text-xs text-[#0F5C7A] mb-1">জায়্যিদ</p>
+              <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(statistics.jayyid, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-amber-50 rounded-xl text-center border border-amber-100">
-              <p className="text-xs text-amber-600 mb-1">মকবুল</p>
-              <p className="text-xl font-bold text-amber-700">{convertNumber(statistics.maqbul, numeralFormat)}</p>
+            <div className="p-4 bg-[#F59E0B]/10 rounded-xl text-center border border-[#F59E0B]/20">
+              <p className="text-xs text-[#F59E0B] mb-1">মকবুল</p>
+              <p className="text-xl font-bold text-[#F59E0B]">{convertNumber(statistics.maqbul, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-rose-50 rounded-xl text-center border border-rose-100">
-              <p className="text-xs text-rose-600 mb-1">রাসেব</p>
-              <p className="text-xl font-bold text-rose-700">{convertNumber(statistics.raseb, numeralFormat)}</p>
+            <div className="p-4 bg-[#EF4444]/10 rounded-xl text-center border border-[#EF4444]/20">
+              <p className="text-xs text-[#EF4444] mb-1">রাসেব</p>
+              <p className="text-xl font-bold text-[#EF4444]">{convertNumber(statistics.raseb, numeralFormat)}</p>
             </div>
           </div>
         </div>
