@@ -92,7 +92,7 @@ const AttendanceHistory: React.FC = () => {
 
   const handleSave = async () => {
     if (!selectedSession) return;
-    await updateAttendanceSession(selectedSession.id, editedStudents);
+    await updateAttendanceSession(selectedSession.id, editedStudents, selectedSession.version || 1);
     setIsEditMode(false);
     setSelectedSession(null);
     setSearchQuery("");
@@ -215,7 +215,13 @@ const AttendanceHistory: React.FC = () => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
           return (
-            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-[#0F5C7A] bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col" onClick={() => handleView(session)}>
+            <div key={session.id} className="card-premium p-6 hover:-translate-y-1 transition-all duration-300 cursor-pointer border-l-4 border-l-[#0F5C7A] bg-white shadow-sm hover:shadow-md border border-slate-100 flex flex-col relative" onClick={() => handleView(session)}>
+              {session._syncStatus === "pending" && (
+                <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
+                  <Clock className="w-3 h-3" />
+                  সিঙ্ক হচ্ছে...
+                </div>
+              )}
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2 flex-1">
                   <p className="text-lg font-bold text-[#0F5C7A] mb-1">{className}</p>

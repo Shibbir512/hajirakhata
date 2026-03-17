@@ -23,6 +23,8 @@ import {
 } from "../types";
 import toast from "react-hot-toast";
 
+import { SyncManager } from "../services/SyncManager";
+
 export const useAttendance = (
   orgId: string | null,
   user: any,
@@ -53,6 +55,7 @@ export const useAttendance = (
         const sessions = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          _syncStatus: doc.metadata.hasPendingWrites ? "pending" : "synced"
         }));
         setAttendanceSessions(sessions);
         setLoading(false);
@@ -82,35 +85,13 @@ export const useAttendance = (
         const timeParts = timeStr.split(' ');
         const time = timeParts[0].replace(/:/g, ' ') + '-' + (timeParts[1] || ''); // hh mm ss-AM/PM
 
-        // Duplicate Protection: Check if session exists
-        const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
-        const q = query(sessionsRef, where("classId", "==", classId), where("date", "==", date), where("time", "==", time));
-        const snapshot = await getDocs(q);
-        
-        if (!snapshot.empty) {
-          toast.error("এই সেশনের জন্য ইতিমধ্যে হাজিরা নেওয়া হয়েছে।");
-          return false;
-        }
-
         const studentsArray = Array.from(studentStatuses.entries()).map(([studentId, { status, studentName }]) => ({
           studentId,
           studentName,
           status
         }));
 
-        const sessionData = {
-          classId,
-          date,
-          time,
-          createdAt: Date.now(),
-          takenBy: {
-            name: user.displayName || "Unknown",
-            id: user.uid
-          },
-          students: studentsArray
-        };
-
-        await addDoc(sessionsRef, sessionData);
+        await SyncManager.performAtomicAttendance(orgId, classId, date, time, studentsArray);
         toast.success("হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!");
         return true;
       } catch (error) {
@@ -125,15 +106,19 @@ export const useAttendance = (
   );
 
   const updateAttendanceSession = useCallback(
-    async (sessionId: string, students: any[]) => {
+    async (sessionId: string, students: any[], currentVersion: number = 1) => {
       if (!user || !db || !orgId) return;
       try {
-        const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
-        await updateDoc(sessionRef, { students });
+        const path = `organizations/${orgId}/attendance_sessions/${sessionId}`;
+        await SyncManager.updateWithVersioning(path, { students }, currentVersion);
         toast.success("হাজিরা আপডেট করা হয়েছে!");
-      } catch (error) {
-        console.error("Error updating attendance:", error);
-        toast.error("হাজিরা আপডেট করতে ব্যর্থ হয়েছে।");
+      } catch (error: any) {
+        if (error.code === 'permission-denied') {
+          toast.error("সংস্করণ অমিল! অন্য কেউ ইতিমধ্যে এই তথ্য আপডেট করেছে।");
+        } else {
+          console.error("Error updating attendance:", error);
+          toast.error("হাজিরা আপডেট করতে ব্যর্থ হয়েছে।");
+        }
       }
     },
     [user, orgId],

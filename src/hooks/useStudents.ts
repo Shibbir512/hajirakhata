@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import { Student } from "../types";
 import toast from "react-hot-toast";
+import { SyncManager } from "../services/SyncManager";
 
 export const useStudents = (orgId: string | null, user: any, role: string | null) => {
   const [students, setStudents] = useState<{ [key: string]: Student[] }>({});
@@ -156,18 +157,23 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   );
 
   const updateStudent = useCallback(
-    async (studentId: string, data: Partial<Student>) => {
+    async (studentId: string, data: Partial<Student>, currentVersion: number = 1) => {
       if (!user || !db || !orgId) return;
       try {
         // Remove undefined values to prevent Firestore errors
         const cleanData = Object.fromEntries(
           Object.entries(data).filter(([_, v]) => v !== undefined)
         );
-        await updateDoc(doc(db, `organizations/${orgId}/students`, studentId), cleanData);
+        const docPath = `organizations/${orgId}/students/${studentId}`;
+        await SyncManager.updateWithVersioning(docPath, cleanData, currentVersion);
         toast.success("শিক্ষার্থীর তথ্য সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating student:", error);
-        toast.error("শিক্ষার্থীর তথ্য আপডেট করতে ব্যর্থ হয়েছে।");
+        if (error instanceof Error && error.message.includes("permission-denied")) {
+          toast.error("শিক্ষার্থীর তথ্য আপডেট করতে সমস্যা হয়েছে। সম্ভবত অন্য কেউ এটি ইতিমধ্যে আপডেট করেছেন।");
+        } else {
+          toast.error("শিক্ষার্থীর তথ্য আপডেট করতে ব্যর্থ হয়েছে।");
+        }
       }
     },
     [user, orgId],

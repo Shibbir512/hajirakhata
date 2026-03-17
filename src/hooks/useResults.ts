@@ -12,6 +12,7 @@ import {
 } from "firebase/firestore";
 import { Result } from "../types";
 import toast from "react-hot-toast";
+import { SyncManager } from "../services/SyncManager";
 
 export const useResults = (orgId: string | null, user: any, academicYearId: string, examId: string, classId: string) => {
   const [results, setResults] = useState<Result[]>([]);
@@ -49,30 +50,34 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
       if (!user || !db || !orgId) return;
       try {
         const resultId = result.id || `result-${Date.now()}-${result.student_id}-${result.subject_id}`;
+        const docPath = `organizations/${orgId}/results/${resultId}`;
         
         // Check if result already exists to preserve created_at/created_by
-        const resultRef = doc(db, `organizations/${orgId}/results`, resultId);
+        const resultRef = doc(db, docPath);
         const existingDoc = await getDoc(resultRef);
         const existingData = existingDoc.exists() ? existingDoc.data() as Result : null;
 
         const resultToSave: any = {
           ...result,
-          id: resultId,
           institution_id: orgId,
-          updated_by: user.uid,
-          updated_at: Date.now(),
           status: result.status || existingData?.status || 'draft'
         };
 
         if (!existingData) {
           resultToSave.created_by = user.uid;
           resultToSave.created_at = Date.now();
+          resultToSave.version = 1;
+          await setDoc(resultRef, resultToSave, { merge: true });
+        } else {
+          await SyncManager.updateWithVersioning(docPath, resultToSave, existingData.version || 1, { merge: true });
         }
-
-        await setDoc(resultRef, resultToSave, { merge: true });
       } catch (error) {
         console.error("Error saving result:", error);
-        toast.error("ফলাফল সংরক্ষণ করতে ব্যর্থ হয়েছে।");
+        if (error instanceof Error && error.message.includes("permission-denied")) {
+          toast.error("ফলাফল আপডেট করতে সমস্যা হয়েছে। সম্ভবত অন্য কেউ এটি ইতিমধ্যে আপডেট করেছেন।");
+        } else {
+          toast.error("ফলাফল সংরক্ষণ করতে ব্যর্থ হয়েছে।");
+        }
       }
     },
     [user, orgId],

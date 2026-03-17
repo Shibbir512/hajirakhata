@@ -7,6 +7,7 @@ export interface Student {
   fatherName?: string;
   phone?: string;
   address?: string;
+  version?: number;
 }
 
 export interface ClassData {
@@ -55,6 +56,7 @@ export interface Result {
   updated_by: string;
   created_at: number;
   updated_at: number;
+  version?: number;
 }
 
 export type ResultRecord = Result;

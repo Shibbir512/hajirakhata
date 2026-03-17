@@ -30,11 +30,28 @@ service cloud.firestore {
       return isAuthenticated() && getUserData().roles.keys().hasAny([orgId]);
     }
 
+    function isVersionCorrect() {
+      return !('version' in resource.data) || 
+             (request.resource.data.version == resource.data.version + 1);
+    }
+
     match /organizations/{orgId} {
       match /results/{resultId} {
         allow read: if isTeacher(orgId) || (resource.data.status == 'published' && isViewer(orgId));
         allow create: if isTeacher(orgId);
-        allow update: if isTeacher(orgId);
+        allow update: if isTeacher(orgId) && isVersionCorrect();
+        allow delete: if isAdmin(orgId);
+      }
+      match /attendance_sessions/{sessionId} {
+        allow read: if isViewer(orgId);
+        allow create: if isTeacher(orgId);
+        allow update: if isTeacher(orgId) && isVersionCorrect();
+        allow delete: if isAdmin(orgId);
+      }
+      match /students/{studentId} {
+        allow read: if isViewer(orgId);
+        allow create: if isTeacher(orgId);
+        allow update: if isTeacher(orgId) && isVersionCorrect();
         allow delete: if isAdmin(orgId);
       }
       match /{document=**} {
