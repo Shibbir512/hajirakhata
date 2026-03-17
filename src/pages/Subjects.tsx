@@ -19,7 +19,7 @@ const Subjects: React.FC = () => {
   const [name, setName] = useState("");
   const [classId, setClassId] = useState("");
   const [fullMarks, setFullMarks] = useState(100);
-  const [passMarks, setPassMarks] = useState(33);
+  const [passMarks, setPassMarks] = useState(35);
   const [subjectOrder, setSubjectOrder] = useState(1);
   const [subjectType, setSubjectType] = useState<'written' | 'oral' | 'practical'>('written');
 
@@ -27,7 +27,7 @@ const Subjects: React.FC = () => {
     setName("");
     setClassId(classes[0]?.id || "");
     setFullMarks(100);
-    setPassMarks(33);
+    setPassMarks(35);
     setSubjectOrder(subjects.length + 1);
     setSubjectType('written');
     setEditingSubject(null);
