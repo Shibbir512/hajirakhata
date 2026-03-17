@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useClasses } from "../hooks/useClasses";
-import { Plus, Edit, Trash2, FileText } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, X } from "lucide-react";
 import { Exam } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
@@ -39,10 +39,11 @@ const Exams: React.FC = () => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    const finalClassId = classId || "all";
     if (editingExam) {
-      updateExam(editingExam.id, { name, academicYearId, classId });
+      updateExam(editingExam.id, { name, academicYearId, classId: finalClassId });
     } else {
-      addExam(name, academicYearId, classId);
+      addExam(name, academicYearId, finalClassId);
     }
     setIsModalOpen(false);
   };
@@ -149,15 +150,14 @@ const Exams: React.FC = () => {
                 </div>
                 <div>
                   <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
-                    শ্রেণি
+                    শ্রেণি (ঐচ্ছিক)
                   </label>
                   <select
-                    required
                     value={classId}
                     onChange={(e) => setClassId(e.target.value)}
                     className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                   >
-                    <option value="">শ্রেণি নির্বাচন করুন</option>
+                    <option value="">সব শ্রেণি</option>
                     {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                   </select>
                 </div>

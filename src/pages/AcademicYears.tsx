@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, CalendarDays, CheckCircle, Circle } from "lucide-react";
+import { Plus, Edit, Trash2, CalendarDays, CheckCircle, Circle, X } from "lucide-react";
 import { AcademicYear } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 

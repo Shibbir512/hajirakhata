@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useSubjects } from "../hooks/useSubjects";
-import { Plus, Edit, Trash2, Book } from "lucide-react";
+import { Plus, Edit, Trash2, Book, X } from "lucide-react";
 import { Subject } from "../types";
 import clsx from "clsx";
 import ConfirmationDialog from "../components/ConfirmationDialog";
