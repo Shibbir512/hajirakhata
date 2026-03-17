@@ -247,7 +247,7 @@ const Students: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-base font-medium text-[#0F5C7A] bg-white appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              className="input-premium w-full text-base font-bold text-center text-[#078388] bg-white appearance-none pr-10 rounded-xl py-3 shadow-sm border-[#048791] focus:border-[#048791] focus:ring-2 focus:ring-[#048791]/20 transition-all"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -259,7 +259,7 @@ const Students: React.FC = () => {
             <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
 
-          <div className="relative flex-1">
+          <div className="relative flex-1 bg-[#fbfbfb]">
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
