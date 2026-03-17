@@ -7,9 +7,10 @@ import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
 import { db } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
-import { User, BookOpen, Calendar, ArrowLeft } from "lucide-react";
-import { Student, Result, Subject } from "../types";
+import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown } from "lucide-react";
+import { Student, Result, Subject, AttendanceStatus } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
+import { toBengaliNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 
 const StudentProfile: React.FC = () => {
@@ -23,6 +24,9 @@ const StudentProfile: React.FC = () => {
 
   const [student, setStudent] = useState<Student | null>(null);
   const [results, setResults] = useState<Result[]>([]);
+  const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0 });
+  const [lastExamRank, setLastExamRank] = useState<string>("-");
+  const [lastExamGrade, setLastExamGrade] = useState<string>("-");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -47,6 +51,61 @@ const StudentProfile: React.FC = () => {
         const snapshot = await getDocs(q);
         const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
         setResults(loadedResults);
+
+        // Fetch attendance stats
+        const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+        const attendanceQuery = query(sessionsRef, where("classId", "==", studentSnap.data()?.classId));
+        const attendanceSnapshot = await getDocs(attendanceQuery);
+        
+        let presentCount = 0;
+        let absentCount = 0;
+        
+        attendanceSnapshot.docs.forEach(doc => {
+          const session = doc.data();
+          const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
+          if (studentRecord) {
+            if (studentRecord.status === AttendanceStatus.Present) presentCount++;
+            else if (studentRecord.status === AttendanceStatus.Absent) absentCount++;
+          }
+        });
+        setAttendanceStats({ present: presentCount, absent: absentCount });
+
+        // Calculate rank for the most recent exam
+        if (loadedResults.length > 0) {
+          // Find the latest result to identify the latest exam
+          const latestResult = [...loadedResults].sort((a, b) => b.created_at - a.created_at)[0];
+          const latestExamId = latestResult.exam_id;
+          const latestClassId = latestResult.class_id;
+
+          // Fetch all results for this exam and class to calculate rank
+          const allResultsQuery = query(
+            resultsRef, 
+            where("exam_id", "==", latestExamId),
+            where("class_id", "==", latestClassId)
+          );
+          const allResultsSnapshot = await getDocs(allResultsQuery);
+          const allResults = allResultsSnapshot.docs.map(doc => doc.data() as Result);
+
+          // Group by student
+          const studentTotals = allResults.reduce((acc, r) => {
+            if (!acc[r.student_id]) acc[r.student_id] = 0;
+            acc[r.student_id] += r.marks;
+            return acc;
+          }, {} as { [key: string]: number });
+
+          const examSubjects = subjects.filter(s => s.classId === latestClassId);
+          const studentResults = loadedResults.filter(r => r.exam_id === latestExamId);
+          
+          const allStudentMetrics = Object.entries(studentTotals).map(([sId, total]) => ({
+            studentId: sId,
+            totalMarks: total,
+            hasFailed: false // Simplified for rank calculation
+          }));
+
+          const { grade, rank } = calculateResultMetrics(studentResults, examSubjects, allStudentMetrics);
+          setLastExamGrade(grade);
+          setLastExamRank(rank);
+        }
       } catch (error) {
         console.error("Error fetching student data:", error);
         toast.error("তথ্য লোড করতে ব্যর্থ হয়েছে।");
@@ -132,6 +191,34 @@ const StudentProfile: React.FC = () => {
             )}
             <p className="text-[#0F5C7A] font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
             <p className="text-slate-500 text-sm">রোল: {student.roll}</p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+            <div className="bg-emerald-50 p-3 rounded-xl text-center">
+              <p className="text-[10px] uppercase font-bold text-emerald-600 mb-1">উপস্থিত</p>
+              <p className="text-xl font-bold text-emerald-700">{toBengaliNumber(attendanceStats.present)}</p>
+            </div>
+            <div className="bg-rose-50 p-3 rounded-xl text-center">
+              <p className="text-[10px] uppercase font-bold text-rose-600 mb-1">অনুপস্থিত</p>
+              <p className="text-xl font-bold text-rose-700">{toBengaliNumber(attendanceStats.absent)}</p>
+            </div>
+          </div>
+
+          <div className="bg-slate-50 p-4 rounded-xl space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="w-4 h-4 text-[#0F5C7A]" />
+                <span className="text-xs font-bold text-slate-600">সর্বশেষ গ্রেড</span>
+              </div>
+              <span className="text-sm font-bold text-[#0F5C7A]">{lastExamGrade}</span>
+            </div>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="w-4 h-4 text-[#0F5C7A]" />
+                <span className="text-xs font-bold text-slate-600">মেধা স্থান</span>
+              </div>
+              <span className="text-sm font-bold text-[#0F5C7A]">{toBengaliNumber(lastExamRank)}</span>
+            </div>
           </div>
 
           <div className="space-y-4 border-t pt-6">
