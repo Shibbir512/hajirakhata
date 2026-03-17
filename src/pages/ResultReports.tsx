@@ -5,9 +5,9 @@ import { useStudents } from "../hooks/useStudents";
 import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { FileText, Printer, Download } from "lucide-react";
+import { FileText, Printer, Download, Edit2, Save, Check, X } from "lucide-react";
 import { Result } from "../types";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
@@ -18,7 +18,7 @@ import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
 
 const ResultReports: React.FC = () => {
-  const { user, orgId, role } = useAuth();
+  const { user, orgId, role, orgName } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
   const { subjects } = useSubjects(orgId, user);
@@ -31,6 +31,16 @@ const ResultReports: React.FC = () => {
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
+  const [isEditing, setIsEditing] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false);
+  const [reportHeader, setReportHeader] = useState({
+    orgName: "",
+    address: "",
+    examTitle: "",
+    academicYearText: "",
+    classNameText: "",
+    publishDate: ""
+  });
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);
@@ -111,6 +121,27 @@ const ResultReports: React.FC = () => {
       const snapshot = await getDocs(q);
       const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
       setResults(loadedResults);
+
+      // Fetch report header
+      const headerRef = doc(db, `organizations/${orgId}/report_configs`, `${selectedAcademicYearId}_${selectedExamId}_${selectedClassId}`);
+      const headerSnap = await getDoc(headerRef);
+      if (headerSnap.exists()) {
+        setReportHeader(headerSnap.data() as any);
+      } else {
+        // Set defaults
+        const currentClass = classes.find(c => c.id === selectedClassId);
+        const currentExam = exams.find(e => e.id === selectedExamId);
+        const currentYear = academicYears.find(ay => ay.id === selectedAcademicYearId);
+        
+        setReportHeader({
+          orgName: orgName || "প্রতিষ্ঠানের নাম",
+          address: "ঠিকানা এখানে লিখুন",
+          examTitle: `${currentExam?.name || ""} পরীক্ষার ফলাফল`,
+          academicYearText: `শিক্ষাবর্ষ: ${currentYear?.hijri_year || ""} হিজরী / ${currentYear?.year_name || ""} ঈসাব্দ`,
+          classNameText: `জামাত: ${currentClass?.name || ""}`,
+          publishDate: `ফলাফল প্রকাশের তারিখ: ${new Date().toLocaleDateString('bn-BD')}`
+        });
+      }
     } catch (error) {
       console.error("Error fetching results:", error);
       toast.error("ফলাফল লোড করতে ব্যর্থ হয়েছে।");
@@ -120,7 +151,71 @@ const ResultReports: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.print();
+    window.focus();
+    setTimeout(() => {
+      window.print();
+    }, 500);
+  };
+
+  const handleMarkChange = (studentId: string, subjectId: string, newMarks: number) => {
+    setHasChanges(true);
+    setResults(prevResults => {
+      const existingIndex = prevResults.findIndex(r => r.student_id === studentId && r.subject_id === subjectId);
+      if (existingIndex > -1) {
+        const updatedResults = [...prevResults];
+        updatedResults[existingIndex] = { ...updatedResults[existingIndex], marks: newMarks };
+        return updatedResults;
+      } else {
+        const newResult: Result = {
+          id: `result-${Date.now()}-${studentId}-${subjectId}`,
+          institution_id: orgId || "",
+          student_id: studentId,
+          class_id: selectedClassId,
+          academic_year_id: selectedAcademicYearId,
+          exam_id: selectedExamId,
+          subject_id: subjectId,
+          marks: newMarks,
+          status: 'draft',
+          created_by: user?.uid || "",
+          updated_by: user?.uid || "",
+          created_at: Date.now(),
+          updated_at: Date.now(),
+          version: 1,
+        };
+        return [...prevResults, newResult];
+      }
+    });
+  };
+
+  const saveAllResults = async () => {
+    if (!orgId || !user) return;
+    setLoading(true);
+    try {
+      const batch = writeBatch(db);
+      results.forEach(result => {
+        const resultRef = doc(db, `organizations/${orgId}/results`, result.id);
+        batch.set(resultRef, {
+          ...result,
+          updated_by: user.uid,
+          updated_at: Date.now(),
+          version: (result.version || 1) + 1
+        }, { merge: true });
+      });
+      await batch.commit();
+
+      // Save report header
+      const headerRef = doc(db, `organizations/${orgId}/report_configs`, `${selectedAcademicYearId}_${selectedExamId}_${selectedClassId}`);
+      await setDoc(headerRef, reportHeader);
+
+      setHasChanges(false);
+      setIsEditing(false);
+      toast.success("সব ফলাফল ও হেডার সফলভাবে সংরক্ষিত হয়েছে!");
+    } catch (error) {
+      console.error("Error saving results:", error);
+      toast.error("ফলাফল সংরক্ষণ করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const exportToPDF = async () => {
@@ -217,29 +312,44 @@ const ResultReports: React.FC = () => {
           <FileText className="w-6 h-6 text-[#0F5C7A]" />
           ট্যাবুলেশন শিট
         </h2>
-        <div className="flex gap-2">
-          <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium">
-            <option value="en">English (0-9)</option>
-            <option value="bn">Bengali (০-৯)</option>
-            <option value="ar">Arabic (٠-٩)</option>
-          </select>
-          {results.length > 0 && (
-            <>
-              <button onClick={handlePrint} className="btn-primary">
-                <Printer className="w-4 h-4" />
-                প্রিন্ট করুন
-              </button>
-              <button onClick={exportToPDF} className="btn-secondary">
-                <Download className="w-4 h-4" />
-                PDF
-              </button>
-              <button onClick={exportToDOCX} className="btn-secondary">
-                <Download className="w-4 h-4" />
-                DOCX
-              </button>
-            </>
-          )}
-        </div>
+          <div className="flex gap-2 print:hidden">
+            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium">
+              <option value="en">English (0-9)</option>
+              <option value="bn">Bengali (০-৯)</option>
+              <option value="ar">Arabic (٠-٩)</option>
+            </select>
+            {results.length > 0 && (
+              <>
+                {(role === 'admin' || role === 'teacher') && (
+                  isEditing ? (
+                    <>
+                      <button onClick={saveAllResults} className="btn-primary bg-emerald-600 hover:bg-emerald-700">
+                        <Save className="w-4 h-4" />
+                        সংরক্ষণ করুন
+                      </button>
+                      <button onClick={() => { setIsEditing(false); fetchResults(); }} className="btn-secondary">
+                        <X className="w-4 h-4" />
+                        বাতিল
+                      </button>
+                    </>
+                  ) : (
+                    <button onClick={() => setIsEditing(true)} className="btn-primary">
+                      <Edit2 className="w-4 h-4" />
+                      এডিট মোড
+                    </button>
+                  )
+                )}
+                <button onClick={handlePrint} className="btn-secondary">
+                  <Printer className="w-4 h-4" />
+                  প্রিন্ট করুন
+                </button>
+                <button onClick={exportToPDF} className="btn-secondary">
+                  <Download className="w-4 h-4" />
+                  PDF
+                </button>
+              </>
+            )}
+          </div>
       </div>
 
       <div className="card-premium p-6 print:hidden">
@@ -310,16 +420,68 @@ const ResultReports: React.FC = () => {
       {results.length > 0 ? (
         <div id="tabulation-sheet-container" className="card-premium p-8 print:shadow-none print:border-none print:p-0 bg-white">
           <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-slate-800 mb-2">
-              {classes.find(c => c.id === selectedClassId)?.name} - {exams.find(e => e.id === selectedExamId)?.name}
-            </h1>
-            <p className="text-slate-600">
-              শিক্ষাবর্ষ: {academicYears.find(ay => ay.id === selectedAcademicYearId)?.year_name} 
-              ({academicYears.find(ay => ay.id === selectedAcademicYearId)?.hijri_year})
-            </p>
-            <p className="text-slate-600 mt-1">ট্যাবুলেশন শিট</p>
-            {results[0]?.status === 'draft' && (
-              <span className="inline-block mt-2 px-3 py-1 bg-[#F59E0B]/10 text-[#F59E0B] rounded-full text-xs font-bold">
+            {isEditing ? (
+              <div className="space-y-2 max-w-2xl mx-auto mb-6 no-print">
+                <input
+                  type="text"
+                  value={reportHeader.orgName}
+                  onChange={(e) => setReportHeader({ ...reportHeader, orgName: e.target.value })}
+                  placeholder="প্রতিষ্ঠানের নাম"
+                  className="w-full text-center text-2xl font-bold border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                />
+                <input
+                  type="text"
+                  value={reportHeader.address}
+                  onChange={(e) => setReportHeader({ ...reportHeader, address: e.target.value })}
+                  placeholder="ঠিকানা"
+                  className="w-full text-center text-slate-600 border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                />
+                <input
+                  type="text"
+                  value={reportHeader.examTitle}
+                  onChange={(e) => setReportHeader({ ...reportHeader, examTitle: e.target.value })}
+                  placeholder="পরীক্ষার নাম"
+                  className="w-full text-center text-slate-600 border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    value={reportHeader.academicYearText}
+                    onChange={(e) => setReportHeader({ ...reportHeader, academicYearText: e.target.value })}
+                    placeholder="শিক্ষাবর্ষ"
+                    className="w-full text-center text-slate-600 border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                  />
+                  <input
+                    type="text"
+                    value={reportHeader.classNameText}
+                    onChange={(e) => setReportHeader({ ...reportHeader, classNameText: e.target.value })}
+                    placeholder="জামাত/শ্রেণি"
+                    className="w-full text-center text-slate-600 border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                  />
+                </div>
+                <input
+                  type="text"
+                  value={reportHeader.publishDate}
+                  onChange={(e) => setReportHeader({ ...reportHeader, publishDate: e.target.value })}
+                  placeholder="ফলাফল প্রকাশের তারিখ"
+                  className="w-full text-center text-slate-600 border-b border-dashed border-slate-300 focus:border-[#0F5C7A] outline-none py-1"
+                />
+              </div>
+            ) : (
+              <div className="print:mb-10">
+                <h1 className="text-3xl font-bold text-slate-900 mb-1">{reportHeader.orgName}</h1>
+                <p className="text-slate-700 text-lg mb-1">{reportHeader.address}</p>
+                <h2 className="text-xl font-bold text-slate-800 mb-1">{reportHeader.examTitle}</h2>
+                <div className="flex justify-center gap-6 text-slate-700 mb-1">
+                  <span>{reportHeader.academicYearText}</span>
+                  <span>{reportHeader.classNameText}</span>
+                </div>
+                <p className="text-slate-700">{reportHeader.publishDate}</p>
+              </div>
+            )}
+            
+            {results[0]?.status === 'draft' && !isEditing && (
+              <span className="inline-block mt-2 px-3 py-1 bg-[#F59E0B]/10 text-[#F59E0B] rounded-full text-xs font-bold print:hidden">
                 খসড়া (Draft)
               </span>
             )}
@@ -362,9 +524,20 @@ const ResultReports: React.FC = () => {
 
                         return (
                           <td key={subject.id} className="py-4 px-5 text-center">
-                            <span className={isFail ? "text-rose-600 font-bold" : "text-slate-700"}>
-                              {result ? convertNumber(result.marks, numeralFormat) : "-"}
-                            </span>
+                            {isEditing ? (
+                              <input
+                                type="number"
+                                value={result?.marks ?? ""}
+                                onChange={(e) => handleMarkChange(student.id, subject.id, Number(e.target.value))}
+                                className={`w-16 h-10 text-center border rounded-lg focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all ${isFail ? "border-rose-300 text-rose-600" : "border-slate-200 text-slate-700"}`}
+                                min="0"
+                                max={subject.fullMarks}
+                              />
+                            ) : (
+                              <span className={isFail ? "text-rose-600 font-bold" : "text-slate-700"}>
+                                {result ? convertNumber(result.marks, numeralFormat) : "-"}
+                              </span>
+                            )}
                           </td>
                         );
                       })}

@@ -349,3 +349,55 @@
     font-family: "Inter", "Poppins", sans-serif;
   }
 }
+
+@media print {
+  @page {
+    size: A4 landscape;
+    margin: 10mm;
+  }
+  
+  body {
+    background-color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  .print\:hidden {
+    display: none !important;
+  }
+
+  .card-premium {
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Ensure the tabulation sheet takes full width */
+  #tabulation-sheet-container {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  /* Hide navigation, headers, and other UI elements */
+  nav, .sidebar, header, .no-print {
+    display: none !important;
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+  
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+  
+  thead {
+    display: table-header-group;
+  }
+  
+  tfoot {
+    display: table-footer-group;
+  }
+}

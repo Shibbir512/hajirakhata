@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useSubjects } from "../hooks/useSubjects";
@@ -12,6 +12,7 @@ const Subjects: React.FC = () => {
   const { classes } = useClasses(orgId, user, role);
   const { subjects, addSubject, updateSubject, deleteSubject } = useSubjects(orgId, user);
 
+  const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSubject, setEditingSubject] = useState<Subject | null>(null);
   const [subjectToDelete, setSubjectToDelete] = useState<Subject | null>(null);
@@ -21,9 +22,14 @@ const Subjects: React.FC = () => {
   );
   const [classId, setClassId] = useState("");
 
+  const filteredSubjects = useMemo(() => {
+    if (!selectedClassId) return [];
+    return subjects.filter(s => s.classId === selectedClassId).sort((a, b) => a.subjectOrder - b.subjectOrder);
+  }, [subjects, selectedClassId]);
+
   const openAddModal = () => {
     setSubjectsList(Array.from({ length: 7 }, (_, i) => ({ name: "", nameAr: "", fullMarks: 100, passMarks: 35, subjectType: 'written', subjectOrder: i + 1 })));
-    setClassId(classes[0]?.id || "");
+    setClassId(selectedClassId || classes[0]?.id || "");
     setEditingSubject(null);
     setIsModalOpen(true);
   };
@@ -71,55 +77,72 @@ const Subjects: React.FC = () => {
           <Book className="w-6 h-6 text-[#0F5C7A]" />
           বিষয় ব্যবস্থাপনা
         </h2>
-        <button onClick={openAddModal} className="btn-primary">
-          <Plus className="w-4 h-4" />
-          নতুন বিষয়
-        </button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <select
+            value={selectedClassId}
+            onChange={(e) => setSelectedClassId(e.target.value)}
+            className="input-premium min-w-[200px]"
+          >
+            <option value="">শ্রেণি নির্বাচন করুন</option>
+            {classes.map((c) => (
+              <option key={c.id} value={c.id}>{c.name}</option>
+            ))}
+          </select>
+          <button onClick={openAddModal} className="btn-primary">
+            <Plus className="w-4 h-4" />
+            নতুন বিষয়
+          </button>
+        </div>
       </div>
 
       <div className="card-premium p-6">
-        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#F8F9FA] sticky top-0 z-10">
-              <tr>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">বিষয়ের নাম</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">শ্রেণি</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">পূর্ণমান</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">পাস নম্বর</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">ধরন</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">অর্ডার</th>
-                <th className="text-right py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">কার্যক্রম</th>
-              </tr>
-            </thead>
-            <tbody>
-              {subjects.map((subject) => (
-                <tr key={subject.id} className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200">
-                  <td className="py-4 px-5 text-slate-800 font-medium">{subject.name}</td>
-                  <td className="py-4 px-5 text-slate-600">{classes.find(c => c.id === subject.classId)?.name || "N/A"}</td>
-                  <td className="py-4 px-5 text-slate-600">{subject.fullMarks}</td>
-                  <td className="py-4 px-5 text-slate-600">{subject.passMarks}</td>
-                  <td className="py-4 px-5 text-slate-600 capitalize">{subject.subjectType}</td>
-                  <td className="py-4 px-5 text-slate-600">{subject.subjectOrder}</td>
-                  <td className="py-4 px-5 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => openEditModal(subject)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button onClick={() => setSubjectToDelete(subject)} className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {subjects.length === 0 && (
+        {!selectedClassId ? (
+          <div className="text-center py-12 text-slate-500">
+            <Book className="w-12 h-12 mx-auto mb-4 opacity-20" />
+            <p className="text-lg">বিষয়ের তালিকা দেখতে প্রথমে একটি শ্রেণি নির্বাচন করুন।</p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
+            <table className="w-full text-left border-collapse">
+              <thead className="bg-[#F8F9FA] sticky top-0 z-10">
                 <tr>
-                  <td colSpan={7} className="text-center py-12 text-slate-500">কোন বিষয় পাওয়া যায়নি।</td>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">বিষয়ের নাম</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">পূর্ণমান</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">পাস নম্বর</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">ধরন</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">অর্ডার</th>
+                  <th className="text-right py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">কার্যক্রম</th>
                 </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {filteredSubjects.map((subject) => (
+                  <tr key={subject.id} className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200">
+                    <td className="py-4 px-5 text-slate-800 font-medium">{subject.name}</td>
+                    <td className="py-4 px-5 text-slate-600">{subject.fullMarks}</td>
+                    <td className="py-4 px-5 text-slate-600">{subject.passMarks}</td>
+                    <td className="py-4 px-5 text-slate-600 capitalize">{subject.subjectType}</td>
+                    <td className="py-4 px-5 text-slate-600">{subject.subjectOrder}</td>
+                    <td className="py-4 px-5 text-right">
+                      <div className="flex justify-end gap-2">
+                        <button onClick={() => openEditModal(subject)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
+                          <Edit className="w-4 h-4" />
+                        </button>
+                        <button onClick={() => setSubjectToDelete(subject)} className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors">
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+                {filteredSubjects.length === 0 && (
+                  <tr>
+                    <td colSpan={6} className="text-center py-12 text-slate-500">এই শ্রেণিতে কোন বিষয় পাওয়া যায়নি।</td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
 
       {isModalOpen && (
@@ -176,11 +199,7 @@ const Subjects: React.FC = () => {
                     <div className="grid grid-cols-3 gap-2">
                       <input type="number" placeholder="পূর্ণমান" value={subject.fullMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], fullMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
                       <input type="number" placeholder="পাস" value={subject.passMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], passMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
-                      <select value={subject.subjectType} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], subjectType: e.target.value as any }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]">
-                        <option value="written">Written</option>
-                        <option value="oral">Oral</option>
-                        <option value="practical">Practical</option>
-                      </select>
+                      <input type="number" placeholder="অর্ডার" value={subject.subjectOrder} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], subjectOrder: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
                     </div>
                   </div>
                 ))}
