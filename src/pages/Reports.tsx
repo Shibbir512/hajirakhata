@@ -295,23 +295,23 @@ const Reports: React.FC = () => {
           </div>
 
             <div className="flex items-center gap-2 flex-1 sm:flex-none">
-              <div className="relative flex-1 sm:flex-none">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <div className="relative flex-1 sm:flex-none min-w-[140px]">
+                <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
                 <DatePicker
                   selected={startDate}
                   onChange={(date: Date | null) => date && setStartDate(date)}
-                  dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                  dateFormat="dd-MM-yyyy"
+                  className="input-premium pl-8 pr-2 w-full text-sm sm:text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                 />
               </div>
               <span className="text-[#0F5C7A] font-medium text-xs sm:text-sm">থেকে</span>
-              <div className="relative flex-1 sm:flex-none">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <div className="relative flex-1 sm:flex-none min-w-[140px]">
+                <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
                 <DatePicker
                   selected={endDate}
                   onChange={(date: Date | null) => date && setEndDate(date)}
-                  dateFormat="dd MM yyyy"
-                  className="input-premium pl-10 w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                  dateFormat="dd-MM-yyyy"
+                  className="input-premium pl-8 pr-2 w-full text-sm sm:text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                 />
               </div>
             </div>

@@ -20,6 +20,7 @@ import {
   ChevronDown,
   ChevronRight,
   CalendarDays,
+  Search,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -53,6 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
     { name: "ট্যাবুলেশন শিট", path: "/result-reports", icon: FileText },
     { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
+    { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
   ];
 

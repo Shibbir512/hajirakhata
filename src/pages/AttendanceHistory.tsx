@@ -160,7 +160,7 @@ const AttendanceHistory: React.FC = () => {
             <DatePicker
               selected={selectedDate}
               onChange={(date: Date | null) => setSelectedDate(date)}
-              dateFormat="dd MM yyyy"
+              dateFormat="dd-MM-yyyy"
               placeholderText="তারিখ নির্বাচন করুন"
               className="input-premium w-full text-[16px] font-medium text-slate-700 border border-[#D1D5DB] bg-white text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
               isClearable
@@ -347,127 +347,202 @@ const AttendanceHistory: React.FC = () => {
       )}
 
       {viewingSession && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/20 p-4 sm:p-8">
-            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা বিস্তারিত</h3>
-              <div className="flex items-center gap-2">
-                <button onClick={() => handleShare(viewingSession)} className="text-[#0F5C7A] hover:text-[#0F5C7A]/80 transition-colors bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 p-2 rounded-full"><Share2 className="w-5 h-5" /></button>
-                <button onClick={() => { setViewingSession(null); setSearchQuery(""); }} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
-              </div>
-            </div>
-            <div className="mb-4 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
-              />
-            </div>
-            <div className="space-y-3">
-              {viewingSession.students.filter((student: any) => {
-                const rollValue = getStudentRoll(viewingSession.classId, student.studentId);
-                const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
-                const searchLower = searchQuery.toLowerCase();
-                const name = student.studentName || "";
-                return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
-              }).sort((a: any, b: any) => {
-                if (a.status === b.status) return 0;
-                return a.status === AttendanceStatus.Absent ? -1 : 1;
-              }).map((student: any) => (
-                <div key={student.studentId} className={clsx(
-                  "flex justify-between items-center p-4 border rounded-2xl transition-all duration-300",
-                  student.status === AttendanceStatus.Absent 
-                    ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm" 
-                    : "bg-white border-slate-100"
-                )}>
-                  <span className={clsx(
-                    "font-medium flex items-center gap-3",
-                    student.status === AttendanceStatus.Absent ? "text-[#EF4444]" : "text-slate-800"
-                  )}>
-                    {student.status === AttendanceStatus.Absent && <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse"></span>}
-                    <span className="text-slate-500 font-mono text-sm mr-2">{toBengaliNumber(getStudentRoll(viewingSession.classId, student.studentId))}</span>
-                    {student.studentName}
-                  </span>
-                  <span className={clsx(
-                    "px-4 py-2 rounded-xl text-sm font-bold shadow-sm text-[#0F5C7A]",
-                    student.status === AttendanceStatus.Present 
-                      ? "bg-[#22C55E]/10 text-[#22C55E] border border-[#22C55E]/20" 
-                      : "bg-[#EF4444] text-white border border-[#EF4444]/90"
-                  )}>
-                    {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
-                  </span>
+        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+          <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <Calendar className="w-7 h-7 text-white" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="text-lg font-bold">হাজিরা বিস্তারিত</h3>
+                  <p className="text-xs text-white/80">সেশনের তথ্য</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handleShare(viewingSession)}
+                  className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  title="শেয়ার করুন"
+                >
+                  <Share2 className="w-5 h-5 text-white" />
+                </button>
+                <button
+                  onClick={() => { setViewingSession(null); setSearchQuery(""); }}
+                  className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                >
+                  <X className="w-5 h-5 text-white" />
+                </button>
+              </div>
+            </div>
+
+            {/* Body */}
+            <div className="p-5 flex flex-col overflow-hidden max-h-[60vh]">
+              <div className="mb-4 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
+                />
+              </div>
+
+              <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar">
+                {viewingSession.students.filter((student: any) => {
+                  const rollValue = getStudentRoll(viewingSession.classId, student.studentId);
+                  const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
+                  const searchLower = searchQuery.toLowerCase();
+                  const name = student.studentName || "";
+                  return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+                }).sort((a: any, b: any) => {
+                  if (a.status === b.status) return 0;
+                  return a.status === AttendanceStatus.Absent ? -1 : 1;
+                }).map((student: any) => (
+                  <div key={student.studentId} className={clsx(
+                    "flex justify-between items-center p-4 border rounded-[16px] transition-all duration-300",
+                    student.status === AttendanceStatus.Absent 
+                      ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm" 
+                      : "bg-white border-slate-100"
+                  )}>
+                    <div className="flex items-center gap-3">
+                      {student.status === AttendanceStatus.Absent && (
+                        <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse"></span>
+                      )}
+                      <div className="flex flex-col">
+                        <span className={clsx(
+                          "font-bold text-[15px]",
+                          student.status === AttendanceStatus.Absent ? "text-[#EF4444]" : "text-slate-800"
+                        )}>
+                          {student.studentName}
+                        </span>
+                        <span className="text-slate-500 text-xs font-medium">
+                          রোল: {toBengaliNumber(getStudentRoll(viewingSession.classId, student.studentId))}
+                        </span>
+                      </div>
+                    </div>
+                    <span className={clsx(
+                      "px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm",
+                      student.status === AttendanceStatus.Present 
+                        ? "bg-[#DCFCE7] text-[#166534] border border-[#DCFCE7]" 
+                        : "bg-[#FEE2E2] text-[#991B1B] border border-[#FEE2E2]"
+                    )}>
+                      {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
+              <button
+                onClick={() => { setViewingSession(null); setSearchQuery(""); }}
+                className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {isEditMode && selectedSession && (
-        <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4 z-50">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto border border-white/20 p-4 sm:p-8">
-            <div className="flex justify-between items-center mb-6 border-b border-slate-100 pb-4">
-              <h3 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা সম্পাদনা</h3>
-              <button onClick={() => { setIsEditMode(false); setSearchQuery(""); }} className="text-slate-400 hover:text-slate-600 transition-colors bg-slate-50 hover:bg-slate-100 p-2 rounded-full"><X className="w-5 h-5" /></button>
-            </div>
-            <div className="mb-4 relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Search className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
-              />
-            </div>
-            <div className="space-y-3">
-              {editedStudents.filter((student: any) => {
-                const rollValue = getStudentRoll(selectedSession.classId, student.studentId);
-                const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
-                const searchLower = searchQuery.toLowerCase();
-                const name = student.studentName || "";
-                return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
-              }).map((student: any) => (
-                <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 transition-colors">
-                  <span className="font-medium text-slate-800 flex items-center gap-3">
-                    <span className="text-slate-500 font-mono text-sm mr-2">{toBengaliNumber(getStudentRoll(selectedSession.classId, student.studentId))}</span>
-                    {student.studentName}
-                  </span>
-                  <div className="flex gap-1">
-                    <button 
-                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Present)}
-                      className={clsx(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                        student.status === AttendanceStatus.Present 
-                          ? "bg-[#22C55E] text-white border-[#22C55E]/90" 
-                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
-                      )}
-                    >
-                      উপস্থিত
-                    </button>
-                    <button 
-                      onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Absent)}
-                      className={clsx(
-                        "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                        student.status === AttendanceStatus.Absent 
-                          ? "bg-[#EF4444] text-white border-[#EF4444]/90" 
-                          : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
-                      )}
-                    >
-                      অনুপস্থিত
-                    </button>
-                  </div>
+        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+          <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
+            {/* Header */}
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <Edit2 className="w-7 h-7 text-white" />
                 </div>
-              ))}
+                <div>
+                  <h3 className="text-lg font-bold">হাজিরা সম্পাদনা</h3>
+                  <p className="text-xs text-white/80">সংশোধন করুন</p>
+                </div>
+              </div>
+              <button
+                onClick={() => { setIsEditMode(false); setSearchQuery(""); }}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
             </div>
-            <button onClick={handleSave} className="btn-primary w-full mt-8 py-3 text-base">সংরক্ষণ করুন</button>
+
+            {/* Body */}
+            <div className="p-5 flex flex-col overflow-hidden max-h-[60vh]">
+              <div className="mb-4 relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <Search className="h-5 w-5 text-slate-400" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
+                />
+              </div>
+
+              <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar">
+                {editedStudents.filter((student: any) => {
+                  const rollValue = getStudentRoll(selectedSession.classId, student.studentId);
+                  const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
+                  const searchLower = searchQuery.toLowerCase();
+                  const name = student.studentName || "";
+                  return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+                }).map((student: any) => (
+                  <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-[16px] hover:bg-slate-50 transition-colors">
+                    <div className="flex flex-col">
+                      <span className="font-bold text-[15px] text-slate-800">
+                        {student.studentName}
+                      </span>
+                      <span className="text-slate-500 text-xs font-medium">
+                        রোল: {toBengaliNumber(getStudentRoll(selectedSession.classId, student.studentId))}
+                      </span>
+                    </div>
+                    <div className="flex gap-1">
+                      <button 
+                        onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Present)}
+                        className={clsx(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                          student.status === AttendanceStatus.Present 
+                            ? "bg-[#22C55E] text-white border-[#22C55E]/90" 
+                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                        )}
+                      >
+                        উপস্থিত
+                      </button>
+                      <button 
+                        onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Absent)}
+                        className={clsx(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                          student.status === AttendanceStatus.Absent 
+                            ? "bg-[#EF4444] text-white border-[#EF4444]/90" 
+                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                        )}
+                      >
+                        অনুপস্থিত
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
+              <button
+                onClick={handleSave}
+                className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
+              >
+                সংরক্ষণ করুন
+              </button>
+            </div>
           </div>
         </div>
       )}

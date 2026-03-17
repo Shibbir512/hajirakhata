@@ -549,10 +549,10 @@ const Students: React.FC = () => {
       )}
 
       {viewingStudent && (
-        <div className="fixed inset-0 z-[70] flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
-          <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+          <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
-            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
                   <User className="w-7 h-7 text-white" />
@@ -571,7 +571,7 @@ const Students: React.FC = () => {
             </div>
 
             {/* Body */}
-            <div className="p-5 space-y-5 overflow-y-auto max-h-[60vh]">
+            <div className="p-5 space-y-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
               <div className="bg-[#F4F7FB] p-4 rounded-[16px] border border-[#E5E7EB]">
                 <h4 className="text-[16px] font-bold text-[#1F2937] mb-1">{viewingStudent.name}</h4>
                 <p className="text-[14px] text-[#6B7280]">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
@@ -619,7 +619,7 @@ const Students: React.FC = () => {
             </div>
             
             {/* Footer */}
-            <div className="p-5 border-t border-[#E5E7EB]">
+            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
               <button
                 onClick={() => setViewingStudent(null)}
                 className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"

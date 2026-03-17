@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
-import { AlertCircle, Loader2, Copy, Check, Phone } from 'lucide-react';
+import { AlertCircle, Loader2, Copy, Check, Phone, Search } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
@@ -248,7 +248,7 @@ const Login: React.FC = () => {
         <button
           onClick={isNewUser ? handleFinalizeSignup : handleGoogleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#0F5C7A] hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300"
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#0F5C7A] hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300 mb-4"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-white/80" />
@@ -256,6 +256,23 @@ const Login: React.FC = () => {
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 brightness-0 invert" />
           )}
           <span>{loading ? 'সাইন ইন করা হচ্ছে...' : isNewUser ? 'সাইন আপ সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}</span>
+        </button>
+
+        <div className="relative my-6">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-slate-200"></div>
+          </div>
+          <div className="relative flex justify-center text-sm">
+            <span className="px-2 bg-white text-slate-400">অথবা</span>
+          </div>
+        </div>
+
+        <button
+          onClick={() => window.location.href = '/result-search'}
+          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-[#0F5C7A]/20 text-[#0F5C7A] hover:bg-[#0F5C7A]/5 rounded-2xl font-bold transition-all duration-300"
+        >
+          <Search className="w-5 h-5" />
+          <span>ফলাফল দেখুন</span>
         </button>
       </div>
       

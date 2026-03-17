@@ -38,15 +38,18 @@ export const toBengaliTime = (timeStr: string) => {
   const minute = parts[1];
   const ampm = parts[parts.length - 1].toUpperCase();
   
-  const hourNum = parseInt(hour);
+  // Check if seconds are present (format: hh mm ss AM/PM)
+  let second = "";
+  if (parts.length >= 4) {
+    second = parts[2];
+  }
+
+  const displayAMPM = ampm.includes("AM") ? "AM" : "PM";
   
-  // Determine Bengali AM/PM/Time of day
-  let timeOfDay = "";
-  if (ampm.includes("AM")) {
-    timeOfDay = hourNum >= 5 && hourNum < 12 ? "সকাল" : "রাত";
-  } else {
-    timeOfDay = hourNum >= 12 || hourNum < 5 ? "দুপুর" : "সন্ধ্যা";
+  let result = `${toBengaliNumber(hour)}:${toBengaliNumber(minute)}`;
+  if (second) {
+    result += `:${toBengaliNumber(second)}`;
   }
   
-  return `${timeOfDay} ${toBengaliNumber(hour)}:${toBengaliNumber(minute)} মিনিট`;
+  return `${result} ${displayAMPM}`;
 };
