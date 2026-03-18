@@ -89,6 +89,7 @@ service cloud.firestore {
     
     match /globalSettings/{document=**} {
       allow read: if true;
+      allow write: if isSuperAdmin();
     }
   }
 }

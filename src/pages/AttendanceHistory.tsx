@@ -244,13 +244,19 @@ const AttendanceHistory: React.FC = () => {
                     <span className={clsx("w-2.5 h-2.5 rounded-full", absentStudents.length > 0 ? "bg-[#EF4444] animate-pulse" : "bg-[#22C55E]")}></span>
                     {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
                   </p>
-                  <div className="flex items-center gap-1">
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#22C55E]/10 text-[#22C55E]" title="উপস্থিত">
-                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Present).length)}
-                    </span>
-                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-[#EF4444]/10 text-[#EF4444]" title="অনুপস্থিত">
-                      {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Absent).length)}
-                    </span>
+                  <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-1 bg-[#22C55E]/10 px-2 py-1 rounded-lg" title="উপস্থিত">
+                      <span className="text-[10px] font-bold text-[#22C55E]">উপস্থিত:</span>
+                      <span className="text-xs font-bold text-[#22C55E]">
+                        {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Present).length)}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-1 bg-[#EF4444]/10 px-2 py-1 rounded-lg" title="অনুপস্থিত">
+                      <span className="text-[10px] font-bold text-[#EF4444]">অনুপস্থিত:</span>
+                      <span className="text-xs font-bold text-[#EF4444]">
+                        {toBengaliNumber(absentStudents.length)}
+                      </span>
+                    </div>
                   </div>
                 </div>
 

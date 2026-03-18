@@ -65,7 +65,7 @@ const Reports: React.FC = () => {
           const studentRecord = session.students.find((st: any) => st.studentId === student.id);
           if (studentRecord) {
             if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) present++;
-            else absent++;
+            else if (studentRecord.status === AttendanceStatus.Absent) absent++;
           }
         });
 
