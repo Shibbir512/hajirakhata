@@ -11,7 +11,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 
 const DashboardLayout: React.FC = () => {
-  const { orgId, loading, role, user } = useAuth();
+  const { orgId, loading, role, user, status, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -158,7 +158,57 @@ const DashboardLayout: React.FC = () => {
     );
   }
 
-  if (!orgId && location.pathname !== "/org-management") {
+  const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+
+  if (status === "pending" && !isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full card-premium p-10 border-2 border-amber-100 shadow-amber-900/5 text-center">
+          <div className="w-20 h-20 bg-gradient-to-tr from-amber-100 to-orange-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+            <div className="w-10 h-10 text-amber-600 flex items-center justify-center text-3xl">⏳</div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-4">
+            সিস্টেম অনুমোদনের অপেক্ষায়
+          </h1>
+          <p className="text-slate-500 mb-8">
+            আপনার অ্যাকাউন্টটি সুপার অ্যাডমিনের অনুমোদনের অপেক্ষায় আছে। অনুমোদন পেলে আপনি সিস্টেম ব্যবহার করতে পারবেন।
+          </p>
+          <button
+            onClick={logout}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all duration-300 w-full py-3 rounded-xl font-bold"
+          >
+            লগআউট করুন
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (status === "rejected" && !isSuperAdmin) {
+    return (
+      <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
+        <div className="max-w-md w-full card-premium p-10 border-2 border-rose-100 shadow-rose-900/5 text-center">
+          <div className="w-20 h-20 bg-gradient-to-tr from-rose-100 to-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-inner border border-white">
+            <div className="w-10 h-10 text-rose-600 flex items-center justify-center text-3xl">🚫</div>
+          </div>
+          <h1 className="text-3xl font-bold text-slate-800 tracking-tight mb-4">
+            অ্যাকাউন্ট বাতিল
+          </h1>
+          <p className="text-slate-500 mb-8">
+            আপনার অ্যাকাউন্টটি সিস্টেম অ্যাডমিন দ্বারা বাতিল করা হয়েছে।
+          </p>
+          <button
+            onClick={logout}
+            className="bg-slate-100 hover:bg-slate-200 text-slate-700 transition-all duration-300 w-full py-3 rounded-xl font-bold"
+          >
+            লগআউট করুন
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!orgId && location.pathname !== "/org-management" && !(isSuperAdmin && location.pathname === "/super-admin")) {
     return <Navigate to="/org-management" replace />;
   }
 
@@ -196,15 +246,15 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
-      {orgId && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
-      {orgId && isSidebarOpen && (
+      {(orgId || isSuperAdmin) && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
+      {(orgId || isSuperAdmin) && isSidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
           onClick={() => setIsSidebarOpen(false)}
         />
       )}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {orgId && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
+        {(orgId || isSuperAdmin) && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] p-4 md:p-6 lg:p-8">
           <div className="max-w-7xl mx-auto w-full">
             <AnimatePresence mode="wait">

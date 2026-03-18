@@ -45,6 +45,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
         return "রিপোর্ট";
       case "/settings":
         return "সেটিংস";
+      case "/super-admin":
+        return "সুপার অ্যাডমিন";
       default:
         return "ড্যাশবোর্ড";
     }
@@ -73,7 +75,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             className="flex items-center gap-2 text-left hover:bg-white/10 p-1 -ml-1 rounded-lg transition-colors w-full"
           >
             <p className="text-[14.875px] md:text-[22px] font-semibold text-white truncate max-w-[140px] sm:max-w-[200px] md:max-w-md">
-              {orgName || "প্রতিষ্ঠান নির্বাচন করুন"}
+              {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন ড্যাশবোর্ড" : "প্রতিষ্ঠান নির্বাচন করুন")}
             </p>
             <ChevronDown className={`w-4 h-4 md:w-5 md:h-5 text-white transition-transform flex-shrink-0 ${isDropdownOpen ? 'rotate-180' : ''}`} />
           </button>

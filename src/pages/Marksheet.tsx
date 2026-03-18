@@ -754,7 +754,7 @@ const Marksheet: React.FC = () => {
             </thead>
             <tbody>
               {academicHistoryTable.map((row, index) => (
-                <tr key={index} className="border-b border-slate-200">
+                <tr key={`${row.year}-${row.exam}-${row.class}`} className="border-b border-slate-200">
                   <td className="p-4">{convertNumber(row.year, numeralFormat)}</td>
                   <td className="p-4">{row.exam}</td>
                   <td className="p-4">{row.class}</td>

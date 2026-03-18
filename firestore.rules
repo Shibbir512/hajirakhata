@@ -6,28 +6,34 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    function isSuperAdmin() {
+      return isAuthenticated() && 
+        (request.auth.token.email == "shibbir.ahma.2025@gmail.com" && request.auth.token.email_verified == true);
+    }
+
     function getUserData() {
       return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
     }
 
     function getRole(orgId) {
-      return getUserData().roles[orgId];
+      let data = getUserData();
+      return data.roles[orgId];
     }
 
     function isAdmin(orgId) {
-      return isAuthenticated() && getRole(orgId) == 'admin';
+      return isSuperAdmin() || (isAuthenticated() && getRole(orgId) == 'admin');
     }
 
     function isTeacher(orgId) {
-      return isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher');
+      return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher'));
     }
 
     function isViewer(orgId) {
-      return isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher' || getRole(orgId) == 'viewer');
+      return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher' || getRole(orgId) == 'viewer'));
     }
 
     function isMember(orgId) {
-      return isAuthenticated() && getUserData().roles.keys().hasAny([orgId]);
+      return isSuperAdmin() || (isAuthenticated() && getUserData().roles.keys().hasAny([orgId]));
     }
 
     function isVersionCorrect() {
@@ -35,9 +41,19 @@ service cloud.firestore {
              (request.resource.data.version == resource.data.version + 1);
     }
 
+    match /users/{userId} {
+      allow read: if isSuperAdmin() || (isAuthenticated() && (request.auth.uid == userId || (resource != null && isAdmin(resource.data.organizationId))));
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow list: if isSuperAdmin() || isAuthenticated(); // We rely on the query filter and read rules
+    }
+
     match /organizations/{orgId} {
       allow get: if true;
       allow list: if true;
+      allow create: if isAuthenticated();
+      allow update: if isAdmin(orgId);
+      allow delete: if isSuperAdmin();
 
       match /academic_years/{yearId} {
         allow read: if true;

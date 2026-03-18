@@ -109,10 +109,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
 
           if (!docSnap.exists()) {
-            updateData.status = "pending";
+            const configSnap = await getDoc(doc(db, "globalSettings", "config"));
+            const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
+            updateData.status = approvalEnabled ? "pending" : "active";
             await setDoc(userDocRef, updateData);
           } else {
-            await setDoc(userDocRef, updateData, { merge: true });
+            await updateDoc(userDocRef, updateData);
           }
         } catch (e) {
           console.error("Error saving user info:", e);
@@ -122,7 +124,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
-            let userRole = (currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"; // Default role
+            const isSuperAdmin = currentUser.email === "shibbir.ahma.2025@gmail.com";
+            let userRole = isSuperAdmin ? "admin" : ((currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"); // Default role
             const history = data.visitedOrgs || {};
             const userPhone = data.phone || null;
             const userStatus = data.status || "active";
@@ -147,7 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (orgSnap.exists() && orgSnap.data().createdBy === currentUser.uid) {
                   userRole = "admin";
                   setRole(userRole);
-                  setDoc(userDocRef, { roles: { [currentOrgId]: "admin" } }, { merge: true }).catch(console.error);
+                  updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(console.error);
                 }
               } catch (e) {
                 console.error("Error checking org owner:", e);
@@ -162,12 +165,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   const fetchedOrgName = orgSnap.data().name;
                   setOrgName(fetchedOrgName);
                   setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: fetchedOrgName }));
-                  setDoc(
+                  updateDoc(
                     userDocRef,
                     {
-                      visitedOrgs: { [currentOrgId]: fetchedOrgName },
-                    },
-                    { merge: true },
+                      [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
+                    }
                   ).catch(console.error);
                 }
               } catch (e) {
@@ -205,6 +207,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     async (name: string): Promise<string | null> => {
       if (!user || !db) return null;
       try {
+        const trimmedName = name.trim();
         const newOrgId = `org-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         
         // Try to get the most up-to-date info from the users collection first
@@ -224,7 +227,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         await setDoc(doc(db, "organizations", newOrgId), {
           id: newOrgId,
-          name,
+          name: trimmedName,
           createdBy: user.uid,
           creatorName: cName,
           creatorEmail: cEmail,
@@ -232,22 +235,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
 
         const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
-        await setDoc(
+        await updateDoc(
           doc(db, "users", user.uid),
           {
             displayName: user.displayName || fallbackName,
             email: user.email || "",
             photoURL: user.photoURL || "",
             organizationId: newOrgId,
-            visitedOrgs: {
-              [newOrgId]: name,
-            },
-            roles: {
-              [newOrgId]: "admin",
-            },
+            [`visitedOrgs.${newOrgId}`]: trimmedName,
+            [`roles.${newOrgId}`]: "admin",
             lastSeen: serverTimestamp()
-          },
-          { merge: true },
+          }
         );
 
         setOrgId(newOrgId);
@@ -309,19 +307,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           email: user.email || "",
           photoURL: user.photoURL || "",
           organizationId: targetOrgId,
-          visitedOrgs: {
-            [targetOrgId]: orgName,
-          },
+          [`visitedOrgs.${targetOrgId}`]: orgName,
           lastSeen: serverTimestamp()
         };
 
         if (!existingRole) {
-          updates.roles = {
-            [targetOrgId]: "pending"
-          };
+          updates[`roles.${targetOrgId}`] = "pending";
         }
 
-        await setDoc(userDocRef, updates, { merge: true });
+        await updateDoc(userDocRef, updates);
 
         setOrgId(targetOrgId);
         toast.success("প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!");
@@ -338,10 +332,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const leaveOrganization = useCallback(async () => {
     if (!user || !db) return;
     try {
-      await setDoc(
+      await updateDoc(
         doc(db, "users", user.uid),
-        { organizationId: null },
-        { merge: true },
+        { organizationId: null }
       );
       setOrgId(null);
       toast.success("প্রতিষ্ঠান থেকে সফলভাবে প্রস্থান করেছেন।");

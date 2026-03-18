@@ -183,7 +183,7 @@ const Subjects: React.FC = () => {
                 </div>
                 
                 {subjectsList.map((subject, index) => (
-                  <div key={index} className="p-4 border border-[#E5E7EB] rounded-[16px] space-y-3">
+                  <div key={`subject-${index}`} className="p-4 border border-[#E5E7EB] rounded-[16px] space-y-3">
                     <div className="flex justify-between items-center">
                       <h4 className="font-bold text-[#0F5C7A]">বিষয় {index + 1}</h4>
                       {subjectsList.length > 1 && (

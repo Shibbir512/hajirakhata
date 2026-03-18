@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useMemo } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, Link } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
 import { db } from "../firebase";
-import { doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown } from "lucide-react";
 import { Student, Result, Subject, AttendanceStatus } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
@@ -30,92 +30,130 @@ const StudentProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStudentData = async () => {
+    const fetchStudentAndAttendance = async () => {
       if (!orgId || !studentId) return;
-      setLoading(true);
       try {
         // Fetch student info
         const studentRef = doc(db, `organizations/${orgId}/students`, studentId);
         const studentSnap = await getDoc(studentRef);
         if (studentSnap.exists()) {
           setStudent(studentSnap.data() as Student);
+          
+          // Fetch attendance stats
+          const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+          const attendanceQuery = query(sessionsRef, where("classId", "==", studentSnap.data()?.classId));
+          const attendanceSnapshot = await getDocs(attendanceQuery);
+          
+          let presentCount = 0;
+          let absentCount = 0;
+          
+          attendanceSnapshot.docs.forEach(doc => {
+            const session = doc.data();
+            const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
+            if (studentRecord) {
+              if (studentRecord.status === AttendanceStatus.Present) presentCount++;
+              else if (studentRecord.status === AttendanceStatus.Absent) absentCount++;
+            }
+          });
+          setAttendanceStats({ present: presentCount, absent: absentCount });
         } else {
           toast.error("শিক্ষার্থী খুঁজে পাওয়া যায়নি।");
           navigate("/students");
-          return;
-        }
-
-        // Fetch all results for this student
-        const resultsRef = collection(db, `organizations/${orgId}/results`);
-        const q = query(resultsRef, where("student_id", "==", studentId));
-        const snapshot = await getDocs(q);
-        const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
-        setResults(loadedResults);
-
-        // Fetch attendance stats
-        const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
-        const attendanceQuery = query(sessionsRef, where("classId", "==", studentSnap.data()?.classId));
-        const attendanceSnapshot = await getDocs(attendanceQuery);
-        
-        let presentCount = 0;
-        let absentCount = 0;
-        
-        attendanceSnapshot.docs.forEach(doc => {
-          const session = doc.data();
-          const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
-          if (studentRecord) {
-            if (studentRecord.status === AttendanceStatus.Present) presentCount++;
-            else if (studentRecord.status === AttendanceStatus.Absent) absentCount++;
-          }
-        });
-        setAttendanceStats({ present: presentCount, absent: absentCount });
-
-        // Calculate rank for the most recent exam
-        if (loadedResults.length > 0) {
-          // Find the latest result to identify the latest exam
-          const latestResult = [...loadedResults].sort((a, b) => b.created_at - a.created_at)[0];
-          const latestExamId = latestResult.exam_id;
-          const latestClassId = latestResult.class_id;
-
-          // Fetch all results for this exam and class to calculate rank
-          const allResultsQuery = query(
-            resultsRef, 
-            where("exam_id", "==", latestExamId),
-            where("class_id", "==", latestClassId)
-          );
-          const allResultsSnapshot = await getDocs(allResultsQuery);
-          const allResults = allResultsSnapshot.docs.map(doc => doc.data() as Result);
-
-          // Group by student
-          const studentTotals = allResults.reduce((acc, r) => {
-            if (!acc[r.student_id]) acc[r.student_id] = 0;
-            acc[r.student_id] += r.marks;
-            return acc;
-          }, {} as { [key: string]: number });
-
-          const examSubjects = subjects.filter(s => s.classId === latestClassId);
-          const studentResults = loadedResults.filter(r => r.exam_id === latestExamId);
-          
-          const allStudentMetrics = Object.entries(studentTotals).map(([sId, total]) => ({
-            studentId: sId,
-            totalMarks: total,
-            hasFailed: false // Simplified for rank calculation
-          }));
-
-          const { grade, rank } = calculateResultMetrics(studentResults, examSubjects, allStudentMetrics);
-          setLastExamGrade(grade);
-          setLastExamRank(rank);
         }
       } catch (error) {
-        console.error("Error fetching student data:", error);
-        toast.error("তথ্য লোড করতে ব্যর্থ হয়েছে।");
-      } finally {
-        setLoading(false);
+        console.error("Error fetching student/attendance:", error);
       }
     };
 
-    fetchStudentData();
+    fetchStudentAndAttendance();
   }, [orgId, studentId, navigate]);
+
+  // Real-time results listener
+  useEffect(() => {
+    if (!orgId || !studentId) return;
+
+    const resultsRef = collection(db, `organizations/${orgId}/results`);
+    let q = query(resultsRef, where("student_id", "==", studentId));
+    
+    if (role !== 'admin' && role !== 'teacher') {
+      q = query(q, where("status", "==", "published"));
+    }
+
+    const unsub = onSnapshot(q, (snapshot) => {
+      const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
+      setResults(loadedResults);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error listening to results:", error);
+      setLoading(false);
+    });
+
+    return () => unsub();
+  }, [orgId, studentId, role]);
+
+  // Rank calculation effect
+  useEffect(() => {
+    const calculateRank = async () => {
+      if (!orgId || !studentId || results.length === 0 || subjects.length === 0) {
+        setLastExamRank("-");
+        setLastExamGrade("-");
+        return;
+      }
+
+      try {
+        // Find the latest result to identify the latest exam
+        const sortedResults = [...results].sort((a, b) => (b.created_at || 0) - (a.created_at || 0));
+        const latestResult = sortedResults[0];
+        
+        if (!latestResult) {
+          setLastExamRank("-");
+          setLastExamGrade("-");
+          return;
+        }
+
+        const latestExamId = latestResult.exam_id;
+        const latestClassId = latestResult.class_id;
+
+        const resultsRef = collection(db, `organizations/${orgId}/results`);
+        let allResultsQuery = query(
+          resultsRef, 
+          where("exam_id", "==", latestExamId),
+          where("class_id", "==", latestClassId)
+        );
+        
+        if (role !== 'admin' && role !== 'teacher') {
+          allResultsQuery = query(allResultsQuery, where("status", "==", "published"));
+        }
+        
+        const allResultsSnapshot = await getDocs(allResultsQuery);
+        const allResults = allResultsSnapshot.docs.map(doc => doc.data() as Result);
+
+        // Group by student
+        const studentTotals = allResults.reduce((acc, r) => {
+          if (!acc[r.student_id]) acc[r.student_id] = 0;
+          acc[r.student_id] += r.marks;
+          return acc;
+        }, {} as { [key: string]: number });
+
+        const examSubjects = subjects.filter(s => s.classId === latestClassId);
+        const studentResults = results.filter(r => r.exam_id === latestExamId);
+        
+        const allStudentMetrics = Object.entries(studentTotals).map(([sId, total]) => ({
+          studentId: sId,
+          totalMarks: total,
+          hasFailed: false // Simplified for rank calculation
+        }));
+
+        const { grade, rank } = calculateResultMetrics(studentResults, examSubjects, allStudentMetrics);
+        setLastExamGrade(grade);
+        setLastExamRank(rank);
+      } catch (error) {
+        console.error("Error calculating rank:", error);
+      }
+    };
+
+    calculateRank();
+  }, [orgId, studentId, results, subjects, role]);
 
   const academicHistory = useMemo(() => {
     if (!student || results.length === 0) return [];
@@ -166,13 +204,14 @@ const StudentProfile: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <button
-          onClick={() => navigate(-1)}
-          className="p-2 hover:bg-slate-100 rounded-full transition-colors"
+      <div className="flex items-center gap-4 mb-2">
+        <Link
+          to="/students"
+          className="w-10 h-10 flex items-center justify-center hover:bg-slate-100 rounded-full transition-colors active:scale-95"
+          aria-label="Back"
         >
           <ArrowLeft className="w-6 h-6 text-slate-600" />
-        </button>
+        </Link>
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থীর প্রোফাইল</h2>
       </div>
 
@@ -266,7 +305,7 @@ const StudentProfile: React.FC = () => {
                 <tbody>
                   {academicHistory.length > 0 ? (
                     academicHistory.map((item, idx) => (
-                      <tr key={idx} className="hover:bg-slate-50 transition-colors">
+                      <tr key={`${item.academicYear}-${item.exam}-${item.class}`} className="hover:bg-slate-50 transition-colors">
                         <td className="py-4 px-4 text-sm text-slate-700 border-b">{item.academicYear}</td>
                         <td className="py-4 px-4 text-sm text-slate-700 border-b">{item.exam}</td>
                         <td className="py-4 px-4 text-sm text-slate-700 border-b">{item.class}</td>

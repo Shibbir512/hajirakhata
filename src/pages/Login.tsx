@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
-import { doc, setDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { AlertCircle, Loader2, Copy, Check, Phone, Search } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -50,8 +50,10 @@ const Login: React.FC = () => {
     try {
       const user = auth.currentUser;
       const userRef = doc(db, "users", user.uid);
+      const userDoc = await getDoc(userRef);
+      const isNew = !userDoc.exists();
       
-      const userData = {
+      const userData: any = {
         displayName: user.displayName || "ব্যবহারকারী",
         email: user.email || "ইমেইল নেই",
         photoURL: user.photoURL || "",
@@ -59,7 +61,14 @@ const Login: React.FC = () => {
         lastLogin: serverTimestamp()
       };
       
-      await setDoc(userRef, userData, { merge: true });
+      if (isNew) {
+        const configSnap = await getDoc(doc(db, "globalSettings", "config"));
+        const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
+        userData.status = approvalEnabled ? "pending" : "active";
+        await setDoc(userRef, userData);
+      } else {
+        await updateDoc(userRef, userData);
+      }
       setIsNewUser(false);
     } catch (error: any) {
       console.error("Signup failed", error);
@@ -85,7 +94,9 @@ const Login: React.FC = () => {
       const userDoc = await getDoc(userRef);
       
       // If user doesn't exist or phone is missing, prompt for phone number
-      if (!userDoc.exists() || !userDoc.data()?.phone) {
+      // Skip phone requirement for super admins
+      const isSuperAdmin = user.email === "shibbir.ahma.2025@gmail.com";
+      if (!isSuperAdmin && (!userDoc.exists() || !userDoc.data()?.phone)) {
         setIsNewUser(true);
         setLoading(false);
         return;
@@ -93,6 +104,8 @@ const Login: React.FC = () => {
 
       const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
       const existingData = userDoc.data();
+      
+      const isNew = !userDoc.exists();
       
       const userData: any = {
         displayName: user.displayName || fallbackName,
@@ -110,7 +123,14 @@ const Login: React.FC = () => {
         userData.phone = phoneNumber.trim();
       }
       
-      await setDoc(userRef, userData, { merge: true });
+      if (isNew) {
+        const configSnap = await getDoc(doc(db, "globalSettings", "config"));
+        const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
+        userData.status = approvalEnabled ? "pending" : "active";
+        await setDoc(userRef, userData);
+      } else {
+        await updateDoc(userRef, userData);
+      }
     } catch (error: any) {
       console.error("Login failed", error);
       if (error.code?.includes('unauthorized-domain') || error.message?.toLowerCase().includes('unauthorized domain')) {
@@ -256,23 +276,6 @@ const Login: React.FC = () => {
             <img src="https://www.google.com/favicon.ico" alt="Google" className="w-5 h-5 brightness-0 invert" />
           )}
           <span>{loading ? 'সাইন ইন করা হচ্ছে...' : isNewUser ? 'সাইন আপ সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}</span>
-        </button>
-
-        <div className="relative my-6">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-200"></div>
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-slate-400">অথবা</span>
-          </div>
-        </div>
-
-        <button
-          onClick={() => window.location.href = '/result-search'}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-white border-2 border-[#0F5C7A]/20 text-[#0F5C7A] hover:bg-[#0F5C7A]/5 rounded-2xl font-bold transition-all duration-300"
-        >
-          <Search className="w-5 h-5" />
-          <span>ফলাফল দেখুন</span>
         </button>
       </div>
       

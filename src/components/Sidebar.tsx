@@ -31,13 +31,13 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const { user, photoURL } = useAuth();
+  const { user, photoURL, orgId } = useAuth();
   const navigate = useNavigate();
   const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
-  const links = [
+  const links = orgId ? [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
@@ -46,9 +46,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "সেটিংস", path: "/settings", icon: Settings },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
+  ] : [
+    ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
   ];
 
-  const resultLinks = [
+  const resultLinks = orgId ? [
     { name: "বিষয়", path: "/subjects", icon: Book },
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
@@ -56,7 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
     { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
-  ];
+  ] : [];
 
   return (
     <div
@@ -103,49 +105,51 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           ))}
 
           {/* Result Management Section */}
-          <div className="pt-2">
-            <button
-              onClick={() => setIsResultMenuOpen(!isResultMenuOpen)}
-              className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white"
-            >
-              <div className="flex items-center">
-                <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
-                  <GraduationCap className="w-5 h-5 text-white/70" />
+          {resultLinks.length > 0 && (
+            <div className="pt-2">
+              <button
+                onClick={() => setIsResultMenuOpen(!isResultMenuOpen)}
+                className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white"
+              >
+                <div className="flex items-center">
+                  <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
+                    <GraduationCap className="w-5 h-5 text-white/70" />
+                  </div>
+                  ফলাফল ব্যবস্থাপনা
                 </div>
-                ফলাফল ব্যবস্থাপনা
-              </div>
-              {isResultMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-            </button>
-            
-            {isResultMenuOpen && (
-              <div className="pl-4 mt-1 space-y-1">
-                {resultLinks.map((link) => (
-                  <NavLink
-                    key={link.name}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      clsx(
-                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
-                        isActive
-                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                          : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
-                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
-                        </div>
-                        {link.name}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
-            )}
-          </div>
+                {isResultMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+              
+              {isResultMenuOpen && (
+                <div className="pl-4 mt-1 space-y-1">
+                  {resultLinks.map((link) => (
+                    <NavLink
+                      key={link.name}
+                      to={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        clsx(
+                          "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                          isActive
+                            ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                            : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
+                            <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                          </div>
+                          {link.name}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           <button
             onClick={() => {
@@ -157,7 +161,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
               <Building2 className="w-5 h-5 text-white/70" />
             </div>
-            প্রতিষ্ঠান পরিবর্তন
+            {orgId ? "প্রতিষ্ঠান পরিবর্তন" : "প্রতিষ্ঠানে যোগ দিন"}
           </button>
         </nav>
       </div>

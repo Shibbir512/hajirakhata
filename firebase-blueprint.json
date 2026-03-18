@@ -36,9 +36,30 @@
         "address": { "type": "string" }
       },
       "required": ["name", "roll", "classId"]
+    },
+    "User": {
+      "title": "User",
+      "description": "User profile and roles",
+      "type": "object",
+      "properties": {
+        "displayName": { "type": "string" },
+        "email": { "type": "string" },
+        "photoURL": { "type": "string" },
+        "phone": { "type": "string" },
+        "status": { "type": "string", "enum": ["pending", "active", "rejected"] },
+        "organizationId": { "type": "string" },
+        "roles": { "type": "object" },
+        "visitedOrgs": { "type": "object" },
+        "lastSeen": { "type": "number" }
+      },
+      "required": ["email"]
     }
   },
   "firestore": {
+    "users/{userId}": {
+      "schema": "User",
+      "description": "User profiles collection"
+    },
     "organizations/{orgId}/results/{resultId}": {
       "schema": "Result",
       "description": "Results collection nested under organization"
