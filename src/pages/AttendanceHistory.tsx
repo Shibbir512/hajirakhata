@@ -18,9 +18,15 @@ const AttendanceHistory: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
-  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, students, role);
+
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, students, role, {
+    classId: selectedClassId || undefined,
+    startDate: selectedDate || undefined,
+    endDate: selectedDate || undefined,
+  });
   const [selectedSession, setSelectedSession] = useState<any | null>(null);
   const [viewingSession, setViewingSession] = useState<any | null>(null);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -42,11 +48,7 @@ const AttendanceHistory: React.FC = () => {
   }, [selectedClassId, selectedDate, mainSearchQuery]);
 
   const classSessions = useMemo(() => {
-    let filtered = attendanceSessions.filter(s => s.classId === selectedClassId && !s.deleted);
-    if (selectedDate) {
-      const dateStr = selectedDate.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' ');
-      filtered = filtered.filter(s => s.date === dateStr);
-    }
+    let filtered = [...attendanceSessions];
     
     if (mainSearchQuery) {
       const searchLower = mainSearchQuery.toLowerCase();
@@ -62,7 +64,7 @@ const AttendanceHistory: React.FC = () => {
     }
     
     return filtered;
-  }, [attendanceSessions, selectedClassId, selectedDate, mainSearchQuery, students]);
+  }, [attendanceSessions, mainSearchQuery, students]);
 
   const totalPages = Math.ceil(classSessions.length / ITEMS_PER_PAGE);
   const paginatedSessions = useMemo(() => {

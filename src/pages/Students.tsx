@@ -29,7 +29,12 @@ const Students: React.FC = () => {
   const { classes } = useClasses(orgId, user, role);
   const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents } =
     useStudents(orgId, user, role);
-  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
+
+  const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
+
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role, {
+    skipFetch: !viewingStudent
+  });
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,7 +43,6 @@ const Students: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
-  const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [studentToPermanentDelete, setStudentToPermanentDelete] = useState<Student | null>(null);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());

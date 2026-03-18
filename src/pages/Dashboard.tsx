@@ -23,7 +23,19 @@ const Dashboard: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { students } = useStudents(orgId, user, role);
   const { classes } = useClasses(orgId, user, role);
-  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
+  const startDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() - 6);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  }, []);
+
+  const endDate = useMemo(() => new Date(), []);
+
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role, {
+    startDate,
+    endDate
+  });
 
   const stats = useMemo(() => {
     const totalStudents = Object.values(students).flat().length;

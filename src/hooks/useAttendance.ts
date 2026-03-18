@@ -13,6 +13,7 @@ import {
   getDocs,
   orderBy,
   addDoc,
+  Timestamp,
   limit,
 } from "firebase/firestore";
 import {
@@ -31,14 +32,17 @@ export const useAttendance = (
   classes: ClassData[],
   students: { [key: string]: Student[] },
   role: string | null,
+  options: { classId?: string; startDate?: Date; endDate?: Date; skipFetch?: boolean } = {}
 ) => {
   const [attendanceSessions, setAttendanceSessions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [isTakingAttendance, setIsTakingAttendance] = useState(false);
 
+  const { classId, startDate, endDate, skipFetch } = options;
+
   // Fetch attendance sessions
   useEffect(() => {
-    if (!user || !db || !orgId) {
+    if (!user || !db || !orgId || skipFetch) {
       setAttendanceSessions([]);
       setLoading(false);
       return;
@@ -47,7 +51,28 @@ export const useAttendance = (
     setLoading(true);
     const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
     
-    const q = query(sessionsRef, orderBy("createdAt", "desc"), limit(50));
+    let q = query(sessionsRef, orderBy("createdAt", "desc"));
+
+    if (classId) {
+      q = query(q, where("classId", "==", classId));
+    }
+
+    if (startDate) {
+      const start = new Date(startDate);
+      start.setHours(0, 0, 0, 0);
+      q = query(q, where("createdAt", ">=", Timestamp.fromDate(start)));
+    }
+
+    if (endDate) {
+      const end = new Date(endDate);
+      end.setHours(23, 59, 59, 999);
+      q = query(q, where("createdAt", "<=", Timestamp.fromDate(end)));
+    }
+
+    // If no specific filters, limit to 50
+    if (!classId && !startDate && !endDate) {
+      q = query(q, limit(50));
+    }
 
     const unsub = onSnapshot(
       q,
@@ -68,12 +93,12 @@ export const useAttendance = (
     );
 
     return () => unsub();
-  }, [user, orgId]);
+  }, [user, orgId, classId, startDate?.getTime(), endDate?.getTime(), skipFetch]);
 
   const takeAttendance = useCallback(
     async (
       classId: string,
-      studentStatuses: Map<string, { status: AttendanceStatus; studentName: string }>,
+      studentStatuses: Map<string, { status: AttendanceStatus; studentName: string; note?: string }>,
     ): Promise<boolean> => {
       if (!user || !db || !orgId) return false;
 
@@ -85,10 +110,11 @@ export const useAttendance = (
         const timeParts = timeStr.split(' ');
         const time = timeParts[0].replace(/:/g, ' ') + '-' + (timeParts[1] || ''); // hh mm ss-AM/PM
 
-        const studentsArray = Array.from(studentStatuses.entries()).map(([studentId, { status, studentName }]) => ({
+        const studentsArray = Array.from(studentStatuses.entries()).map(([studentId, { status, studentName, note }]) => ({
           studentId,
           studentName,
-          status
+          status,
+          note
         }));
 
         await SyncManager.performAtomicAttendance(orgId, classId, date, time, studentsArray);

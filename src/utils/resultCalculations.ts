@@ -27,12 +27,15 @@ export const calculateResultMetrics = (
   else if (percentage >= 50) grade = "জায়্যিদ";
   else if (percentage >= 35) grade = "মকবুল";
 
+  // Override failed status if percentage is >= 35
+  const isPassed = percentage >= 35;
+
   let rank = "-";
   if (allStudentResults) {
     const sorted = [...allStudentResults].sort((a, b) => b.totalMarks - a.totalMarks);
 
-    const rankIndex = sorted.findIndex(r => r.studentId === (results[0]?.student_id || ""));
-    if (rankIndex !== -1 && grade !== "রাসেব") {
+    const rankIndex = sorted.findIndex(r => r.studentId === (results[0]?.student_id));
+    if (rankIndex !== -1 && isPassed) {
       rank = (rankIndex + 1).toString();
     }
   }
@@ -44,6 +47,6 @@ export const calculateResultMetrics = (
     grade,
     rank,
     hasFailed,
-    statusKey: grade !== "রাসেব" ? "pass" : "fail"
+    statusKey: isPassed ? "pass" : "fail"
   };
 };

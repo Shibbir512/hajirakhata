@@ -32,7 +32,6 @@ const Reports: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
-  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<Date>(
@@ -41,47 +40,49 @@ const Reports: React.FC = () => {
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isExporting, setIsExporting] = useState(false);
 
+  const { attendanceSessions } = useAttendance(orgId, user, classes, students, role, {
+    classId: selectedClassId || undefined,
+    startDate,
+    endDate,
+  });
+
   const reportData = useMemo(() => {
     if (!selectedClassId) return [];
 
-    const start = new Date(startDate);
-    const end = new Date(endDate);
     const classStudents = students[selectedClassId] || [];
+    const statsMap = new Map<string, { present: number, absent: number }>();
+    
+    classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0 }));
 
-    // Filter sessions by date range and class
-    const filteredSessions = attendanceSessions.filter((s) => {
-      const [day, month, year] = s.date.split(" ").map(Number);
-      const sDate = new Date(year, month - 1, day);
-      return s.classId === selectedClassId && sDate >= start && sDate <= end;
+    attendanceSessions.forEach(session => {
+      session.students.forEach((studentRecord: any) => {
+        const stats = statsMap.get(studentRecord.studentId);
+        if (stats) {
+          if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) {
+            stats.present++;
+          } else if (studentRecord.status === AttendanceStatus.Absent) {
+            stats.absent++;
+          }
+        }
+      });
     });
 
-    // Calculate stats per student
     return classStudents
       .map((student) => {
-        let present = 0;
-        let absent = 0;
-        
-        filteredSessions.forEach(session => {
-          const studentRecord = session.students.find((st: any) => st.studentId === student.id);
-          if (studentRecord) {
-            if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) present++;
-            else if (studentRecord.status === AttendanceStatus.Absent) absent++;
-          }
-        });
-
-        const total = present + absent;
-        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+        const stats = statsMap.get(student.id) || { present: 0, absent: 0 };
+        const total = stats.present + stats.absent;
+        const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
 
         return {
           name: student.name,
           roll: student.roll,
-          present,
-          absent,
+          present: stats.present,
+          absent: stats.absent,
           percentage,
         };
       })
       .sort((a, b) => a.roll - b.roll);
-  }, [selectedClassId, startDate, endDate, attendanceSessions, students]);
+  }, [selectedClassId, attendanceSessions, students]);
 
   const handleExportPDF = async () => {
     const input = document.getElementById('report-container');
@@ -173,7 +174,7 @@ const Reports: React.FC = () => {
     // Aggregate present/total by date
     const dailyData: { [date: string]: { present: number, total: number } } = {};
     
-    attendanceSessions.filter(s => s.classId === selectedClassId).forEach(session => {
+    attendanceSessions.forEach(session => {
       if (!dailyData[session.date]) {
         dailyData[session.date] = { present: 0, total: 0 };
       }
@@ -199,7 +200,7 @@ const Reports: React.FC = () => {
   const sessionData = useMemo(() => {
     if (!selectedClassId) return [];
     
-    return attendanceSessions.filter(s => s.classId === selectedClassId).map(session => {
+    return attendanceSessions.map(session => {
         let present = 0;
         let total = session.students.length;
         session.students.forEach((st: any) => {
@@ -220,7 +221,7 @@ const Reports: React.FC = () => {
     // Aggregate present/total by date
     const dailyData: { [date: string]: { present: number, total: number } } = {};
     
-    attendanceSessions.filter(s => s.classId === selectedClassId).forEach(session => {
+    attendanceSessions.forEach(session => {
       if (!dailyData[session.date]) {
         dailyData[session.date] = { present: 0, total: 0 };
       }

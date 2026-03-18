@@ -51,6 +51,7 @@ const Attendance: React.FC = () => {
     classes,
     students,
     role,
+    { skipFetch: true }
   );
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -58,7 +59,7 @@ const Attendance: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [attendanceState, setAttendanceState] = useState<
-    Map<string, { status: AttendanceStatus; studentName: string }>
+    Map<string, { status: AttendanceStatus; studentName: string; note?: string }>
   >(new Map());
 
   const classStudents = useMemo(() => {
@@ -75,7 +76,7 @@ const Attendance: React.FC = () => {
     
     const newMap = new Map();
     classStudents.forEach((student) => {
-      newMap.set(student.id, { status: AttendanceStatus.Present, studentName: student.name });
+      newMap.set(student.id, { status: AttendanceStatus.Present, studentName: student.name, note: '' });
     });
     setAttendanceState(newMap);
   }, [selectedClassId, classStudents]);
@@ -123,10 +124,21 @@ const Attendance: React.FC = () => {
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
-      const newMap = new Map<string, { status: AttendanceStatus; studentName: string }>(prev);
+      const newMap = new Map<string, { status: AttendanceStatus; studentName: string; note?: string }>(prev);
       const current = newMap.get(studentId);
       if (current) {
-        newMap.set(studentId, { status, studentName: current.studentName });
+        newMap.set(studentId, { ...current, status });
+      }
+      return newMap;
+    });
+  };
+
+  const handleNoteChange = (studentId: string, note: string) => {
+    setAttendanceState((prev) => {
+      const newMap = new Map<string, { status: AttendanceStatus; studentName: string; note?: string }>(prev);
+      const current = newMap.get(studentId);
+      if (current) {
+        newMap.set(studentId, { ...current, note });
       }
       return newMap;
     });
@@ -144,8 +156,8 @@ const Attendance: React.FC = () => {
   const markAll = (status: AttendanceStatus) => {
     setAttendanceState((prev) => {
       const newMap = new Map(prev);
-      newMap.forEach((value: { status: AttendanceStatus; studentName: string }, key: string) => {
-        newMap.set(key, { status, studentName: value.studentName });
+      newMap.forEach((value: { status: AttendanceStatus; studentName: string; note?: string }, key: string) => {
+        newMap.set(key, { ...value, status });
       });
       return newMap;
     });
@@ -278,45 +290,54 @@ const Attendance: React.FC = () => {
                           </div>
                         </td>
                         <td className="py-2 px-5 whitespace-nowrap">
-                          <div className="flex flex-row justify-start gap-2">
-                            <button
-                              onClick={() =>
-                                handleStatusChange(
-                                  student.id,
-                                  AttendanceStatus.Present,
-                                )
-                              }
-                              title="উপস্থিত"
-                              className={clsx(
-                                "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
-                                status === AttendanceStatus.Present
-                                  ? "bg-[#22C55E] text-white shadow-md"
-                                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
-                              )}
-                              style={{ borderRadius: '12px', padding: '10px 18px' }}
-                            >
-                              <CheckCircle className="w-4 h-4" />
-                              <span className="hidden sm:inline">উপস্থিত</span>
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleStatusChange(
-                                  student.id,
-                                  AttendanceStatus.Absent,
-                                )
-                              }
-                              title="অনুপস্থিত"
-                              className={clsx(
-                                "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
-                                status === AttendanceStatus.Absent
-                                  ? "bg-[#FEE2E2] text-[#EF4444] shadow-md"
-                                  : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
-                              )}
-                              style={{ borderRadius: '12px', padding: '10px 18px' }}
-                            >
-                              <XCircle className="w-4 h-4" />
-                              <span className="hidden sm:inline">অনুপস্থিত</span>
-                            </button>
+                          <div className="flex flex-col gap-2">
+                            <div className="flex flex-row justify-start gap-2">
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(
+                                    student.id,
+                                    AttendanceStatus.Present,
+                                  )
+                                }
+                                title="উপস্থিত"
+                                className={clsx(
+                                  "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
+                                  status === AttendanceStatus.Present
+                                    ? "bg-[#22C55E] text-white shadow-md"
+                                    : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
+                                )}
+                                style={{ borderRadius: '12px', padding: '10px 18px' }}
+                              >
+                                <CheckCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">উপস্থিত</span>
+                              </button>
+                              <button
+                                onClick={() =>
+                                  handleStatusChange(
+                                    student.id,
+                                    AttendanceStatus.Absent,
+                                  )
+                                }
+                                title="অনুপস্থিত"
+                                className={clsx(
+                                  "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
+                                  status === AttendanceStatus.Absent
+                                    ? "bg-[#FEE2E2] text-[#EF4444] shadow-md"
+                                    : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
+                                )}
+                                style={{ borderRadius: '12px', padding: '10px 18px' }}
+                              >
+                                <XCircle className="w-4 h-4" />
+                                <span className="hidden sm:inline">অনুপস্থিত</span>
+                              </button>
+                            </div>
+                            <input
+                              type="text"
+                              placeholder="নোট (ঐচ্ছিক)"
+                              value={attendanceState.get(student.id)?.note || ''}
+                              onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                              className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A] transition-all"
+                            />
                           </div>
                         </td>
                       </tr>

@@ -6,7 +6,9 @@ import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { FileBadge, Printer, Search, Download, Share2 } from "lucide-react";
+import { MARKSHEET_TRANSLATIONS } from "../constants";
 import { Result } from "../types";
+import { MarksheetFilter } from "../components/MarksheetFilter";
 import { collection, query, where, getDocs, doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
@@ -37,115 +39,7 @@ const Marksheet: React.FC = () => {
   const [marksheetLanguage, setMarksheetLanguage] = useState<'bn' | 'ar' | 'en'>('bn');
   const [fontStyle, setFontStyle] = useState<'modern' | 'classic'>('modern');
 
-  const translations = {
-    bn: {
-      title: "মাদরাসা ফলাফল পত্র",
-      academicYear: "শিক্ষাবর্ষ",
-      studentName: "শিক্ষার্থীর নাম",
-      class: "শ্রেণি",
-      roll: "রোল নম্বর",
-      fatherName: "পিতার নাম",
-      rank: "র‍্যাঙ্ক",
-      result: "ফলাফল",
-      subject: "বিষয়",
-      fullMarks: "পূর্ণমান",
-      passMarks: "পাস নম্বর",
-      obtainedMarks: "প্রাপ্ত নম্বর",
-      total: "সর্বমোট",
-      percentage: "শতকরা",
-      grade: "গ্রেড",
-      teacherSignature: "শ্রেণি শিক্ষকের স্বাক্ষর",
-      principalSignature: "অধ্যক্ষের স্বাক্ষর",
-      historyTitle: "শিক্ষার্থীর একাডেমিক ইতিহাস",
-      exam: "পরীক্ষা",
-      viewMarksheet: "মার্কশিট দেখুন",
-      loading: "লোড হচ্ছে...",
-      select: "নির্বাচন করুন",
-      academicYearLabel: "শিক্ষাবর্ষ",
-      classLabel: "শ্রেণি",
-      examLabel: "পরীক্ষা",
-      studentLabel: "শিক্ষার্থী",
-      print: "প্রিন্ট",
-      share: "শেয়ার",
-      save: "সংরক্ষণ করুন",
-      edit: "সম্পাদনা",
-      cancel: "বাতিল",
-      pass: "কৃতকার্য",
-      fail: "অকৃতকার্য"
-    },
-    en: {
-      title: "Madrasa Result Sheet",
-      academicYear: "Academic Year",
-      studentName: "Student Name",
-      class: "Class",
-      roll: "Roll No",
-      fatherName: "Father's Name",
-      rank: "Rank",
-      result: "Result",
-      subject: "Subject",
-      fullMarks: "Full Marks",
-      passMarks: "Pass Marks",
-      obtainedMarks: "Obtained Marks",
-      total: "Total",
-      percentage: "Percentage",
-      grade: "Grade",
-      teacherSignature: "Class Teacher's Signature",
-      principalSignature: "Principal's Signature",
-      historyTitle: "Student Academic History",
-      exam: "Exam",
-      viewMarksheet: "View Marksheet",
-      loading: "Loading...",
-      select: "Select",
-      academicYearLabel: "Academic Year",
-      classLabel: "Class",
-      examLabel: "Exam",
-      studentLabel: "Student",
-      print: "Print",
-      share: "Share",
-      save: "Save",
-      edit: "Edit",
-      cancel: "Cancel",
-      pass: "Pass",
-      fail: "Fail"
-    },
-    ar: {
-      title: "كشف درجات المدرسة",
-      academicYear: "السنة الدراسية",
-      studentName: "اسم الطالب",
-      class: "الفصل",
-      roll: "رقم الجلوس",
-      fatherName: "اسم الأب",
-      rank: "الرتبة",
-      result: "النتيجة",
-      subject: "المادة",
-      fullMarks: "الدرجة الكاملة",
-      passMarks: "درجة النجاح",
-      obtainedMarks: "الدرجة الحاصل عليها",
-      total: "المجموع",
-      percentage: "النسبة المئوية",
-      grade: "التقدير",
-      teacherSignature: "توقيع معلم الفصل",
-      principalSignature: "توقيع المدير",
-      historyTitle: "السجل الأكاديمي للطالب",
-      exam: "الامتحان",
-      viewMarksheet: "عرض كشف الدرجات",
-      loading: "جاري التحميل...",
-      select: "اختر",
-      academicYearLabel: "السنة الدراسية",
-      classLabel: "الفصل",
-      examLabel: "الامتحان",
-      studentLabel: "الطالب",
-      print: "طباعة",
-      share: "مشاركة",
-      save: "حفظ",
-      edit: "تعديل",
-      cancel: "إلغاء",
-      pass: "ناجح",
-      fail: "راسب"
-    }
-  };
-
-  const t = translations[marksheetLanguage];
+  const t = MARKSHEET_TRANSLATIONS[marksheetLanguage];
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);
@@ -250,7 +144,7 @@ const Marksheet: React.FC = () => {
     });
   }, [filteredStudents, results, filteredSubjects]);
 
-  const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = useMemo(() => 
+  const { totalMarks: calculatedTotalMarks, totalFullMarks, percentage, grade, rank, statusKey } = useMemo(() => 
     calculateResultMetrics(results.filter(r => r.student_id === selectedStudentId), filteredSubjects, allStudentResults), 
     [results, filteredSubjects, selectedStudentId, allStudentResults]
   );
@@ -291,15 +185,19 @@ const Marksheet: React.FC = () => {
       
       // For rank, we'd need all results for that exam/class, which we don't have here easily.
       // For now, we'll calculate what we can.
-      const { totalMarks, percentage, grade, statusKey } = calculateResultMetrics(groupResults, classSubjects);
+      const metrics = calculateResultMetrics(groupResults, classSubjects);
+
+      // Fallback to ID if name not found (in case IDs are names or lists not loaded)
+      const yearName = academicYears.find(ay => ay.id === yearId)?.year_name || yearId;
+      const examName = exams.find(e => e.id === examId)?.name || examId;
 
       return {
-        year: academicYears.find(ay => ay.id === yearId)?.year_name || "N/A",
-        exam: exams.find(e => e.id === examId)?.name || "N/A",
-        class: classes.find(c => c.id === classId)?.name || "N/A",
-        totalMarks,
-        percentage,
-        grade: `${t[statusKey as keyof typeof t]} (${grade})`,
+        year: yearName,
+        exam: examName,
+        class: classes.find(c => c.id === classId)?.name || classId,
+        totalMarks: metrics.totalMarks,
+        percentage: metrics.percentage,
+        grade: `${t[metrics.statusKey as keyof typeof t]} (${metrics.grade})`,
         rank: "-" // Rank is hard to calculate without full exam data
       };
     }).sort((a, b) => b.year.localeCompare(a.year));
@@ -496,7 +394,7 @@ const Marksheet: React.FC = () => {
           <FileBadge className="w-6 h-6 text-[#0F5C7A]" />
           মার্কশিট
         </h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-3 items-end">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] text-slate-500 font-medium ml-1">সংখ্যা ফরম্যাট</span>
               <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
@@ -521,7 +419,7 @@ const Marksheet: React.FC = () => {
               </select>
             </div>
             {results.length > 0 && (
-                <div className="flex items-end gap-2">
+                <div className="flex flex-wrap items-end gap-2">
                     {(role === 'admin' || role === 'teacher') && (
                       <>
                         {isEditing ? (
@@ -556,105 +454,41 @@ const Marksheet: React.FC = () => {
       
       {/* ... (rest of the component) ... */}
 
-      <div className="card-premium p-6 print:hidden">
-        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{t.academicYearLabel}</label>
-            <select
-              value={selectedAcademicYearId}
-              onChange={(e) => {
-                setSelectedAcademicYearId(e.target.value);
-                setSelectedExamId("");
-                setResults([]);
-              }}
-              className="input-premium w-full"
-            >
-              <option value="">{t.select}</option>
-              {academicYears.map((ay) => (
-                <option key={ay.id} value={ay.id}>{ay.year_name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{t.classLabel}</label>
-            <select
-              value={selectedClassId}
-              onChange={(e) => {
-                setSelectedClassId(e.target.value);
-                setSelectedExamId("");
-                setSelectedStudentId("");
-                setResults([]);
-              }}
-              className="input-premium w-full"
-            >
-              <option value="">{t.select}</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{t.examLabel}</label>
-            <select
-              value={selectedExamId}
-              onChange={(e) => {
-                setSelectedExamId(e.target.value);
-                setResults([]);
-              }}
-              className="input-premium w-full"
-              disabled={!selectedClassId || !selectedAcademicYearId}
-            >
-              <option value="">{t.select}</option>
-              {filteredExams.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">{t.studentLabel}</label>
-            <select
-              value={selectedStudentId}
-              onChange={(e) => {
-                setSelectedStudentId(e.target.value);
-                setResults([]);
-              }}
-              className="input-premium w-full"
-              disabled={!selectedClassId}
-            >
-              <option value="">{t.select}</option>
-              {filteredStudents.map((s) => (
-                <option key={s.id} value={s.id}>{s.roll} - {s.name}</option>
-              ))}
-            </select>
-          </div>
-          <div className="flex items-end">
-            <button
-              onClick={fetchResults}
-              disabled={!selectedAcademicYearId || !selectedClassId || !selectedExamId || !selectedStudentId || loading}
-              className="btn-primary w-full h-[42px]"
-            >
-              {loading ? t.loading : t.viewMarksheet}
-            </button>
-          </div>
-        </div>
-      </div>
+      <MarksheetFilter
+        t={t}
+        selectedAcademicYearId={selectedAcademicYearId}
+        setSelectedAcademicYearId={setSelectedAcademicYearId}
+        selectedClassId={selectedClassId}
+        setSelectedClassId={setSelectedClassId}
+        selectedExamId={selectedExamId}
+        setSelectedExamId={setSelectedExamId}
+        selectedStudentId={selectedStudentId}
+        setSelectedStudentId={setSelectedStudentId}
+        academicYears={academicYears}
+        classes={classes}
+        filteredExams={filteredExams}
+        filteredStudents={filteredStudents}
+        fetchResults={fetchResults}
+        loading={loading}
+        setResults={setResults}
+      />
 
       {results.length > 0 && selectedStudent && (
-        <div 
-          id="marksheet-container" 
-          className={`card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto bg-white ${marksheetLanguage === 'ar' ? 'rtl' : 'ltr'} ${fontStyle === 'modern' ? 'font-modern' : 'font-classic'}`}
-          dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
-        >
-          <div className="text-center mb-8 border-b-2 border-slate-800 pb-6">
-            <h1 className="text-3xl font-bold text-slate-800 mb-2">{t.title}</h1>
-            <h2 className="text-xl font-semibold text-slate-700 mb-1">
-              {exams.find(e => e.id === selectedExamId)?.name}
-            </h2>
-            <p className="text-slate-600 font-medium">
-              {t.academicYear}: {academicYears.find(ay => ay.id === selectedAcademicYearId)?.year_name} 
-              ({academicYears.find(ay => ay.id === selectedAcademicYearId)?.hijri_year})
-            </p>
-          </div>
+          <div 
+            id="marksheet-container" 
+            className={`card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto bg-white border-4 border-[#0F5C7A] rounded-2xl ${marksheetLanguage === 'ar' ? 'rtl' : 'ltr'} ${fontStyle === 'modern' ? 'font-modern' : 'font-classic'}`}
+            dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
+          >
+            <div className="text-center mb-8 border-b-4 border-[#0F5C7A] pb-6">
+              <h1 className="text-4xl font-bold text-[#0F5C7A] mb-2">দারুল উলুম দত্তপাড়া মাদরাসা, নরসিংদী</h1>
+              <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+                {exams.find(e => e.id === selectedExamId)?.name} পরীক্ষার ফলাফল
+              </h2>
+              <p className="text-slate-600 font-medium">
+                {t.academicYear}: {academicYears.find(ay => ay.id === selectedAcademicYearId)?.year_name} 
+                ({academicYears.find(ay => ay.id === selectedAcademicYearId)?.hijri_year})
+              </p>
+            </div>
 
           <div className="grid grid-cols-2 gap-6 mb-8 text-slate-800">
             <div className="space-y-2">
@@ -710,7 +544,7 @@ const Marksheet: React.FC = () => {
               <tfoot className="bg-slate-100 border-t-2 border-slate-300">
                 <tr>
                   <td className={`p-4 font-bold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-left border-l' : 'text-right border-r'} border-slate-300`}>{t.total}:</td>
-                  <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(totalFullMarks, numeralFormat)}</td>
+                  <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(calculatedTotalMarks, numeralFormat)}</td>
                   <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.rank}:</td>
                   <td className="p-4 font-bold text-slate-800 text-center">{convertNumber(rank, numeralFormat)}</td>
                 </tr>
@@ -724,13 +558,13 @@ const Marksheet: React.FC = () => {
             </table>
           </div>
 
-          <div className="mt-24 flex justify-between px-8">
-            <div className="text-center">
-              <div className="w-40 border-t border-slate-800 mb-2"></div>
+          <div className="mt-24 flex flex-wrap justify-around gap-8 px-4">
+            <div className="text-center min-w-[160px]">
+              <div className="w-full border-t border-slate-800 mb-2"></div>
               <p className="font-medium text-slate-800">{t.teacherSignature}</p>
             </div>
-            <div className="text-center">
-              <div className="w-40 border-t border-slate-800 mb-2"></div>
+            <div className="text-center min-w-[160px]">
+              <div className="w-full border-t border-slate-800 mb-2"></div>
               <p className="font-medium text-slate-800">{t.principalSignature}</p>
             </div>
           </div>
@@ -738,9 +572,9 @@ const Marksheet: React.FC = () => {
       )}
 
       {selectedStudent && (
-        <div className="card-premium p-8 mt-8">
+        <div className="card-premium p-8 mt-8 overflow-x-auto">
           <h3 className="text-xl font-bold text-slate-800 mb-4">{t.historyTitle}</h3>
-          <table className="w-full text-left border-collapse">
+          <table className="w-full text-left border-collapse min-w-[600px]">
             <thead className="bg-slate-100 border-b border-slate-300">
               <tr>
                 <th className="p-4">{t.academicYear}</th>
@@ -755,7 +589,7 @@ const Marksheet: React.FC = () => {
             <tbody>
               {academicHistoryTable.map((row, index) => (
                 <tr key={`${row.year}-${row.exam}-${row.class}`} className="border-b border-slate-200">
-                  <td className="p-4">{convertNumber(row.year, numeralFormat)}</td>
+                  <td className="p-4">{row.year}</td>
                   <td className="p-4">{row.exam}</td>
                   <td className="p-4">{row.class}</td>
                   <td className="p-4">{convertNumber(row.totalMarks, numeralFormat)}</td>

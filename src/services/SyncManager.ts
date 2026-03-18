@@ -37,7 +37,7 @@ export class SyncManager {
     classId: string,
     date: string,
     time: string,
-    studentRecords: { studentId: string; studentName: string; status: AttendanceStatus }[]
+    studentRecords: { studentId: string; studentName: string; status: AttendanceStatus; note?: string }[]
   ) {
     if (!db) throw new Error("Firestore not initialized");
 
