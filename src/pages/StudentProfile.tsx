@@ -5,9 +5,11 @@ import { useClasses } from "../hooks/useClasses";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
+import { useStudents } from "../hooks/useStudents";
+import StudentEditModal from "../components/StudentEditModal";
 import { db } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
-import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown } from "lucide-react";
+import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown, Pencil } from "lucide-react";
 import { Student, Result, Subject, AttendanceStatus } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { toBengaliNumber } from "../utils/dateFormatter";
@@ -21,8 +23,10 @@ const StudentProfile: React.FC = () => {
   const { academicYears } = useAcademicYears(orgId, user);
   const { exams } = useExams(orgId, user);
   const { subjects } = useSubjects(orgId, user);
+  const { updateStudent } = useStudents(orgId, user, role);
 
   const [student, setStudent] = useState<Student | null>(null);
+  const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0 });
   const [lastExamRank, setLastExamRank] = useState<string>("-");
@@ -252,6 +256,14 @@ const StudentProfile: React.FC = () => {
     return history.sort((a, b) => b.academicYear.localeCompare(a.academicYear));
   }, [student, results, academicYears, exams, classes, subjects, historyRanks]);
 
+  const handleUpdateStudent = (data: Partial<Student>) => {
+    if (editingStudent) {
+      updateStudent(editingStudent.id, data);
+      setStudent(prev => prev ? { ...prev, ...data } : null);
+      setEditingStudent(null);
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -284,10 +296,12 @@ const StudentProfile: React.FC = () => {
             
             <div className="px-6 pb-6 -mt-12">
               <div className="flex flex-col items-center text-center">
-                <div className="w-24 h-24 rounded-full bg-white p-1 shadow-md mb-4">
-                  <div className="w-full h-full rounded-full bg-slate-100 flex items-center justify-center">
-                    <User className="w-12 h-12 text-slate-400" />
-                  </div>
+                <div className="relative w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full bg-gradient-to-br from-[#0F766E] to-[#14B8A6] shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center overflow-hidden mb-4">
+                  {/* Inner glow */}
+                  <div className="absolute inset-0 rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.15)]"></div>
+                  
+                  {/* Content */}
+                  <User className="w-10 h-10 md:w-12 md:h-12 text-white" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900">{student.name}</h3>
                 {student.isActive === false && (
@@ -297,6 +311,13 @@ const StudentProfile: React.FC = () => {
                 )}
                 <p className="text-[#0F766E] font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
                 <p className="text-slate-500 text-sm">রোল: {toBengaliNumber(student.roll)}</p>
+                <button
+                  onClick={() => setEditingStudent(student)}
+                  className="mt-4 p-2 bg-white/50 hover:bg-white/80 text-[#0F766E] rounded-full transition-colors shadow-sm"
+                  aria-label="Edit Profile"
+                >
+                  <Pencil className="w-4 h-4" />
+                </button>
               </div>
 
               <div className="grid grid-cols-2 gap-4 pt-6">
@@ -380,6 +401,13 @@ const StudentProfile: React.FC = () => {
             </div>
           </div>
         </div>
+        {editingStudent && (
+          <StudentEditModal
+            student={editingStudent}
+            onClose={() => setEditingStudent(null)}
+            onSave={handleUpdateStudent}
+          />
+        )}
       </div>
     </div>
   );

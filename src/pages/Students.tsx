@@ -628,10 +628,19 @@ const Students: React.FC = () => {
             </div>
             
             {/* Footer */}
-            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
+            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0 flex gap-3">
+              <button
+                onClick={() => {
+                  setEditingStudent(viewingStudent);
+                  setViewingStudent(null);
+                }}
+                className="flex-1 bg-emerald-600 text-white h-[48px] rounded-[14px] font-bold hover:bg-emerald-700 transition-colors"
+              >
+                সম্পাদনা
+              </button>
               <button
                 onClick={() => setViewingStudent(null)}
-                className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
+                className="flex-1 bg-slate-100 text-slate-700 h-[48px] rounded-[14px] font-bold hover:bg-slate-200 transition-colors"
               >
                 বন্ধ করুন
               </button>
