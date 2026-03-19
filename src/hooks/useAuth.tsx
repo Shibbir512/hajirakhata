@@ -228,6 +228,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         await setDoc(doc(db, "organizations", newOrgId), {
           id: newOrgId,
           name: trimmedName,
+          nameLowercase: trimmedName.toLowerCase(),
           createdBy: user.uid,
           creatorName: cName,
           creatorEmail: cEmail,
@@ -274,20 +275,51 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (orgSnap.exists()) {
           orgName = orgSnap.data().name;
         } else {
-          const q = query(
+          const lowerIdentifier = cleanIdentifier.toLowerCase();
+          
+          // First try searching by nameLowercase for case-insensitive match
+          const qLower = query(
             collection(db, "organizations"),
-            where("name", "==", cleanIdentifier),
+            where("nameLowercase", "==", lowerIdentifier),
           );
-          const querySnapshot = await getDocs(q);
+          const querySnapshotLower = await getDocs(qLower);
 
-          if (!querySnapshot.empty) {
-            const orgDoc = querySnapshot.docs[0];
+          if (!querySnapshotLower.empty) {
+            const orgDoc = querySnapshotLower.docs[0];
             targetOrgId = orgDoc.id;
             orgName = orgDoc.data().name;
           } else {
-            throw new Error(
-              "প্রতিষ্ঠান খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।",
+            // Fallback for existing organizations that don't have nameLowercase yet
+            const qOriginal = query(
+              collection(db, "organizations"),
+              where("name", "==", cleanIdentifier),
             );
+            const querySnapshotOriginal = await getDocs(qOriginal);
+
+            if (!querySnapshotOriginal.empty) {
+              const orgDoc = querySnapshotOriginal.docs[0];
+              targetOrgId = orgDoc.id;
+              orgName = orgDoc.data().name;
+            } else {
+              // Last attempt: try to find by prefix in nameLowercase
+              const qPrefix = query(
+                collection(db, "organizations"),
+                where("nameLowercase", ">=", lowerIdentifier),
+                where("nameLowercase", "<=", lowerIdentifier + "\uf8ff"),
+              );
+              const querySnapshotPrefix = await getDocs(qPrefix);
+              
+              if (!querySnapshotPrefix.empty) {
+                const orgDoc = querySnapshotPrefix.docs[0];
+                targetOrgId = orgDoc.id;
+                orgName = orgDoc.data().name;
+                toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
+              } else {
+                throw new Error(
+                  `প্রতিষ্ঠান "${cleanIdentifier}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।`,
+                );
+              }
+            }
           }
         }
 

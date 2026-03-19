@@ -28,6 +28,7 @@ const StudentProfile: React.FC = () => {
   const [lastExamRank, setLastExamRank] = useState<string>("-");
   const [lastExamGrade, setLastExamGrade] = useState<string>("-");
   const [loading, setLoading] = useState(true);
+  const [historyRanks, setHistoryRanks] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     const fetchStudentAndAttendance = async () => {
@@ -155,19 +156,77 @@ const StudentProfile: React.FC = () => {
     calculateRank();
   }, [orgId, studentId, results, subjects, role]);
 
+  useEffect(() => {
+    const fetchHistoryRanks = async () => {
+      if (!orgId || results.length === 0) return;
+      
+      const grouped = results.reduce((acc, result) => {
+        const key = `${result.academic_year_id}_${result.exam_id}`;
+        if (!acc[key]) acc[key] = [];
+        acc[key].push(result);
+        return acc;
+      }, {} as { [key: string]: Result[] });
+
+      const newRanks: {[key: string]: string} = {};
+
+      for (const [key, groupResults] of Object.entries(grouped)) {
+        const [yearId, examId] = key.split('_');
+        const classId = groupResults[0].class_id;
+        
+        try {
+          const resultsRef = collection(db, `organizations/${orgId}/results`);
+          let q = query(
+            resultsRef,
+            where("academic_year_id", "==", yearId),
+            where("exam_id", "==", examId),
+            where("class_id", "==", classId)
+          );
+          
+          if (role !== 'admin' && role !== 'teacher') {
+            q = query(q, where("status", "==", "published"));
+          }
+          
+          const snapshot = await getDocs(q);
+          const allResults = snapshot.docs.map(doc => doc.data() as Result);
+          
+          const studentTotals: { [key: string]: number } = {};
+          allResults.forEach(r => {
+            studentTotals[r.student_id] = (studentTotals[r.student_id] || 0) + r.marks;
+          });
+          
+          const allStudentMetrics = Object.entries(studentTotals).map(([sId, total]) => ({
+            studentId: sId,
+            totalMarks: total,
+            hasFailed: false
+          }));
+
+          const classSubjects = subjects.filter(s => s.classId === classId);
+          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics);
+          newRanks[key] = rank;
+        } catch (error) {
+          console.error("Error fetching rank for history:", error);
+        }
+      }
+      
+      setHistoryRanks(newRanks);
+    };
+    
+    fetchHistoryRanks();
+  }, [orgId, results, subjects, role]);
+
   const academicHistory = useMemo(() => {
     if (!student || results.length === 0) return [];
 
     // Group results by academic year and exam
     const grouped = results.reduce((acc, result) => {
-      const key = `${result.academic_year_id}-${result.exam_id}`;
+      const key = `${result.academic_year_id}_${result.exam_id}`;
       if (!acc[key]) acc[key] = [];
       acc[key].push(result);
       return acc;
     }, {} as { [key: string]: Result[] });
 
     const history = Object.entries(grouped).map(([key, examResults]) => {
-      const [ayId, examId] = key.split("-");
+      const [ayId, examId] = key.split("_");
       const ay = academicYears.find(a => a.id === ayId);
       const exam = exams.find(e => e.id === examId);
       const classData = classes.find(c => c.id === examResults[0].class_id);
@@ -184,13 +243,14 @@ const StudentProfile: React.FC = () => {
         totalMarks,
         percentage,
         grade,
+        rank: historyRanks[key] ? toBengaliNumber(historyRanks[key]) : "-",
         academicYearId: ayId
       };
     });
 
     // Sort by academic year (assuming year_name can be sorted or we use ID)
     return history.sort((a, b) => b.academicYear.localeCompare(a.academicYear));
-  }, [student, results, academicYears, exams, classes, subjects]);
+  }, [student, results, academicYears, exams, classes, subjects, historyRanks]);
 
   if (loading) {
     return (
@@ -300,6 +360,7 @@ const StudentProfile: React.FC = () => {
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">মোট নম্বর</th>
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">শতকরা</th>
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">গ্রেড</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">র‍্যাঙ্ক</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -312,11 +373,12 @@ const StudentProfile: React.FC = () => {
                         <td className="py-4 px-4 text-sm text-slate-700 border-b text-center font-medium">{item.totalMarks}</td>
                         <td className="py-4 px-4 text-sm text-slate-700 border-b text-center">{item.percentage}%</td>
                         <td className="py-4 px-4 text-sm font-bold text-[#0F5C7A] border-b text-center">{item.grade}</td>
+                        <td className="py-4 px-4 text-sm font-bold text-[#0F5C7A] border-b text-center">{item.rank}</td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="py-8 text-center text-slate-400 italic">
+                      <td colSpan={7} className="py-8 text-center text-slate-400 italic">
                         কোন ফলাফল পাওয়া যায়নি।
                       </td>
                     </tr>

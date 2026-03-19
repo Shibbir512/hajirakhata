@@ -150,6 +150,7 @@ const Marksheet: React.FC = () => {
   );
 
   const [academicHistory, setAcademicHistory] = useState<any[]>([]);
+  const [historyRanks, setHistoryRanks] = useState<{[key: string]: string}>({});
 
   useEffect(() => {
     const fetchAcademicHistory = async () => {
@@ -167,17 +168,70 @@ const Marksheet: React.FC = () => {
     fetchAcademicHistory();
   }, [orgId, selectedStudentId]);
 
+  useEffect(() => {
+    const fetchHistoryRanks = async () => {
+      if (!orgId || academicHistory.length === 0) return;
+      
+      const groups: { [key: string]: Result[] } = {};
+      academicHistory.forEach(r => {
+        const key = `${r.academic_year_id}_${r.exam_id}`;
+        if (!groups[key]) groups[key] = [];
+        groups[key].push(r);
+      });
+
+      const newRanks: {[key: string]: string} = {};
+
+      for (const [key, groupResults] of Object.entries(groups)) {
+        const [yearId, examId] = key.split('_');
+        const classId = groupResults[0].class_id;
+        
+        try {
+          const resultsRef = collection(db, `organizations/${orgId}/results`);
+          const q = query(
+            resultsRef,
+            where("academic_year_id", "==", yearId),
+            where("exam_id", "==", examId),
+            where("class_id", "==", classId)
+          );
+          const snapshot = await getDocs(q);
+          const allResults = snapshot.docs.map(doc => doc.data() as Result);
+          
+          const studentTotals: { [key: string]: number } = {};
+          allResults.forEach(r => {
+            studentTotals[r.student_id] = (studentTotals[r.student_id] || 0) + r.marks;
+          });
+          
+          const allStudentMetrics = Object.entries(studentTotals).map(([sId, total]) => ({
+            studentId: sId,
+            totalMarks: total,
+            hasFailed: false // Simplified
+          }));
+
+          const classSubjects = subjects.filter(s => s.classId === classId);
+          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics);
+          newRanks[key] = rank;
+        } catch (error) {
+          console.error("Error fetching rank for history:", error);
+        }
+      }
+      
+      setHistoryRanks(newRanks);
+    };
+    
+    fetchHistoryRanks();
+  }, [orgId, academicHistory, subjects]);
+
   const academicHistoryTable = useMemo(() => {
     // Group results by academic year and exam
     const groups: { [key: string]: Result[] } = {};
     academicHistory.forEach(r => {
-      const key = `${r.academic_year_id}-${r.exam_id}`;
+      const key = `${r.academic_year_id}_${r.exam_id}`;
       if (!groups[key]) groups[key] = [];
       groups[key].push(r);
     });
 
     return Object.entries(groups).map(([key, groupResults]) => {
-      const [yearId, examId] = key.split('-');
+      const [yearId, examId] = key.split('_');
       const classId = groupResults[0].class_id;
       
       // We need subjects for this class to calculate metrics
@@ -198,10 +252,10 @@ const Marksheet: React.FC = () => {
         totalMarks: metrics.totalMarks,
         percentage: metrics.percentage,
         grade: `${t[metrics.statusKey as keyof typeof t]} (${metrics.grade})`,
-        rank: "-" // Rank is hard to calculate without full exam data
+        rank: historyRanks[key] ? convertNumber(historyRanks[key], numeralFormat) : "-"
       };
     }).sort((a, b) => b.year.localeCompare(a.year));
-  }, [academicHistory, academicYears, exams, classes, subjects]);
+  }, [academicHistory, academicYears, exams, classes, subjects, historyRanks, t, numeralFormat]);
 
   const exportToPDF = async () => {
     const input = document.getElementById('marksheet-container');
@@ -210,6 +264,17 @@ const Marksheet: React.FC = () => {
     setLoading(true);
     try {
       await document.fonts.ready;
+      
+      const targetWidth = 800;
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
+      
+      input.style.width = `${targetWidth}px`;
+      input.style.maxWidth = `${targetWidth}px`;
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
@@ -250,6 +315,10 @@ const Marksheet: React.FC = () => {
         }
       });
       
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
+      
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF("p", "mm", "a4");
       
@@ -283,6 +352,17 @@ const Marksheet: React.FC = () => {
     setLoading(true);
     try {
       await document.fonts.ready;
+      
+      const targetWidth = 800;
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
+      
+      input.style.width = `${targetWidth}px`;
+      input.style.maxWidth = `${targetWidth}px`;
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
@@ -322,6 +402,10 @@ const Marksheet: React.FC = () => {
           }
         }
       });
+      
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
 
       const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const pdf = new jsPDF("p", "mm", "a4");

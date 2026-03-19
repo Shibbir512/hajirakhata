@@ -5,7 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { FileText, Printer, Download, Edit2, Save, Check, X } from "lucide-react";
+import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown } from "lucide-react";
 import { Result } from "../types";
 import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -31,6 +31,10 @@ const ResultReports: React.FC = () => {
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'roll' | 'rank' | 'percentage' | 'totalMarks'>('roll');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'fail'>('all');
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [reportHeader, setReportHeader] = useState({
@@ -101,6 +105,60 @@ const ResultReports: React.FC = () => {
 
     return stats;
   }, [filteredStudents, results, filteredSubjects, allStudentResults]);
+
+  const processedResults = useMemo(() => {
+    const data = filteredStudents.map(student => {
+      const studentResults = results.filter(r => r.student_id === student.id);
+      const metrics = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+      return {
+        student,
+        metrics
+      };
+    });
+
+    let filteredData = data;
+    
+    // Search filter
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      filteredData = filteredData.filter(item => 
+        item.student.name.toLowerCase().includes(lowerSearch) || 
+        item.student.roll.toString().includes(lowerSearch)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filteredData = filteredData.filter(item => item.metrics.statusKey === statusFilter);
+    }
+
+    // Sorting
+    return filteredData.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === 'roll') {
+        comparison = a.student.roll - b.student.roll;
+      } else if (sortBy === 'rank') {
+        const rankA = a.metrics.rank === '-' ? Infinity : parseInt(a.metrics.rank);
+        const rankB = b.metrics.rank === '-' ? Infinity : parseInt(b.metrics.rank);
+        comparison = rankA - rankB;
+      } else if (sortBy === 'percentage') {
+        comparison = a.metrics.percentage - b.metrics.percentage;
+      } else if (sortBy === 'totalMarks') {
+        comparison = a.metrics.totalMarks - b.metrics.totalMarks;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredStudents, results, filteredSubjects, allStudentResults, sortBy, sortOrder, searchTerm, statusFilter]);
+
+  const toggleSort = (key: typeof sortBy) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('asc');
+    }
+  };
 
   const fetchResults = async () => {
     if (!orgId || !selectedAcademicYearId || !selectedClassId || !selectedExamId) return;
@@ -224,11 +282,38 @@ const ResultReports: React.FC = () => {
 
     setLoading(true);
     try {
+      await document.fonts.ready;
+
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
+      
+      // Temporarily remove overflow to get full width
+      const overflowDiv = input.querySelector('.overflow-x-auto') as HTMLElement;
+      let originalOverflowChild = '';
+      if (overflowDiv) {
+        originalOverflowChild = overflowDiv.style.overflow;
+        overflowDiv.style.overflow = 'visible';
+      }
+
+      input.style.width = 'max-content';
+      input.style.maxWidth = 'none';
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const width = input.scrollWidth;
+      const height = input.scrollHeight;
+
       const canvas = await html2canvas(input, { 
         scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: '#ffffff',
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
         onclone: (clonedDoc) => {
           // Fix for oklab/oklch color parsing error in html2canvas
           const style = clonedDoc.createElement('style');
@@ -242,8 +327,32 @@ const ResultReports: React.FC = () => {
             }
           `;
           clonedDoc.head.appendChild(style);
+
+          const clonedElement = clonedDoc.getElementById('tabulation-sheet-container');
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.position = 'absolute';
+            clonedElement.style.top = '0';
+            clonedElement.style.left = '0';
+            clonedElement.style.width = width + 'px';
+            
+            const clonedOverflowDiv = clonedElement.querySelector('.overflow-x-auto') as HTMLElement;
+            if (clonedOverflowDiv) {
+              clonedOverflowDiv.style.overflow = 'visible';
+            }
+          }
         }
       });
+      
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
+      if (overflowDiv) {
+        overflowDiv.style.overflow = originalOverflowChild;
+      }
+
       const imgData = canvas.toDataURL('image/png');
       const pdf = new jsPDF("l", "mm", "a4");
       
@@ -276,11 +385,22 @@ const ResultReports: React.FC = () => {
   };
 
   const exportToDOCX = async () => {
-    const tableRows = filteredStudents.map(student => {
-      const studentResults = results.filter(r => r.student_id === student.id);
-      const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+    const tableRows = processedResults.map(({ student, metrics }) => {
+      const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
       const statusText = statusKey === 'pass' ? 'Pass' : 'Fail';
-      const cells = [student.roll, student.name, ...filteredSubjects.map(s => studentResults.find(r => r.subject_id === s.id)?.marks || 0), totalMarks, totalFullMarks, `${percentage}%`, `${statusText} (${grade})`, rank].map(text => new TableCell({ children: [new Paragraph(String(text))] }));
+      const cells = [
+        student.roll, 
+        student.name, 
+        ...filteredSubjects.map(s => {
+          const result = results.find(r => r.student_id === student.id && r.subject_id === s.id);
+          return result?.marks ?? 0;
+        }), 
+        totalMarks, 
+        totalFullMarks, 
+        `${percentage}%`, 
+        `${statusText} (${grade})`, 
+        rank
+      ].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] }));
       return new TableRow({ children: cells });
     });
 
@@ -290,7 +410,7 @@ const ResultReports: React.FC = () => {
           new Paragraph({ children: [new TextRun({ text: "ট্যাবুলেশন শিট", bold: true, size: 32 })] }),
           new Table({
             rows: [
-              new TableRow({ children: ["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "গ্রেড", "র‍্যাঙ্ক"].map(text => new TableCell({ children: [new Paragraph(text)] })) }),
+              new TableRow({ children: ["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "গ্রেড", "র‍্যাঙ্ক"].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] })) }),
               ...tableRows
             ]
           })
@@ -312,8 +432,8 @@ const ResultReports: React.FC = () => {
           <FileText className="w-6 h-6 text-[#0F5C7A]" />
           ট্যাবুলেশন শিট
         </h2>
-          <div className="flex gap-2 print:hidden">
-            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium">
+          <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
+            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
               <option value="en">English (0-9)</option>
               <option value="bn">Bengali (০-৯)</option>
               <option value="ar">Arabic (٠-٩)</option>
@@ -323,27 +443,31 @@ const ResultReports: React.FC = () => {
                 {(role === 'admin' || role === 'teacher') && (
                   isEditing ? (
                     <>
-                      <button onClick={saveAllResults} className="btn-primary bg-emerald-600 hover:bg-emerald-700">
+                      <button onClick={saveAllResults} className="btn-primary bg-emerald-600 hover:bg-emerald-700 h-9 px-3 text-sm">
                         <Save className="w-4 h-4" />
                         সংরক্ষণ করুন
                       </button>
-                      <button onClick={() => { setIsEditing(false); fetchResults(); }} className="btn-secondary">
+                      <button onClick={() => { setIsEditing(false); fetchResults(); }} className="btn-secondary h-9 px-3 text-sm">
                         <X className="w-4 h-4" />
                         বাতিল
                       </button>
                     </>
                   ) : (
-                    <button onClick={() => setIsEditing(true)} className="btn-primary">
+                    <button onClick={() => setIsEditing(true)} className="btn-primary h-9 px-3 text-sm">
                       <Edit2 className="w-4 h-4" />
                       এডিট মোড
                     </button>
                   )
                 )}
-                <button onClick={handlePrint} className="btn-secondary">
+                <button onClick={handlePrint} className="btn-secondary h-9 px-3 text-sm">
                   <Printer className="w-4 h-4" />
                   প্রিন্ট করুন
                 </button>
-                <button onClick={exportToPDF} className="btn-secondary">
+                <button onClick={exportToDOCX} className="btn-secondary h-9 px-3 text-sm">
+                  <Download className="w-4 h-4" />
+                  DOCX
+                </button>
+                <button onClick={exportToPDF} className="btn-secondary h-9 px-3 text-sm">
                   <Download className="w-4 h-4" />
                   PDF
                 </button>
@@ -415,6 +539,54 @@ const ResultReports: React.FC = () => {
             </button>
           </div>
         </div>
+
+        {results.length > 0 && (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-slate-100">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+              <input
+                type="text"
+                placeholder="রোল বা নাম দিয়ে খুঁজুন..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="input-premium pl-10 w-full"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="text-slate-400 w-4 h-4" />
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as any)}
+                className="input-premium flex-1"
+              >
+                <option value="all">সব ফলাফল</option>
+                <option value="pass">কৃতকার্য</option>
+                <option value="fail">অকৃতকার্য</option>
+              </select>
+            </div>
+            <div className="flex items-center gap-2">
+              <ArrowUpDown className="text-slate-400 w-4 h-4" />
+              <select
+                value={`${sortBy}-${sortOrder}`}
+                onChange={(e) => {
+                  const [key, order] = e.target.value.split('-');
+                  setSortBy(key as any);
+                  setSortOrder(order as any);
+                }}
+                className="input-premium flex-1"
+              >
+                <option value="roll-asc">রোল (ছোট থেকে বড়)</option>
+                <option value="roll-desc">রোল (বড় থেকে ছোট)</option>
+                <option value="rank-asc">র‍্যাঙ্ক (১ম থেকে শেষ)</option>
+                <option value="rank-desc">র‍্যাঙ্ক (শেষ থেকে ১ম)</option>
+                <option value="totalMarks-desc">মোট নম্বর (বেশি থেকে কম)</option>
+                <option value="totalMarks-asc">মোট নম্বর (কম থেকে বেশি)</option>
+                <option value="percentage-desc">শতকরা (বেশি থেকে কম)</option>
+                <option value="percentage-asc">শতকরা (কম থেকে বেশি)</option>
+              </select>
+            </div>
+          </div>
+        )}
       </div>
 
       {results.length > 0 ? (
@@ -491,24 +663,72 @@ const ResultReports: React.FC = () => {
             <table className="w-full text-left border-collapse">
               <thead className="bg-[#F8F9FA] print:bg-transparent">
                 <tr>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-0 bg-[#F8F9FA] z-10">রোল</th>
+                  <th 
+                    className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-0 bg-[#F8F9FA] z-10 cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleSort('roll')}
+                  >
+                    <div className="flex items-center gap-1">
+                      রোল
+                      {sortBy === 'roll' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      )}
+                    </div>
+                  </th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-[80px] bg-[#F8F9FA] z-10">নাম</th>
                   {filteredSubjects.map(subject => (
                     <th key={subject.id} className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">
                       {subject.name} <br/> <span className="text-[10px] font-normal">({convertNumber(subject.fullMarks, numeralFormat)})</span>
                     </th>
                   ))}
-                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">মোট</th>
+                  <th 
+                    className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleSort('totalMarks')}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      মোট
+                      {sortBy === 'totalMarks' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      )}
+                    </div>
+                  </th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">পূর্ণমান</th>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">শতকরা</th>
+                  <th 
+                    className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleSort('percentage')}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      শতকরা
+                      {sortBy === 'percentage' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      )}
+                    </div>
+                  </th>
                   <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">গ্রেড</th>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">র‍্যাঙ্ক</th>
+                  <th 
+                    className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                    onClick={() => toggleSort('rank')}
+                  >
+                    <div className="flex items-center justify-center gap-1">
+                      র‍্যাঙ্ক
+                      {sortBy === 'rank' ? (
+                        sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                      ) : (
+                        <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                      )}
+                    </div>
+                  </th>
                 </tr>
               </thead>
               <tbody>
-                {filteredStudents.map((student) => {
+                {processedResults.map(({ student, metrics }) => {
                   const studentResults = results.filter(r => r.student_id === student.id);
-                  const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+                  const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
                   
                   const rankNum = parseInt(rank);
                   const isTop3 = !isNaN(rankNum) && rankNum <= 3;

@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import OrgManagement from "../components/OrgManagement";
 import { collection, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
+import toast from "react-hot-toast";
 
 const OrgManagementPage: React.FC = () => {
   const { user, createOrganization, joinOrganization, removeVisitedOrg, logout, visitedOrgs } = useAuth();
@@ -22,8 +23,12 @@ const OrgManagementPage: React.FC = () => {
             orgsData[doc.id] = doc.data().name || "অজানা প্রতিষ্ঠান";
           });
           setAllOrgs(orgsData);
-        } catch (error) {
+          if (orgsSnapshot.empty) {
+            console.log("No organizations found in the database.");
+          }
+        } catch (error: any) {
           console.error("Error fetching all orgs:", error);
+          toast.error("প্রতিষ্ঠান তালিকা লোড করতে ব্যর্থ হয়েছে: " + (error.message || "অজানা ত্রুটি"));
         }
       };
       fetchAllOrgs();
