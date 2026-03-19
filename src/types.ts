@@ -42,6 +42,7 @@ export interface Exam {
   academicYearId: string;
   name: string;
   classId: string;
+  examDate?: number; // Timestamp
 }
 
 export interface Result {

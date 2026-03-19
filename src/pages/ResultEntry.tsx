@@ -222,10 +222,10 @@ const ResultEntry: React.FC = () => {
                   শতকরা
                 </div>
                 <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  গ্রেড
+                  বিভাগ
                 </div>
                 <div className="w-20 py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  র‍্যাঙ্ক
+                  মেধাক্রম
                 </div>
               </div>
 

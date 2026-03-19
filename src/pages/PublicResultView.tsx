@@ -220,7 +220,7 @@ const PublicResultView: React.FC = () => {
                   <th className="p-4 font-bold text-slate-700">বিষয়</th>
                   <th className="p-4 font-bold text-slate-700 text-center">পূর্ণমান</th>
                   <th className="p-4 font-bold text-slate-700 text-center">প্রাপ্ত নম্বর</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">গ্রেড</th>
+                  <th className="p-4 font-bold text-slate-700 text-center">বিভাগ</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
@@ -270,7 +270,7 @@ const PublicResultView: React.FC = () => {
               <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(rank, 'bn')}</p>
             </div>
             <div className="p-4 bg-slate-50 rounded-2xl text-center">
-              <p className="text-xs text-slate-500 font-medium mb-1">মোট গ্রেড</p>
+              <p className="text-xs text-slate-500 font-medium mb-1">মোট বিভাগ</p>
               <p className="text-xl font-bold text-slate-800">{grade}</p>
             </div>
           </div>

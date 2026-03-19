@@ -213,7 +213,7 @@ const PublicClassResult: React.FC = () => {
                   <th className="p-4 font-bold text-slate-700">শিক্ষার্থীর নাম</th>
                   <th className="p-4 font-bold text-slate-700 text-center">মোট নম্বর</th>
                   <th className="p-4 font-bold text-slate-700 text-center">শতকরা</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">গ্রেড</th>
+                  <th className="p-4 font-bold text-slate-700 text-center">বিভাগ</th>
                   <th className="p-4 font-bold text-slate-700 text-center">ফলাফল</th>
                 </tr>
               </thead>

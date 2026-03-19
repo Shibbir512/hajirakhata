@@ -307,7 +307,7 @@ const StudentProfile: React.FC = () => {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Award className="w-4 h-4 text-[#0F5C7A]" />
-                <span className="text-xs font-bold text-slate-600">সর্বশেষ গ্রেড</span>
+                <span className="text-xs font-bold text-slate-600">সর্বশেষ বিভাগ</span>
               </div>
               <span className="text-sm font-bold text-[#0F5C7A]">{lastExamGrade}</span>
             </div>
@@ -359,8 +359,8 @@ const StudentProfile: React.FC = () => {
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b">শ্রেণি</th>
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">মোট নম্বর</th>
                     <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">শতকরা</th>
-                    <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">গ্রেড</th>
-                    <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">র‍্যাঙ্ক</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">বিভাগ</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-600 uppercase border-b text-center">মেধাক্রম</th>
                   </tr>
                 </thead>
                 <tbody>

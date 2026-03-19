@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -25,6 +26,7 @@ const normalizeBengali = (text: string) => {
 };
 
 const Students: React.FC = () => {
+  const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents } =
@@ -108,7 +110,7 @@ const Students: React.FC = () => {
       };
     });
     return new Fuse(normalizedStudents, {
-      keys: ['normalizedName', 'roll', 'normalizedClassName'],
+      keys: ['normalizedName', 'roll', 'normalizedClassName', 'studentUid'],
       threshold: 0.3,
     });
   }, [allStudentsList, classes]);
@@ -389,9 +391,12 @@ const Students: React.FC = () => {
                   <td className="py-2 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
                   <td className="py-2 px-5 text-[#0F5C7A] font-mono text-[13px] font-semibold">{student.studentUid || "-"}</td>
                   <td className="py-2 px-5 text-slate-800 font-medium">
-                    <div className="flex items-center gap-3 text-[14px]">
+                    <button 
+                      onClick={() => navigate(`/student-profile/${student.id}`)}
+                      className="flex items-center gap-3 text-[14px] hover:text-[#0F5C7A] transition-colors"
+                    >
                       {student.name}
-                    </div>
+                    </button>
                   </td>
                   <td className="py-2 px-5 text-slate-600 text-[14px]">
                     {classes.find(c => c.id === student.classId)?.name || "N/A"}

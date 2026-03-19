@@ -407,10 +407,10 @@ const ResultReports: React.FC = () => {
     const doc = new Document({
       sections: [{
         children: [
-          new Paragraph({ children: [new TextRun({ text: "ট্যাবুলেশন শিট", bold: true, size: 32 })] }),
+          new Paragraph({ children: [new TextRun({ text: "ফলাফল", bold: true, size: 32 })] }),
           new Table({
             rows: [
-              new TableRow({ children: ["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "গ্রেড", "র‍্যাঙ্ক"].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] })) }),
+              new TableRow({ children: ["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "বিভাগ", "মেধাক্রম"].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] })) }),
               ...tableRows
             ]
           })
@@ -430,7 +430,7 @@ const ResultReports: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
           <FileText className="w-6 h-6 text-[#0F5C7A]" />
-          ট্যাবুলেশন শিট
+          ফলাফল
         </h2>
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
             <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
@@ -577,8 +577,8 @@ const ResultReports: React.FC = () => {
               >
                 <option value="roll-asc">রোল (ছোট থেকে বড়)</option>
                 <option value="roll-desc">রোল (বড় থেকে ছোট)</option>
-                <option value="rank-asc">র‍্যাঙ্ক (১ম থেকে শেষ)</option>
-                <option value="rank-desc">র‍্যাঙ্ক (শেষ থেকে ১ম)</option>
+                <option value="rank-asc">মেধাক্রম (১ম থেকে শেষ)</option>
+                <option value="rank-desc">মেধাক্রম (শেষ থেকে ১ম)</option>
                 <option value="totalMarks-desc">মোট নম্বর (বেশি থেকে কম)</option>
                 <option value="totalMarks-asc">মোট নম্বর (কম থেকে বেশি)</option>
                 <option value="percentage-desc">শতকরা (বেশি থেকে কম)</option>
@@ -709,13 +709,13 @@ const ResultReports: React.FC = () => {
                       )}
                     </div>
                   </th>
-                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">গ্রেড</th>
+                  <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">বিভাগ</th>
                   <th 
                     className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
                     onClick={() => toggleSort('rank')}
                   >
                     <div className="flex items-center justify-center gap-1">
-                      র‍্যাঙ্ক
+                      মেধাক্রম
                       {sortBy === 'rank' ? (
                         sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
                       ) : (

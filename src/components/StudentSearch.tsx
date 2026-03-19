@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { Search, User, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useStudents } from "../hooks/useStudents";
+import { useClasses } from "../hooks/useClasses";
 import { useAuth } from "../hooks/useAuth";
 import Fuse from "fuse.js";
 
@@ -9,15 +10,20 @@ const StudentSearch: React.FC = () => {
   const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { students } = useStudents(orgId, user, role);
+  const { classes } = useClasses(orgId, user, role);
   const [query, setQuery] = useState("");
 
   const allStudents = useMemo(() => {
     return Object.values(students).flat();
   }, [students]);
 
+  const getClassById = (classId: string) => {
+    return classes.find(c => c.id === classId)?.name || "অজানা শ্রেণি";
+  };
+
   const fuse = useMemo(() => {
     return new Fuse(allStudents, {
-      keys: ["name", "roll", "id"],
+      keys: ["name", "roll", "id", "studentUid"],
       threshold: 0.3,
     });
   }, [allStudents]);
@@ -58,7 +64,7 @@ const StudentSearch: React.FC = () => {
                   </div>
                   <div className="text-left">
                     <p className="font-bold text-slate-800">{student.name}</p>
-                    <p className="text-xs text-slate-500">রোল: {student.roll} | আইডি: {student.id.slice(-6)}</p>
+                    <p className="text-xs text-slate-500">শ্রেণি: {getClassById(student.classId)} | রোল: {student.roll} | আইডি: {student.studentUid}</p>
                   </div>
                 </div>
                 <ChevronRight className="w-5 h-5 text-slate-300" />
