@@ -110,16 +110,13 @@ const PublicResultSearch: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
-      <div className="card-premium p-6 md:p-8">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Search className="w-8 h-8 text-teal-600" />
-          </div>
-          <h2 className="text-2xl font-bold text-slate-900">পাবলিক ফলাফল অনুসন্ধান</h2>
-          <p className="text-slate-500 mt-2">আপনার পরীক্ষার ফলাফল দেখতে নিচের তথ্যগুলো পূরণ করুন</p>
-        </div>
+    <div className="w-full max-w-md mx-auto min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0F766E] to-[#14B8A6]">
+      <div className="text-center mb-8">
+        <h2 className="text-3xl font-bold text-white mb-2">শিক্ষার্থীর ফলাফল অনুসন্ধান</h2>
+        <p className="text-teal-50 text-lg">সহজেই ফলাফল খুঁজুন</p>
+      </div>
 
+      <div className="w-full bg-white/95 backdrop-blur-md rounded-[32px] p-6 shadow-2xl border border-white/20">
         <div className="flex justify-center p-1 bg-slate-100 rounded-[24px] mb-8">
           <button
             onClick={() => setSearchType('individual')}
@@ -129,8 +126,7 @@ const PublicResultSearch: React.FC = () => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <User className="w-5 h-5" />
-            ব্যক্তিগত ফলাফল দেখুন
+            ব্যক্তিগত ফলাফল
           </button>
           <button
             onClick={() => setSearchType('class')}
@@ -140,13 +136,12 @@ const PublicResultSearch: React.FC = () => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            <Users className="w-5 h-5" />
-            ক্লাস ভিত্তিক ফলাফল দেখুন
+            ক্লাস ভিত্তিক ফলাফল
           </button>
         </div>
 
-        <form onSubmit={handleSearch} className="space-y-5">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+        <form onSubmit={handleSearch} className="space-y-4">
+          <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">প্রতিষ্ঠান</label>
               <div className="relative">
@@ -154,7 +149,7 @@ const PublicResultSearch: React.FC = () => {
                 <select
                   value={selectedOrg}
                   onChange={(e) => setSelectedOrg(e.target.value)}
-                  className="input-premium pl-10 w-full"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   required
                 >
                   <option value="">প্রতিষ্ঠান নির্বাচন করুন</option>
@@ -172,7 +167,7 @@ const PublicResultSearch: React.FC = () => {
                 <select
                   value={selectedYear}
                   onChange={(e) => setSelectedYear(e.target.value)}
-                  className="input-premium pl-10 w-full"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   required
                   disabled={!selectedOrg}
                 >
@@ -191,7 +186,7 @@ const PublicResultSearch: React.FC = () => {
                 <select
                   value={selectedClass}
                   onChange={(e) => setSelectedClass(e.target.value)}
-                  className="input-premium pl-10 w-full"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   required
                   disabled={!selectedOrg}
                 >
@@ -210,7 +205,7 @@ const PublicResultSearch: React.FC = () => {
                 <select
                   value={selectedExam}
                   onChange={(e) => setSelectedExam(e.target.value)}
-                  className="input-premium pl-10 w-full"
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   required
                   disabled={!selectedOrg}
                 >
@@ -223,7 +218,7 @@ const PublicResultSearch: React.FC = () => {
             </div>
 
             {searchType === 'individual' && (
-              <div className="md:col-span-2">
+              <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1">রোল নম্বর</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -232,7 +227,7 @@ const PublicResultSearch: React.FC = () => {
                     value={rollNumber}
                     onChange={(e) => setRollNumber(e.target.value)}
                     placeholder="আপনার রোল নম্বর লিখুন"
-                    className="input-premium pl-10 w-full"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                     required
                   />
                 </div>
@@ -249,7 +244,7 @@ const PublicResultSearch: React.FC = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full btn-primary py-3 text-lg mt-4 flex items-center justify-center gap-2"
+            className="w-full py-4 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-2xl font-bold text-lg shadow-lg hover:shadow-teal-500/30 transition-all flex items-center justify-center gap-2"
           >
             {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-5 h-5" />}
             ফলাফল খুঁজুন

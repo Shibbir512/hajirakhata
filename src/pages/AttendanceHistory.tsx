@@ -111,8 +111,8 @@ const AttendanceHistory: React.FC = () => {
     const className = classes.find(c => c.id === session.classId)?.name || "N/A";
     const formattedDate = toBengaliDate(session.date);
     const formattedTime = toBengaliTime(session.time);
-    const presentCount = session.students.filter((s: any) => s.status === AttendanceStatus.Present).length;
-    const absentStudents = session.students.filter((s: any) => s.status === AttendanceStatus.Absent);
+    const presentCount = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Present).length;
+    const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
     const absentCount = absentStudents.length;
 
     let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
@@ -201,19 +201,19 @@ const AttendanceHistory: React.FC = () => {
           <div className="card-premium p-4 bg-white border-l-4 border-l-[#0F5C7A]">
             <p className="text-sm font-medium text-slate-500 mb-1">গড় উপস্থিতি</p>
             <p className="text-2xl font-bold text-[#0F5C7A]">
-              {toBengaliNumber(Math.round(classSessions.reduce((acc, s) => acc + (s.students.filter((st: any) => st.status === AttendanceStatus.Present).length / s.students.length) * 100, 0) / classSessions.length))}%
+              {toBengaliNumber(Math.round(classSessions.reduce((acc, s) => acc + ((s.students || []).filter((st: any) => st.status === AttendanceStatus.Present).length / (s.students?.length || 1)) * 100, 0) / (classSessions.length || 1)))}%
             </p>
           </div>
           <div className="card-premium p-4 bg-[#EF4444]/10 border-l-4 border-l-[#EF4444]">
             <p className="text-sm font-medium text-[#EF4444] mb-1">মোট অনুপস্থিতি (সেশন ভিত্তিক)</p>
             <p className="text-2xl font-bold text-[#EF4444]">
-              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Absent).length, 0))} জন
+              {toBengaliNumber(classSessions.reduce((acc, s) => acc + (s.students || []).filter((st: any) => st.status === AttendanceStatus.Absent).length, 0))} জন
             </p>
           </div>
           <div className="card-premium p-4 bg-[#22C55E]/10 border-l-4 border-l-[#22C55E]">
             <p className="text-sm font-medium text-[#22C55E] mb-1">মোট উপস্থিতি (সেশন ভিত্তিক)</p>
             <p className="text-2xl font-bold text-[#22C55E]">
-              {toBengaliNumber(classSessions.reduce((acc, s) => acc + s.students.filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
+              {toBengaliNumber(classSessions.reduce((acc, s) => acc + (s.students || []).filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
             </p>
           </div>
         </div>
@@ -411,7 +411,7 @@ const AttendanceHistory: React.FC = () => {
               </div>
 
               <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar">
-                {viewingSession.students.filter((student: any) => {
+                {(viewingSession.students || []).filter((student: any) => {
                   const rollValue = getStudentRoll(viewingSession.classId, student.studentId);
                   const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
                   const searchLower = searchQuery.toLowerCase();
@@ -505,7 +505,7 @@ const AttendanceHistory: React.FC = () => {
               </div>
 
               <div className="space-y-3 overflow-y-auto pr-1 custom-scrollbar">
-                {editedStudents.filter((student: any) => {
+                {(editedStudents || []).filter((student: any) => {
                   const rollValue = getStudentRoll(selectedSession.classId, student.studentId);
                   const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
                   const searchLower = searchQuery.toLowerCase();

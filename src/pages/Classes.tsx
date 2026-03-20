@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { Plus, Edit, Trash2, X, Loader2, Users } from "lucide-react";
@@ -7,6 +8,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 
 const Classes: React.FC = () => {
+  const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes, addClass, updateClassName, deleteClass, isAdding, isUpdating, isDeleting } = useClasses(
     orgId,
@@ -81,7 +83,8 @@ const Classes: React.FC = () => {
           return (
             <div
               key={cls.id}
-              className="bg-white border border-[#E5E7EB] hover:-translate-y-1 transition-all duration-300 group"
+              onClick={() => navigate(`/classes/${cls.id}`)}
+              className="bg-white border border-[#E5E7EB] hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
               style={{ borderRadius: '18px', padding: '20px', boxShadow: '0px 10px 25px rgba(0,0,0,0.08)' }}
             >
               <div className="flex justify-between items-start">

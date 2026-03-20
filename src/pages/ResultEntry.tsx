@@ -26,7 +26,7 @@ const ResultEntry: React.FC = () => {
   const { results, saveResult, publishResults } = useResults(orgId, user, academicYearId, examId, classId);
 
   const filteredStudents = useMemo(() => (studentsMap[classId] || []).filter(s => s.isActive !== false), [studentsMap, classId]);
-  const filteredSubjects = useMemo(() => subjects.filter(s => s.classId === classId), [subjects, classId]);
+  const filteredSubjects = useMemo(() => (subjects || []).filter(s => s.classId === classId), [subjects, classId]);
 
   const isPublished = useMemo(() => {
     return results.length > 0 && results.every(r => r.status === 'published');

@@ -12,6 +12,7 @@ const Attendance = lazy(() => import("./src/pages/Attendance"));
 const AttendanceHistory = lazy(() => import("./src/pages/AttendanceHistory"));
 const Students = lazy(() => import("./src/pages/Students"));
 const Classes = lazy(() => import("./src/pages/Classes"));
+const ClassDetails = lazy(() => import("./src/pages/ClassDetails"));
 const Reports = lazy(() => import("./src/pages/Reports"));
 const Settings = lazy(() => import("./src/pages/Settings"));
 const ResultCard = lazy(() => import("./src/pages/ResultCard"));
@@ -145,6 +146,7 @@ const App: React.FC = () => {
                 <Route path="attendance/history" element={<AttendanceHistory />} />
                 <Route path="students" element={<Students />} />
                 <Route path="classes" element={<Classes />} />
+                <Route path="classes/:classId" element={<ClassDetails />} />
                 <Route path="reports" element={<Reports />} />
                 <Route path="settings" element={<Settings />} />
                 <Route path="super-admin" element={<SuperAdminDashboard />} />

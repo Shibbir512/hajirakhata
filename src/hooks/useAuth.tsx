@@ -112,9 +112,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const configSnap = await getDoc(doc(db, "globalSettings", "config"));
             const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
             updateData.status = approvalEnabled ? "pending" : "active";
-            await setDoc(userDocRef, updateData);
+            setDoc(userDocRef, updateData).catch(console.error);
           } else {
-            await updateDoc(userDocRef, updateData);
+            updateDoc(userDocRef, updateData).catch(console.error);
           }
         } catch (e) {
           console.error("Error saving user info:", e);
