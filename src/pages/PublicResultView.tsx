@@ -5,7 +5,8 @@ import { db } from "../firebase";
 import { Result, Student, Subject, Exam, AcademicYear, ClassData } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
-import { Printer, Download, Share2, ArrowLeft, GraduationCap, Calendar, FileBadge } from "lucide-react";
+import { Printer, Download, Share2, ArrowLeft, FileBadge } from "lucide-react";
+import { MARKSHEET_TRANSLATIONS } from "../constants";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
@@ -22,12 +23,25 @@ const PublicResultView: React.FC = () => {
   const [academicYear, setAcademicYear] = useState<AcademicYear | null>(null);
   const [cls, setCls] = useState<ClassData | null>(null);
   const [allStudentResults, setAllStudentResults] = useState<any[]>([]);
+  const [orgName, setOrgName] = useState("মাদরাসা");
+
+  const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('bn');
+  const [marksheetLanguage, setMarksheetLanguage] = useState<'bn' | 'ar' | 'en'>('bn');
+  const [fontStyle, setFontStyle] = useState<'modern' | 'classic'>('modern');
+
+  const t = MARKSHEET_TRANSLATIONS[marksheetLanguage];
 
   useEffect(() => {
     const fetchData = async () => {
       if (!orgId || !studentId || !examId) return;
       setLoading(true);
       try {
+        // Fetch Org Name
+        const orgSnap = await getDoc(doc(db, "organizations", orgId));
+        if (orgSnap.exists()) {
+          setOrgName(orgSnap.data().name || "মাদরাসা");
+        }
+
         // 1. Fetch Student
         const studentSnap = await getDoc(doc(db, `organizations/${orgId}/students`, studentId));
         if (!studentSnap.exists()) throw new Error("Student not found");
@@ -101,7 +115,7 @@ const PublicResultView: React.FC = () => {
     fetchData();
   }, [orgId, studentId, examId, navigate]);
 
-  const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = useMemo(() => 
+  const { totalMarks: calculatedTotalMarks, percentage, grade, rank, statusKey } = useMemo(() => 
     calculateResultMetrics(results, subjects, allStudentResults), 
     [results, subjects, allStudentResults]
   );
@@ -111,22 +125,190 @@ const PublicResultView: React.FC = () => {
   };
 
   const exportToPDF = async () => {
-    const input = document.getElementById('public-marksheet-container');
+    const input = document.getElementById('marksheet-container');
     if (!input) return;
 
-    const toastId = toast.loading("PDF তৈরি হচ্ছে...");
+    setLoading(true);
     try {
-      const canvas = await html2canvas(input, { scale: 2, useCORS: true });
+      await document.fonts.ready;
+      
+      const targetWidth = 800;
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
+      
+      input.style.width = `${targetWidth}px`;
+      input.style.maxWidth = `${targetWidth}px`;
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const width = input.scrollWidth;
+      const height = input.scrollHeight;
+
+      const canvas = await html2canvas(input, { 
+        scale: 3,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (clonedDoc) => {
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
+          const clonedElement = clonedDoc.getElementById('marksheet-container');
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.position = 'absolute';
+            clonedElement.style.top = '0';
+            clonedElement.style.left = '0';
+            clonedElement.style.width = width + 'px';
+          }
+        }
+      });
+      
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
+      
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF("p", "mm", "a4");
+      
       const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
       const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
-      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
-      pdf.save(`Result_${student?.name}.pdf`);
-      toast.success("PDF ডাউনলোড সফল হয়েছে!", { id: toastId });
+      const ratio = Math.min(pdfWidth / imgProps.width, (pdfHeight - 10) / imgProps.height);
+      
+      const imgWidth = imgProps.width * ratio;
+      const imgHeight = imgProps.height * ratio;
+      
+      const x = (pdfWidth - imgWidth) / 2;
+      const y = 5;
+
+      pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
+      pdf.save(`marksheet_${student?.name}.pdf`);
+      toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
-      toast.error("PDF তৈরি করতে ব্যর্থ হয়েছে।", { id: toastId });
+      console.error("PDF Export Error:", error);
+      toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleShare = async () => {
+    const input = document.getElementById('marksheet-container');
+    if (!input) return;
+
+    setLoading(true);
+    try {
+      await document.fonts.ready;
+      
+      const targetWidth = 800;
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
+      
+      input.style.width = `${targetWidth}px`;
+      input.style.maxWidth = `${targetWidth}px`;
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const width = input.scrollWidth;
+      const height = input.scrollHeight;
+
+      const canvas = await html2canvas(input, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (clonedDoc) => {
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root {
+              color-scheme: light !important;
+            }
+            * {
+              -webkit-print-color-adjust: exact !important;
+              color-adjust: exact !important;
+            }
+          `;
+          clonedDoc.head.appendChild(style);
+
+          const clonedElement = clonedDoc.getElementById('marksheet-container');
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.position = 'absolute';
+            clonedElement.style.top = '0';
+            clonedElement.style.left = '0';
+            clonedElement.style.width = width + 'px';
+          }
+        }
+      });
+      
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
+
+      const imgData = canvas.toDataURL('image/jpeg', 0.8);
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      const imgProps = pdf.getImageProperties(imgData);
+      const ratio = Math.min(pdfWidth / imgProps.width, (pdfHeight - 10) / imgProps.height);
+      
+      const imgWidth = imgProps.width * ratio;
+      const imgHeight = imgProps.height * ratio;
+      const x = (pdfWidth - imgWidth) / 2;
+
+      pdf.addImage(imgData, 'JPEG', x, 5, imgWidth, imgHeight);
+      
+      const pdfBlob = pdf.output('blob');
+      const fileName = `marksheet_${student?.name}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: t.title,
+          text: `${student?.name} - ${t.title}`,
+        });
+      } else {
+        const shareUrl = window.location.href;
+        const shareText = `${student?.name} এর মার্কশিট।`;
+        const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(shareText + " " + shareUrl)}`;
+        window.open(whatsappUrl, '_blank');
+        toast.success("WhatsApp এ শেয়ার করার জন্য ওপেন করা হচ্ছে।");
+      }
+    } catch (error) {
+      console.error("Share Error:", error);
+      if (error instanceof Error && error.name !== 'AbortError') {
+        toast.error("শেয়ার করতে ব্যর্থ হয়েছে।");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -140,145 +322,143 @@ const PublicResultView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-6 print:hidden">
+      <div className="max-w-4xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <button 
-            onClick={() => navigate("/result-search")}
+            onClick={() => navigate("/")}
             className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
             ফিরে যান
           </button>
-          <div className="flex gap-2">
-            <button onClick={handlePrint} className="btn-secondary px-4 py-2">
-              <Printer className="w-4 h-4" />
-              প্রিন্ট
-            </button>
-            <button onClick={exportToPDF} className="btn-primary px-4 py-2">
-              <Download className="w-4 h-4" />
-              ডাউনলোড
-            </button>
+          <div className="flex flex-wrap gap-3 items-end">
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-medium ml-1">সংখ্যা ফরম্যাট</span>
+              <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
+                  <option value="en">English (0-9)</option>
+                  <option value="bn">Bengali (০-৯)</option>
+                  <option value="ar">Arabic (٠-٩)</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-medium ml-1">ভাষা</span>
+              <select value={marksheetLanguage} onChange={(e) => setMarksheetLanguage(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
+                  <option value="bn">বাংলা</option>
+                  <option value="en">English</option>
+                  <option value="ar">العربية</option>
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-[10px] text-slate-500 font-medium ml-1">ফন্ট স্টাইল</span>
+              <select value={fontStyle} onChange={(e) => setFontStyle(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
+                  <option value="modern">আধুনিক (Modern)</option>
+                  <option value="classic">ক্লাসিক (Classic)</option>
+              </select>
+            </div>
+            <div className="flex flex-wrap items-end gap-2">
+              <button onClick={handlePrint} className="btn-secondary h-9 px-3" title={t.print}>
+                  <Printer className="w-4 h-4" />
+              </button>
+              <button onClick={exportToPDF} className="btn-secondary h-9 px-3" title="PDF">
+                  <Download className="w-4 h-4" />
+              </button>
+              <button onClick={handleShare} className="btn-secondary h-9 px-3" title={t.share}>
+                  <Share2 className="w-4 h-4" />
+              </button>
+            </div>
           </div>
         </div>
 
-        <div id="public-marksheet-container" className="card-premium p-8 bg-white shadow-xl border border-slate-100">
-          <div className="text-center mb-10 border-b-2 border-slate-100 pb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">আমানত ইসলামিক স্কুল</h1>
-            <p className="text-slate-600 mb-4">দত্তপাড়া, নরসিংদী সদর, নরসিংদী</p>
-            <div className="inline-block px-6 py-2 bg-[#0F5C7A]/5 rounded-2xl border border-[#0F5C7A]/10">
-              <h2 className="text-xl font-bold text-[#0F5C7A]">{exam?.name} পরীক্ষার ফলাফল</h2>
+        {results.length > 0 && student && (
+          <div 
+            id="marksheet-container" 
+            className={`card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto bg-white border-4 border-[#0F5C7A] rounded-2xl ${marksheetLanguage === 'ar' ? 'rtl' : 'ltr'} ${fontStyle === 'modern' ? 'font-modern' : 'font-classic'}`}
+            dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
+          >
+            <div className="text-center mb-8 border-b-4 border-[#0F5C7A] pb-6">
+              <h1 className="text-4xl font-bold text-[#0F5C7A] mb-2">{orgName}</h1>
+              <h2 className="text-2xl font-semibold text-slate-800 mb-2">
+                {exam?.name} পরীক্ষার ফলাফল
+              </h2>
+              <p className="text-slate-600 font-medium">
+                {t.academicYear}: {academicYear?.year_name} 
+                ({academicYear?.hijri_year})
+              </p>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-10">
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <FileBadge className="w-5 h-5 text-[#0F5C7A]" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">শিক্ষার্থীর নাম</p>
-                  <p className="font-bold text-slate-800">{student?.name}</p>
-                </div>
+            <div className="grid grid-cols-2 gap-6 mb-8 text-slate-800">
+              <div className="space-y-2">
+                <p><span className="font-semibold w-32 inline-block">{t.studentName}:</span> {student.name}</p>
+                <p><span className="font-semibold w-32 inline-block">{t.class}:</span> {cls?.name}</p>
+                <p><span className="font-semibold w-32 inline-block">{t.roll}:</span> {convertNumber(student.roll, numeralFormat)}</p>
               </div>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <GraduationCap className="w-5 h-5 text-[#0F5C7A]" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">জামাত/শ্রেণি</p>
-                  <p className="font-bold text-slate-800">{cls?.name}</p>
-                </div>
-              </div>
-            </div>
-            <div className="space-y-4">
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <Calendar className="w-5 h-5 text-[#0F5C7A]" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">শিক্ষাবর্ষ</p>
-                  <p className="font-bold text-slate-800">{academicYear?.year_name} ({academicYear?.hijri_year})</p>
-                </div>
-              </div>
-              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
-                <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center shadow-sm">
-                  <FileBadge className="w-5 h-5 text-[#0F5C7A]" />
-                </div>
-                <div>
-                  <p className="text-xs text-slate-500 font-medium">রোল নম্বর</p>
-                  <p className="font-bold text-slate-800">{convertNumber(student?.roll || 0, 'bn')}</p>
-                </div>
+              <div className="space-y-2">
+                <p><span className="font-semibold w-32 inline-block">{t.fatherName}:</span> {student.fatherName || "N/A"}</p>
+                <p><span className="font-semibold w-32 inline-block">{t.rank}:</span> <span className="font-bold">{convertNumber(rank, numeralFormat)}</span></p>
+                <p><span className="font-semibold w-32 inline-block">{t.result}:</span> <span className={`font-bold ${statusKey === 'pass' ? 'text-[#22C55E]' : 'text-[#EF4444]'}`}>{t[statusKey as keyof typeof t]} ({grade})</span></p>
               </div>
             </div>
-          </div>
 
-          <div className="overflow-hidden border border-slate-200 rounded-2xl mb-10">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="p-4 font-bold text-slate-700">বিষয়</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">পূর্ণমান</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">প্রাপ্ত নম্বর</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">বিভাগ</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {subjects.map((subject) => {
-                  const result = results.find(r => r.subject_id === subject.id);
-                  const marks = result?.marks || 0;
-                  const isFail = marks < subject.passMarks;
-                  
-                  return (
-                    <tr key={subject.id} className="hover:bg-slate-50/50 transition-colors">
-                      <td className="p-4 text-slate-800 font-medium">{subject.name}</td>
-                      <td className="p-4 text-slate-600 text-center">{convertNumber(subject.fullMarks, 'bn')}</td>
-                      <td className={`p-4 text-center font-bold ${isFail ? 'text-rose-600' : 'text-slate-800'}`}>
-                        {convertNumber(marks, 'bn')}
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${isFail ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600'}`}>
-                          {isFail ? 'F' : 'A+'} {/* Simplified grade for public view */}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-              <tfoot className="bg-slate-50 font-bold border-t-2 border-slate-200">
-                <tr>
-                  <td className="p-4 text-slate-800">সর্বমোট:</td>
-                  <td className="p-4 text-center text-slate-800">{convertNumber(totalFullMarks, 'bn')}</td>
-                  <td className="p-4 text-center text-[#0F5C7A] text-xl">{convertNumber(totalMarks, 'bn')}</td>
-                  <td className="p-4 text-center">
-                    <span className={`px-4 py-1.5 rounded-full text-sm ${statusKey === 'pass' ? 'bg-emerald-500 text-white' : 'bg-rose-500 text-white'}`}>
-                      {statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য'} ({grade})
-                    </span>
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-          </div>
+            <div className="overflow-x-auto border border-slate-300 rounded-lg mb-8">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-slate-100 border-b border-slate-300">
+                  <tr>
+                    <th className={`p-4 font-semibold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-right border-l' : 'text-left border-r'} border-slate-300`}>{t.subject}</th>
+                    <th className={`p-4 font-semibold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.fullMarks}</th>
+                    <th className={`p-4 font-semibold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.passMarks}</th>
+                    <th className="p-4 font-semibold text-slate-800 text-center">{t.obtainedMarks}</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-300">
+                  {subjects.map((subject) => {
+                    const result = results.find(r => r.subject_id === subject.id);
+                    const isFail = !result || result.marks < subject.passMarks;
+                    
+                    return (
+                      <tr key={subject.id} className="hover:bg-slate-50 transition-colors">
+                        <td className={`p-4 text-slate-800 font-medium ${marksheetLanguage === 'ar' ? 'text-right border-l' : 'text-left border-r'} border-slate-300`}>{subject.name}</td>
+                        <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.fullMarks, numeralFormat)}</td>
+                        <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.passMarks, numeralFormat)}</td>
+                        <td className={`p-4 text-center font-bold ${isFail ? 'text-[#EF4444]' : 'text-slate-800'}`}>
+                          {result ? convertNumber(result.marks, numeralFormat) : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+                <tfoot className="bg-slate-100 border-t-2 border-slate-300">
+                  <tr>
+                    <td className={`p-4 font-bold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-left border-l' : 'text-right border-r'} border-slate-300`}>{t.total}:</td>
+                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(calculatedTotalMarks, numeralFormat)}</td>
+                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.rank}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center">{convertNumber(rank, numeralFormat)}</td>
+                  </tr>
+                  <tr>
+                    <td className={`p-4 font-bold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-left border-l' : 'text-right border-r'} border-slate-300`}>{t.percentage}:</td>
+                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(percentage, numeralFormat)}%</td>
+                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.grade}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center">{grade}</td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
 
-          <div className="grid grid-cols-3 gap-4 mb-10">
-            <div className="p-4 bg-slate-50 rounded-2xl text-center">
-              <p className="text-xs text-slate-500 font-medium mb-1">শতকরা হার</p>
-              <p className="text-xl font-bold text-slate-800">{convertNumber(percentage, 'bn')}%</p>
+            <div className="mt-24 flex flex-wrap justify-around gap-8 px-4">
+              <div className="text-center min-w-[160px]">
+                <div className="w-full border-t border-slate-800 mb-2"></div>
+                <p className="font-medium text-slate-800">{t.teacherSignature}</p>
+              </div>
+              <div className="text-center min-w-[160px]">
+                <div className="w-full border-t border-slate-800 mb-2"></div>
+                <p className="font-medium text-slate-800">{t.principalSignature}</p>
+              </div>
             </div>
-            <div className="p-4 bg-slate-50 rounded-2xl text-center">
-              <p className="text-xs text-slate-500 font-medium mb-1">মেধা স্থান</p>
-              <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(rank, 'bn')}</p>
-            </div>
-            <div className="p-4 bg-slate-50 rounded-2xl text-center">
-              <p className="text-xs text-slate-500 font-medium mb-1">মোট বিভাগ</p>
-              <p className="text-xl font-bold text-slate-800">{grade}</p>
+            
+            <div className="text-center text-slate-400 text-xs italic mt-8">
+              * এটি একটি অনলাইন কপি। মূল মার্কশিটের জন্য মাদরাসা অফিসে যোগাযোগ করুন।
             </div>
           </div>
-
-          <div className="text-center text-slate-400 text-xs italic">
-            * এটি একটি অনলাইন কপি। মূল মার্কশিটের জন্য মাদরাসা অফিসে যোগাযোগ করুন।
-          </div>
-        </div>
+        )}
       </div>
     </div>
   );

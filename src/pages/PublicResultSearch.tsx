@@ -4,10 +4,11 @@ import { db } from "../firebase";
 import { Search, FileText, GraduationCap, Calendar, User, Loader2, Trophy } from "lucide-react";
 import { convertNumber } from "../utils/numeralConverter";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 
 const PublicResultSearch: React.FC = () => {
-  const [orgId, setOrgId] = useState<string | null>(null);
+  const { orgId: urlOrgId } = useParams<{ orgId: string }>();
+  const [orgId, setOrgId] = useState<string | null>(urlOrgId || null);
   const [orgName, setOrgName] = useState<string>("");
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
@@ -31,24 +32,36 @@ const PublicResultSearch: React.FC = () => {
     const fetchInitialData = async () => {
       setLoading(true);
       try {
-        // 1. Fetch Default Org
-        const orgsRef = collection(db, "organizations");
-        const snapshot = await getDocs(orgsRef);
-        console.log("Organizations found:", snapshot.size);
-        
         let currentOrgId = orgId;
-        if (!snapshot.empty) {
-          const firstOrgDoc = snapshot.docs[0];
-          const firstOrgData = firstOrgDoc.data();
-          currentOrgId = firstOrgDoc.id;
-          setOrgId(currentOrgId);
-          setOrgName(firstOrgData.name || "মাদরাসা");
-          console.log("Selected Org ID:", currentOrgId);
+        
+        // 1. Fetch Org
+        if (currentOrgId) {
+          const orgDoc = await getDoc(doc(db, "organizations", currentOrgId));
+          if (orgDoc.exists()) {
+            setOrgName(orgDoc.data().name || "মাদরাসা");
+          } else {
+            toast.error("প্রতিষ্ঠান পাওয়া যায়নি।");
+            setLoading(false);
+            return;
+          }
         } else {
-          console.warn("No organizations found in database.");
-          toast.error("কোনো প্রতিষ্ঠানের তথ্য পাওয়া যায়নি।");
-          setLoading(false);
-          return;
+          const orgsRef = collection(db, "organizations");
+          const snapshot = await getDocs(orgsRef);
+          console.log("Organizations found:", snapshot.size);
+          
+          if (!snapshot.empty) {
+            const firstOrgDoc = snapshot.docs[0];
+            const firstOrgData = firstOrgDoc.data();
+            currentOrgId = firstOrgDoc.id;
+            setOrgId(currentOrgId);
+            setOrgName(firstOrgData.name || "মাদরাসা");
+            console.log("Selected Org ID:", currentOrgId);
+          } else {
+            console.warn("No organizations found in database.");
+            toast.error("কোনো প্রতিষ্ঠানের তথ্য পাওয়া যায়নি।");
+            setLoading(false);
+            return;
+          }
         }
 
         // 2. Fetch Academic Years

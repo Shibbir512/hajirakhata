@@ -5,10 +5,11 @@ import { db } from "../firebase";
 import { Result, Student, Subject, Exam, AcademicYear, ClassData } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
-import { Printer, Download, ArrowLeft, GraduationCap, Calendar, Trophy, Medal } from "lucide-react";
+import { Printer, Download, ArrowLeft, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
+import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
 
 const PublicClassResult: React.FC = () => {
   const { orgId, classId, examId } = useParams<{ orgId: string; classId: string; examId: string }>();
@@ -18,10 +19,21 @@ const PublicClassResult: React.FC = () => {
   const [allResults, setAllResults] = useState<Result[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
-  const [exam, setExam] = useState<Exam | null>(null);
-  const [academicYear, setAcademicYear] = useState<AcademicYear | null>(null);
-  const [cls, setCls] = useState<ClassData | null>(null);
-  const [orgName, setOrgName] = useState("");
+  
+  const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [sortBy, setSortBy] = useState<'roll' | 'rank' | 'percentage' | 'totalMarks'>('roll');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'fail'>('all');
+
+  const [reportHeader, setReportHeader] = useState({
+    orgName: "",
+    address: "",
+    examTitle: "",
+    academicYearText: "",
+    classNameText: "",
+    publishDate: ""
+  });
 
   useEffect(() => {
     const fetchData = async () => {
@@ -30,12 +42,12 @@ const PublicClassResult: React.FC = () => {
       try {
         // 1. Fetch Org Info
         const orgSnap = await getDoc(doc(db, "organizations", orgId));
-        if (orgSnap.exists()) setOrgName(orgSnap.data().name);
+        const orgName = orgSnap.exists() ? orgSnap.data().name : "";
 
         // 2. Fetch Students in class
         const studentsRef = collection(db, `organizations/${orgId}/students`);
         const studentsSnap = await getDocs(query(studentsRef, where("classId", "==", classId), where("isActive", "==", true)));
-        const loadedStudents = studentsSnap.docs.map(doc => doc.data() as Student);
+        const loadedStudents = studentsSnap.docs.map(doc => doc.data() as Student).sort((a, b) => a.roll - b.roll);
         setStudents(loadedStudents);
 
         // 3. Fetch Results (only published)
@@ -61,7 +73,8 @@ const PublicClassResult: React.FC = () => {
         // 4. Fetch Subjects for the class
         const subjectsRef = collection(db, `organizations/${orgId}/subjects`);
         const subjectsSnap = await getDocs(query(subjectsRef, where("classId", "==", classId)));
-        setSubjects(subjectsSnap.docs.map(doc => doc.data() as Subject));
+        const loadedSubjects = subjectsSnap.docs.map(doc => doc.data() as Subject).sort((a, b) => a.subjectOrder - b.subjectOrder);
+        setSubjects(loadedSubjects);
 
         // 5. Fetch Exam, Year, Class
         const [examSnap, yearSnap, classSnap] = await Promise.all([
@@ -70,9 +83,25 @@ const PublicClassResult: React.FC = () => {
           getDoc(doc(db, `organizations/${orgId}/classes`, classId))
         ]);
 
-        if (examSnap.exists()) setExam(examSnap.data() as Exam);
-        if (yearSnap.exists()) setAcademicYear(yearSnap.data() as AcademicYear);
-        if (classSnap.exists()) setCls(classSnap.data() as ClassData);
+        const examData = examSnap.exists() ? (examSnap.data() as Exam) : null;
+        const yearData = yearSnap.exists() ? (yearSnap.data() as AcademicYear) : null;
+        const classData = classSnap.exists() ? (classSnap.data() as ClassData) : null;
+
+        // 6. Fetch report header
+        const headerRef = doc(db, `organizations/${orgId}/report_configs`, `${yearId}_${examId}_${classId}`);
+        const headerSnap = await getDoc(headerRef);
+        if (headerSnap.exists()) {
+          setReportHeader(headerSnap.data() as any);
+        } else {
+          setReportHeader({
+            orgName: orgName || "প্রতিষ্ঠানের নাম",
+            address: "",
+            examTitle: `${examData?.name || ""} পরীক্ষার ফলাফল`,
+            academicYearText: `শিক্ষাবর্ষ: ${yearData?.hijri_year || ""} হিজরী / ${yearData?.year_name || ""} ঈসাব্দ`,
+            classNameText: `জামাত: ${classData?.name || ""}`,
+            publishDate: `ফলাফল প্রকাশের তারিখ: ${new Date().toLocaleDateString('bn-BD')}`
+          });
+        }
 
       } catch (error: any) {
         console.error("Fetch error:", error);
@@ -86,71 +115,243 @@ const PublicClassResult: React.FC = () => {
     fetchData();
   }, [orgId, classId, examId, navigate]);
 
-  const meritList = useMemo(() => {
-    // Calculate metrics for each student to build allStudentMetrics
-    const allStudentMetrics = students.map(s => {
-      const sResults = allResults.filter(r => r.student_id === s.id);
-      let totalMarks = 0;
-      let hasFailed = false;
-
-      subjects.forEach(subject => {
-        const result = sResults.find(r => r.subject_id === subject.id);
+  const allStudentMetrics = useMemo(() => {
+    return students.map(student => {
+      const studentResults = allResults.filter(r => r.student_id === student.id);
+      const totalMarks = studentResults.reduce((sum, r) => sum + r.marks, 0);
+      
+      const hasFailed = subjects.some(subject => {
+        const result = studentResults.find(r => r.subject_id === subject.id);
         const marks = result ? result.marks : 0;
-        totalMarks += marks;
-        if (marks < subject.passMarks) hasFailed = true;
+        return marks < subject.passMarks;
       });
+      
+      return { studentId: student.id, totalMarks, hasFailed };
+    });
+  }, [students, allResults, subjects]);
 
-      return { studentId: s.id, totalMarks, hasFailed };
+  const statistics = useMemo(() => {
+    const stats = {
+      total: students.length,
+      mumtaz: 0,
+      jayyidJiddan: 0,
+      jayyid: 0,
+      maqbul: 0,
+      raseb: 0
+    };
+
+    students.forEach(student => {
+      const studentResults = allResults.filter(r => r.student_id === student.id);
+      const { grade } = calculateResultMetrics(studentResults, subjects, allStudentMetrics);
+      if (grade === "মুমতায") stats.mumtaz++;
+      else if (grade === "জায়্যিদ জিদ্দান") stats.jayyidJiddan++;
+      else if (grade === "জায়্যিদ") stats.jayyid++;
+      else if (grade === "মকবুল") stats.maqbul++;
+      else if (grade === "রাসেব") stats.raseb++;
     });
 
-    return students.map(student => {
+    return stats;
+  }, [students, allResults, subjects, allStudentMetrics]);
+
+  const processedResults = useMemo(() => {
+    const data = students.map(student => {
       const studentResults = allResults.filter(r => r.student_id === student.id);
       const metrics = calculateResultMetrics(studentResults, subjects, allStudentMetrics);
       return {
-        ...student,
-        ...metrics,
-        rankNum: metrics.rank === "-" ? 9999 : parseInt(metrics.rank)
+        student,
+        metrics
       };
-    }).sort((a, b) => a.rankNum - b.rankNum);
-  }, [students, allResults, subjects]);
+    });
+
+    let filteredData = data;
+    
+    // Search filter
+    if (searchTerm) {
+      const lowerSearch = searchTerm.toLowerCase();
+      filteredData = filteredData.filter(item => 
+        item.student.name.toLowerCase().includes(lowerSearch) || 
+        item.student.roll.toString().includes(lowerSearch)
+      );
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      filteredData = filteredData.filter(item => item.metrics.statusKey === statusFilter);
+    }
+
+    // Sorting
+    return filteredData.sort((a, b) => {
+      let comparison = 0;
+      if (sortBy === 'roll') {
+        comparison = a.student.roll - b.student.roll;
+      } else if (sortBy === 'rank') {
+        const rankA = a.metrics.rank === '-' ? Infinity : parseInt(a.metrics.rank);
+        const rankB = b.metrics.rank === '-' ? Infinity : parseInt(b.metrics.rank);
+        comparison = rankA - rankB;
+      } else if (sortBy === 'percentage') {
+        comparison = a.metrics.percentage - b.metrics.percentage;
+      } else if (sortBy === 'totalMarks') {
+        comparison = a.metrics.totalMarks - b.metrics.totalMarks;
+      }
+
+      return sortOrder === 'asc' ? comparison : -comparison;
+    });
+  }, [students, allResults, subjects, allStudentMetrics, sortBy, sortOrder, searchTerm, statusFilter]);
+
+  const toggleSort = (key: typeof sortBy) => {
+    if (sortBy === key) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(key);
+      setSortOrder('asc');
+    }
+  };
 
   const handlePrint = () => {
-    window.print();
+    window.focus();
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   const exportToPDF = async () => {
-    const input = document.getElementById('merit-list-container');
+    const input = document.getElementById('tabulation-sheet-container');
     if (!input) return;
 
     const toastId = toast.loading("PDF তৈরি হচ্ছে...");
     try {
-      const canvas = await html2canvas(input, { scale: 2, useCORS: true });
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF("p", "mm", "a4");
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const imgProps = pdf.getImageProperties(imgData);
-      const imgHeight = (imgProps.height * pdfWidth) / imgProps.width;
+      await document.fonts.ready;
+
+      const originalWidth = input.style.width;
+      const originalMaxWidth = input.style.maxWidth;
+      const originalPosition = input.style.position;
       
-      // Handle multiple pages if needed
-      let heightLeft = imgHeight;
+      const overflowDiv = input.querySelector('.overflow-x-auto') as HTMLElement;
+      let originalOverflowChild = '';
+      if (overflowDiv) {
+        originalOverflowChild = overflowDiv.style.overflow;
+        overflowDiv.style.overflow = 'visible';
+      }
+
+      input.style.width = 'max-content';
+      input.style.maxWidth = 'none';
+      input.style.position = 'absolute';
+      
+      await new Promise(resolve => setTimeout(resolve, 50));
+      
+      const width = input.scrollWidth;
+      const height = input.scrollHeight;
+
+      const canvas = await html2canvas(input, { 
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff',
+        width: width,
+        height: height,
+        windowWidth: width,
+        windowHeight: height,
+        onclone: (clonedDoc) => {
+          const style = clonedDoc.createElement('style');
+          style.innerHTML = `
+            :root { color-scheme: light !important; }
+            * { -webkit-print-color-adjust: exact !important; color-adjust: exact !important; }
+          `;
+          clonedDoc.head.appendChild(style);
+
+          const clonedElement = clonedDoc.getElementById('tabulation-sheet-container');
+          if (clonedElement) {
+            clonedElement.style.height = 'auto';
+            clonedElement.style.maxHeight = 'none';
+            clonedElement.style.overflow = 'visible';
+            clonedElement.style.position = 'absolute';
+            clonedElement.style.top = '0';
+            clonedElement.style.left = '0';
+            clonedElement.style.width = width + 'px';
+            
+            const clonedOverflowDiv = clonedElement.querySelector('.overflow-x-auto') as HTMLElement;
+            if (clonedOverflowDiv) {
+              clonedOverflowDiv.style.overflow = 'visible';
+            }
+          }
+        }
+      });
+      
+      input.style.width = originalWidth;
+      input.style.maxWidth = originalMaxWidth;
+      input.style.position = originalPosition;
+      if (overflowDiv) {
+        overflowDiv.style.overflow = originalOverflowChild;
+      }
+
+      const imgData = canvas.toDataURL('image/png');
+      const pdf = new jsPDF("l", "mm", "a4");
+      
+      const imgProps = pdf.getImageProperties(imgData);
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
+
+      let heightLeft = pdfHeight;
       let position = 0;
       const pageHeight = pdf.internal.pageSize.getHeight();
 
-      pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
       heightLeft -= pageHeight;
 
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
+      while (heightLeft > 0) {
+        position = heightLeft - pdfHeight;
         pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, pdfWidth, imgHeight);
+        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
         heightLeft -= pageHeight;
       }
-
-      pdf.save(`MeritList_${cls?.name}_${exam?.name}.pdf`);
+      
+      pdf.save("tabulation_sheet.pdf");
       toast.success("PDF ডাউনলোড সফল হয়েছে!", { id: toastId });
     } catch (error) {
-      toast.error("PDF তৈরি করতে ব্যর্থ হয়েছে।", { id: toastId });
+      console.error("PDF Export Error:", error);
+      toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।", { id: toastId });
     }
+  };
+
+  const exportToDOCX = async () => {
+    const tableRows = processedResults.map(({ student, metrics }) => {
+      const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
+      const statusText = statusKey === 'pass' ? 'Pass' : 'Fail';
+      const cells = [
+        student.roll, 
+        student.name, 
+        ...subjects.map(s => {
+          const result = allResults.find(r => r.student_id === student.id && r.subject_id === s.id);
+          return result?.marks ?? 0;
+        }), 
+        totalMarks, 
+        totalFullMarks, 
+        `${percentage}%`, 
+        `${statusText} (${grade})`, 
+        rank
+      ].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] }));
+      return new TableRow({ children: cells });
+    });
+
+    const doc = new Document({
+      sections: [{
+        children: [
+          new Paragraph({ children: [new TextRun({ text: "ফলাফল", bold: true, size: 32 })] }),
+          new Table({
+            rows: [
+              new TableRow({ children: ["রোল", "নাম", ...subjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "বিভাগ", "মেধাক্রম"].map(text => new TableCell({ children: [new Paragraph({ text: String(text) })] })) }),
+              ...tableRows
+            ]
+          })
+        ]
+      }]
+    });
+    const blob = await Packer.toBlob(doc);
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = "tabulation_sheet.docx";
+    link.click();
   };
 
   if (loading) {
@@ -163,125 +364,249 @@ const PublicClassResult: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        <div className="flex justify-between items-center mb-6 print:hidden">
-          <button 
-            onClick={() => navigate("/result-search")}
-            className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            ফিরে যান
-          </button>
-          <div className="flex gap-2">
-            <button onClick={handlePrint} className="btn-secondary px-4 py-2">
-              <Printer className="w-4 h-4" />
-              প্রিন্ট
+      <div className="max-w-7xl mx-auto space-y-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
+          <div className="flex items-center gap-4">
+            <button 
+              onClick={() => navigate("/result-search")}
+              className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
+            >
+              <ArrowLeft className="w-5 h-5" />
+              ফিরে যান
             </button>
-            <button onClick={exportToPDF} className="btn-primary px-4 py-2">
-              <Download className="w-4 h-4" />
-              ডাউনলোড
-            </button>
+            <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
+              <FileText className="w-6 h-6 text-[#0F5C7A]" />
+              ফলাফল
+            </h2>
+          </div>
+          <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
+            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
+              <option value="en">English (0-9)</option>
+              <option value="bn">Bengali (০-৯)</option>
+              <option value="ar">Arabic (٠-٩)</option>
+            </select>
+            {allResults.length > 0 && (
+              <>
+                <button onClick={handlePrint} className="btn-secondary h-9 px-3 text-sm">
+                  <Printer className="w-4 h-4" />
+                  প্রিন্ট করুন
+                </button>
+                <button onClick={exportToDOCX} className="btn-secondary h-9 px-3 text-sm">
+                  <Download className="w-4 h-4" />
+                  DOCX
+                </button>
+                <button onClick={exportToPDF} className="btn-secondary h-9 px-3 text-sm">
+                  <Download className="w-4 h-4" />
+                  PDF
+                </button>
+              </>
+            )}
           </div>
         </div>
 
-        <div id="merit-list-container" className="card-premium p-8 bg-white shadow-xl border border-slate-100">
-          <div className="text-center mb-10 border-b-2 border-slate-100 pb-8">
-            <h1 className="text-3xl font-bold text-slate-900 mb-2">{orgName}</h1>
-            <p className="text-slate-600 mb-4">মেধা তালিকা (Merit List)</p>
-            <div className="flex flex-wrap justify-center gap-4 text-sm font-medium text-[#0F5C7A]">
-              <span className="px-4 py-1.5 bg-[#0F5C7A]/5 rounded-full border border-[#0F5C7A]/10 flex items-center gap-2">
-                <GraduationCap className="w-4 h-4" />
-                জামাত: {cls?.name}
-              </span>
-              <span className="px-4 py-1.5 bg-[#0F5C7A]/5 rounded-full border border-[#0F5C7A]/10 flex items-center gap-2">
-                <Calendar className="w-4 h-4" />
-                শিক্ষাবর্ষ: {academicYear?.year_name}
-              </span>
-              <span className="px-4 py-1.5 bg-[#0F5C7A]/5 rounded-full border border-[#0F5C7A]/10 flex items-center gap-2">
-                <Trophy className="w-4 h-4" />
-                পরীক্ষা: {exam?.name}
-              </span>
+        {allResults.length > 0 && (
+          <div className="card-premium p-6 print:hidden">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="রোল বা নাম দিয়ে খুঁজুন..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="input-premium pl-10 w-full"
+                />
+              </div>
+              <div className="flex items-center gap-2">
+                <Filter className="text-slate-400 w-4 h-4" />
+                <select
+                  value={statusFilter}
+                  onChange={(e) => setStatusFilter(e.target.value as any)}
+                  className="input-premium flex-1"
+                >
+                  <option value="all">সব ফলাফল</option>
+                  <option value="pass">কৃতকার্য</option>
+                  <option value="fail">অকৃতকার্য</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <ArrowUpDown className="text-slate-400 w-4 h-4" />
+                <select
+                  value={`${sortBy}-${sortOrder}`}
+                  onChange={(e) => {
+                    const [key, order] = e.target.value.split('-');
+                    setSortBy(key as any);
+                    setSortOrder(order as any);
+                  }}
+                  className="input-premium flex-1"
+                >
+                  <option value="roll-asc">রোল (ছোট থেকে বড়)</option>
+                  <option value="roll-desc">রোল (বড় থেকে ছোট)</option>
+                  <option value="rank-asc">মেধাক্রম (১ম থেকে শেষ)</option>
+                  <option value="rank-desc">মেধাক্রম (শেষ থেকে ১ম)</option>
+                  <option value="totalMarks-desc">মোট নম্বর (বেশি থেকে কম)</option>
+                  <option value="totalMarks-asc">মোট নম্বর (কম থেকে বেশি)</option>
+                  <option value="percentage-desc">শতকরা (বেশি থেকে কম)</option>
+                  <option value="percentage-asc">শতকরা (কম থেকে বেশি)</option>
+                </select>
+              </div>
             </div>
           </div>
+        )}
 
-          <div className="overflow-x-auto border border-slate-200 rounded-2xl">
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="bg-slate-50 border-b border-slate-200">
-                  <th className="p-4 font-bold text-slate-700 text-center w-16">স্থান</th>
-                  <th className="p-4 font-bold text-slate-700 text-center w-20">রোল</th>
-                  <th className="p-4 font-bold text-slate-700">শিক্ষার্থীর নাম</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">মোট নম্বর</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">শতকরা</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">বিভাগ</th>
-                  <th className="p-4 font-bold text-slate-700 text-center">ফলাফল</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
-                {meritList.map((student) => {
-                  const isTop3 = student.rankNum <= 3;
-                  return (
-                    <tr key={student.id} className={`hover:bg-slate-50/50 transition-colors ${isTop3 ? 'bg-amber-50/20' : ''}`}>
-                      <td className="p-4 text-center">
-                        <div className="flex justify-center">
-                          {student.rankNum === 1 ? (
-                            <Medal className="w-6 h-6 text-yellow-500" />
-                          ) : student.rankNum === 2 ? (
-                            <Medal className="w-6 h-6 text-slate-400" />
-                          ) : student.rankNum === 3 ? (
-                            <Medal className="w-6 h-6 text-amber-600" />
-                          ) : (
-                            <span className="font-bold text-slate-500">{student.rank === "-" ? "-" : convertNumber(student.rank, 'bn')}</span>
-                          )}
-                        </div>
-                      </td>
-                      <td className="p-4 text-center font-medium text-slate-600">
-                        {convertNumber(student.roll, 'bn')}
-                      </td>
-                      <td className="p-4">
-                        <p className="font-bold text-slate-800">{student.name}</p>
-                        <p className="text-xs text-slate-500">{student.fatherName}</p>
-                      </td>
-                      <td className="p-4 text-center font-bold text-[#0F5C7A]">
-                        {convertNumber(student.totalMarks, 'bn')}
-                      </td>
-                      <td className="p-4 text-center text-slate-600">
-                        {convertNumber(student.percentage, 'bn')}%
-                      </td>
-                      <td className="p-4 text-center font-bold text-slate-700">
-                        {student.grade}
-                      </td>
-                      <td className="p-4 text-center">
-                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${student.statusKey === 'pass' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}`}>
-                          {student.statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য'}
-                        </span>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+        {allResults.length > 0 ? (
+          <div id="tabulation-sheet-container" className="card-premium p-8 print:shadow-none print:border-none print:p-0 bg-white">
+            <div className="text-center mb-8">
+              <div className="print:mb-10">
+                <h1 className="text-3xl font-bold text-slate-900 mb-1">{reportHeader.orgName}</h1>
+                <p className="text-slate-700 text-lg mb-1">{reportHeader.address}</p>
+                <h2 className="text-xl font-bold text-slate-800 mb-1">{reportHeader.examTitle}</h2>
+                <div className="flex justify-center gap-6 text-slate-700 mb-1">
+                  <span>{reportHeader.academicYearText}</span>
+                  <span>{reportHeader.classNameText}</span>
+                </div>
+                <p className="text-slate-700">{reportHeader.publishDate}</p>
+              </div>
+            </div>
 
-          <div className="mt-10 grid grid-cols-1 md:grid-cols-3 gap-6 text-center print:hidden">
-            <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100">
-              <p className="text-sm text-emerald-600 font-bold mb-1">মোট পরীক্ষার্থী</p>
-              <p className="text-3xl font-black text-emerald-700">{convertNumber(students.length, 'bn')}</p>
-            </div>
-            <div className="p-6 bg-blue-50 rounded-2xl border border-blue-100">
-              <p className="text-sm text-blue-600 font-bold mb-1">কৃতকার্য</p>
-              <p className="text-3xl font-black text-blue-700">{convertNumber(meritList.filter(s => s.statusKey === 'pass').length, 'bn')}</p>
-            </div>
-            <div className="p-6 bg-rose-50 rounded-2xl border border-rose-100">
-              <p className="text-sm text-rose-600 font-bold mb-1">অকৃতকার্য</p>
-              <p className="text-3xl font-black text-rose-700">{convertNumber(meritList.filter(s => s.statusKey === 'fail').length, 'bn')}</p>
-            </div>
-          </div>
+            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px] print:border-none print:overflow-visible">
+              <table className="w-full text-left border-collapse">
+                <thead className="bg-[#F8F9FA] print:bg-transparent">
+                  <tr>
+                    <th 
+                      className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-0 bg-[#F8F9FA] z-10 cursor-pointer hover:bg-slate-100 transition-colors"
+                      onClick={() => toggleSort('roll')}
+                    >
+                      <div className="flex items-center gap-1">
+                        রোল
+                        {sortBy === 'roll' ? (
+                          sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black sticky left-[80px] bg-[#F8F9FA] z-10">নাম</th>
+                    {subjects.map(subject => (
+                      <th key={subject.id} className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">
+                        {subject.name} <br/> <span className="text-[10px] font-normal">({convertNumber(subject.fullMarks, numeralFormat)})</span>
+                      </th>
+                    ))}
+                    <th 
+                      className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                      onClick={() => toggleSort('totalMarks')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        মোট
+                        {sortBy === 'totalMarks' ? (
+                          sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">পূর্ণমান</th>
+                    <th 
+                      className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                      onClick={() => toggleSort('percentage')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        শতকরা
+                        {sortBy === 'percentage' ? (
+                          sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                        )}
+                      </div>
+                    </th>
+                    <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center">বিভাগ</th>
+                    <th 
+                      className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] print:border-black text-center cursor-pointer hover:bg-slate-100 transition-colors"
+                      onClick={() => toggleSort('rank')}
+                    >
+                      <div className="flex items-center justify-center gap-1">
+                        মেধাক্রম
+                        {sortBy === 'rank' ? (
+                          sortOrder === 'asc' ? <ChevronUp className="w-4 h-4 text-[#0F5C7A]" /> : <ChevronDown className="w-4 h-4 text-[#0F5C7A]" />
+                        ) : (
+                          <ArrowUpDown className="w-3 h-3 text-slate-400" />
+                        )}
+                      </div>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {processedResults.map(({ student, metrics }) => {
+                    const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
+                    
+                    const rankNum = parseInt(rank);
+                    const isTop3 = !isNaN(rankNum) && rankNum <= 3;
+                    const statusText = statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য';
 
-          <div className="mt-12 text-center text-slate-400 text-xs italic">
-            * এটি একটি অনলাইন মেধা তালিকা। বিস্তারিত তথ্যের জন্য মাদরাসা অফিসে যোগাযোগ করুন।
+                    return (
+                      <tr key={student.id} className={`border-b border-[#E5E7EB] print:border-black hover:bg-gray-50 transition-all duration-200 print:hover:bg-transparent ${isTop3 ? 'bg-yellow-50' : ''}`}>
+                        <td className="py-4 px-5 text-slate-800 font-medium sticky left-0 bg-white z-10">{convertNumber(student.roll, numeralFormat)}</td>
+                        <td className="py-4 px-5 text-slate-800 sticky left-[80px] bg-white z-10">{student.name}</td>
+                        {subjects.map(subject => {
+                          const result = allResults.find(r => r.student_id === student.id && r.subject_id === subject.id);
+                          const isFail = !result || result.marks < subject.passMarks;
+
+                          return (
+                            <td key={subject.id} className="py-4 px-5 text-center">
+                              <span className={isFail ? "text-rose-600 font-bold" : "text-slate-700"}>
+                                {result ? convertNumber(result.marks, numeralFormat) : "-"}
+                              </span>
+                            </td>
+                          );
+                        })}
+                        <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalMarks, numeralFormat)}</td>
+                        <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(totalFullMarks, numeralFormat)}</td>
+                        <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(percentage, numeralFormat)}%</td>
+                        <td className="py-4 px-5 text-center font-bold text-slate-800">
+                          <span className={statusKey === 'fail' ? 'text-[#EF4444]' : 'text-[#22C55E]'}>
+                            {statusText} ({grade})
+                          </span>
+                        </td>
+                        <td className="py-4 px-5 text-center font-bold text-slate-800">{convertNumber(rank, numeralFormat)}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="mt-8 grid grid-cols-2 md:grid-cols-6 gap-4 print:grid-cols-6">
+              <div className="p-4 bg-slate-50 rounded-xl text-center border border-slate-100">
+                <p className="text-xs text-slate-500 mb-1">মোট শিক্ষার্থী</p>
+                <p className="text-xl font-bold text-slate-800">{convertNumber(statistics.total, numeralFormat)}</p>
+              </div>
+              <div className="p-4 bg-[#22C55E]/10 rounded-xl text-center border border-[#22C55E]/20">
+                <p className="text-xs text-[#22C55E] mb-1">মুমতায</p>
+                <p className="text-xl font-bold text-[#22C55E]">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
+              </div>
+              <div className="p-4 bg-[#14B8A6]/10 rounded-xl text-center border border-[#14B8A6]/20">
+                <p className="text-xs text-[#14B8A6] mb-1">জায়্যিদ জিদ্দান</p>
+                <p className="text-xl font-bold text-[#14B8A6]">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
+              </div>
+              <div className="p-4 bg-[#0F5C7A]/10 rounded-xl text-center border border-[#0F5C7A]/20">
+                <p className="text-xs text-[#0F5C7A] mb-1">জায়্যিদ</p>
+                <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(statistics.jayyid, numeralFormat)}</p>
+              </div>
+              <div className="p-4 bg-[#F59E0B]/10 rounded-xl text-center border border-[#F59E0B]/20">
+                <p className="text-xs text-[#F59E0B] mb-1">মকবুল</p>
+                <p className="text-xl font-bold text-[#F59E0B]">{convertNumber(statistics.maqbul, numeralFormat)}</p>
+              </div>
+              <div className="p-4 bg-[#EF4444]/10 rounded-xl text-center border border-[#EF4444]/20">
+                <p className="text-xs text-[#EF4444] mb-1">রাসেব</p>
+                <p className="text-xl font-bold text-[#EF4444]">{convertNumber(statistics.raseb, numeralFormat)}</p>
+              </div>
+            </div>
+            
+            <div className="mt-12 text-center text-slate-400 text-xs italic">
+              * এটি একটি অনলাইন ফলাফল তালিকা। বিস্তারিত তথ্যের জন্য মাদরাসা অফিসে যোগাযোগ করুন।
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </div>
   );

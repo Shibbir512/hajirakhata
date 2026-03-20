@@ -2,10 +2,11 @@ import React, { useState } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, updateDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
-import { AlertCircle, Loader2, Copy, Check, Phone, Search } from 'lucide-react';
+import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, GraduationCap } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
+import PublicResultSearch from '../components/PublicResultSearch';
 
 const Login: React.FC = () => {
   const { user } = useAuth();
@@ -15,6 +16,14 @@ const Login: React.FC = () => {
 
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
+  const [activeTab, setActiveTab] = useState<'public' | 'login'>('login');
+
+  const isEmbeddedBrowser = () => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Messenger") > -1);
+  };
+
+  const [embeddedBrowser, setEmbeddedBrowser] = useState(isEmbeddedBrowser());
 
   if (user && !isNewUser) {
     return <Navigate to="/" replace />;
@@ -168,28 +177,70 @@ const Login: React.FC = () => {
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const isEmbeddedBrowser = () => {
-    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
-    return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Messenger") > -1);
-  };
-
-  const [embeddedBrowser, setEmbeddedBrowser] = useState(isEmbeddedBrowser());
-
   return (
-    <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
-      <div className="max-w-md w-full card-premium p-10 text-center border-2 border-[#0F5C7A]/10 shadow-[#0F5C7A]/5">
-        <div className="w-24 h-24 bg-white rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-[#0F5C7A]/5 overflow-hidden">
-          <img 
-            src={logo} 
-            alt="হাজিরা খাতা" 
-            className="w-full h-full object-contain p-2" 
-          />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex flex-col">
+      {/* Header */}
+      <header className="bg-white/75 backdrop-blur-lg border-b border-[#E2E8F0] sticky top-0 z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <img src={logo} alt="হাজিরা খাতা" className="w-8 h-8 object-contain" />
+            <span className="font-bold text-xl text-[#0F766E] tracking-tight">হাজিরা খাতা</span>
+          </div>
+          <div className="flex items-center p-1 bg-slate-100 rounded-[20px]">
+            <button
+              onClick={() => setActiveTab('public')}
+              className={`px-6 py-2 rounded-[16px] text-sm font-bold transition-all duration-200 flex items-center gap-2 ${
+                activeTab === 'public' 
+                  ? 'bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white shadow-md' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <GraduationCap className="w-4 h-4" />
+              <span className="hidden sm:inline">ফলাফল দেখুন</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('login')}
+              className={`px-6 py-2 rounded-[16px] text-sm font-bold transition-all duration-200 flex items-center gap-2 ${
+                activeTab === 'login' 
+                  ? 'bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white shadow-md' 
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <LogIn className="w-4 h-4" />
+              <span className="hidden sm:inline">লগইন করুন</span>
+            </button>
+          </div>
         </div>
-        
-        <h1 className="text-3xl font-bold text-[#0F5C7A] mb-3 tracking-tight">হাজিরা খাতা</h1>
-        <p className="text-[#334155] mb-8">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
+      </header>
 
-        {embeddedBrowser && (
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
+        {activeTab === 'public' ? (
+          <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
+                শিক্ষার্থীর ফলাফল অনুসন্ধান
+              </h1>
+              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+                আপনার প্রতিষ্ঠান, শিক্ষাবর্ষ, শ্রেণি এবং পরীক্ষা নির্বাচন করে রোল নম্বর দিয়ে খুব সহজেই ফলাফল দেখুন।
+              </p>
+            </div>
+            <PublicResultSearch />
+          </div>
+        ) : (
+          <div className="max-w-md w-full card-premium p-8 sm:p-10 text-center border-[#E2E8F0] shadow-xl shadow-teal-900/5 animate-in fade-in zoom-in-95 duration-500">
+            <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 shadow-sm border border-teal-100 overflow-hidden">
+              <img 
+                src={logo} 
+                alt="হাজিরা খাতা" 
+                className="w-full h-full object-contain p-2" 
+              />
+            </div>
+            
+            <h2 className="text-2xl font-bold text-[#0F766E] mb-2 tracking-tight">অ্যাডমিন প্যানেল</h2>
+            <p className="text-slate-500 mb-10 text-sm">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
+
+            {embeddedBrowser && (
           <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
@@ -308,10 +359,15 @@ const Login: React.FC = () => {
           </>
         ) : null}
 
+        <div className="flex items-center justify-center gap-2 text-[#0F766E] font-bold mb-4">
+          <LogIn className="w-5 h-5" />
+          <span>লগইন করুন</span>
+        </div>
+
         <button
           onClick={isNewUser ? handleFinalizeSignup : handleGoogleLogin}
           disabled={loading || !auth}
-          className="w-full flex items-center justify-center gap-3 px-6 py-4 bg-[#0F5C7A] hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:hover:translate-y-0 text-white rounded-2xl font-bold shadow-md hover:shadow-lg transition-all duration-300 mb-4"
+          className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-3"
         >
           {loading ? (
             <Loader2 className="w-5 h-5 animate-spin text-white/80" />
@@ -320,11 +376,23 @@ const Login: React.FC = () => {
           )}
           <span>{loading ? 'সাইন ইন করা হচ্ছে...' : isNewUser ? 'সাইন আপ সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}</span>
         </button>
-      </div>
+
+        <button
+          onClick={() => setActiveTab('public')}
+          className="w-full mt-4 py-4 text-lg flex items-center justify-center gap-3 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-2xl font-bold transition-all duration-300"
+        >
+          <Search className="w-5 h-5" />
+          <span>ফলাফল অনুসন্ধান করুন</span>
+        </button>
+          </div>
+        )}
+      </main>
       
-      <p className="mt-8 text-xs text-slate-400">
-        &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
-      </p>
+      <footer className="py-6 text-center">
+        <p className="text-xs text-slate-400">
+          &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
+        </p>
+      </footer>
     </div>
   );
 };

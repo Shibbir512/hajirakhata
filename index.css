@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@400;500;600;700&family=Noto+Sans+Bengali:wght@400;500;600;700&family=Noto+Sans+Arabic:wght@400;500;600;700&family=Hind+Siliguri:wght@400;500;600;700&display=swap');
 @import "react-datepicker/dist/react-datepicker.css";
 
 @keyframes enter {
@@ -17,7 +17,7 @@
 }
 
 @theme {
-  --font-sans: "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Hind Siliguri", "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
   --font-bengali: "Noto Sans Bengali", sans-serif;
   --font-arabic: "Noto Sans Arabic", serif;
   
@@ -310,19 +310,19 @@
 
 @layer components {
   .card-premium {
-    @apply bg-white rounded-[18px] shadow-[0_10px_25px_rgba(0,0,0,0.08)] border border-transparent;
+    @apply bg-white/75 backdrop-blur-lg rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-[#E2E8F0];
   }
   .btn-primary {
-    @apply bg-[#0F5C7A] text-white rounded-[14px] shadow-[0_4px_14px_rgba(15,92,122,0.2)] hover:shadow-[0_6px_20px_rgba(15,92,122,0.3)] hover:bg-[#0C4A62] transition-all duration-300 font-medium px-5 py-2.5 border-none flex items-center justify-center gap-2;
+    @apply bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-[20px] shadow-[0_4px_12px_rgba(20,184,166,0.2)] hover:shadow-[0_6px_16px_rgba(20,184,166,0.3)] transition-all duration-200 font-bold px-6 py-3 h-[50px] border-none flex items-center justify-center gap-2;
   }
   .btn-secondary {
-    @apply bg-[rgba(20,184,166,0.1)] text-[#14B8A6] rounded-[14px] hover:bg-[rgba(20,184,166,0.2)] transition-all duration-300 font-medium px-5 py-2.5 border border-[rgba(20,184,166,0.1)] flex items-center justify-center gap-2;
+    @apply bg-white text-[#0F766E] rounded-[20px] hover:bg-slate-50 transition-all duration-200 font-medium px-6 py-3 border border-[#E2E8F0] flex items-center justify-center gap-2;
   }
   .btn-outline {
-    @apply bg-white text-slate-600 rounded-[14px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 font-medium px-5 py-2.5 border border-[#D1D5DB] shadow-sm flex items-center justify-center gap-2;
+    @apply bg-white text-slate-600 rounded-[20px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 font-medium px-6 py-3 border border-[#E2E8F0] shadow-sm flex items-center justify-center gap-2;
   }
   .input-premium {
-    @apply w-full px-4 py-3 bg-white border border-[#D1D5DB] rounded-[16px] focus:outline-none focus:ring-2 focus:ring-[rgba(20,184,166,0.2)] focus:border-[#14B8A6] transition-all shadow-sm font-medium h-[50px];
+    @apply w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[14px] focus:outline-none focus:ring-2 focus:ring-[rgba(20,184,166,0.2)] focus:border-[#14B8A6] transition-all shadow-sm font-medium h-[48px];
   }
   .search-highlight {
     @apply border-[#14B8A6] shadow-[0_0_15px_rgba(20,184,166,0.1)] ring-2 ring-[rgba(20,184,166,0.2)];
