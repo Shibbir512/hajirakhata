@@ -344,7 +344,11 @@ const StudentProfile: React.FC = () => {
                 </div>
                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                   <span className="text-sm text-slate-500">ফোন:</span>
-                  <span className="font-bold text-slate-900">{student.phone || "-"}</span>
+                  <span className="font-bold text-slate-900">
+                    {student.phone ? (
+                      <a href={`tel:${student.phone}`} className="hover:text-[#0F766E] transition-colors">{student.phone}</a>
+                    ) : "-"}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
                   <span className="text-sm text-slate-500">ঠিকানা:</span>
