@@ -32,6 +32,7 @@ const AttendanceHistory: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [isConfirmSaveDialogOpen, setIsConfirmSaveDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
@@ -92,8 +93,14 @@ const AttendanceHistory: React.FC = () => {
     ));
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!selectedSession) return;
+    setIsConfirmSaveDialogOpen(true);
+  };
+
+  const confirmSave = async () => {
+    if (!selectedSession) return;
+    setIsConfirmSaveDialogOpen(false);
     await updateAttendanceSession(selectedSession.id, editedStudents, selectedSession.version || 1);
     setIsEditMode(false);
     setSelectedSession(null);
@@ -247,12 +254,6 @@ const AttendanceHistory: React.FC = () => {
                     {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
                   </p>
                   <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-1 bg-[#22C55E]/10 px-2 py-1 rounded-lg" title="উপস্থিত">
-                      <span className="text-[10px] font-bold text-[#22C55E]">উপস্থিত:</span>
-                      <span className="text-xs font-bold text-[#22C55E]">
-                        {toBengaliNumber(session.students.filter((s: any) => s.status === AttendanceStatus.Present).length)}
-                      </span>
-                    </div>
                     <div className="flex items-center gap-1 bg-[#EF4444]/10 px-2 py-1 rounded-lg" title="অনুপস্থিত">
                       <span className="text-[10px] font-bold text-[#EF4444]">অনুপস্থিত:</span>
                       <span className="text-xs font-bold text-[#EF4444]">
@@ -386,7 +387,16 @@ const AttendanceHistory: React.FC = () => {
             </div>
 
             {/* Body */}
-            <div className="p-5 flex flex-col overflow-hidden max-h-[60vh]">
+            <div className="p-5 flex flex-col overflow-hidden max-h-[65vh]">
+              {/* Attendance Taker Info */}
+              {viewingSession.takenBy && (
+                <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">হাজিরা নিয়েছেন</p>
+                  <p className="text-sm font-bold text-[#0F5C7A]">{viewingSession.takenBy.name}</p>
+                  <p className="text-[11px] text-slate-500">{viewingSession.takenBy.email}</p>
+                </div>
+              )}
+
               <div className="mb-4 relative">
                 <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                   <Search className="h-5 w-5 text-slate-400" />
@@ -406,10 +416,8 @@ const AttendanceHistory: React.FC = () => {
                   const roll = rollValue !== undefined && rollValue !== null ? rollValue.toString() : "";
                   const searchLower = searchQuery.toLowerCase();
                   const name = student.studentName || "";
-                  return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
-                }).sort((a: any, b: any) => {
-                  if (a.status === b.status) return 0;
-                  return a.status === AttendanceStatus.Absent ? -1 : 1;
+                  const matchesSearch = name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
+                  return matchesSearch && student.status === AttendanceStatus.Absent;
                 }).map((student: any) => (
                   <div key={student.studentId} className={clsx(
                     "flex justify-between items-center p-4 border rounded-[16px] transition-all duration-300",
@@ -566,6 +574,13 @@ const AttendanceHistory: React.FC = () => {
           message="আপনি কি নিশ্চিত যে এই হাজিরা সেশনটি মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।"
         />
       )}
+      <ConfirmationDialog
+        isOpen={isConfirmSaveDialogOpen}
+        onClose={() => setIsConfirmSaveDialogOpen(false)}
+        onConfirm={confirmSave}
+        title="হাজিরা আপডেট"
+        message="আপনি কি নিশ্চিত যে আপনি এই হাজিরার পরিবর্তনগুলো সংরক্ষণ করতে চান?"
+      />
     </div>
   );
 };

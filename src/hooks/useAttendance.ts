@@ -117,12 +117,17 @@ export const useAttendance = (
           note
         }));
 
-        await SyncManager.performAtomicAttendance(orgId, classId, date, time, studentsArray);
-        toast.success("হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!");
+        const promise = SyncManager.performAtomicAttendance(orgId, classId, date, time, studentsArray);
+        
+        await toast.promise(promise, {
+          loading: 'হাজিরা সংরক্ষণ করা হচ্ছে...',
+          success: 'হাজিরা সফলভাবে সংরক্ষণ করা হয়েছে!',
+          error: 'হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।',
+        });
+        
         return true;
       } catch (error) {
         console.error("Error taking attendance:", error);
-        toast.error("হাজিরা সংরক্ষণ করতে ব্যর্থ হয়েছে।");
         return false;
       } finally {
         setIsTakingAttendance(false);
@@ -136,15 +141,18 @@ export const useAttendance = (
       if (!user || !db || !orgId) return;
       try {
         const path = `organizations/${orgId}/attendance_sessions/${sessionId}`;
-        await SyncManager.updateWithVersioning(path, { students }, currentVersion);
-        toast.success("হাজিরা আপডেট করা হয়েছে!");
+        const promise = SyncManager.updateWithVersioning(path, { students }, currentVersion);
+        
+        await toast.promise(promise, {
+          loading: 'হাজিরা আপডেট করা হচ্ছে...',
+          success: 'হাজিরা আপডেট করা হয়েছে!',
+          error: (err: any) => 
+            err.code === 'permission-denied' 
+              ? "সংস্করণ অমিল! অন্য কেউ ইতিমধ্যে এই তথ্য আপডেট করেছে।" 
+              : "হাজিরা আপডেট করতে ব্যর্থ হয়েছে।",
+        });
       } catch (error: any) {
-        if (error.code === 'permission-denied') {
-          toast.error("সংস্করণ অমিল! অন্য কেউ ইতিমধ্যে এই তথ্য আপডেট করেছে।");
-        } else {
-          console.error("Error updating attendance:", error);
-          toast.error("হাজিরা আপডেট করতে ব্যর্থ হয়েছে।");
-        }
+        console.error("Error updating attendance:", error);
       }
     },
     [user, orgId],
@@ -165,12 +173,15 @@ export const useAttendance = (
 
       try {
         const sessionRef = doc(db, `organizations/${orgId}/attendance_sessions`, sessionId);
-        // Use deleteDoc instead of updateDoc to permanently remove it as requested by "delete not working"
-        await deleteDoc(sessionRef);
-        toast.success("হাজিরা সেশন মুছে ফেলা হয়েছে!");
+        const promise = deleteDoc(sessionRef);
+        
+        await toast.promise(promise, {
+          loading: 'হাজিরা সেশন মুছে ফেলা হচ্ছে...',
+          success: 'হাজিরা সেশন মুছে ফেলা হয়েছে!',
+          error: 'হাজিরা সেশন মুছতে ব্যর্থ হয়েছে।',
+        });
       } catch (error) {
         console.error("Error deleting attendance:", error);
-        toast.error("হাজিরা সেশন মুছতে ব্যর্থ হয়েছে।");
       }
     },
     [user, orgId, role],

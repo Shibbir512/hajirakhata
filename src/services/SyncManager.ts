@@ -51,6 +51,7 @@ export class SyncManager {
       createdAt: serverTimestamp(),
       takenBy: {
         name: auth?.currentUser?.displayName || "Unknown",
+        email: auth?.currentUser?.email || "N/A",
         id: auth?.currentUser?.uid
       },
       students: studentRecords,

@@ -98,46 +98,67 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const App: React.FC = () => {
   return (
-    <AuthProvider>
-      <BrowserRouter>
-        <OfflineIndicator />
-        <Toaster position="top-right" />
-        <Suspense fallback={<LoadingFallback />}>
-          <Routes>
-            <Route path="/login" element={<Login />} />
-            <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
-            <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
+    <>
+      <Toaster 
+        position="top-center"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            borderRadius: '12px',
+            background: '#333',
+            color: '#fff',
+            fontSize: '14px',
+            padding: '12px 20px',
+            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+          },
+          success: {
+            duration: 3000,
+          },
+          error: {
+            duration: 5000,
+          },
+        }}
+      />
+      <AuthProvider>
+        <BrowserRouter>
+          <OfflineIndicator />
+          <Suspense fallback={<LoadingFallback />}>
+            <Routes>
+              <Route path="/login" element={<Login />} />
+              <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
+              <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
-            <Route
-              path="/"
-              element={
-                <ProtectedRoute>
-                  <DashboardLayout />
-                </ProtectedRoute>
-              }
-            >
-              <Route index element={<Dashboard />} />
-              <Route path="attendance" element={<Attendance />} />
-              <Route path="attendance/history" element={<AttendanceHistory />} />
-              <Route path="students" element={<Students />} />
-              <Route path="classes" element={<Classes />} />
-              <Route path="reports" element={<Reports />} />
-              <Route path="settings" element={<Settings />} />
-              <Route path="super-admin" element={<SuperAdminDashboard />} />
-              
-              {/* Result Management Routes */}
-              <Route path="subjects" element={<Subjects />} />
-              <Route path="exams" element={<Exams />} />
-              <Route path="result-entry" element={<ResultEntry />} />
-              <Route path="result-reports" element={<ResultReports />} />
-              <Route path="marksheet" element={<Marksheet />} />
-              <Route path="academic-years" element={<AcademicYears />} />
-              <Route path="student-profile/:studentId" element={<StudentProfile />} />
-            </Route>
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
-    </AuthProvider>
+              <Route
+                path="/"
+                element={
+                  <ProtectedRoute>
+                    <DashboardLayout />
+                  </ProtectedRoute>
+                }
+              >
+                <Route index element={<Dashboard />} />
+                <Route path="attendance" element={<Attendance />} />
+                <Route path="attendance/history" element={<AttendanceHistory />} />
+                <Route path="students" element={<Students />} />
+                <Route path="classes" element={<Classes />} />
+                <Route path="reports" element={<Reports />} />
+                <Route path="settings" element={<Settings />} />
+                <Route path="super-admin" element={<SuperAdminDashboard />} />
+                
+                {/* Result Management Routes */}
+                <Route path="subjects" element={<Subjects />} />
+                <Route path="exams" element={<Exams />} />
+                <Route path="result-entry" element={<ResultEntry />} />
+                <Route path="result-reports" element={<ResultReports />} />
+                <Route path="marksheet" element={<Marksheet />} />
+                <Route path="academic-years" element={<AcademicYears />} />
+                <Route path="student-profile/:studentId" element={<StudentProfile />} />
+              </Route>
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </AuthProvider>
+    </>
   );
 };
 

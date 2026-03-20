@@ -8,6 +8,7 @@ import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, A
 import { toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 interface StatCardProps {
   title: string;
@@ -58,6 +59,7 @@ const Attendance: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [attendanceState, setAttendanceState] = useState<
     Map<string, { status: AttendanceStatus; studentName: string; note?: string }>
   >(new Map());
@@ -144,12 +146,17 @@ const Attendance: React.FC = () => {
     });
   };
 
-  const handleSave = async () => {
+  const handleSave = () => {
     if (!selectedClassId) return;
     if (attendanceState.size === 0) {
       toast.error("এই শ্রেণিতে কোনো শিক্ষার্থী নেই। হাজিরা সংরক্ষণ করা সম্ভব নয়।");
       return;
     }
+    setIsConfirmDialogOpen(true);
+  };
+
+  const confirmSave = async () => {
+    setIsConfirmDialogOpen(false);
     await takeAttendance(selectedClassId, attendanceState);
   };
 
@@ -409,6 +416,14 @@ const Attendance: React.FC = () => {
           </div>
         )}
       </div>
+
+      <ConfirmationDialog
+        isOpen={isConfirmDialogOpen}
+        onClose={() => setIsConfirmDialogOpen(false)}
+        onConfirm={confirmSave}
+        title="হাজিরা সংরক্ষণ"
+        message="আপনি কি নিশ্চিত যে আপনি এই হাজিরা সংরক্ষণ করতে চান?"
+      />
     </div>
   );
 };

@@ -225,36 +225,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           console.error("Error fetching user data for org creation:", e);
         }
 
-        await setDoc(doc(db, "organizations", newOrgId), {
-          id: newOrgId,
-          name: trimmedName,
-          nameLowercase: trimmedName.toLowerCase(),
-          createdBy: user.uid,
-          creatorName: cName,
-          creatorEmail: cEmail,
-          createdAt: serverTimestamp(),
+        const promise = (async () => {
+          await setDoc(doc(db, "organizations", newOrgId), {
+            id: newOrgId,
+            name: trimmedName,
+            nameLowercase: trimmedName.toLowerCase(),
+            createdBy: user.uid,
+            creatorName: cName,
+            creatorEmail: cEmail,
+            createdAt: serverTimestamp(),
+          });
+
+          const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
+          await updateDoc(
+            doc(db, "users", user.uid),
+            {
+              displayName: user.displayName || fallbackName,
+              email: user.email || "",
+              photoURL: user.photoURL || "",
+              organizationId: newOrgId,
+              [`visitedOrgs.${newOrgId}`]: trimmedName,
+              [`roles.${newOrgId}`]: "admin",
+              lastSeen: serverTimestamp()
+            }
+          );
+        })();
+
+        await toast.promise(promise, {
+          loading: 'প্রতিষ্ঠান তৈরি করা হচ্ছে...',
+          success: 'প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!',
+          error: 'প্রতিষ্ঠান তৈরি করতে ব্যর্থ হয়েছে।',
         });
 
-        const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
-        await updateDoc(
-          doc(db, "users", user.uid),
-          {
-            displayName: user.displayName || fallbackName,
-            email: user.email || "",
-            photoURL: user.photoURL || "",
-            organizationId: newOrgId,
-            [`visitedOrgs.${newOrgId}`]: trimmedName,
-            [`roles.${newOrgId}`]: "admin",
-            lastSeen: serverTimestamp()
-          }
-        );
-
         setOrgId(newOrgId);
-        toast.success("প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!");
         return newOrgId;
       } catch (error) {
         console.error("Error creating organization:", error);
-        toast.error("প্রতিষ্ঠান তৈরি করতে ব্যর্থ হয়েছে।");
         return null;
       }
     },
@@ -334,27 +340,33 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           existingRole = userData.roles && userData.roles[targetOrgId];
         }
 
-        const updates: any = {
-          displayName: user.displayName || fallbackName,
-          email: user.email || "",
-          photoURL: user.photoURL || "",
-          organizationId: targetOrgId,
-          [`visitedOrgs.${targetOrgId}`]: orgName,
-          lastSeen: serverTimestamp()
-        };
+        const promise = (async () => {
+          const updates: any = {
+            displayName: user.displayName || fallbackName,
+            email: user.email || "",
+            photoURL: user.photoURL || "",
+            organizationId: targetOrgId,
+            [`visitedOrgs.${targetOrgId}`]: orgName,
+            lastSeen: serverTimestamp()
+          };
 
-        if (!existingRole) {
-          updates[`roles.${targetOrgId}`] = "pending";
-        }
+          if (!existingRole) {
+            updates[`roles.${targetOrgId}`] = "pending";
+          }
 
-        await updateDoc(userDocRef, updates);
+          await updateDoc(userDocRef, updates);
+        })();
+
+        await toast.promise(promise, {
+          loading: 'প্রতিষ্ঠানে যুক্ত করা হচ্ছে...',
+          success: 'প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!',
+          error: (err: any) => err.message || "প্রতিষ্ঠানে যুক্ত হতে ব্যর্থ হয়েছে।",
+        });
 
         setOrgId(targetOrgId);
-        toast.success("প্রতিষ্ঠানে সফলভাবে যুক্ত হয়েছেন!");
         return targetOrgId;
       } catch (error: any) {
         console.error("Error joining organization:", error);
-        toast.error(error.message || "প্রতিষ্ঠানে যুক্ত হতে ব্যর্থ হয়েছে।");
         return null;
       }
     },
@@ -364,15 +376,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const leaveOrganization = useCallback(async () => {
     if (!user || !db) return;
     try {
-      await updateDoc(
+      const promise = updateDoc(
         doc(db, "users", user.uid),
         { organizationId: null }
       );
+      
+      await toast.promise(promise, {
+        loading: 'প্রতিষ্ঠান থেকে প্রস্থান করা হচ্ছে...',
+        success: 'প্রতিষ্ঠান থেকে সফলভাবে প্রস্থান করেছেন।',
+        error: 'প্রতিষ্ঠান থেকে প্রস্থান করতে ব্যর্থ হয়েছে।',
+      });
+      
       setOrgId(null);
-      toast.success("প্রতিষ্ঠান থেকে সফলভাবে প্রস্থান করেছেন।");
     } catch (error) {
       console.error("Error leaving organization:", error);
-      toast.error("প্রতিষ্ঠান থেকে প্রস্থান করতে ব্যর্থ হয়েছে।");
     }
   }, [user]);
 

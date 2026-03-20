@@ -34,29 +34,44 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL, orgId } = useAuth();
   const navigate = useNavigate();
   const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
+  const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
+  const [isAttendanceMenuOpen, setIsAttendanceMenuOpen] = useState(false);
+  const [isAttendanceConfigMenuOpen, setIsAttendanceConfigMenuOpen] = useState(false);
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
-  const links = orgId ? [
+  const topLinks = orgId ? [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
-    { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
-    { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
-    { name: "শিক্ষার্থী", path: "/students", icon: Users },
-    { name: "শ্রেণি", path: "/classes", icon: BookOpen },
-    { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
+  ] : [];
+
+  const bottomLinks = orgId ? [
     { name: "সেটিংস", path: "/settings", icon: Settings },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
   ] : [
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
   ];
 
+  const attendanceLinks = orgId ? [
+    { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
+    { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
+    { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
+  ] : [];
+
+  const attendanceConfigLinks = orgId ? [
+    { name: "শিক্ষার্থী", path: "/students", icon: Users },
+    { name: "শ্রেণি", path: "/classes", icon: BookOpen },
+  ] : [];
+
   const resultLinks = orgId ? [
-    { name: "বিষয়", path: "/subjects", icon: Book },
-    { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
     { name: "ফলাফল", path: "/result-reports", icon: FileText },
     { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
     { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
+  ] : [];
+
+  const configLinks = orgId ? [
+    { name: "বিষয়", path: "/subjects", icon: Book },
+    { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
   ] : [];
 
@@ -79,7 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
       </div>
       <div className="flex-1 overflow-y-auto py-4 text-white">
         <nav className="px-4 space-y-2">
-          {links.map((link) => (
+          {topLinks.map((link) => (
             <NavLink
               key={link.name}
               to={link.path}
@@ -103,6 +118,100 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               )}
             </NavLink>
           ))}
+
+          {/* Attendance Management Section */}
+          {attendanceLinks.length > 0 && (
+            <div className="pt-2">
+              <button
+                onClick={() => setIsAttendanceMenuOpen(!isAttendanceMenuOpen)}
+                className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white"
+              >
+                <div className="flex items-center">
+                  <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
+                    <CalendarCheck className="w-5 h-5 text-white/70" />
+                  </div>
+                  হাজিরা খাতা
+                </div>
+                {isAttendanceMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+              </button>
+              
+              {isAttendanceMenuOpen && (
+                <div className="pl-4 mt-1 space-y-1">
+                  {attendanceLinks.map((link) => (
+                    <NavLink
+                      key={link.name}
+                      to={link.path}
+                      onClick={() => setIsOpen(false)}
+                      className={({ isActive }) =>
+                        clsx(
+                          "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                          isActive
+                            ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                            : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
+                        )
+                      }
+                    >
+                      {({ isActive }) => (
+                        <>
+                          <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
+                            <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                          </div>
+                          {link.name}
+                        </>
+                      )}
+                    </NavLink>
+                  ))}
+
+                  {/* Attendance Configuration Sub-menu */}
+                  {attendanceConfigLinks.length > 0 && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => setIsAttendanceConfigMenuOpen(!isAttendanceConfigMenuOpen)}
+                        className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[15px] text-white/90"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3 bg-transparent">
+                            <Settings className="w-4 h-4 text-white/70" />
+                          </div>
+                          কনফিগারেশন
+                        </div>
+                        {isAttendanceConfigMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </button>
+                      
+                      {isAttendanceConfigMenuOpen && (
+                        <div className="pl-4 mt-1 space-y-1">
+                          {attendanceConfigLinks.map((link) => (
+                            <NavLink
+                              key={link.name}
+                              to={link.path}
+                              onClick={() => setIsOpen(false)}
+                              className={({ isActive }) =>
+                                clsx(
+                                  "flex items-center px-4 h-[44px] rounded-[14px] transition-all duration-200 font-medium text-[15px]",
+                                  isActive
+                                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
+                                )
+                              }
+                            >
+                              {({ isActive }) => (
+                                <>
+                                  <div className={clsx("w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
+                                    <link.icon className={clsx("w-4 h-4", isActive ? "text-white" : "text-white/70")} />
+                                  </div>
+                                  {link.name}
+                                </>
+                              )}
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Result Management Section */}
           {resultLinks.length > 0 && (
@@ -146,10 +255,83 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       )}
                     </NavLink>
                   ))}
+
+                  {/* Configuration Sub-menu */}
+                  {configLinks.length > 0 && (
+                    <div className="pt-1">
+                      <button
+                        onClick={() => setIsConfigMenuOpen(!isConfigMenuOpen)}
+                        className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[15px] text-white/90"
+                      >
+                        <div className="flex items-center">
+                          <div className="w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3 bg-transparent">
+                            <Settings className="w-4 h-4 text-white/70" />
+                          </div>
+                          কনফিগারেশন
+                        </div>
+                        {isConfigMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
+                      </button>
+                      
+                      {isConfigMenuOpen && (
+                        <div className="pl-4 mt-1 space-y-1">
+                          {configLinks.map((link) => (
+                            <NavLink
+                              key={link.name}
+                              to={link.path}
+                              onClick={() => setIsOpen(false)}
+                              className={({ isActive }) =>
+                                clsx(
+                                  "flex items-center px-4 h-[44px] rounded-[14px] transition-all duration-200 font-medium text-[15px]",
+                                  isActive
+                                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
+                                )
+                              }
+                            >
+                              {({ isActive }) => (
+                                <>
+                                  <div className={clsx("w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
+                                    <link.icon className={clsx("w-4 h-4", isActive ? "text-white" : "text-white/70")} />
+                                  </div>
+                                  {link.name}
+                                </>
+                              )}
+                            </NavLink>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
             </div>
           )}
+
+          {/* Bottom Links (Settings, Super Admin) */}
+          {bottomLinks.map((link) => (
+            <NavLink
+              key={link.name}
+              to={link.path}
+              onClick={() => setIsOpen(false)}
+              className={({ isActive }) =>
+                clsx(
+                  "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                  isActive
+                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
+                )
+              }
+            >
+              {({ isActive }) => (
+                <>
+                  <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                    <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                  </div>
+                  {link.name}
+                </>
+              )}
+            </NavLink>
+          ))}
 
           <button
             onClick={() => {

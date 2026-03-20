@@ -150,15 +150,30 @@ const Login: React.FC = () => {
   };
 
   const openInNewTab = () => {
-    window.open(window.location.href, '_blank');
+    // Try to open in new tab
+    window.open(window.location.href, '_system');
+    // Fallback: try to navigate current window
+    window.location.href = window.location.href;
   };
 
-  const copyDomain = () => {
-    const domain = window.location.hostname;
-    navigator.clipboard.writeText(domain);
+  const copyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
+
+  const copyDomain = () => {
+    navigator.clipboard.writeText(window.location.hostname);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const isEmbeddedBrowser = () => {
+    const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
+    return (ua.indexOf("FBAN") > -1) || (ua.indexOf("FBAV") > -1) || (ua.indexOf("Instagram") > -1) || (ua.indexOf("Messenger") > -1);
+  };
+
+  const [embeddedBrowser, setEmbeddedBrowser] = useState(isEmbeddedBrowser());
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
@@ -173,6 +188,34 @@ const Login: React.FC = () => {
         
         <h1 className="text-3xl font-bold text-[#0F5C7A] mb-3 tracking-tight">হাজিরা খাতা</h1>
         <p className="text-[#334155] mb-8">উপস্থিতি, শিক্ষার্থী এবং রিপোর্ট নিরাপদে পরিচালনা করতে সাইন ইন করুন।</p>
+
+        {embeddedBrowser && (
+          <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-6 text-left">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <h3 className="font-semibold text-amber-800">ব্রাউজার সিকিউরিটি ইস্যু</h3>
+                <p className="text-sm text-amber-600 mt-1">
+                  আপনি সম্ভবত মেসেঞ্জার বা অন্য কোনো অ্যাপের ভেতর থেকে এটি ওপেন করেছেন। এতে গুগল লগইন কাজ নাও করতে পারে। অনুগ্রহ করে নিচের বাটনে ক্লিক করে ব্রাউজারে অ্যাপটি ওপেন করুন অথবা লিঙ্কটি কপি করুন।
+                </p>
+                <div className="flex gap-2 mt-3">
+                  <button 
+                    onClick={openInNewTab}
+                    className="flex-1 py-2 bg-amber-600 text-white rounded-lg font-medium text-sm"
+                  >
+                    ব্রাউজারে ওপেন করুন
+                  </button>
+                  <button 
+                    onClick={copyLink}
+                    className="px-4 py-2 bg-amber-100 text-amber-800 rounded-lg font-medium text-sm"
+                  >
+                    {copied ? 'কপি হয়েছে!' : 'লিঙ্ক কপি করুন'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {error === 'unauthorized-domain' && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6 text-left">
