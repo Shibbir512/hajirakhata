@@ -12,6 +12,7 @@ const PublicResultSearch: React.FC = () => {
   const [exams, setExams] = useState<any[]>([]);
   
   const [selectedOrg, setSelectedOrg] = useState('');
+  const [orgSearchText, setOrgSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
   const [selectedExam, setSelectedExam] = useState('');
@@ -61,6 +62,22 @@ const PublicResultSearch: React.FC = () => {
     fetchOrgData();
   }, [selectedOrg]);
 
+  const handleOrgSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setOrgSearchText(val);
+    
+    const matchedOrg = organizations.find(org => {
+      const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+      return `${orgCode} - ${org.name}` === val || orgCode === val || org.name === val;
+    });
+    
+    if (matchedOrg) {
+      setSelectedOrg(matchedOrg.id);
+    } else {
+      setSelectedOrg('');
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedOrg || !selectedYear || !selectedClass || !selectedExam) {
@@ -83,23 +100,33 @@ const PublicResultSearch: React.FC = () => {
         const studentQuery = query(
           studentsRef, 
           where('classId', '==', selectedClass),
-          where('roll', '==', Number(rollNumber))
+          where('isActive', '==', true)
         );
         const studentSnap = await getDocs(studentQuery);
 
-        if (studentSnap.empty) {
-          setError("এই রোল নম্বরের কোনো শিক্ষার্থী পাওয়া যায়নি।");
+        const searchLower = rollNumber.toLowerCase().trim();
+        const matchedStudentDoc = studentSnap.docs.find(doc => {
+          const data = doc.data();
+          return (
+            data.roll?.toString() === searchLower ||
+            data.studentId?.toLowerCase() === searchLower ||
+            data.name?.toLowerCase().includes(searchLower)
+          );
+        });
+
+        if (!matchedStudentDoc) {
+          setError("এই রোল, আইডি বা নামের কোনো শিক্ষার্থী পাওয়া যায়নি।");
           setLoading(false);
           return;
         }
 
-        const foundStudent = { id: studentSnap.docs[0].id, ...studentSnap.docs[0].data() } as any;
+        const foundStudent = { id: matchedStudentDoc.id, ...matchedStudentDoc.data() } as any;
         
         // Navigate to individual result view
         navigate(`/public-result/${selectedOrg}/${foundStudent.id}/${selectedExam}`);
       } else {
         // Navigate to class result view
-        navigate(`/public-class-result/${selectedOrg}/${selectedClass}/${selectedExam}`);
+        navigate(`/public-class-result/${selectedOrg}/${selectedYear}/${selectedClass}/${selectedExam}`);
       }
     } catch (err) {
       console.error("Error searching result:", err);
@@ -136,7 +163,7 @@ const PublicResultSearch: React.FC = () => {
                 : 'text-slate-600 hover:text-slate-900'
             }`}
           >
-            ক্লাস ভিত্তিক ফলাফল
+            প্রতিষ্ঠান ভিত্তিক ফলাফল
           </button>
         </div>
 
@@ -146,17 +173,20 @@ const PublicResultSearch: React.FC = () => {
               <label className="block text-sm font-medium text-slate-700 mb-1">প্রতিষ্ঠান</label>
               <div className="relative">
                 <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <select
-                  value={selectedOrg}
-                  onChange={(e) => setSelectedOrg(e.target.value)}
+                <input
+                  list="org-list"
+                  value={orgSearchText}
+                  onChange={handleOrgSearchChange}
+                  placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
                   className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                   required
-                >
-                  <option value="">প্রতিষ্ঠান নির্বাচন করুন</option>
-                  {organizations.map(org => (
-                    <option key={org.id} value={org.id}>{org.name}</option>
-                  ))}
-                </select>
+                />
+                <datalist id="org-list">
+                  {organizations.map(org => {
+                    const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+                    return <option key={org.id} value={`${orgCode} - ${org.name}`} />;
+                  })}
+                </datalist>
               </div>
             </div>
 
@@ -219,14 +249,14 @@ const PublicResultSearch: React.FC = () => {
 
             {searchType === 'individual' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">রোল নম্বর</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1">রোল, আইডি বা নাম</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
                     type="text"
                     value={rollNumber}
                     onChange={(e) => setRollNumber(e.target.value)}
-                    placeholder="আপনার রোল নম্বর লিখুন"
+                    placeholder="আপনার রোল, আইডি বা নাম লিখুন"
                     className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                     required
                   />

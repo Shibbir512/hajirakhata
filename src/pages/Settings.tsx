@@ -22,6 +22,7 @@ const Settings: React.FC = () => {
   const [isTogglingApproval, setIsTogglingApproval] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [orgCode, setOrgCode] = useState("");
 
   const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
 
@@ -41,6 +42,20 @@ const Settings: React.FC = () => {
   useEffect(() => {
     if (orgId && visitedOrgs[orgId]) {
       setOrgName(visitedOrgs[orgId]);
+    }
+    
+    if (orgId) {
+      const fetchOrgCode = async () => {
+        try {
+          const orgDoc = await getDoc(doc(db, "organizations", orgId));
+          if (orgDoc.exists()) {
+            setOrgCode(orgDoc.data().orgCode || "");
+          }
+        } catch (error) {
+          console.error("Error fetching org code:", error);
+        }
+      };
+      fetchOrgCode();
     }
   }, [orgId, visitedOrgs]);
 
@@ -413,7 +428,7 @@ const Settings: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">
-                অর্গানাইজেশন আইডি
+                অর্গানাইজেশন আইডি (সিস্টেম)
               </label>
               <div className="flex items-center gap-2">
                 <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-sm shadow-inner">
@@ -430,6 +445,31 @@ const Settings: React.FC = () => {
                 অন্যদের আমন্ত্রণ জানাতে এই আইডি শেয়ার করুন।
               </p>
             </div>
+
+            {orgCode && (
+              <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1">
+                  পাবলিক প্রতিষ্ঠান আইডি
+                </label>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-lg font-bold shadow-inner text-center tracking-widest">
+                    {orgCode}
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(orgCode);
+                      toast.success("পাবলিক প্রতিষ্ঠান আইডি কপি করা হয়েছে!");
+                    }}
+                    className="px-4 py-3 text-sm font-medium text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20"
+                  >
+                    কপি
+                  </button>
+                </div>
+                <p className="text-xs text-slate-400 mt-2">
+                  শিক্ষার্থীরা ফলাফল খোঁজার সময় এই আইডি ব্যবহার করতে পারবে।
+                </p>
+              </div>
+            )}
 
             {role === "admin" && (
               <div className="pt-6">

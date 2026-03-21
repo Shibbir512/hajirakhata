@@ -10,6 +10,8 @@ const PublicResultSearch: React.FC = () => {
   const { orgId: urlOrgId } = useParams<{ orgId: string }>();
   const [orgId, setOrgId] = useState<string | null>(urlOrgId || null);
   const [orgName, setOrgName] = useState<string>("");
+  const [organizations, setOrganizations] = useState<any[]>([]);
+  const [orgSearchText, setOrgSearchText] = useState("");
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedExamId, setSelectedExamId] = useState("");
@@ -47,51 +49,17 @@ const PublicResultSearch: React.FC = () => {
         } else {
           const orgsRef = collection(db, "organizations");
           const snapshot = await getDocs(orgsRef);
-          console.log("Organizations found:", snapshot.size);
+          const orgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+          setOrganizations(orgs);
           
-          if (!snapshot.empty) {
-            const firstOrgDoc = snapshot.docs[0];
-            const firstOrgData = firstOrgDoc.data();
-            currentOrgId = firstOrgDoc.id;
-            setOrgId(currentOrgId);
-            setOrgName(firstOrgData.name || "মাদরাসা");
-            console.log("Selected Org ID:", currentOrgId);
-          } else {
-            console.warn("No organizations found in database.");
+          if (orgs.length === 0) {
             toast.error("কোনো প্রতিষ্ঠানের তথ্য পাওয়া যায়নি।");
             setLoading(false);
             return;
           }
-        }
-
-        // 2. Fetch Academic Years
-        const yearsRef = collection(db, `organizations/${currentOrgId}/academic_years`);
-        const yearsSnap = await getDocs(yearsRef);
-        console.log("Academic years found:", yearsSnap.size);
-        
-        const loadedYears = yearsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setAcademicYears(loadedYears);
-        
-        if (loadedYears.length === 0) {
-          toast.error("কোনো শিক্ষাবর্ষ পাওয়া যায়নি।");
-        }
-
-        const activeYear = loadedYears.find((ay: any) => ay.is_active);
-        if (activeYear) {
-          setSelectedAcademicYearId(activeYear.id);
-        } else if (loadedYears.length > 0) {
-          setSelectedAcademicYearId(loadedYears[0].id);
-        }
-
-        // 3. Fetch Classes
-        const classesSnap = await getDocs(collection(db, `organizations/${currentOrgId}/classes`));
-        console.log("Classes found:", classesSnap.size);
-        const loadedClasses = classesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        setClasses(loadedClasses);
-        if (loadedClasses.length > 0) {
-          setSelectedClassId(loadedClasses[0].id);
-        } else {
-          toast.error("কোনো শ্রেণি পাওয়া যায়নি।");
+          // Do not auto-select, let user select
+          setLoading(false);
+          return;
         }
       } catch (error: any) {
         console.error("Error fetching initial data:", error);
@@ -102,6 +70,42 @@ const PublicResultSearch: React.FC = () => {
     };
     fetchInitialData();
   }, []);
+
+  useEffect(() => {
+    const fetchOrgData = async () => {
+      if (!orgId) {
+        setAcademicYears([]);
+        setClasses([]);
+        setExams([]);
+        return;
+      }
+      try {
+        // Fetch Academic Years
+        const yearsRef = collection(db, `organizations/${orgId}/academic_years`);
+        const yearsSnap = await getDocs(yearsRef);
+        const loadedYears = yearsSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setAcademicYears(loadedYears);
+        
+        const activeYear = loadedYears.find((ay: any) => ay.is_active);
+        if (activeYear) {
+          setSelectedAcademicYearId(activeYear.id);
+        } else if (loadedYears.length > 0) {
+          setSelectedAcademicYearId(loadedYears[0].id);
+        }
+
+        // Fetch Classes
+        const classesSnap = await getDocs(collection(db, `organizations/${orgId}/classes`));
+        const loadedClasses = classesSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        setClasses(loadedClasses);
+        if (loadedClasses.length > 0) {
+          setSelectedClassId(loadedClasses[0].id);
+        }
+      } catch (error) {
+        console.error("Error fetching org data:", error);
+      }
+    };
+    fetchOrgData();
+  }, [orgId]);
 
   useEffect(() => {
     const fetchExams = async () => {
@@ -130,6 +134,24 @@ const PublicResultSearch: React.FC = () => {
     fetchExams();
   }, [orgId, selectedAcademicYearId, selectedClassId]);
 
+  const handleOrgSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setOrgSearchText(val);
+    
+    const matchedOrg = organizations.find(org => {
+      const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+      return `${orgCode} - ${org.name}` === val || orgCode === val || org.name === val;
+    });
+    
+    if (matchedOrg) {
+      setOrgId(matchedOrg.id);
+      setOrgName(matchedOrg.name);
+    } else {
+      setOrgId(null);
+      setOrgName("");
+    }
+  };
+
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orgId || !selectedAcademicYearId || !selectedClassId || !selectedExamId || !rollNumber) {
@@ -139,35 +161,45 @@ const PublicResultSearch: React.FC = () => {
 
     setSearching(true);
     try {
-      // 1. Find the student by roll in the selected class
+      // 1. Find the student by roll, ID, or name in the selected class
       const studentsRef = collection(db, `organizations/${orgId}/students`);
       const studentQuery = query(
         studentsRef, 
         where("classId", "==", selectedClassId), 
-        where("roll", "==", Number(rollNumber)),
         where("isActive", "==", true)
       );
       const studentSnap = await getDocs(studentQuery);
 
-      if (studentSnap.empty) {
-        toast.error("এই রোল নম্বরের কোনো শিক্ষার্থী পাওয়া যায়নি।");
+      const searchLower = rollNumber.toLowerCase().trim();
+      const matchedStudentDoc = studentSnap.docs.find(doc => {
+        const data = doc.data();
+        return (
+          data.roll?.toString() === searchLower ||
+          data.studentId?.toLowerCase() === searchLower ||
+          data.name?.toLowerCase().includes(searchLower)
+        );
+      });
+
+      if (!matchedStudentDoc) {
+        toast.error("এই রোল, আইডি বা নামের কোনো শিক্ষার্থী পাওয়া যায়নি।");
         setSearching(false);
         return;
       }
 
-      const studentId = studentSnap.docs[0].id;
+      const studentId = matchedStudentDoc.id;
 
       // 2. Check if result exists and is published
       const resultsRef = collection(db, `organizations/${orgId}/results`);
       const resultQuery = query(
         resultsRef,
         where("student_id", "==", studentId),
-        where("exam_id", "==", selectedExamId),
-        where("status", "==", "published")
+        where("exam_id", "==", selectedExamId)
       );
       const resultSnap = await getDocs(resultQuery);
+      
+      const publishedResults = resultSnap.docs.filter(doc => doc.data().status === "published");
 
-      if (resultSnap.empty) {
+      if (publishedResults.length === 0) {
         toast.error("ফলাফল এখনো প্রকাশিত হয়নি অথবা পাওয়া যায়নি।");
       } else {
         // Redirect to a public result view page
@@ -186,7 +218,7 @@ const PublicResultSearch: React.FC = () => {
       toast.error("মেধা তালিকা দেখতে শিক্ষাবর্ষ, শ্রেণি এবং পরীক্ষা নির্বাচন করুন।");
       return;
     }
-    navigate(`/public-class-result/${orgId}/${selectedClassId}/${selectedExamId}`);
+    navigate(`/public-class-result/${orgId}/${selectedAcademicYearId}/${selectedClassId}/${selectedExamId}`);
   };
 
   if (loading) {
@@ -210,6 +242,29 @@ const PublicResultSearch: React.FC = () => {
 
         <div className="card-premium p-8 bg-white shadow-xl border border-slate-100">
           <form onSubmit={handleSearch} className="space-y-5">
+            {!urlOrgId && (
+              <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
+                  <Search className="w-4 h-4 text-[#0F5C7A]" />
+                  প্রতিষ্ঠান
+                </label>
+                <input
+                  list="org-list"
+                  value={orgSearchText}
+                  onChange={handleOrgSearchChange}
+                  placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
+                  className="input-premium w-full"
+                  required
+                />
+                <datalist id="org-list">
+                  {organizations.map(org => {
+                    const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+                    return <option key={org.id} value={`${orgCode} - ${org.name}`} />;
+                  })}
+                </datalist>
+              </div>
+            )}
+
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#0F5C7A]" />
@@ -268,13 +323,13 @@ const PublicResultSearch: React.FC = () => {
             <div>
               <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                 <User className="w-4 h-4 text-[#0F5C7A]" />
-                রোল নম্বর
+                রোল, আইডি বা নাম
               </label>
               <input
-                type="number"
+                type="text"
                 value={rollNumber}
                 onChange={(e) => setRollNumber(e.target.value)}
-                placeholder="আপনার রোল নম্বর লিখুন"
+                placeholder="আপনার রোল, আইডি বা নাম লিখুন"
                 className="input-premium w-full"
                 required
               />

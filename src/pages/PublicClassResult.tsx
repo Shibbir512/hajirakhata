@@ -12,7 +12,7 @@ import html2canvas from "html2canvas";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
 
 const PublicClassResult: React.FC = () => {
-  const { orgId, classId, examId } = useParams<{ orgId: string; classId: string; examId: string }>();
+  const { orgId, yearId, classId, examId } = useParams<{ orgId: string; yearId: string; classId: string; examId: string }>();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
@@ -37,7 +37,7 @@ const PublicClassResult: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!orgId || !classId || !examId) return;
+      if (!orgId || !yearId || !classId || !examId) return;
       setLoading(true);
       try {
         // 1. Fetch Org Info
@@ -54,6 +54,7 @@ const PublicClassResult: React.FC = () => {
         const resultsRef = collection(db, `organizations/${orgId}/results`);
         const resultQuery = query(
           resultsRef,
+          where("academic_year_id", "==", yearId),
           where("class_id", "==", classId),
           where("exam_id", "==", examId),
           where("status", "==", "published")
@@ -64,11 +65,9 @@ const PublicClassResult: React.FC = () => {
 
         if (loadedResults.length === 0) {
           toast.error("এই পরীক্ষার কোনো ফলাফল এখনো প্রকাশিত হয়নি।");
-          navigate("/result-search");
+          navigate(-1);
           return;
         }
-
-        const yearId = loadedResults[0].academic_year_id;
 
         // 4. Fetch Subjects for the class
         const subjectsRef = collection(db, `organizations/${orgId}/subjects`);
@@ -106,14 +105,14 @@ const PublicClassResult: React.FC = () => {
       } catch (error: any) {
         console.error("Fetch error:", error);
         toast.error("তথ্য লোড করতে সমস্যা হয়েছে।");
-        navigate("/result-search");
+        navigate("/login");
       } finally {
         setLoading(false);
       }
     };
 
     fetchData();
-  }, [orgId, classId, examId, navigate]);
+  }, [orgId, yearId, classId, examId, navigate]);
 
   const allStudentMetrics = useMemo(() => {
     return students.map(student => {
@@ -368,7 +367,7 @@ const PublicClassResult: React.FC = () => {
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
             <button 
-              onClick={() => navigate("/result-search")}
+              onClick={() => navigate(-1)}
               className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
             >
               <ArrowLeft className="w-5 h-5" />

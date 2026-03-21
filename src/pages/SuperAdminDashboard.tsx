@@ -7,6 +7,7 @@ import toast from "react-hot-toast";
 interface OrgStats {
   id: string;
   name: string;
+  orgCode?: string;
   studentCount: number;
   teacherCount: number;
   isBlocked?: boolean;
@@ -27,6 +28,13 @@ const SuperAdminDashboard: React.FC = () => {
         const orgData = orgDoc.data();
         const orgName = orgData.name;
         const isBlocked = orgData.isBlocked || false;
+        
+        // Backfill orgCode if missing
+        let orgCode = orgData.orgCode;
+        if (!orgCode) {
+          orgCode = Math.floor(100000 + Math.random() * 900000).toString();
+          await updateDoc(doc(db, "organizations", orgId), { orgCode });
+        }
 
         // Count Students
         const studentsSnapshot = await getDocs(collection(db, `organizations/${orgId}/students`));
@@ -38,7 +46,7 @@ const SuperAdminDashboard: React.FC = () => {
           (userDoc) => userDoc.data().organizationId === orgId
         ).length;
 
-        stats.push({ id: orgId, name: orgName, studentCount, teacherCount, isBlocked });
+        stats.push({ id: orgId, name: orgName, orgCode, studentCount, teacherCount, isBlocked });
       }
       setOrgStats(stats);
     } catch (error) {
@@ -76,7 +84,12 @@ const SuperAdminDashboard: React.FC = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-xl font-bold text-slate-800">{org.name}</h3>
-                <p className="text-sm text-slate-500 font-mono truncate max-w-[200px] sm:max-w-none">{org.id}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <span className="text-xs font-bold px-2 py-1 bg-teal-100 text-teal-800 rounded-md">
+                    ID: {org.orgCode || org.id.substring(0, 6).toUpperCase()}
+                  </span>
+                  <p className="text-sm text-slate-500 font-mono truncate max-w-[150px] sm:max-w-none">{org.id}</p>
+                </div>
               </div>
               <div className="flex flex-wrap items-center gap-4 sm:gap-6 w-full sm:w-auto justify-between sm:justify-end">
                 <div className="flex items-center gap-2">

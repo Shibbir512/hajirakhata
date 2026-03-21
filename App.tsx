@@ -28,6 +28,7 @@ const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
 const StudentProfile = lazy(() => import("./src/pages/StudentProfile"));
 const PublicResultView = lazy(() => import("./src/pages/PublicResultView"));
 const PublicClassResult = lazy(() => import("./src/pages/PublicClassResult"));
+const PublicResultSearchPage = lazy(() => import("./src/pages/PublicResultSearch"));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
@@ -130,7 +131,9 @@ const App: React.FC = () => {
               <Route path="/login" element={<Login />} />
               <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
               <Route path="/public-result/:orgId/:studentId/:examId" element={<PublicResultView />} />
-              <Route path="/public-class-result/:orgId/:classId/:examId" element={<PublicClassResult />} />
+              <Route path="/public-class-result/:orgId/:yearId/:classId/:examId" element={<PublicClassResult />} />
+              <Route path="/result-search" element={<PublicResultSearchPage />} />
+              <Route path="/result-search/:orgId" element={<PublicResultSearchPage />} />
               <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
               <Route

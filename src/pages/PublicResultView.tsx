@@ -106,7 +106,7 @@ const PublicResultView: React.FC = () => {
       } catch (error: any) {
         console.error("Fetch error:", error);
         toast.error(error.message || "ফলাফল লোড করতে সমস্যা হয়েছে।");
-        navigate("/result-search");
+        navigate(-1);
       } finally {
         setLoading(false);
       }
@@ -325,7 +325,7 @@ const PublicResultView: React.FC = () => {
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <button 
-            onClick={() => navigate("/")}
+            onClick={() => navigate(-1)}
             className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />

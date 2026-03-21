@@ -226,8 +226,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const promise = (async () => {
+          const orgCode = Math.floor(100000 + Math.random() * 900000).toString();
           await setDoc(doc(db, "organizations", newOrgId), {
             id: newOrgId,
+            orgCode: orgCode,
             name: trimmedName,
             nameLowercase: trimmedName.toLowerCase(),
             createdBy: user.uid,

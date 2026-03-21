@@ -36,7 +36,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
   const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
   const [isAttendanceMenuOpen, setIsAttendanceMenuOpen] = useState(false);
-  const [isAttendanceConfigMenuOpen, setIsAttendanceConfigMenuOpen] = useState(false);
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
@@ -55,9 +54,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
-  ] : [];
-
-  const attendanceConfigLinks = orgId ? [
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
   ] : [];
@@ -161,53 +157,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                       )}
                     </NavLink>
                   ))}
-
-                  {/* Attendance Configuration Sub-menu */}
-                  {attendanceConfigLinks.length > 0 && (
-                    <div className="pt-1">
-                      <button
-                        onClick={() => setIsAttendanceConfigMenuOpen(!isAttendanceConfigMenuOpen)}
-                        className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[15px] text-white/90"
-                      >
-                        <div className="flex items-center">
-                          <div className="w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3 bg-transparent">
-                            <Settings className="w-4 h-4 text-white/70" />
-                          </div>
-                          কনফিগারেশন
-                        </div>
-                        {isAttendanceConfigMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                      </button>
-                      
-                      {isAttendanceConfigMenuOpen && (
-                        <div className="pl-4 mt-1 space-y-1">
-                          {attendanceConfigLinks.map((link) => (
-                            <NavLink
-                              key={link.name}
-                              to={link.path}
-                              onClick={() => setIsOpen(false)}
-                              className={({ isActive }) =>
-                                clsx(
-                                  "flex items-center px-4 h-[44px] rounded-[14px] transition-all duration-200 font-medium text-[15px]",
-                                  isActive
-                                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
-                                )
-                              }
-                            >
-                              {({ isActive }) => (
-                                <>
-                                  <div className={clsx("w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
-                                    <link.icon className={clsx("w-4 h-4", isActive ? "text-white" : "text-white/70")} />
-                                  </div>
-                                  {link.name}
-                                </>
-                              )}
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
                 </div>
               )}
             </div>
