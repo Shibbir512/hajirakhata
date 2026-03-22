@@ -42,12 +42,12 @@ const StudentSearch: React.FC = () => {
           placeholder="শিক্ষার্থীর নাম, রোল বা আইডি দিয়ে খুঁজুন..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="input-premium pl-12 w-full"
+          className="w-full pl-12 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all shadow-sm text-[#0F172A] placeholder:text-slate-400"
         />
       </div>
 
       {query && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-xl border border-slate-100 overflow-hidden z-[100]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.08)] border border-[#E2E8F0] overflow-hidden z-[100]">
           {results.length > 0 ? (
             results.map((student) => (
               <button
@@ -56,14 +56,14 @@ const StudentSearch: React.FC = () => {
                   navigate(`/student-profile/${student.id}`);
                   setQuery("");
                 }}
-                className="w-full flex items-center justify-between p-4 hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0"
+                className="w-full flex items-center justify-between p-4 hover:bg-[#F8FAFC] transition-colors border-b border-[#F1F5F9] last:border-0"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-[#0F5C7A]" />
+                  <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
+                    <User className="w-5 h-5 text-[#3B82F6]" />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-slate-800">{student.name}</p>
+                    <p className="font-bold text-[#0F172A]">{student.name}</p>
                     <p className="text-xs text-slate-500">শ্রেণি: {getClassById(student.classId)} | রোল: {student.roll} | আইডি: {student.studentUid}</p>
                   </div>
                 </div>

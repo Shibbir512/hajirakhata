@@ -104,20 +104,19 @@ const Dashboard: React.FC = () => {
   }, [attendanceSessions]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
+        <h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
         <StudentSearch />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <StatCard
           title="হাজিরা সম্পন্ন (শ্রেণি)"
           value={stats.classesWithAttendanceToday}
           icon={CheckCircle}
-          color="text-[#0F5C7A]"
-          gradient="bg-[#0F5C7A]/10"
-          valueColor="text-[#0F5C7A]"
+          color="text-[#22C55E]"
+          gradient="bg-[#22C55E]/10"
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
@@ -125,15 +124,13 @@ const Dashboard: React.FC = () => {
           icon={Clock}
           color="text-[#F59E0B]"
           gradient="bg-[#F59E0B]/10"
-          valueColor="text-[#F59E0B]"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
           value={stats.totalStudents}
           icon={Users}
-          color="text-[#14B8A6]"
-          gradient="bg-[#14B8A6]/10"
-          valueColor="text-[#14B8A6]"
+          color="text-[#3B82F6]"
+          gradient="bg-[#3B82F6]/10"
         />
         <StatCard
           title="আজ উপস্থিত"
@@ -141,7 +138,6 @@ const Dashboard: React.FC = () => {
           icon={UserCheck}
           color="text-[#22C55E]"
           gradient="bg-[#22C55E]/10"
-          valueColor="text-[#22C55E]"
         />
         <StatCard
           title="আজ অনুপস্থিত"
@@ -149,28 +145,36 @@ const Dashboard: React.FC = () => {
           icon={UserX}
           color="text-[#EF4444]"
           gradient="bg-[#EF4444]/10"
-          valueColor="text-[#EF4444]"
         />
         <StatCard
           title="মোট শ্রেণি"
           value={stats.totalClasses}
           icon={BookOpen}
-          color="text-[#0F5C7A]"
-          gradient="bg-[#0F5C7A]/10"
-          valueColor="text-[#0F5C7A]"
+          color="text-[#3B82F6]"
+          gradient="bg-[#3B82F6]/10"
         />
       </div>
 
-      <div className="card-premium p-8">
-        <h3 className="text-lg font-bold text-[#0F5C7A] mb-6 tracking-tight">
+        <div className="bg-white p-6 rounded-[20px] shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0]">
+        <h3 className="text-lg font-bold text-[#0F172A] mb-6 tracking-tight">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 500 }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#6B7280', fontSize: 12, fontWeight: 500 }} dx={-10} />
+              <defs>
+                <linearGradient id="presentGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#22C55E" />
+                  <stop offset="100%" stopColor="#16A34A" />
+                </linearGradient>
+                <linearGradient id="absentGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#EF4444" />
+                  <stop offset="100%" stopColor="#DC2626" />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} dx={-10} />
               <Tooltip
                 contentStyle={{
                   backgroundColor: "#fff",
@@ -179,21 +183,21 @@ const Dashboard: React.FC = () => {
                   boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
                   padding: "12px",
                 }}
-                cursor={{ fill: "#F3F4F6" }}
+                cursor={{ fill: "#F8FAFC" }}
               />
               <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500, color: '#4B5563' }} />
               <Bar
                 dataKey="Present"
                 name="উপস্থিত"
-                fill="#22C55E"
-                radius={[6, 6, 0, 0]}
+                fill="url(#presentGradient)"
+                radius={[8, 8, 8, 8]}
                 barSize={32}
               />
               <Bar
                 dataKey="Absent"
                 name="অনুপস্থিত"
-                fill="#EF4444"
-                radius={[6, 6, 0, 0]}
+                fill="url(#absentGradient)"
+                radius={[8, 8, 8, 8]}
                 barSize={32}
               />
             </BarChart>
@@ -219,16 +223,15 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
-  valueColor = "text-slate-800",
 }) => {
   return (
-    <div className="card-premium p-[20px] flex items-center justify-between group cursor-default">
-      <div className="relative z-10 flex-1">
-        <p className="text-[14px] font-medium text-slate-500 mb-1">{title}</p>
-        <p className={clsx("text-[26px] font-bold", valueColor)}>{toBengaliNumber(value)}</p>
+    <div className="bg-white rounded-[20px] p-[18px] flex items-center gap-4 shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] group cursor-default">
+      <div className={clsx("w-[44px] h-[44px] rounded-full flex items-center justify-center", gradient)}>
+        <Icon className={clsx("w-6 h-6", color)} strokeWidth={2} />
       </div>
-      <div className={clsx("relative z-10 w-[40px] h-[40px] flex items-center justify-center rounded-full group-hover:scale-110 transition-transform duration-300 ml-4", gradient)}>
-        <Icon className={clsx("w-5 h-5", color)} strokeWidth={2} />
+      <div className="flex flex-col">
+        <p className="text-[14px] text-[#64748B]">{title}</p>
+        <p className="text-[28px] font-bold text-[#0F172A]">{toBengaliNumber(value)}</p>
       </div>
     </div>
   );

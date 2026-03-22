@@ -57,8 +57,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       className="text-white flex items-center justify-between px-4 md:px-8 z-[60]"
       style={{ 
         height: '70px',
-        background: 'linear-gradient(120deg, #0F5C7A, #14B8A6)',
-        boxShadow: '0px 4px 12px rgba(0,0,0,0.12)'
+        background: 'linear-gradient(to right, #14B8A6, #3B82F6)',
+        boxShadow: '0px 2px 10px rgba(0,0,0,0.08)'
       }}
     >
       <div className="flex items-center gap-4">
