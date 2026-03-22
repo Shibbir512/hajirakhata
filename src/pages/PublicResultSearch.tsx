@@ -139,8 +139,15 @@ const PublicResultSearch: React.FC = () => {
     setOrgSearchText(val);
     
     const matchedOrg = organizations.find(org => {
-      const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
-      return `${orgCode} - ${org.name}` === val || orgCode === val || org.name === val;
+      const orgCode = (org.orgCode || org.id.substring(0, 6).toUpperCase()).toLowerCase();
+      const orgName = org.name.toLowerCase();
+      const valLower = val.toLowerCase();
+      
+      return (
+        `${orgCode} - ${orgName}`.includes(valLower) ||
+        orgCode.includes(valLower) ||
+        orgName.includes(valLower)
+      );
     });
     
     if (matchedOrg) {
@@ -233,9 +240,6 @@ const PublicResultSearch: React.FC = () => {
     <div className="min-h-screen bg-slate-50 py-12 px-4">
       <div className="max-w-md mx-auto">
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-[#0F5C7A] rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-[#0F5C7A]/20">
-            <GraduationCap className="w-10 h-10 text-white" />
-          </div>
           <h1 className="text-3xl font-bold text-slate-900 mb-2">{orgName || "ফলাফল অনুসন্ধান"}</h1>
           <p className="text-slate-600">আপনার রোল নম্বর দিয়ে ফলাফল দেখুন</p>
         </div>

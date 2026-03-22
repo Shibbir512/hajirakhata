@@ -292,16 +292,13 @@ const StudentProfile: React.FC = () => {
           {/* Student Info Card */}
           <div className="lg:col-span-1 bg-white rounded-3xl shadow-sm border border-[#E2E8F0] overflow-hidden">
             {/* Gradient Header */}
-            <div className="h-32 bg-gradient-to-r from-[#0F766E] to-[#14B8A6]"></div>
+            <div className="h-32 bg-gradient-to-br from-[#14B8A6] to-[#0F766E]"></div>
             
             <div className="px-6 pb-6 -mt-12">
               <div className="flex flex-col items-center text-center">
-                <div className="relative w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full bg-gradient-to-br from-[#0F766E] to-[#14B8A6] shadow-[0_4px_12px_rgba(0,0,0,0.08)] flex items-center justify-center overflow-hidden mb-4">
-                  {/* Inner glow */}
-                  <div className="absolute inset-0 rounded-full shadow-[inset_0_2px_4px_rgba(255,255,255,0.15)]"></div>
-                  
+                <div className="relative w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] flex items-center justify-center overflow-hidden mb-4">
                   {/* Content */}
-                  <User className="w-10 h-10 md:w-12 md:h-12 text-white" />
+                  <User className="w-10 h-10 md:w-12 md:h-12 text-[#0F766E]" />
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900">{student.name}</h3>
                 {student.isActive === false && (
@@ -313,7 +310,7 @@ const StudentProfile: React.FC = () => {
                 <p className="text-slate-500 text-sm">রোল: {toBengaliNumber(student.roll)}</p>
                 <button
                   onClick={() => setEditingStudent(student)}
-                  className="mt-4 p-2 bg-white/50 hover:bg-white/80 text-[#0F766E] rounded-full transition-colors shadow-sm"
+                  className="mt-4 p-3 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-full transition-all hover:shadow-lg shadow-md"
                   aria-label="Edit Profile"
                 >
                   <Pencil className="w-4 h-4" />
@@ -360,7 +357,7 @@ const StudentProfile: React.FC = () => {
 
           {/* Academic History */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-sm border border-[#E2E8F0]">
+            <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-100/50 border border-[#E2E8F0]">
               <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
                 <BookOpen className="w-6 h-6 text-[#0F766E]" />
                 একাডেমিক ইতিহাস
