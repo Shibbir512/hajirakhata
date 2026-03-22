@@ -27,6 +27,9 @@ const PublicResultSearch: React.FC = () => {
   const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
+  const [students, setStudents] = useState<any[]>([]);
+  const [showOrgSuggestions, setShowOrgSuggestions] = useState(false);
+  const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
 
   const navigate = useNavigate();
 
@@ -134,9 +137,63 @@ const PublicResultSearch: React.FC = () => {
     fetchExams();
   }, [orgId, selectedAcademicYearId, selectedClassId]);
 
+  useEffect(() => {
+    if (!orgId || !selectedClassId) {
+      setStudents([]);
+      return;
+    }
+
+    const fetchStudents = async () => {
+      try {
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const studentQuery = query(
+          studentsRef, 
+          where('classId', '==', selectedClassId)
+        );
+        const studentSnap = await getDocs(studentQuery);
+        setStudents(studentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter((s: any) => s.isActive !== false));
+      } catch (err) {
+        console.error("Error fetching students:", err);
+      }
+    };
+
+    fetchStudents();
+  }, [orgId, selectedClassId]);
+
+  const filteredOrganizations = organizations.filter(org => {
+    if (!orgSearchText) return false;
+    const orgCode = (org.orgCode || org.id.substring(0, 6).toUpperCase()).toLowerCase();
+    const orgName = org.name.toLowerCase();
+    const valLower = orgSearchText.toLowerCase();
+    
+    return (
+      `${orgCode} - ${orgName}`.includes(valLower) ||
+      orgCode.includes(valLower) ||
+      orgName.includes(valLower)
+    );
+  });
+
+  const filteredStudents = students.filter(student => {
+    if (!rollNumber) return false;
+    const idStr = student.studentUid ? `${student.studentUid} - ` : (student.studentId ? `${student.studentId} - ` : '');
+    const rollStr = student.roll ? `রোল: ${student.roll} - ` : '';
+    const combinedStr = `${idStr}${rollStr}${student.name}`.toLowerCase();
+    const searchLower = rollNumber.toLowerCase();
+    
+    return (
+      student.roll?.toString() === searchLower ||
+      student.studentUid?.toLowerCase() === searchLower ||
+      student.studentId?.toLowerCase() === searchLower ||
+      student.name?.toLowerCase().includes(searchLower) ||
+      combinedStr.includes(searchLower) ||
+      searchLower.includes(student.name?.toLowerCase() || '')
+    );
+  });
+
   const handleOrgSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setOrgSearchText(val);
+    setShowOrgSuggestions(true);
     
     const matchedOrg = organizations.find(org => {
       const orgCode = (org.orgCode || org.id.substring(0, 6).toUpperCase()).toLowerCase();
@@ -144,9 +201,9 @@ const PublicResultSearch: React.FC = () => {
       const valLower = val.toLowerCase();
       
       return (
-        `${orgCode} - ${orgName}`.includes(valLower) ||
-        orgCode.includes(valLower) ||
-        orgName.includes(valLower)
+        `${orgCode} - ${orgName}` === valLower ||
+        orgCode === valLower ||
+        orgName === valLower
       );
     });
     
@@ -157,6 +214,21 @@ const PublicResultSearch: React.FC = () => {
       setOrgId(null);
       setOrgName("");
     }
+  };
+
+  const handleOrgSelect = (org: any) => {
+    const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+    setOrgSearchText(`${orgCode} - ${org.name}`);
+    setOrgId(org.id);
+    setOrgName(org.name);
+    setShowOrgSuggestions(false);
+  };
+
+  const handleStudentSelect = (student: any) => {
+    const idStr = student.studentUid ? `${student.studentUid} - ` : (student.studentId ? `${student.studentId} - ` : '');
+    const rollStr = student.roll ? `রোল: ${student.roll} - ` : '';
+    setRollNumber(`${idStr}${rollStr}${student.name}`);
+    setShowStudentSuggestions(false);
   };
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -172,18 +244,24 @@ const PublicResultSearch: React.FC = () => {
       const studentsRef = collection(db, `organizations/${orgId}/students`);
       const studentQuery = query(
         studentsRef, 
-        where("classId", "==", selectedClassId), 
-        where("isActive", "==", true)
+        where("classId", "==", selectedClassId)
       );
       const studentSnap = await getDocs(studentQuery);
+      const activeStudents = studentSnap.docs.map(doc => ({ id: doc.id, ...doc.data() })).filter((s: any) => s.isActive !== false);
 
       const searchLower = rollNumber.toLowerCase().trim();
-      const matchedStudentDoc = studentSnap.docs.find(doc => {
-        const data = doc.data();
+      const matchedStudentDoc = activeStudents.find((data: any) => {
+        const idStr = data.studentUid ? `${data.studentUid} - ` : (data.studentId ? `${data.studentId} - ` : '');
+        const rollStr = data.roll ? `রোল: ${data.roll} - ` : '';
+        const combinedStr = `${idStr}${rollStr}${data.name}`.toLowerCase();
+        
         return (
           data.roll?.toString() === searchLower ||
+          data.studentUid?.toLowerCase() === searchLower ||
           data.studentId?.toLowerCase() === searchLower ||
-          data.name?.toLowerCase().includes(searchLower)
+          data.name?.toLowerCase() === searchLower ||
+          combinedStr === searchLower ||
+          combinedStr.includes(searchLower)
         );
       });
 
@@ -247,25 +325,39 @@ const PublicResultSearch: React.FC = () => {
         <div className="card-premium p-8 bg-white shadow-xl border border-slate-100">
           <form onSubmit={handleSearch} className="space-y-5">
             {!urlOrgId && (
-              <div>
+              <div className="relative">
                 <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                   <Search className="w-4 h-4 text-[#0F5C7A]" />
                   প্রতিষ্ঠান
                 </label>
-                <input
-                  list="org-list"
-                  value={orgSearchText}
-                  onChange={handleOrgSearchChange}
-                  placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
-                  className="input-premium w-full"
-                  required
-                />
-                <datalist id="org-list">
-                  {organizations.map(org => {
-                    const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
-                    return <option key={org.id} value={`${orgCode} - ${org.name}`} />;
-                  })}
-                </datalist>
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={orgSearchText}
+                    onChange={handleOrgSearchChange}
+                    onFocus={() => setShowOrgSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 200)}
+                    placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
+                    className="input-premium w-full"
+                    required
+                  />
+                  {showOrgSuggestions && orgSearchText && filteredOrganizations.length > 0 && (
+                    <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                      {filteredOrganizations.map(org => {
+                        const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+                        return (
+                          <li
+                            key={org.id}
+                            onClick={() => handleOrgSelect(org)}
+                            className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
+                          >
+                            <span className="font-medium text-[#0F5C7A]">{orgCode}</span> - {org.name}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </div>
             )}
 
@@ -324,19 +416,43 @@ const PublicResultSearch: React.FC = () => {
               </select>
             </div>
 
-            <div>
+            <div className="relative">
               <label className="block text-sm font-semibold text-slate-700 mb-2 flex items-center gap-2">
                 <User className="w-4 h-4 text-[#0F5C7A]" />
                 রোল, আইডি বা নাম
               </label>
-              <input
-                type="text"
-                value={rollNumber}
-                onChange={(e) => setRollNumber(e.target.value)}
-                placeholder="আপনার রোল, আইডি বা নাম লিখুন"
-                className="input-premium w-full"
-                required
-              />
+              <div className="relative">
+                <input
+                  type="text"
+                  value={rollNumber}
+                  onChange={(e) => {
+                    setRollNumber(e.target.value);
+                    setShowStudentSuggestions(true);
+                  }}
+                  onFocus={() => setShowStudentSuggestions(true)}
+                  onBlur={() => setTimeout(() => setShowStudentSuggestions(false), 200)}
+                  placeholder="আপনার রোল, আইডি বা নাম লিখুন"
+                  className="input-premium w-full"
+                  required
+                />
+                {showStudentSuggestions && rollNumber && filteredStudents.length > 0 && (
+                  <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                    {filteredStudents.map(student => {
+                      const idStr = student.studentId ? `${student.studentId} - ` : '';
+                      const rollStr = student.roll ? `রোল: ${student.roll} - ` : '';
+                      return (
+                        <li
+                          key={student.id}
+                          onClick={() => handleStudentSelect(student)}
+                          className="px-4 py-3 hover:bg-slate-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
+                        >
+                          <span className="font-medium text-[#0F5C7A]">{idStr}{rollStr}</span>{student.name}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4 mt-4">

@@ -121,11 +121,12 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         
         // Reorder remaining active students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
-        const q = query(studentsRef, where("classId", "==", resolvedClassId), where("isActive", "==", true));
-        const activeStudents = await getDocs(q);
+        const q = query(studentsRef, where("classId", "==", resolvedClassId));
+        const allStudents = await getDocs(q);
+        const activeStudentsDocs = allStudents.docs.filter(doc => doc.data().isActive !== false);
         
         const batch = writeBatch(db);
-        const sortedDocs = activeStudents.docs.sort((a, b) => {
+        const sortedDocs = activeStudentsDocs.sort((a, b) => {
           const rollA = a.data().roll || 0;
           const rollB = b.data().roll || 0;
           return rollA - rollB;
@@ -264,10 +265,11 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
 
         // 4. Reorder remaining active students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
-        const q = query(studentsRef, where("classId", "==", resolvedClassId), where("isActive", "==", true));
-        const activeStudents = await getDocs(q);
+        const q = query(studentsRef, where("classId", "==", resolvedClassId));
+        const allStudents = await getDocs(q);
+        const activeStudentsDocs = allStudents.docs.filter(doc => doc.data().isActive !== false);
         
-        const sortedDocs = activeStudents.docs.sort((a, b) => {
+        const sortedDocs = activeStudentsDocs.sort((a, b) => {
           const rollA = a.data().roll || 0;
           const rollB = b.data().roll || 0;
           return rollA - rollB;

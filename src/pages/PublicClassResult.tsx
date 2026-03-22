@@ -46,8 +46,8 @@ const PublicClassResult: React.FC = () => {
 
         // 2. Fetch Students in class
         const studentsRef = collection(db, `organizations/${orgId}/students`);
-        const studentsSnap = await getDocs(query(studentsRef, where("classId", "==", classId), where("isActive", "==", true)));
-        const loadedStudents = studentsSnap.docs.map(doc => doc.data() as Student).sort((a, b) => a.roll - b.roll);
+        const studentsSnap = await getDocs(query(studentsRef, where("classId", "==", classId)));
+        const loadedStudents = studentsSnap.docs.map(doc => doc.data() as Student).filter(s => s.isActive !== false).sort((a, b) => a.roll - b.roll);
         setStudents(loadedStudents);
 
         // 3. Fetch Results (only published)

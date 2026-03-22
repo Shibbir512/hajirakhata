@@ -217,14 +217,6 @@ const Login: React.FC = () => {
       <main className="flex-1 flex flex-col items-center justify-center p-4 sm:p-6 lg:p-8">
         {activeTab === 'public' ? (
           <div className="w-full max-w-4xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl sm:text-4xl font-extrabold text-slate-900 tracking-tight mb-4">
-                শিক্ষার্থীর ফলাফল অনুসন্ধান
-              </h1>
-              <p className="text-lg text-slate-600 max-w-2xl mx-auto">
-                আপনার প্রতিষ্ঠান, শিক্ষাবর্ষ, শ্রেণি এবং পরীক্ষা নির্বাচন করে রোল নম্বর দিয়ে খুব সহজেই ফলাফল দেখুন।
-              </p>
-            </div>
             <PublicResultSearch />
           </div>
         ) : (

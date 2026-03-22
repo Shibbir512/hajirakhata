@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users } from "lucide-react";
+import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle } from "lucide-react";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -60,6 +60,7 @@ const Attendance: React.FC = () => {
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
+  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
   const [attendanceState, setAttendanceState] = useState<
     Map<string, { status: AttendanceStatus; studentName: string; note?: string }>
   >(new Map());
@@ -393,7 +394,7 @@ const Attendance: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-8 flex justify-center">
+            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
               <button
                 onClick={handleSave}
                 disabled={isTakingAttendance}
@@ -407,6 +408,17 @@ const Attendance: React.FC = () => {
                 )}
                 {isTakingAttendance ? 'সংরক্ষণ করা হচ্ছে...' : 'হাজিরা সংরক্ষণ করুন'}
               </button>
+
+              {liveCounter.absent > 0 && (
+                <button
+                  onClick={() => setIsNotifyModalOpen(true)}
+                  className="px-8 py-3 text-base font-bold text-white rounded-[16px] flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                  style={{ backgroundColor: '#25D366' }}
+                >
+                  <MessageCircle className="w-5 h-5 mr-2" />
+                  অনুপস্থিতদের জানান
+                </button>
+              )}
             </div>
           </>
         ) : (
@@ -424,6 +436,75 @@ const Attendance: React.FC = () => {
         title="হাজিরা সংরক্ষণ"
         message="আপনি কি নিশ্চিত যে আপনি এই হাজিরা সংরক্ষণ করতে চান?"
       />
+
+      {/* Notify Absentees Modal */}
+      {isNotifyModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
+                <MessageCircle className="w-6 h-6 text-[#25D366]" />
+                অনুপস্থিতদের জানান
+              </h3>
+              <button onClick={() => setIsNotifyModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
+                <XCircle className="w-6 h-6" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1">
+              <p className="text-sm text-slate-600 mb-4">
+                নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠাতে নামের পাশের বাটনে ক্লিক করুন।
+              </p>
+              <div className="space-y-3">
+                {classStudents
+                  .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
+                  .map(student => {
+                    const phone = student.phone || '';
+                    const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+                    const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+                    
+                    return (
+                      <div key={student.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
+                        <div>
+                          <p className="font-semibold text-slate-800">{student.name}</p>
+                          <p className="text-xs text-slate-500">রোল: {toBengaliNumber(student.roll)} {phone ? `| মোবাইল: ${toBengaliNumber(phone)}` : '| মোবাইল নম্বর নেই'}</p>
+                        </div>
+                        <a
+                          href={phone ? whatsappUrl : '#'}
+                          target={phone ? "_blank" : "_self"}
+                          rel="noopener noreferrer"
+                          className={clsx(
+                            "px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors",
+                            phone 
+                              ? "bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white" 
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          )}
+                          onClick={(e) => {
+                            if (!phone) {
+                              e.preventDefault();
+                              toast.error('এই শিক্ষার্থীর মোবাইল নম্বর দেওয়া নেই।');
+                            }
+                          }}
+                        >
+                          <MessageCircle className="w-4 h-4" />
+                          মেসেজ
+                        </a>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+              <button
+                onClick={() => setIsNotifyModalOpen(false)}
+                className="px-6 py-2 rounded-xl font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
