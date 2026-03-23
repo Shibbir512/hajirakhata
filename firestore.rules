@@ -42,10 +42,15 @@ service cloud.firestore {
              (request.resource.data.version == resource.data.version + 1);
     }
 
+    match /{document=**} {
+      allow read, write, delete: if isSuperAdmin();
+    }
+
     match /users/{userId} {
       allow read: if isSuperAdmin() || (isAuthenticated() && (request.auth.uid == userId || (resource != null && isAdmin(resource.data.organizationId))));
       allow create: if isAuthenticated() && request.auth.uid == userId;
       allow update: if isSuperAdmin() || (isAuthenticated() && request.auth.uid == userId);
+      allow delete: if isSuperAdmin();
       allow list: if isSuperAdmin() || isAuthenticated(); // We rely on the query filter and read rules
     }
 
@@ -58,39 +63,49 @@ service cloud.firestore {
 
       match /academic_years/{yearId} {
         allow read: if true;
+        allow delete: if isSuperAdmin();
       }
       match /classes/{classId} {
         allow read: if true;
+        allow delete: if isSuperAdmin();
       }
       match /exams/{examId} {
         allow read: if true;
+        allow delete: if isSuperAdmin();
       }
       match /subjects/{subjectId} {
         allow read: if true;
+        allow delete: if isSuperAdmin();
       }
       match /students/{studentId} {
         allow read: if true;
+        allow delete: if isSuperAdmin();
       }
       match /results/{resultId} {
         allow read: if isTeacher(orgId) || resource.data.status == 'published';
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId) && isVersionCorrect();
-        allow delete: if isAdmin(orgId);
+        allow delete: if isAdmin(orgId) || isSuperAdmin();
       }
       match /attendance_sessions/{sessionId} {
         allow read: if isViewer(orgId);
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId) && isVersionCorrect();
-        allow delete: if isAdmin(orgId);
+        allow delete: if isAdmin(orgId) || isSuperAdmin();
       }
       match /{document=**} {
         allow read, write: if isMember(orgId);
+        allow delete: if isSuperAdmin();
       }
     }
     
     match /globalSettings/{document=**} {
       allow read: if true;
       allow write: if isSuperAdmin();
+    }
+
+    match /counters/{document=**} {
+      allow read, write: if isSuperAdmin();
     }
   }
 }

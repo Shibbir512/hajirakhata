@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useStudents } from "../hooks/useStudents";
 import { useClasses } from "../hooks/useClasses";
 import { useAuth } from "../hooks/useAuth";
+import { toEnglishNumber } from "../utils/dateFormatter";
 import Fuse from "fuse.js";
 
 const StudentSearch: React.FC = () => {
@@ -30,8 +31,27 @@ const StudentSearch: React.FC = () => {
 
   const results = useMemo(() => {
     if (!query) return [];
-    return fuse.search(query).slice(0, 5).map(r => r.item);
-  }, [fuse, query]);
+    
+    const queryStr = query.trim();
+    const englishQuery = toEnglishNumber(queryStr);
+    
+    // First, try to find exact matches for roll number or student ID
+    const exactMatches = allStudents.filter(s => 
+      s.roll.toString() === englishQuery || 
+      (s.studentUid && s.studentUid === englishQuery)
+    );
+    
+    if (exactMatches.length > 0) {
+      const exactMatchIds = new Set(exactMatches.map(s => s.id));
+      const fuzzyMatches = fuse.search(queryStr)
+        .map(result => result.item)
+        .filter(item => !exactMatchIds.has(item.id));
+        
+      return [...exactMatches, ...fuzzyMatches].slice(0, 5);
+    }
+    
+    return fuse.search(queryStr).slice(0, 5).map(r => r.item);
+  }, [fuse, query, allStudents]);
 
   return (
     <div className="relative w-full max-w-md">

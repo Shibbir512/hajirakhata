@@ -5,7 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle } from "lucide-react";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -95,13 +95,31 @@ const Attendance: React.FC = () => {
   }, [attendanceState]);
 
   const filteredAndSortedStudents = useMemo(() => {
-    let result = classStudents.filter(
-      (student) =>
-        student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (student.roll?.toString() || "").includes(searchQuery),
-    );
+    let result = classStudents;
+    let exactMatches: typeof classStudents = [];
+    let fuzzyMatches: typeof classStudents = [];
+    
+    if (searchQuery) {
+      const queryStr = searchQuery.trim();
+      const englishQuery = toEnglishNumber(queryStr);
+      
+      exactMatches = classStudents.filter(s => 
+        s.roll.toString() === englishQuery || 
+        (s.studentUid && s.studentUid === englishQuery)
+      );
+      
+      const exactMatchIds = new Set(exactMatches.map(s => s.id));
+      
+      fuzzyMatches = classStudents.filter(s => 
+        !exactMatchIds.has(s.id) &&
+        (s.name.toLowerCase().includes(queryStr.toLowerCase()) ||
+         (s.roll?.toString() || "").includes(englishQuery))
+      );
+    } else {
+      fuzzyMatches = classStudents;
+    }
 
-    result.sort((a, b) => {
+    const sortFn = (a: any, b: any) => {
       if (sortConfig.key === 'roll') {
         return sortConfig.direction === 'asc' ? a.roll - b.roll : b.roll - a.roll;
       } else {
@@ -109,7 +127,16 @@ const Attendance: React.FC = () => {
           ? a.name.localeCompare(b.name) 
           : b.name.localeCompare(a.name);
       }
-    });
+    };
+
+    if (searchQuery && exactMatches.length > 0) {
+      exactMatches.sort(sortFn);
+      fuzzyMatches.sort(sortFn);
+      result = [...exactMatches, ...fuzzyMatches];
+    } else {
+      fuzzyMatches.sort(sortFn);
+      result = fuzzyMatches;
+    }
 
     return result;
   }, [classStudents, searchQuery, sortConfig]);

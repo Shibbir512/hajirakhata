@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import OrgManagement from "../components/OrgManagement";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 
@@ -10,6 +10,7 @@ const OrgManagementPage: React.FC = () => {
   const { user, createOrganization, joinOrganization, removeVisitedOrg, logout, visitedOrgs } = useAuth();
   const navigate = useNavigate();
   const [allOrgs, setAllOrgs] = useState<{ [key: string]: string }>({});
+  const [hiddenOrgs, setHiddenOrgs] = useState<Set<string>>(new Set());
   
   const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
 
@@ -35,6 +36,22 @@ const OrgManagementPage: React.FC = () => {
     }
   }, [isSuperAdmin]);
 
+  useEffect(() => {
+    if (isSuperAdmin && user && db) {
+      const fetchHiddenOrgs = async () => {
+        try {
+          const userDoc = await getDoc(doc(db, "users", user.uid));
+          if (userDoc.exists() && userDoc.data().hiddenOrgs) {
+            setHiddenOrgs(new Set(userDoc.data().hiddenOrgs));
+          }
+        } catch (error) {
+          console.error("Error fetching hidden orgs:", error);
+        }
+      };
+      fetchHiddenOrgs();
+    }
+  }, [isSuperAdmin, user]);
+
   const handleSuccess = () => {
     navigate("/");
     // Fallback if navigate doesn't trigger a re-render or route change properly
@@ -45,15 +62,37 @@ const OrgManagementPage: React.FC = () => {
     }, 100);
   };
 
-  // For super admin, merge visitedOrgs with allOrgs
-  const displayOrgs = isSuperAdmin ? { ...visitedOrgs, ...allOrgs } : visitedOrgs;
+  const handleRemoveVisitedOrg = async (id: string) => {
+    if (visitedOrgs[id]) {
+      await removeVisitedOrg(id);
+    }
+    
+    if (isSuperAdmin) {
+      // Hide it from the allOrgs view persistently
+      setHiddenOrgs(prev => new Set(prev).add(id));
+      
+      if (user && db) {
+        try {
+          await updateDoc(doc(db, "users", user.uid), {
+            hiddenOrgs: arrayUnion(id)
+          });
+        } catch (e) {
+          console.error("Failed to update hiddenOrgs in Firestore", e);
+        }
+      }
+    }
+  };
+
+  const displayOrgs = isSuperAdmin 
+    ? Object.fromEntries(Object.entries({ ...visitedOrgs, ...allOrgs }).filter(([id]) => !hiddenOrgs.has(id)))
+    : visitedOrgs;
 
   return (
     <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
       <OrgManagement
         onCreateOrg={createOrganization}
         onJoinOrg={joinOrganization}
-        onRemoveVisitedOrg={removeVisitedOrg}
+        onRemoveVisitedOrg={handleRemoveVisitedOrg}
         onLogout={logout}
         visitedOrgs={displayOrgs}
         onSuccess={handleSuccess}

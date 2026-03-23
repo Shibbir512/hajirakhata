@@ -24,6 +24,15 @@ export const toBengaliNumber = (num: string | number | undefined | null) => {
   return num.toString().split("").map(char => bengaliNumbers[parseInt(char)] || char).join("");
 };
 
+export const toEnglishNumber = (numStr: string | undefined | null) => {
+  if (!numStr) return "";
+  const bengaliToEnglishMap: { [key: string]: string } = {
+    "০": "0", "১": "1", "২": "2", "৩": "3", "৪": "4",
+    "৫": "5", "৬": "6", "৭": "7", "৮": "8", "৯": "9"
+  };
+  return numStr.split("").map(char => bengaliToEnglishMap[char] || char).join("");
+};
+
 export const toBengaliTime = (timeStr: string) => {
   if (!timeStr || typeof timeStr !== 'string') return "";
   

@@ -10,6 +10,7 @@ import {
   query,
   where,
   getDocs,
+  getDoc,
   writeBatch,
   orderBy,
   limit,
@@ -17,15 +18,37 @@ import {
 import { Student } from "../types";
 import toast from "react-hot-toast";
 import { SyncManager } from "../services/SyncManager";
+import { generateStudentId } from "../utils/idGenerator";
+import { toBengaliNumber } from "../utils/dateFormatter";
 
 export const useStudents = (orgId: string | null, user: any, role: string | null) => {
   const [students, setStudents] = useState<{ [key: string]: Student[] }>({});
+  const [orgCode, setOrgCode] = useState<number | null>(null);
 
   useEffect(() => {
     if (!user || !db || !orgId) {
       setStudents({});
+      setOrgCode(null);
       return;
     }
+
+    const fetchOrgCode = async () => {
+      const orgDoc = await getDoc(doc(db, "organizations", orgId));
+      if (orgDoc.exists()) {
+        let code = orgDoc.data().orgCode;
+        console.log("Fetched orgCode:", code);
+        if (!code) {
+          // Generate a new 6-digit code if missing
+          code = Math.floor(100000 + Math.random() * 900000).toString();
+          console.log("Generated new orgCode:", code);
+          await updateDoc(doc(db, "organizations", orgId), { orgCode: code });
+        }
+        setOrgCode(typeof code === 'string' ? parseInt(code) : code);
+      } else {
+        console.log("Organization document does not exist for orgId:", orgId);
+      }
+    };
+    fetchOrgCode();
 
     const studentsRef = collection(db, `organizations/${orgId}/students`);
     const unsubStudents = onSnapshot(studentsRef, (snapshot) => {
@@ -64,10 +87,26 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         });
         const newRoll = maxRoll + 1;
 
-        // Generate Unique ID: [Year][Serial]
+        // Generate Unique ID: [Madrasa ID][Year][Serial]
         const year = new Date().getFullYear();
-        const totalStudentsSnapshot = await getDocs(studentsRef);
-        const studentUid = `${year}${String(totalStudentsSnapshot.size + 1).padStart(4, '0')}`;
+        
+        let currentOrgCode = orgCode;
+        if (currentOrgCode === null) {
+          const orgDoc = await getDoc(doc(db, "organizations", orgId));
+          if (orgDoc.exists()) {
+            let code = orgDoc.data().orgCode;
+            if (!code) {
+              code = Math.floor(100000 + Math.random() * 900000).toString();
+              await updateDoc(doc(db, "organizations", orgId), { orgCode: code });
+            }
+            currentOrgCode = typeof code === 'string' ? parseInt(code) : code;
+            setOrgCode(currentOrgCode);
+          } else {
+            throw new Error("Organization not found");
+          }
+        }
+        
+        const studentUid = await generateStudentId(currentOrgCode, year);
 
         const studentId = `${classId}-student-${Date.now()}`;
         const newStudent: Student = {
@@ -187,14 +226,28 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           if (roll > maxRoll) maxRoll = roll;
         });
 
-        const allStudentsSnapshot = await getDocs(studentsRef);
-        let totalCount = allStudentsSnapshot.size;
         const year = new Date().getFullYear();
+        
+        let currentOrgCode = orgCode;
+        if (currentOrgCode === null) {
+          const orgDoc = await getDoc(doc(db, "organizations", orgId));
+          if (orgDoc.exists()) {
+            let code = orgDoc.data().orgCode;
+            if (!code) {
+              code = Math.floor(100000 + Math.random() * 900000).toString();
+              await updateDoc(doc(db, "organizations", orgId), { orgCode: code });
+            }
+            currentOrgCode = typeof code === 'string' ? parseInt(code) : code;
+            setOrgCode(currentOrgCode);
+          } else {
+            throw new Error("Organization not found");
+          }
+        }
 
         const batch = writeBatch(db);
-        studentsList.forEach((studentData, index) => {
-          totalCount++;
-          const studentUid = `${year}${String(totalCount).padStart(4, '0')}`;
+        for (let index = 0; index < studentsList.length; index++) {
+          const studentData = studentsList[index];
+          const studentUid = await generateStudentId(currentOrgCode, year);
           const studentId = `${classId}-student-${Date.now()}-${index}`;
           const newStudent: Student = {
             name: studentData.name,
@@ -209,7 +262,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
             version: 1,
           };
           batch.set(doc(db, `organizations/${orgId}/students`, studentId), newStudent);
-        });
+        }
 
         await batch.commit();
         toast.success("শিক্ষার্থীদের সফলভাবে যোগ করা হয়েছে!");
@@ -293,5 +346,107 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     [user, orgId, role],
   );
 
-  return { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents };
+  const deleteAllArchivedStudents = useCallback(
+    async () => {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+
+      if (role !== "admin") {
+        toast.error("শুধুমাত্র অ্যাডমিন স্থায়ীভাবে মুছে ফেলতে পারেন।");
+        return;
+      }
+
+      const loadingToast = toast.loading("আর্কাইভ করা শিক্ষার্থীদের ডেটা মুছে ফেলা হচ্ছে...");
+
+      try {
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("isActive", "==", false));
+        const archivedSnapshot = await getDocs(q);
+
+        if (archivedSnapshot.empty) {
+          toast.success("কোনো আর্কাইভ করা শিক্ষার্থী পাওয়া যায়নি।", { id: loadingToast });
+          return;
+        }
+
+        const studentIds = archivedSnapshot.docs.map(doc => doc.id);
+
+        const deleteInBatches = async (refsToDelete: any[]) => {
+          const chunks = [];
+          let i = 0;
+          while (i < refsToDelete.length) {
+            chunks.push(refsToDelete.slice(i, i + 500));
+            i += 500;
+          }
+          for (const chunk of chunks) {
+            const batch = writeBatch(db);
+            chunk.forEach(ref => batch.delete(ref));
+            await batch.commit();
+          }
+        };
+
+        let allRefsToDelete: any[] = [];
+
+        archivedSnapshot.docs.forEach(doc => {
+          allRefsToDelete.push(doc.ref);
+        });
+
+        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
+        for (let i = 0; i < studentIds.length; i += 30) {
+          const chunkIds = studentIds.slice(i, i + 30);
+          const attQuery = query(attendanceRef, where("studentId", "in", chunkIds));
+          const attSnapshot = await getDocs(attQuery);
+          attSnapshot.docs.forEach(doc => allRefsToDelete.push(doc.ref));
+        }
+
+        const resultsRef = collection(db, `organizations/${orgId}/results`);
+        for (let i = 0; i < studentIds.length; i += 30) {
+          const chunkIds = studentIds.slice(i, i + 30);
+          const resQuery = query(resultsRef, where("student_id", "in", chunkIds));
+          const resSnapshot = await getDocs(resQuery);
+          resSnapshot.docs.forEach(doc => allRefsToDelete.push(doc.ref));
+        }
+
+        await deleteInBatches(allRefsToDelete);
+
+        toast.success(`সকল আর্কাইভ করা শিক্ষার্থী স্থায়ীভাবে মুছে ফেলা হয়েছে!`, { id: loadingToast });
+      } catch (error) {
+        console.error("Error deleting all archived students:", error);
+        toast.error("আর্কাইভ করা শিক্ষার্থীদের মুছতে ব্যর্থ হয়েছে।", { id: loadingToast });
+      }
+    },
+    [user, orgId, role],
+  );
+
+  const promoteStudents = useCallback(
+    async (promotions: { studentId: string; newClassId: string; newRoll: number }[]) => {
+      if (!user || !db || !orgId) return;
+      if (role !== "admin" && role !== "moderator") {
+        toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
+        return;
+      }
+
+      try {
+        const batch = writeBatch(db);
+        
+        for (const promo of promotions) {
+          const studentRef = doc(db, `organizations/${orgId}/students`, promo.studentId);
+          batch.update(studentRef, {
+            classId: promo.newClassId,
+            roll: promo.newRoll,
+          });
+        }
+
+        await batch.commit();
+        toast.success(`${toBengaliNumber(promotions.length)} জন শিক্ষার্থীকে সফলভাবে প্রমোশন দেওয়া হয়েছে!`);
+      } catch (error) {
+        console.error("Error promoting students:", error);
+        toast.error("শিক্ষার্থীদের প্রমোশন দিতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId, role]
+  );
+
+  return { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents };
 };

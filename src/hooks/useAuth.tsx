@@ -15,6 +15,7 @@ import {
   serverTimestamp,
 } from "firebase/firestore";
 import toast from "react-hot-toast";
+import { generateMadrasaId } from "../utils/idGenerator";
 
 interface AuthContextType {
   user: User | null;
@@ -226,7 +227,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         const promise = (async () => {
-          const orgCode = Math.floor(100000 + Math.random() * 900000).toString();
+          const madrasaId = await generateMadrasaId();
+          const orgCode = madrasaId.toString();
           await setDoc(doc(db, "organizations", newOrgId), {
             id: newOrgId,
             orgCode: orgCode,
@@ -285,47 +287,92 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         } else {
           const lowerIdentifier = cleanIdentifier.toLowerCase();
           
-          // First try searching by nameLowercase for case-insensitive match
-          const qLower = query(
+          // First try searching by orgCode
+          const qOrgCode = query(
             collection(db, "organizations"),
-            where("nameLowercase", "==", lowerIdentifier),
+            where("orgCode", "==", cleanIdentifier),
           );
-          const querySnapshotLower = await getDocs(qLower);
+          const querySnapshotOrgCode = await getDocs(qOrgCode);
 
-          if (!querySnapshotLower.empty) {
-            const orgDoc = querySnapshotLower.docs[0];
+          if (!querySnapshotOrgCode.empty) {
+            const orgDoc = querySnapshotOrgCode.docs[0];
             targetOrgId = orgDoc.id;
             orgName = orgDoc.data().name;
           } else {
-            // Fallback for existing organizations that don't have nameLowercase yet
-            const qOriginal = query(
+            // Then try searching by nameLowercase for case-insensitive match
+            const qLower = query(
               collection(db, "organizations"),
-              where("name", "==", cleanIdentifier),
+              where("nameLowercase", "==", lowerIdentifier),
             );
-            const querySnapshotOriginal = await getDocs(qOriginal);
+            const querySnapshotLower = await getDocs(qLower);
 
-            if (!querySnapshotOriginal.empty) {
-              const orgDoc = querySnapshotOriginal.docs[0];
+            if (!querySnapshotLower.empty) {
+              const orgDoc = querySnapshotLower.docs[0];
               targetOrgId = orgDoc.id;
               orgName = orgDoc.data().name;
             } else {
-              // Last attempt: try to find by prefix in nameLowercase
-              const qPrefix = query(
+              // Fallback for existing organizations that don't have nameLowercase yet
+              const qOriginal = query(
                 collection(db, "organizations"),
-                where("nameLowercase", ">=", lowerIdentifier),
-                where("nameLowercase", "<=", lowerIdentifier + "\uf8ff"),
+                where("name", "==", cleanIdentifier),
               );
-              const querySnapshotPrefix = await getDocs(qPrefix);
-              
-              if (!querySnapshotPrefix.empty) {
-                const orgDoc = querySnapshotPrefix.docs[0];
+              const querySnapshotOriginal = await getDocs(qOriginal);
+
+              if (!querySnapshotOriginal.empty) {
+                const orgDoc = querySnapshotOriginal.docs[0];
                 targetOrgId = orgDoc.id;
                 orgName = orgDoc.data().name;
-                toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
               } else {
-                throw new Error(
-                  `প্রতিষ্ঠান "${cleanIdentifier}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।`,
+                // Last attempt: try to find by prefix in nameLowercase
+                const qPrefix = query(
+                  collection(db, "organizations"),
+                  where("nameLowercase", ">=", lowerIdentifier),
+                  where("nameLowercase", "<=", lowerIdentifier + "\uf8ff"),
                 );
+                const querySnapshotPrefix = await getDocs(qPrefix);
+                
+                if (!querySnapshotPrefix.empty) {
+                  const orgDoc = querySnapshotPrefix.docs[0];
+                  targetOrgId = orgDoc.id;
+                  orgName = orgDoc.data().name;
+                  toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
+                } else {
+                  // Ultimate Fallback: Client-side search for Bengali normalization issues
+                  const allOrgsSnapshot = await getDocs(collection(db, "organizations"));
+                  
+                  const normalizeBengali = (text: string) => {
+                    if (!text) return "";
+                    return text
+                      .replace(/ড়/g, "ড়")
+                      .replace(/ঢ়/g, "ঢ়")
+                      .replace(/য়/g, "য়")
+                      .replace(/\u200D/g, "") // Remove Zero Width Joiner
+                      .replace(/\u200C/g, "") // Remove Zero Width Non-Joiner
+                      .trim()
+                      .toLowerCase();
+                  };
+
+                  const normalizedSearch = normalizeBengali(cleanIdentifier);
+                  let foundOrg = null;
+
+                  for (const doc of allOrgsSnapshot.docs) {
+                    const data = doc.data();
+                    if (data.name && normalizeBengali(data.name) === normalizedSearch) {
+                      foundOrg = { id: doc.id, name: data.name };
+                      break;
+                    }
+                  }
+
+                  if (foundOrg) {
+                    targetOrgId = foundOrg.id;
+                    orgName = foundOrg.name;
+                    toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
+                  } else {
+                    throw new Error(
+                      `প্রতিষ্ঠান "${cleanIdentifier}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।`,
+                    );
+                  }
+                }
               }
             }
           }

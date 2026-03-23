@@ -3,6 +3,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Search, Loader2, Award, BookOpen, Calendar, Building2, User, Users } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { toEnglishNumber } from '../utils/dateFormatter';
 
 const PublicResultSearch: React.FC = () => {
   const navigate = useNavigate();
@@ -108,15 +109,25 @@ const PublicResultSearch: React.FC = () => {
     const rollStr = student.roll ? `রোল: ${student.roll} - ` : '';
     const combinedStr = `${idStr}${rollStr}${student.name}`.toLowerCase();
     const searchLower = rollNumber.toLowerCase();
+    const englishQuery = toEnglishNumber(searchLower);
     
     return (
-      student.roll?.toString() === searchLower ||
-      student.studentUid?.toLowerCase() === searchLower ||
-      student.studentId?.toLowerCase() === searchLower ||
+      student.roll?.toString() === englishQuery ||
+      student.studentUid?.toLowerCase() === englishQuery ||
+      student.studentId?.toLowerCase() === englishQuery ||
       student.name?.toLowerCase().includes(searchLower) ||
       combinedStr.includes(searchLower) ||
       searchLower.includes(student.name?.toLowerCase() || '')
     );
+  }).sort((a, b) => {
+    const searchLower = rollNumber.toLowerCase();
+    const englishQuery = toEnglishNumber(searchLower);
+    const aExact = a.roll?.toString() === englishQuery || a.studentUid?.toLowerCase() === englishQuery || a.studentId?.toLowerCase() === englishQuery;
+    const bExact = b.roll?.toString() === englishQuery || b.studentUid?.toLowerCase() === englishQuery || b.studentId?.toLowerCase() === englishQuery;
+    
+    if (aExact && !bExact) return -1;
+    if (!aExact && bExact) return 1;
+    return 0;
   });
 
   const handleOrgSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

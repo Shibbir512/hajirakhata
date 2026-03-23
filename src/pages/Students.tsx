@@ -5,14 +5,15 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight } from "lucide-react";
 import { Student } from "../types";
-import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
+import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import StudentPromotionModal from "../components/StudentPromotionModal";
 import Papa from "papaparse";
 import mammoth from "mammoth";
 import Fuse from "fuse.js";
@@ -29,7 +30,7 @@ const Students: React.FC = () => {
   const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
-  const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents } =
+  const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents } =
     useStudents(orgId, user, role);
 
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
@@ -47,6 +48,8 @@ const Students: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [studentToPermanentDelete, setStudentToPermanentDelete] = useState<Student | null>(null);
+  const [showDeleteAllArchivedModal, setShowDeleteAllArchivedModal] = useState(false);
+  const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -117,7 +120,26 @@ const Students: React.FC = () => {
 
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return allStudentsList;
-    const normalizedQuery = normalizeBengali(searchQuery);
+    
+    const queryStr = searchQuery.trim();
+    const normalizedQuery = normalizeBengali(queryStr);
+    const englishQuery = toEnglishNumber(queryStr);
+    
+    // First, try to find exact matches for roll number or student ID
+    const exactMatches = allStudentsList.filter(s => 
+      s.roll.toString() === englishQuery || 
+      (s.studentUid && s.studentUid === englishQuery)
+    );
+    
+    if (exactMatches.length > 0) {
+      const exactMatchIds = new Set(exactMatches.map(s => s.id));
+      const fuzzyMatches = fuse.search(normalizedQuery)
+        .map(result => result.item)
+        .filter(item => !exactMatchIds.has(item.id));
+        
+      return [...exactMatches, ...fuzzyMatches];
+    }
+    
     return fuse.search(normalizedQuery).map(result => result.item);
   }, [fuse, searchQuery, allStudentsList]);
 
@@ -260,6 +282,17 @@ const Students: React.FC = () => {
             শিক্ষার্থী যোগ
           </button>
           <button
+            onClick={() => setIsPromotionModalOpen(true)}
+            disabled={!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0}
+            className={clsx(
+              "bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2",
+              (!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <ArrowRight className="w-4 h-4" />
+            প্রমোশন
+          </button>
+          <button
             onClick={() => fileInputRef.current?.click()}
             disabled={!selectedClassId}
             className={clsx(
@@ -325,16 +358,27 @@ const Students: React.FC = () => {
             />
           </div>
           
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
-            <label className="text-sm font-medium text-slate-600 cursor-pointer flex items-center gap-2">
-              <input 
-                type="checkbox" 
-                checked={showArchived} 
-                onChange={(e) => setShowArchived(e.target.checked)}
-                className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
-              />
-              আর্কাইভ করা শিক্ষার্থী দেখুন
-            </label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
+              <label className="text-sm font-medium text-slate-600 cursor-pointer flex items-center gap-2">
+                <input 
+                  type="checkbox" 
+                  checked={showArchived} 
+                  onChange={(e) => setShowArchived(e.target.checked)}
+                  className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
+                />
+                আর্কাইভ করা শিক্ষার্থী দেখুন
+              </label>
+            </div>
+            {showArchived && role === 'admin' && (
+              <button
+                onClick={() => setShowDeleteAllArchivedModal(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-rose-50 text-rose-600 rounded-xl border border-rose-200 hover:bg-rose-100 transition-colors text-sm font-bold whitespace-nowrap"
+              >
+                <Trash2 className="w-4 h-4" />
+                সকল আর্কাইভ মুছুন
+              </button>
+            )}
           </div>
         </div>
 
@@ -675,6 +719,30 @@ const Students: React.FC = () => {
           }}
           title="স্থায়ীভাবে মুছে ফেলুন"
           message={`আপনি কি নিশ্চিত যে শিক্ষার্থী ${studentToPermanentDelete.name}-কে স্থায়ীভাবে মুছে ফেলতে চান? এটি করলে তার হাজিরা এবং ফলাফল সহ যাবতীয় রেকর্ড চিরতরে মুছে যাবে এবং তা আর ফিরে পাওয়া যাবে না।`}
+        />
+      )}
+
+      {showDeleteAllArchivedModal && (
+        <ConfirmationDialog
+          isOpen={showDeleteAllArchivedModal}
+          onClose={() => setShowDeleteAllArchivedModal(false)}
+          onConfirm={() => {
+            deleteAllArchivedStudents();
+            setShowDeleteAllArchivedModal(false);
+          }}
+          title="সকল আর্কাইভ করা শিক্ষার্থী মুছুন"
+          message="আপনি কি নিশ্চিত যে আপনি আর্কাইভ করা সকল শিক্ষার্থীকে স্থায়ীভাবে মুছে ফেলতে চান? এটি করলে তাদের হাজিরা এবং ফলাফল সহ যাবতীয় রেকর্ড চিরতরে মুছে যাবে এবং তা আর ফিরে পাওয়া যাবে না।"
+        />
+      )}
+
+      {isPromotionModalOpen && selectedClassId && (
+        <StudentPromotionModal
+          isOpen={isPromotionModalOpen}
+          onClose={() => setIsPromotionModalOpen(false)}
+          sourceClassId={selectedClassId}
+          classes={classes}
+          students={allStudentsList}
+          onPromote={promoteStudents}
         />
       )}
     </div>
