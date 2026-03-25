@@ -6,7 +6,7 @@ import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useResults } from "../hooks/useResults";
 import { useClasses } from "../hooks/useClasses";
-import { ClipboardEdit } from "lucide-react";
+import { ClipboardEdit, EyeOff, Trash2 } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import toast from "react-hot-toast";
@@ -23,7 +23,7 @@ const ResultEntry: React.FC = () => {
   const { students: studentsMap } = useStudents(orgId, user, role);
   const { subjects } = useSubjects(orgId, user);
   const { classes } = useClasses(orgId, user, role);
-  const { results, saveResult, publishResults } = useResults(orgId, user, academicYearId, examId, classId);
+  const { results, saveResult, publishResults, hideResults, deleteResults } = useResults(orgId, user, academicYearId, examId, classId);
 
   const filteredStudents = useMemo(() => (studentsMap[classId] || []).filter(s => s.isActive !== false), [studentsMap, classId]);
   const filteredSubjects = useMemo(() => (subjects || []).filter(s => s.classId === classId), [subjects, classId]);
@@ -32,7 +32,13 @@ const ResultEntry: React.FC = () => {
     return results.length > 0 && results.every(r => r.status === 'published');
   }, [results]);
 
+  const isHidden = useMemo(() => {
+    return results.length > 0 && results.every(r => r.status === 'hidden');
+  }, [results]);
+
   const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+  const [isHideModalOpen, setIsHideModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   const handlePublish = async () => {
     setIsPublishModalOpen(true);
@@ -41,6 +47,24 @@ const ResultEntry: React.FC = () => {
   const confirmPublish = async () => {
     await publishResults(academicYearId, examId, classId);
     setIsPublishModalOpen(false);
+  };
+
+  const handleHide = async () => {
+    setIsHideModalOpen(true);
+  };
+
+  const confirmHide = async () => {
+    await hideResults(academicYearId, examId, classId);
+    setIsHideModalOpen(false);
+  };
+
+  const handleDelete = async () => {
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    await deleteResults(academicYearId, examId, classId);
+    setIsDeleteModalOpen(false);
   };
 
   const allStudentResults = useMemo(() => {
@@ -161,17 +185,35 @@ const ResultEntry: React.FC = () => {
         </h2>
         {academicYearId && examId && classId && results.length > 0 && (
           <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
-              {isPublished ? 'প্রকাশিত' : 'খসড়া (Draft)'}
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
+              {isPublished ? 'প্রকাশিত' : isHidden ? 'গোপন' : 'খসড়া (Draft)'}
             </span>
             {role === 'admin' && (
-              <button
-                onClick={handlePublish}
-                disabled={isPublished}
-                className={`btn-primary ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E]' : ''}`}
-              >
-                {isPublished ? 'প্রকাশিত' : 'ফলাফল প্রকাশ করুন'}
-              </button>
+              <>
+                <button
+                  onClick={handlePublish}
+                  disabled={isPublished}
+                  className={`btn-primary ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E]' : ''}`}
+                >
+                  {isPublished ? 'প্রকাশিত' : 'ফলাফল প্রকাশ করুন'}
+                </button>
+                {isPublished && (
+                  <button
+                    onClick={handleHide}
+                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    title="ফলাফল গোপন করুন"
+                  >
+                    <EyeOff className="w-5 h-5" />
+                  </button>
+                )}
+                <button
+                  onClick={handleDelete}
+                  className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  title="ফলাফল ডিলিট করুন"
+                >
+                  <Trash2 className="w-5 h-5" />
+                </button>
+              </>
             )}
           </div>
         )}
@@ -268,6 +310,24 @@ const ResultEntry: React.FC = () => {
           onConfirm={confirmPublish}
           title="ফলাফল প্রকাশ করুন"
           message="আপনি কি নিশ্চিত যে আপনি এই ফলাফলটি প্রকাশ করতে চান? একবার প্রকাশিত হলে এটি সবার জন্য দৃশ্যমান হবে।"
+        />
+      )}
+      {isHideModalOpen && (
+        <ConfirmationDialog
+          isOpen={isHideModalOpen}
+          onClose={() => setIsHideModalOpen(false)}
+          onConfirm={confirmHide}
+          title="ফলাফল গোপন করুন"
+          message="আপনি কি নিশ্চিত যে আপনি এই ফলাফলটি গোপন করতে চান? গোপন করলে এটি আর সাধারণ ব্যবহারকারীদের জন্য দৃশ্যমান থাকবে না।"
+        />
+      )}
+      {isDeleteModalOpen && (
+        <ConfirmationDialog
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={confirmDelete}
+          title="ফলাফল ডিলিট করুন"
+          message="আপনি কি নিশ্চিত যে আপনি এই ফলাফলটি ডিলিট করতে চান? এই প্রক্রিয়াটি বাতিল করা যাবে না।"
         />
       )}
     </div>

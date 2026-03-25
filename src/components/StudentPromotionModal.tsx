@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Student, ClassData } from "../types";
-import { X, ArrowRight, UserCheck } from "lucide-react";
+import { X, ArrowRight, UserCheck, GraduationCap } from "lucide-react";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 
@@ -9,8 +9,9 @@ interface StudentPromotionModalProps {
   onClose: () => void;
   sourceClassId: string;
   classes: ClassData[];
+  academicYears?: any[];
   students: Student[];
-  onPromote: (promotions: { studentId: string; newClassId: string; newRoll: number }[]) => Promise<void>;
+  onPromote: (promotions: { studentId: string; newClassId?: string; newRoll?: number; isAlumni?: boolean; graduationYearId?: string }[]) => Promise<void>;
 }
 
 const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
@@ -18,10 +19,12 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
   onClose,
   sourceClassId,
   classes,
+  academicYears = [],
   students,
   onPromote,
 }) => {
   const [targetClassId, setTargetClassId] = useState<string>("");
+  const [graduationYearId, setGraduationYearId] = useState<string>("");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [newRolls, setNewRolls] = useState<{ [key: string]: number }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -38,6 +41,7 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
       });
       setNewRolls(initialRolls);
       setTargetClassId("");
+      setGraduationYearId("");
     }
   }, [isOpen, students]);
 
@@ -73,7 +77,11 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
 
   const handleSubmit = async () => {
     if (!targetClassId) {
-      toast.error("অনুগ্রহ করে নতুন ক্লাস নির্বাচন করুন।");
+      toast.error("অনুগ্রহ করে নতুন ক্লাস বা অ্যালামনাই নির্বাচন করুন।");
+      return;
+    }
+    if (targetClassId === "alumni" && !graduationYearId) {
+      toast.error("অনুগ্রহ করে পাসের শিক্ষাবর্ষ নির্বাচন করুন।");
       return;
     }
     if (selectedStudents.size === 0) {
@@ -83,11 +91,20 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
 
     setIsSubmitting(true);
     try {
-      const promotions = Array.from(selectedStudents).map(studentId => ({
-        studentId,
-        newClassId: targetClassId,
-        newRoll: newRolls[studentId] || 1,
-      }));
+      const promotions = Array.from(selectedStudents).map(studentId => {
+        if (targetClassId === "alumni") {
+          return {
+            studentId,
+            isAlumni: true,
+            graduationYearId,
+          };
+        }
+        return {
+          studentId,
+          newClassId: targetClassId,
+          newRoll: newRolls[studentId] || 1,
+        };
+      });
 
       await onPromote(promotions);
       onClose();
@@ -124,24 +141,43 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
 
         {/* Body */}
         <div className="flex-1 overflow-y-auto p-6">
-          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-center justify-between">
-            <div className="flex items-center gap-3 w-full sm:w-auto">
-              <span className="font-semibold text-gray-700 whitespace-nowrap">নতুন ক্লাস নির্বাচন করুন:</span>
-              <select
-                value={targetClassId}
-                onChange={(e) => setTargetClassId(e.target.value)}
-                className="flex-1 sm:w-64 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              >
-                <option value="">-- ক্লাস নির্বাচন করুন --</option>
-                {classes.filter(c => c.id !== sourceClassId).map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-              </select>
+          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <span className="font-semibold text-gray-700 whitespace-nowrap">নতুন ক্লাস/অবস্থা:</span>
+                <select
+                  value={targetClassId}
+                  onChange={(e) => setTargetClassId(e.target.value)}
+                  className="flex-1 sm:w-64 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                >
+                  <option value="">-- নির্বাচন করুন --</option>
+                  {classes.filter(c => c.id !== sourceClassId).map(c => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                  <option value="alumni" className="font-bold text-teal-600">🎓 প্রাক্তন শিক্ষার্থী (Alumni)</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-1.5 rounded-lg">
+                <ArrowRight className="w-4 h-4" />
+                <span>নির্বাচিত শিক্ষার্থী: {toBengaliNumber(selectedStudents.size)} জন</span>
+              </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-blue-700 bg-blue-100/50 px-3 py-1.5 rounded-lg">
-              <ArrowRight className="w-4 h-4" />
-              <span>নির্বাচিত শিক্ষার্থী: {toBengaliNumber(selectedStudents.size)} জন</span>
-            </div>
+
+            {targetClassId === "alumni" && (
+              <div className="flex items-center gap-3 w-full sm:w-auto mt-2 pt-4 border-t border-blue-200">
+                <span className="font-semibold text-gray-700 whitespace-nowrap">পাসের শিক্ষাবর্ষ:</span>
+                <select
+                  value={graduationYearId}
+                  onChange={(e) => setGraduationYearId(e.target.value)}
+                  className="flex-1 sm:w-64 px-4 py-2 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                >
+                  <option value="">-- শিক্ষাবর্ষ নির্বাচন করুন --</option>
+                  {academicYears.map(year => (
+                    <option key={year.id} value={year.id}>{year.year_name}</option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
 
           <div className="border border-gray-200 rounded-xl overflow-hidden">
@@ -159,7 +195,9 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
                   <th className="p-3 text-sm font-semibold text-gray-600">বর্তমান রোল</th>
                   <th className="p-3 text-sm font-semibold text-gray-600">শিক্ষার্থীর নাম</th>
                   <th className="p-3 text-sm font-semibold text-gray-600">স্টুডেন্ট আইডি</th>
-                  <th className="p-3 text-sm font-semibold text-gray-600 w-32">নতুন রোল</th>
+                  <th className="p-3 text-sm font-semibold text-gray-600 w-32">
+                    {targetClassId === "alumni" ? "অবস্থা" : "নতুন রোল"}
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -182,14 +220,21 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
                       <td className="p-3 font-medium text-gray-900">{student.name}</td>
                       <td className="p-3 text-sm text-gray-500">{student.studentUid || "-"}</td>
                       <td className="p-3">
-                        <input
-                          type="number"
-                          min="1"
-                          value={newRolls[student.id] || ""}
-                          onChange={(e) => handleRollChange(student.id, e.target.value)}
-                          disabled={!isSelected}
-                          className={`w-full px-3 py-1.5 rounded-lg border ${isSelected ? 'border-indigo-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50 text-gray-400'} focus:outline-none`}
-                        />
+                        {targetClassId === "alumni" ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-sm font-medium bg-teal-100 text-teal-800">
+                            <GraduationCap className="w-4 h-4" />
+                            প্রাক্তন
+                          </span>
+                        ) : (
+                          <input
+                            type="number"
+                            min="1"
+                            value={newRolls[student.id] || ""}
+                            onChange={(e) => handleRollChange(student.id, e.target.value)}
+                            disabled={!isSelected}
+                            className={`w-full px-3 py-1.5 rounded-lg border ${isSelected ? 'border-indigo-300 focus:ring-2 focus:ring-indigo-500' : 'border-gray-200 bg-gray-50 text-gray-400'} focus:outline-none`}
+                          />
+                        )}
                       </td>
                     </tr>
                   );

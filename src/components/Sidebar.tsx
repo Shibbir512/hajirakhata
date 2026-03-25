@@ -55,6 +55,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
+    { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
   ] : [];
 
@@ -74,7 +75,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       className={clsx(
-        "fixed inset-y-0 left-0 z-50 w-[260px] h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
+        "fixed inset-y-0 left-0 z-[100] w-[260px] h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
       style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}

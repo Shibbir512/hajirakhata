@@ -34,7 +34,9 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
     );
     
     const unsubResults = onSnapshot(q, (snapshot) => {
-      const loadedResults = snapshot.docs.map((doc) => doc.data() as Result);
+      const loadedResults = snapshot.docs
+        .map((doc) => doc.data() as Result)
+        .filter(result => !result.isDeleted); // Filter out soft-deleted results
       setResults(loadedResults);
       setLoading(false);
     }, (error) => {
@@ -93,7 +95,7 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
           where("academic_year_id", "==", academicYearId),
           where("exam_id", "==", examId),
           where("class_id", "==", classId),
-          where("status", "==", "draft")
+          where("status", "in", ["draft", "hidden"])
         );
         const snapshot = await getDocs(q);
         
@@ -115,5 +117,68 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
     [user, orgId],
   );
 
-  return { results, loading, saveResult, publishResults };
+  const hideResults = useCallback(
+    async (academicYearId: string, examId: string, classId: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        const resultsRef = collection(db, `organizations/${orgId}/results`);
+        const q = query(
+          resultsRef,
+          where("academic_year_id", "==", academicYearId),
+          where("exam_id", "==", examId),
+          where("class_id", "==", classId),
+          where("status", "==", "published")
+        );
+        const snapshot = await getDocs(q);
+        
+        const batch = snapshot.docs.map(d => {
+          return setDoc(d.ref, { 
+            status: 'hidden',
+            updated_by: user.uid,
+            updated_at: Date.now()
+          }, { merge: true });
+        });
+
+        await Promise.all(batch);
+        toast.success("ফলাফল সফলভাবে গোপন করা হয়েছে!");
+      } catch (error) {
+        console.error("Error hiding results:", error);
+        toast.error("ফলাফল গোপন করতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId],
+  );
+
+  const deleteResults = useCallback(
+    async (academicYearId: string, examId: string, classId: string) => {
+      if (!user || !db || !orgId) return;
+      try {
+        const resultsRef = collection(db, `organizations/${orgId}/results`);
+        const q = query(
+          resultsRef,
+          where("academic_year_id", "==", academicYearId),
+          where("exam_id", "==", examId),
+          where("class_id", "==", classId)
+        );
+        const snapshot = await getDocs(q);
+        
+        const batch = snapshot.docs.map(d => {
+          return setDoc(d.ref, { 
+            isDeleted: true,
+            updated_by: user.uid,
+            updated_at: Date.now()
+          }, { merge: true });
+        });
+
+        await Promise.all(batch);
+        toast.success("ফলাফল সফলভাবে ডিলিট করা হয়েছে!");
+      } catch (error) {
+        console.error("Error deleting results:", error);
+        toast.error("ফলাফল ডিলিট করতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId],
+  );
+
+  return { results, loading, saveResult, publishResults, hideResults, deleteResults };
 };

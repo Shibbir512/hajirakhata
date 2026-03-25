@@ -11,6 +11,7 @@ const Dashboard = lazy(() => import("./src/pages/Dashboard"));
 const Attendance = lazy(() => import("./src/pages/Attendance"));
 const AttendanceHistory = lazy(() => import("./src/pages/AttendanceHistory"));
 const Students = lazy(() => import("./src/pages/Students"));
+const Alumni = lazy(() => import("./src/pages/Alumni"));
 const Classes = lazy(() => import("./src/pages/Classes"));
 const ClassDetails = lazy(() => import("./src/pages/ClassDetails"));
 const Reports = lazy(() => import("./src/pages/Reports"));
@@ -28,7 +29,7 @@ const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
 const StudentProfile = lazy(() => import("./src/pages/StudentProfile"));
 const PublicResultView = lazy(() => import("./src/pages/PublicResultView"));
 const PublicClassResult = lazy(() => import("./src/pages/PublicClassResult"));
-const PublicResultSearchPage = lazy(() => import("./src/pages/PublicResultSearch"));
+const PublicResultSearchPage = lazy(() => import("./src/components/PublicResultSearch"));
 
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
@@ -132,8 +133,6 @@ const App: React.FC = () => {
               <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
               <Route path="/public-result/:orgId/:studentId/:examId" element={<PublicResultView />} />
               <Route path="/public-class-result/:orgId/:yearId/:classId/:examId" element={<PublicClassResult />} />
-              <Route path="/result-search" element={<PublicResultSearchPage />} />
-              <Route path="/result-search/:orgId" element={<PublicResultSearchPage />} />
               <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
 
               <Route
@@ -148,6 +147,7 @@ const App: React.FC = () => {
                 <Route path="attendance" element={<Attendance />} />
                 <Route path="attendance/history" element={<AttendanceHistory />} />
                 <Route path="students" element={<Students />} />
+                <Route path="alumni" element={<Alumni />} />
                 <Route path="classes" element={<Classes />} />
                 <Route path="classes/:classId" element={<ClassDetails />} />
                 <Route path="reports" element={<Reports />} />
@@ -162,6 +162,8 @@ const App: React.FC = () => {
                 <Route path="marksheet" element={<Marksheet />} />
                 <Route path="academic-years" element={<AcademicYears />} />
                 <Route path="student-profile/:studentId" element={<StudentProfile />} />
+                <Route path="result-search" element={<PublicResultSearchPage />} />
+                <Route path="result-search/:orgId" element={<PublicResultSearchPage />} />
               </Route>
             </Routes>
           </Suspense>

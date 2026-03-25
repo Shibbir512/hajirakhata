@@ -2,18 +2,24 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Search, Loader2, Award, BookOpen, Calendar, Building2, User, Users } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { toEnglishNumber } from '../utils/dateFormatter';
+import { useAuth } from '../hooks/useAuth';
 
 const PublicResultSearch: React.FC = () => {
   const navigate = useNavigate();
+  const { orgId: urlOrgId } = useParams<{ orgId: string }>();
+  const { orgId: loggedInOrgId } = useAuth();
+  
+  const initialOrgId = loggedInOrgId || urlOrgId || '';
+  
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [academicYears, setAcademicYears] = useState<any[]>([]);
   const [classes, setClasses] = useState<any[]>([]);
   const [exams, setExams] = useState<any[]>([]);
   const [students, setStudents] = useState<any[]>([]);
   
-  const [selectedOrg, setSelectedOrg] = useState('');
+  const [selectedOrg, setSelectedOrg] = useState(initialOrgId);
   const [orgSearchText, setOrgSearchText] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
   const [selectedClass, setSelectedClass] = useState('');
@@ -29,7 +35,15 @@ const PublicResultSearch: React.FC = () => {
   const [showStudentSuggestions, setShowStudentSuggestions] = useState(false);
 
   useEffect(() => {
+    if (initialOrgId) {
+      setSelectedOrg(initialOrgId);
+    }
+  }, [initialOrgId]);
+
+  useEffect(() => {
     const fetchOrganizations = async () => {
+      // Only fetch organizations if we don't have a pre-selected org
+      if (initialOrgId) return;
       try {
         const snapshot = await getDocs(collection(db, 'organizations'));
         const orgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -39,7 +53,7 @@ const PublicResultSearch: React.FC = () => {
       }
     };
     fetchOrganizations();
-  }, []);
+  }, [initialOrgId]);
 
   useEffect(() => {
     if (!selectedOrg) {
@@ -233,7 +247,7 @@ const PublicResultSearch: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0F766E] to-[#14B8A6]">
+    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0F766E] to-[#14B8A6] rounded-3xl shadow-2xl my-4">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">শিক্ষার্থীর ফলাফল অনুসন্ধান</h2>
         <p className="text-teal-50 text-lg">সহজেই ফলাফল খুঁজুন</p>
@@ -265,38 +279,40 @@ const PublicResultSearch: React.FC = () => {
 
         <form onSubmit={handleSearch} className="space-y-4">
           <div className="space-y-4">
-            <div className="relative">
-              <label className="block text-sm font-medium text-slate-700 mb-1">প্রতিষ্ঠান</label>
+            {!initialOrgId && (
               <div className="relative">
-                <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <input
-                  type="text"
-                  value={orgSearchText}
-                  onChange={handleOrgSearchChange}
-                  onFocus={() => setShowOrgSuggestions(true)}
-                  onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 200)}
-                  placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  required
-                />
-                {showOrgSuggestions && orgSearchText && filteredOrganizations.length > 0 && (
-                  <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
-                    {filteredOrganizations.map(org => {
-                      const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
-                      return (
-                        <li
-                          key={org.id}
-                          onClick={() => handleOrgSelect(org)}
-                          className="px-4 py-3 hover:bg-teal-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
-                        >
-                          <span className="font-medium text-teal-700">{orgCode}</span> - {org.name}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <label className="block text-sm font-medium text-slate-700 mb-1">প্রতিষ্ঠান</label>
+                <div className="relative">
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <input
+                    type="text"
+                    value={orgSearchText}
+                    onChange={handleOrgSearchChange}
+                    onFocus={() => setShowOrgSuggestions(true)}
+                    onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 200)}
+                    placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    required
+                  />
+                  {showOrgSuggestions && orgSearchText && filteredOrganizations.length > 0 && (
+                    <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                      {filteredOrganizations.map(org => {
+                        const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
+                        return (
+                          <li
+                            key={org.id}
+                            onClick={() => handleOrgSelect(org)}
+                            className="px-4 py-3 hover:bg-teal-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
+                          >
+                            <span className="font-medium text-teal-700">{orgCode}</span> - {org.name}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
               </div>
-            </div>
+            )}
 
             <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষাবর্ষ</label>
@@ -318,6 +334,27 @@ const PublicResultSearch: React.FC = () => {
             </div>
 
             <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">পরীক্ষা</label>
+              <div className="relative">
+                <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <select
+                  value={selectedExam}
+                  onChange={(e) => setSelectedExam(e.target.value)}
+                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                  required
+                  disabled={!selectedOrg || !selectedYear}
+                >
+                  <option value="">পরীক্ষা নির্বাচন করুন</option>
+                  {exams
+                    .filter(exam => exam.academicYearId === selectedYear)
+                    .map(exam => (
+                    <option key={exam.id} value={exam.id}>{exam.name}</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div>
               <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি</label>
               <div className="relative">
                 <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
@@ -331,25 +368,6 @@ const PublicResultSearch: React.FC = () => {
                   <option value="">শ্রেণি নির্বাচন করুন</option>
                   {classes.map(cls => (
                     <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">পরীক্ষা</label>
-              <div className="relative">
-                <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <select
-                  value={selectedExam}
-                  onChange={(e) => setSelectedExam(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  required
-                  disabled={!selectedOrg}
-                >
-                  <option value="">পরীক্ষা নির্বাচন করুন</option>
-                  {exams.map(exam => (
-                    <option key={exam.id} value={exam.id}>{exam.name}</option>
                   ))}
                 </select>
               </div>

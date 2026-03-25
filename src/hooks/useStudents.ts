@@ -420,7 +420,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   );
 
   const promoteStudents = useCallback(
-    async (promotions: { studentId: string; newClassId: string; newRoll: number }[]) => {
+    async (promotions: { studentId: string; newClassId?: string; newRoll?: number; isAlumni?: boolean; graduationYearId?: string }[]) => {
       if (!user || !db || !orgId) return;
       if (role !== "admin" && role !== "moderator") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
@@ -432,14 +432,22 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         
         for (const promo of promotions) {
           const studentRef = doc(db, `organizations/${orgId}/students`, promo.studentId);
-          batch.update(studentRef, {
-            classId: promo.newClassId,
-            roll: promo.newRoll,
-          });
+          if (promo.isAlumni) {
+            batch.update(studentRef, {
+              isAlumni: true,
+              graduationYearId: promo.graduationYearId,
+              isActive: false, // Mark as inactive so they don't show up in regular lists
+            });
+          } else {
+            batch.update(studentRef, {
+              classId: promo.newClassId,
+              roll: promo.newRoll,
+            });
+          }
         }
 
         await batch.commit();
-        toast.success(`${toBengaliNumber(promotions.length)} জন শিক্ষার্থীকে সফলভাবে প্রমোশন দেওয়া হয়েছে!`);
+        toast.success(`${toBengaliNumber(promotions.length)} জন শিক্ষার্থীকে সফলভাবে প্রমোশন/অ্যালামনাই করা হয়েছে!`);
       } catch (error) {
         console.error("Error promoting students:", error);
         toast.error("শিক্ষার্থীদের প্রমোশন দিতে ব্যর্থ হয়েছে।");

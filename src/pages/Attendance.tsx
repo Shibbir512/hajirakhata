@@ -468,7 +468,7 @@ const Attendance: React.FC = () => {
       {isNotifyModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
               <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
                 <MessageCircle className="w-6 h-6 text-[#25D366]" />
                 অনুপস্থিতদের জানান

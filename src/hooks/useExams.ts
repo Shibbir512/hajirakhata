@@ -39,11 +39,11 @@ export const useExams = (orgId: string | null, user: any) => {
   }, [user, orgId]);
 
   const addExam = useCallback(
-    async (name: string, academicYearId: string, classId: string) => {
+    async (name: string, academicYearId: string, classId: string, examDate?: number, instructions?: string) => {
       if (!user || !db || !orgId) return;
       try {
         const newExamId = `exam-${Date.now()}`;
-        const newExam: Exam = { id: newExamId, institution_id: orgId, name, academicYearId, classId };
+        const newExam: Exam = { id: newExamId, institution_id: orgId, name, academicYearId, classId, examDate, instructions };
         await setDoc(
           doc(db, `organizations/${orgId}/exams`, newExamId),
           newExam,

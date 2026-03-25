@@ -5,6 +5,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
+import { useAcademicYears } from "../hooks/useAcademicYears";
 import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
@@ -30,6 +31,7 @@ const Students: React.FC = () => {
   const navigate = useNavigate();
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
+  const { academicYears } = useAcademicYears(orgId, user);
   const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents } =
     useStudents(orgId, user, role);
 
@@ -741,6 +743,7 @@ const Students: React.FC = () => {
           onClose={() => setIsPromotionModalOpen(false)}
           sourceClassId={selectedClassId}
           classes={classes}
+          academicYears={academicYears}
           students={allStudentsList}
           onPromote={promoteStudents}
         />

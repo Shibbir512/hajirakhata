@@ -10,6 +10,8 @@ export interface Student {
   version?: number;
   isActive?: boolean;
   archivedAt?: number;
+  isAlumni?: boolean;
+  graduationYearId?: string;
 }
 
 export interface ClassData {
@@ -43,6 +45,7 @@ export interface Exam {
   name: string;
   classId: string;
   examDate?: number; // Timestamp
+  instructions?: string;
 }
 
 export interface Result {
@@ -54,7 +57,8 @@ export interface Result {
   exam_id: string;
   subject_id: string;
   marks: number;
-  status: 'draft' | 'published';
+  status: 'draft' | 'published' | 'hidden';
+  isDeleted?: boolean;
   created_by: string;
   updated_by: string;
   created_at: number;

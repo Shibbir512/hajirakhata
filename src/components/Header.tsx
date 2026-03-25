@@ -54,7 +54,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
 
   return (
     <header 
-      className="text-white flex items-center justify-between px-4 md:px-8 z-[60]"
+      className="text-white flex items-center justify-between px-4 md:px-8 z-[90]"
       style={{ 
         height: '70px',
         background: 'linear-gradient(to right, #14B8A6, #3B82F6)',
