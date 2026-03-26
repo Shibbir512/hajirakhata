@@ -508,27 +508,27 @@ const Marksheet: React.FC = () => {
                       <>
                         {isEditing ? (
                           <>
-                            <button onClick={saveResults} className="btn-primary h-9 px-3 text-sm" title={t.save}>
+                            <button onClick={saveResults} className="btn-primary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap" title={t.save}>
                                 {t.save}
                             </button>
-                            <button onClick={() => setIsEditing(false)} className="btn-outline h-9 px-3 text-sm" title={t.cancel}>
+                            <button onClick={() => setIsEditing(false)} className="btn-outline h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap" title={t.cancel}>
                                 {t.cancel}
                             </button>
                           </>
                         ) : (
-                          <button onClick={() => setIsEditing(true)} className="btn-secondary h-9 px-3 text-sm" title={t.edit}>
+                          <button onClick={() => setIsEditing(true)} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap" title={t.edit}>
                               {t.edit}
                           </button>
                         )}
                       </>
                     )}
-                    <button onClick={handlePrint} className="btn-secondary h-9 px-3" title={t.print}>
+                    <button onClick={handlePrint} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.print}>
                         <Printer className="w-4 h-4" />
                     </button>
-                    <button onClick={exportToPDF} className="btn-secondary h-9 px-3" title="PDF">
+                    <button onClick={exportToPDF} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title="PDF">
                         <Download className="w-4 h-4" />
                     </button>
-                    <button onClick={handleShare} className="btn-secondary h-9 px-3" title={t.share}>
+                    <button onClick={handleShare} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.share}>
                         <Share2 className="w-4 h-4" />
                     </button>
                 </div>

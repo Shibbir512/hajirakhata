@@ -241,43 +241,41 @@ const Attendance: React.FC = () => {
         </div>
       )}
 
-      <div className="card-premium p-8">
-        <div className="flex justify-center mb-8">
+      <div className="card-premium p-6 sm:p-8">
+        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
           <div className="relative w-full max-w-md">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full text-[16px] font-medium text-slate-700 bg-white appearance-none px-4 pr-10 outline-none focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A] transition-all"
-              style={{ height: '50px', borderRadius: '16px', border: '1px solid #D1D5DB' }}
+              className="w-full pl-12 pr-10 h-[50px] bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-sm text-lg"
             >
-              <option value="" className="text-slate-500 font-normal text-[16px]">শ্রেণি নির্বাচন করুন</option>
+              <option value="">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
-                <option key={cls.id} value={cls.id} className="text-[16px] font-medium">
+                <option key={cls.id} value={cls.id}>
                   {cls.name}
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
         </div>
 
         {selectedClassId ? (
           <>
-            <div className="flex flex-wrap gap-2 sm:gap-3 mb-6">
+            <div className="flex flex-col sm:flex-row gap-3 mb-6">
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
-                className="text-white font-bold px-4 py-2 hover:bg-emerald-600 transition-all duration-300 flex items-center justify-center gap-2"
-                style={{ backgroundColor: '#22C55E', borderRadius: '14px', height: '44px' }}
+                className="w-full sm:w-auto h-[48px] px-6 bg-[#22C55E] text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
               >
-                <CheckCircle className="w-4 h-4" />
+                <CheckCircle className="w-5 h-5" />
                 সবাই উপস্থিত
               </button>
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
-                className="text-[#EF4444] font-bold px-4 py-2 hover:bg-rose-50 transition-all duration-300 flex items-center justify-center gap-2"
-                style={{ backgroundColor: 'white', border: '1px solid #EF4444', borderRadius: '14px', height: '44px' }}
+                className="w-full sm:w-auto h-[48px] px-6 bg-white text-[#EF4444] border-2 border-[#EF4444] font-bold rounded-xl hover:bg-rose-50 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
               >
-                <XCircle className="w-4 h-4" />
+                <XCircle className="w-5 h-5" />
                 সবাই অনুপস্থিত
               </button>
             </div>
@@ -425,7 +423,7 @@ const Attendance: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isTakingAttendance}
-                className="btn-primary px-8 py-3 text-base"
+                className="btn-primary px-8 py-3 text-base w-full sm:w-auto"
                 style={{ backgroundColor: '#0F5C7A' }}
               >
                 {isTakingAttendance ? (
@@ -439,7 +437,7 @@ const Attendance: React.FC = () => {
               {liveCounter.absent > 0 && (
                 <button
                   onClick={() => setIsNotifyModalOpen(true)}
-                  className="px-8 py-3 text-base font-bold text-white rounded-[16px] flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5"
+                  className="px-8 py-3 text-base font-bold text-white rounded-[16px] flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 w-full sm:w-auto"
                   style={{ backgroundColor: '#25D366' }}
                 >
                   <MessageCircle className="w-5 h-5 mr-2" />

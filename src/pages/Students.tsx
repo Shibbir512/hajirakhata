@@ -6,7 +6,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -254,17 +254,17 @@ const Students: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থী</h2>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
           {selectedStudents.size > 0 && (
-            <button
-              onClick={handleDeleteSelected}
-              className="bg-rose-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-rose-700 transition-colors flex items-center gap-2"
-            >
-              <Trash2 className="w-4 h-4" />
-              মুছে ফেলুন ({toBengaliNumber(selectedStudents.size)})
-            </button>
+          <button
+            onClick={handleDeleteSelected}
+            className="btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            মুছে ফেলুন ({toBengaliNumber(selectedStudents.size)})
+          </button>
           )}
-          <div className="grid grid-cols-2 sm:flex sm:flex-wrap gap-3 w-full sm:w-auto">
+          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 w-full md:w-auto">
           <input
             type="file"
             ref={fileInputRef}
@@ -276,7 +276,7 @@ const Students: React.FC = () => {
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedClassId}
             className={clsx(
-              "btn-primary",
+              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
               !selectedClassId && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -287,7 +287,7 @@ const Students: React.FC = () => {
             onClick={() => setIsPromotionModalOpen(true)}
             disabled={!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0}
             className={clsx(
-              "bg-indigo-600 text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center gap-2",
+              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
               (!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -298,7 +298,7 @@ const Students: React.FC = () => {
             onClick={() => fileInputRef.current?.click()}
             disabled={!selectedClassId}
             className={clsx(
-              "btn-secondary",
+              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
               !selectedClassId && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -309,7 +309,7 @@ const Students: React.FC = () => {
             onClick={() => handleExport('csv')}
             disabled={allStudentsList.length === 0}
             className={clsx(
-              "btn-outline",
+              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
               (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -320,7 +320,7 @@ const Students: React.FC = () => {
             onClick={() => handleExport('docx')}
             disabled={allStudentsList.length === 0}
             className={clsx(
-              "btn-outline",
+              "btn-primary w-full md:w-auto whitespace-nowrap col-span-2 md:col-span-1 !h-[44px] !py-2",
               (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
@@ -337,7 +337,7 @@ const Students: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-base font-bold text-center text-[#078388] bg-white appearance-none pr-10 rounded-xl py-3 shadow-sm border-[#048791] focus:border-[#048791] focus:ring-2 focus:ring-[#048791]/20 transition-all"
+              className="w-full text-[18px] font-bold text-center text-[#0a7e7d] bg-[#fbfbfb] border-2 border-[#0b9a89] appearance-none pr-10 rounded-xl py-3 shadow-sm focus:border-[#0b9a89] focus:ring-2 focus:ring-[#0b9a89]/20 transition-all"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (

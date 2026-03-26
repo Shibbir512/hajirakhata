@@ -3,7 +3,7 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { db } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Search, GraduationCap, User, Calendar, BookOpen } from "lucide-react";
+import { Search, GraduationCap, User, Calendar, BookOpen, ChevronDown } from "lucide-react";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import StudentHistoryModal from "../components/StudentHistoryModal";
 import { Student } from "../types";

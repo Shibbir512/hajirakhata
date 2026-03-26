@@ -2,7 +2,7 @@ import React, { useState, useMemo } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useSubjects } from "../hooks/useSubjects";
-import { Plus, Edit, Trash2, Book, X } from "lucide-react";
+import { Plus, Edit, Trash2, Book, X, Users, ChevronDown } from "lucide-react";
 import { Subject } from "../types";
 import clsx from "clsx";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -88,7 +88,7 @@ const Subjects: React.FC = () => {
               <option key={c.id} value={c.id}>{c.name}</option>
             ))}
           </select>
-          <button onClick={openAddModal} className="btn-primary">
+          <button onClick={openAddModal} className="btn-primary w-full sm:w-auto whitespace-nowrap">
             <Plus className="w-4 h-4" />
             নতুন বিষয়
           </button>

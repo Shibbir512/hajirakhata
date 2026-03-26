@@ -388,7 +388,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={handleSavePhone}
                   disabled={isSavingPhone || userPhone === (phone || "")}
-                  className="px-4 py-2 bg-[#0F5C7A] text-white rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-[#0C6C8A] transition-colors"
+                  className="px-4 py-2 bg-[#0F5C7A] text-white rounded-xl font-medium text-sm disabled:opacity-50 hover:bg-[#0C6C8A] transition-colors w-full sm:w-auto whitespace-nowrap"
                 >
                   {isSavingPhone ? "..." : "সেভ"}
                 </button>
@@ -430,13 +430,13 @@ const Settings: React.FC = () => {
               <label className="block text-sm font-medium text-slate-700 mb-1">
                 অর্গানাইজেশন আইডি (সিস্টেম)
               </label>
-              <div className="flex items-center gap-2">
-                <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-sm shadow-inner">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+                <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-sm shadow-inner overflow-x-auto">
                   {orgId}
                 </code>
                 <button
                   onClick={handleCopyId}
-                  className="px-4 py-3 text-sm font-medium text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20"
+                  className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
                 >
                   কপি
                 </button>
@@ -451,7 +451,7 @@ const Settings: React.FC = () => {
                 <label className="block text-sm font-medium text-slate-700 mb-1">
                   পাবলিক প্রতিষ্ঠান আইডি
                 </label>
-                <div className="flex items-center gap-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                   <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-lg font-bold shadow-inner text-center tracking-widest">
                     {orgCode}
                   </code>
@@ -460,7 +460,7 @@ const Settings: React.FC = () => {
                       navigator.clipboard.writeText(orgCode);
                       toast.success("পাবলিক প্রতিষ্ঠান আইডি কপি করা হয়েছে!");
                     }}
-                    className="px-4 py-3 text-sm font-medium text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20"
+                    className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
                   >
                     কপি
                   </button>
@@ -476,7 +476,7 @@ const Settings: React.FC = () => {
                 <button
                   onClick={handleSaveOrg}
                   disabled={isSaving || !orgName.trim() || orgName === visitedOrgs[orgId || ""]}
-                  className="btn-primary w-full py-3 text-base"
+                  className="btn-primary w-full h-[48px] text-base font-bold shadow-sm"
                 >
                   {isSaving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
                 </button>

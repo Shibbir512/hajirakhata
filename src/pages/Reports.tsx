@@ -19,7 +19,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Download, Calendar, ChevronDown } from "lucide-react";
+import { Download, Calendar, ChevronDown, Users } from "lucide-react";
 import clsx from "clsx";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";

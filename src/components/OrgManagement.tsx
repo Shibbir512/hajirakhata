@@ -136,17 +136,17 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                   ))}
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-2 gap-3">
+                <div className="mt-6 pt-6 border-t border-slate-100 grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <button
                     onClick={() => setMode("join")}
-                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm"
+                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm group"
                   >
                     <LogIn className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0F5C7A]" />
                     <span className="text-sm font-bold">অন্যটিতে যোগ দিন</span>
                   </button>
                   <button
                     onClick={() => setMode("create")}
-                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm"
+                    className="flex flex-col items-center justify-center p-5 bg-slate-50 hover:bg-[#0F5C7A]/10 rounded-2xl transition-all duration-300 text-slate-600 hover:text-[#0F5C7A] border border-slate-100 hover:border-[#0F5C7A]/10 hover:shadow-sm group"
                   >
                     <Plus className="w-6 h-6 mb-3 text-slate-400 group-hover:text-[#0F5C7A]" />
                     <span className="text-sm font-bold">নতুন তৈরি করুন</span>
@@ -154,17 +154,17 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                 </div>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="flex flex-col gap-3">
                 <button
                   onClick={() => setMode("create")}
-                  className="bg-white text-[#0F5C7A] border border-[#0F5C7A]/10 shadow-sm hover:shadow-md hover:bg-[#0F5C7A]/10 transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold"
+                  className="bg-white text-[#0F5C7A] border border-[#0F5C7A]/10 shadow-sm hover:shadow-md hover:bg-[#0F5C7A]/10 transition-all duration-300 w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold whitespace-nowrap"
                 >
                   <Plus className="w-5 h-5" />
                   নতুন প্রতিষ্ঠান যুক্ত করুন
                 </button>
                 <button
                   onClick={() => setMode("join")}
-                  className="w-full flex items-center justify-center gap-2 py-4 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm"
+                  className="w-full flex items-center justify-center gap-2 py-4 bg-white border-2 border-slate-100 text-slate-700 rounded-2xl font-bold hover:bg-slate-50 hover:border-slate-200 transition-all shadow-sm whitespace-nowrap"
                 >
                   <LogIn className="w-5 h-5 text-slate-400" />
                   বিদ্যমান প্রতিষ্ঠানে যোগ দিন
@@ -207,11 +207,11 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
                 />
               </div>
             </div>
-            <div className="flex gap-3 pt-2">
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
               <button
                 type="button"
                 onClick={() => setMode("select")}
-                className="bg-white text-slate-600 border border-slate-200 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all duration-300 flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded-2xl font-bold"
+                className="h-[48px] bg-white text-slate-600 border border-slate-200 shadow-sm hover:shadow-md hover:bg-slate-50 transition-all duration-300 flex-1 flex items-center justify-center gap-2 px-4 rounded-2xl font-bold w-full sm:w-auto whitespace-nowrap"
               >
                 <ArrowLeft className="w-4 h-4" />
                 ফিরে যান
@@ -219,7 +219,7 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
               <button
                 type="submit"
                 disabled={loading || !input.trim()}
-                className="bg-[#0F5C7A] text-white shadow-md hover:shadow-lg hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 py-3 rounded-2xl font-bold"
+                className="h-[48px] bg-[#0F5C7A] text-white shadow-md hover:shadow-lg hover:bg-[#0F5C7A]/90 hover:-translate-y-0.5 transition-all duration-300 flex-1 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 px-4 rounded-2xl font-bold w-full sm:w-auto whitespace-nowrap"
               >
                 {loading
                   ? "প্রক্রিয়াধীন..."

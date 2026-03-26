@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useClasses } from "../hooks/useClasses";
-import { Plus, Edit, Trash2, FileText, X, Info } from "lucide-react";
+import { Plus, Edit, Trash2, FileText, X, Info, Calendar, Users, ChevronDown } from "lucide-react";
 import { Exam } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
@@ -69,16 +69,18 @@ const Exams: React.FC = () => {
           <FileText className="w-6 h-6 text-[#0F5C7A]" />
           পরীক্ষা ব্যবস্থাপনা
         </h2>
-        <div className="flex gap-2">
-          <select value={filterAcademicYear} onChange={(e) => setFilterAcademicYear(e.target.value)} className="p-2 border rounded-lg text-sm">
-            <option value="">সব শিক্ষাবর্ষ</option>
-            {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.year_name}</option>)}
-          </select>
-          <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="p-2 border rounded-lg text-sm">
-            <option value="">সব শ্রেণি</option>
-            {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-          </select>
-          <button onClick={openAddModal} className="btn-primary">
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
+          <div className="flex gap-2 w-full sm:w-auto">
+            <select value={filterAcademicYear} onChange={(e) => setFilterAcademicYear(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
+              <option value="">সব শিক্ষাবর্ষ</option>
+              {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.year_name}</option>)}
+            </select>
+            <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
+              <option value="">সব শ্রেণি</option>
+              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
+            </select>
+          </div>
+          <button onClick={openAddModal} className="btn-primary w-full sm:w-auto whitespace-nowrap">
             <Plus className="w-4 h-4" />
             নতুন পরীক্ষা
           </button>

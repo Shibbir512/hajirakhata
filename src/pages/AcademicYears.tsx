@@ -50,7 +50,7 @@ const AcademicYears: React.FC = () => {
           <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
           শিক্ষাবর্ষ ব্যবস্থাপনা
         </h2>
-        <button onClick={openAddModal} className="btn-primary">
+        <button onClick={openAddModal} className="btn-primary w-full sm:w-auto h-[42px] px-4 text-sm font-bold shadow-sm whitespace-nowrap flex items-center justify-center gap-2">
           <Plus className="w-4 h-4" />
           নতুন শিক্ষাবর্ষ
         </button>

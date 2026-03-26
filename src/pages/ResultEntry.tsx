@@ -184,23 +184,23 @@ const ResultEntry: React.FC = () => {
           ফলাফল এন্ট্রি (Spreadsheet Mode)
         </h2>
         {academicYearId && examId && classId && results.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className={`px-3 py-1 rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'}`}>
+          <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+            <span className={`px-4 h-[42px] flex items-center rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'} whitespace-nowrap`}>
               {isPublished ? 'প্রকাশিত' : isHidden ? 'গোপন' : 'খসড়া (Draft)'}
             </span>
             {role === 'admin' && (
-              <>
+              <div className="flex items-center gap-2 w-full sm:w-auto">
                 <button
                   onClick={handlePublish}
                   disabled={isPublished}
-                  className={`btn-primary ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E]' : ''}`}
+                  className={`h-[42px] px-6 rounded-xl font-bold transition-all duration-300 shadow-sm w-full sm:w-auto whitespace-nowrap ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E] text-white' : 'bg-[#0F5C7A] text-white hover:bg-[#0D4D66]'}`}
                 >
                   {isPublished ? 'প্রকাশিত' : 'ফলাফল প্রকাশ করুন'}
                 </button>
                 {isPublished && (
                   <button
                     onClick={handleHide}
-                    className="p-2 text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-lg transition-colors"
+                    className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl border border-slate-200 transition-colors bg-white"
                     title="ফলাফল গোপন করুন"
                   >
                     <EyeOff className="w-5 h-5" />
@@ -208,12 +208,12 @@ const ResultEntry: React.FC = () => {
                 )}
                 <button
                   onClick={handleDelete}
-                  className="p-2 text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors"
+                  className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-200 transition-colors bg-white"
                   title="ফলাফল ডিলিট করুন"
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
-              </>
+              </div>
             )}
           </div>
         )}

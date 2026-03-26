@@ -5,7 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown } from "lucide-react";
+import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, Calendar, Users } from "lucide-react";
 import { Result } from "../types";
 import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -443,31 +443,31 @@ const ResultReports: React.FC = () => {
                 {(role === 'admin' || role === 'teacher') && (
                   isEditing ? (
                     <>
-                      <button onClick={saveAllResults} className="btn-primary bg-emerald-600 hover:bg-emerald-700 h-9 px-3 text-sm">
+                      <button onClick={saveAllResults} className="btn-primary bg-emerald-600 hover:bg-emerald-700 h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                         <Save className="w-4 h-4" />
                         সংরক্ষণ করুন
                       </button>
-                      <button onClick={() => { setIsEditing(false); fetchResults(); }} className="btn-secondary h-9 px-3 text-sm">
+                      <button onClick={() => { setIsEditing(false); fetchResults(); }} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                         <X className="w-4 h-4" />
                         বাতিল
                       </button>
                     </>
                   ) : (
-                    <button onClick={() => setIsEditing(true)} className="btn-primary h-9 px-3 text-sm">
+                    <button onClick={() => setIsEditing(true)} className="btn-primary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                       <Edit2 className="w-4 h-4" />
                       এডিট মোড
                     </button>
                   )
                 )}
-                <button onClick={handlePrint} className="btn-secondary h-9 px-3 text-sm">
+                <button onClick={handlePrint} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Printer className="w-4 h-4" />
                   প্রিন্ট করুন
                 </button>
-                <button onClick={exportToDOCX} className="btn-secondary h-9 px-3 text-sm">
+                <button onClick={exportToDOCX} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Download className="w-4 h-4" />
                   DOCX
                 </button>
-                <button onClick={exportToPDF} className="btn-secondary h-9 px-3 text-sm">
+                <button onClick={exportToPDF} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Download className="w-4 h-4" />
                   PDF
                 </button>
