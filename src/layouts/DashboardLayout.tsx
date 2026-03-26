@@ -11,7 +11,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 
 const DashboardLayout: React.FC = () => {
-  const { orgId, loading, role, user, status, logout } = useAuth();
+  const { orgId, loading, role, user, status, logout, notificationPreferences } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -38,7 +38,7 @@ const DashboardLayout: React.FC = () => {
 
   // Listen for pending sign-up requests (Super Admin only)
   useEffect(() => {
-    if (!user || user.email !== "shibbir.ahma.2025@gmail.com" || !db) return;
+    if (!user || user.email !== "shibbir.ahma.2025@gmail.com" || !db || notificationPreferences?.signupRequests === false) return;
 
     const q = query(collection(db, "users"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -86,11 +86,11 @@ const DashboardLayout: React.FC = () => {
     });
 
     return () => unsubscribe();
-  }, [user, db, navigate]);
+  }, [user, db, navigate, notificationPreferences?.signupRequests]);
 
   // Listen for pending join requests (Org Admin only)
   useEffect(() => {
-    if (!user || !orgId || role !== "admin" || !db) return;
+    if (!user || !orgId || role !== "admin" || !db || notificationPreferences?.joinRequests === false) return;
 
     const q = query(collection(db, "users"), where(`roles.${orgId}`, "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -138,7 +138,7 @@ const DashboardLayout: React.FC = () => {
     });
 
     return () => unsubscribe();
-  }, [user, orgId, role, db, navigate]);
+  }, [user, orgId, role, db, navigate, notificationPreferences?.joinRequests]);
 
   // Handle mobile hardware back button
   useEffect(() => {

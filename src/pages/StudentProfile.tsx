@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { motion } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useAcademicYears } from "../hooks/useAcademicYears";
@@ -264,6 +265,21 @@ const StudentProfile: React.FC = () => {
     }
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: "easeOut" as const } }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
@@ -275,123 +291,173 @@ const StudentProfile: React.FC = () => {
   if (!student) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] p-4 md:p-8">
-      <div className="max-w-5xl mx-auto space-y-6">
-        <div className="flex items-center gap-4 mb-2">
+    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-12">
+      {/* Header Section */}
+      <div className="bg-gradient-to-r from-[#0F9D8A] to-[#3B82F6] pt-8 pb-24 px-4 rounded-b-[32px] shadow-lg relative z-0">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
           <Link
             to="/students"
-            className="w-10 h-10 flex items-center justify-center bg-white hover:bg-slate-100 rounded-full transition-colors shadow-sm"
+            className="w-10 h-10 flex items-center justify-center bg-white/20 backdrop-blur-md hover:bg-white/30 rounded-full transition-all text-white shadow-sm active:scale-95"
             aria-label="Back"
           >
-            <ArrowLeft className="w-6 h-6 text-slate-600" />
+            <ArrowLeft className="w-5 h-5" />
           </Link>
-          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থীর প্রোফাইল</h2>
+          <h2 className="text-lg font-semibold text-white tracking-wide">শিক্ষার্থীর প্রোফাইল</h2>
+          <div className="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center shadow-[0_0_15px_rgba(255,255,255,0.3)] border border-white/20">
+            <User className="w-5 h-5 text-white" />
+          </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Student Info Card */}
-          <div className="lg:col-span-1 bg-white rounded-3xl shadow-sm border border-[#E2E8F0] overflow-hidden">
-            {/* Gradient Header */}
-            <div className="h-32 bg-gradient-to-br from-[#14B8A6] to-[#0F766E]"></div>
+      <div className="max-w-5xl mx-auto px-4 -mt-16 relative z-10">
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+        >
+          {/* Left Column: Profile & Stats & Info */}
+          <div className="lg:col-span-1 space-y-6">
             
-            <div className="px-6 pb-6 -mt-12">
-              <div className="flex flex-col items-center text-center">
-                <div className="relative w-[72px] h-[72px] md:w-[88px] md:h-[88px] rounded-full bg-white shadow-[0_4px_12px_rgba(0,0,0,0.1)] flex items-center justify-center overflow-hidden mb-4">
-                  {/* Content */}
-                  <User className="w-10 h-10 md:w-12 md:h-12 text-[#0F766E]" />
+            {/* Profile Card (Hero Section) */}
+            <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-xl rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 overflow-hidden relative">
+              {/* Top gradient header inside card */}
+              <div className="h-24 bg-gradient-to-br from-[#0F9D8A]/10 to-[#3B82F6]/10 relative">
+                {/* Glass effect overlay */}
+                <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+              </div>
+              
+              <div className="px-6 pb-8 -mt-12 relative flex flex-col items-center text-center">
+                <div className="relative w-24 h-24 rounded-full bg-white shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white">
+                  <User className="w-12 h-12 text-[#0F9D8A]" />
                 </div>
-                <h3 className="text-2xl font-bold text-slate-900">{student.name}</h3>
+                
+                <h3 className="text-2xl font-bold text-slate-800 tracking-tight">{student.name}</h3>
+                
                 {student.isActive === false && (
-                  <span className="px-3 py-1 bg-rose-100 text-rose-600 text-xs font-bold rounded-full mt-2">
+                  <span className="px-3 py-1 bg-rose-100 text-rose-600 text-xs font-bold rounded-full mt-2 shadow-sm">
                     আর্কাইভ করা
                   </span>
                 )}
-                <p className="text-[#0F766E] font-mono text-sm font-bold mt-1">ID: {student.studentUid || "N/A"}</p>
-                <p className="text-slate-500 text-sm">রোল: {toBengaliNumber(student.roll)}</p>
+                
+                <div className="flex items-center gap-2 mt-2 text-sm">
+                  <span className="text-slate-500 font-medium">ID: <span className="text-[#3B82F6] font-mono font-bold">{student.studentUid || "N/A"}</span></span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
+                  <span className="text-slate-500 font-medium">রোল: <span className="text-slate-700 font-bold">{toBengaliNumber(student.roll)}</span></span>
+                </div>
+
+                {/* Edit Button */}
                 <button
                   onClick={() => setEditingStudent(student)}
-                  className="mt-4 p-3 bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-full transition-all hover:shadow-lg shadow-md"
+                  className="absolute top-6 right-6 w-12 h-12 bg-gradient-to-br from-[#0F9D8A] to-[#22C55E] text-white rounded-full flex items-center justify-center shadow-[0_8px_20px_rgba(34,197,94,0.3)] hover:shadow-[0_12px_25px_rgba(34,197,94,0.4)] transition-all active:scale-95"
                   aria-label="Edit Profile"
                 >
-                  <Pencil className="w-4 h-4" />
+                  <Pencil className="w-5 h-5" />
                 </button>
               </div>
+            </motion.div>
 
-              <div className="grid grid-cols-2 gap-4 pt-6">
-                <div className="bg-emerald-50 p-4 rounded-2xl text-center border border-emerald-100">
-                  <p className="text-[10px] uppercase font-bold text-emerald-600 mb-1">উপস্থিত</p>
-                  <p className="text-2xl font-bold text-emerald-700">{toBengaliNumber(attendanceStats.present)}</p>
+            {/* Stats Section */}
+            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
+              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#22C55E]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="w-12 h-12 rounded-full bg-[#22C55E]/10 flex items-center justify-center shrink-0 shadow-inner">
+                  <CheckCircle className="w-6 h-6 text-[#22C55E]" />
                 </div>
-                <div className="bg-rose-50 p-4 rounded-2xl text-center border border-rose-100">
-                  <p className="text-[10px] uppercase font-bold text-rose-600 mb-1">অনুপস্থিত</p>
-                  <p className="text-2xl font-bold text-rose-700">{toBengaliNumber(attendanceStats.absent)}</p>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 mb-0.5">উপস্থিত</p>
+                  <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.present)}</p>
                 </div>
               </div>
 
-              <div className="space-y-4 pt-6">
-                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm text-slate-500">শ্রেণি:</span>
-                  <span className="font-bold text-slate-900">
-                    {classes.find(c => c.id === student.classId)?.name || "N/A"}
-                  </span>
+              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-[#EF4444]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="w-12 h-12 rounded-full bg-[#EF4444]/10 flex items-center justify-center shrink-0 shadow-inner">
+                  <XCircle className="w-6 h-6 text-[#EF4444]" />
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm text-slate-500">পিতার নাম:</span>
-                  <span className="font-bold text-slate-900">{student.fatherName || "-"}</span>
+                <div>
+                  <p className="text-xs font-medium text-slate-500 mb-0.5">অনুপস্থিত</p>
+                  <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.absent)}</p>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm text-slate-500">ফোন:</span>
-                  <span className="font-bold text-slate-900">
+              </div>
+            </motion.div>
+
+            {/* Info Section */}
+            <motion.div variants={itemVariants} className="space-y-4">
+              <div className="flex items-center gap-2 px-2 mb-2">
+                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                  <User className="w-4 h-4 text-[#3B82F6]" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-800">ব্যক্তিগত তথ্য</h4>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">শ্রেণি</p>
+                  <p className="font-bold text-slate-800">{classes.find(c => c.id === student.classId)?.name || "N/A"}</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">পিতার নাম</p>
+                  <p className="font-bold text-slate-800">{student.fatherName || "-"}</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">ফোন</p>
+                  <p className="font-bold text-slate-800">
                     {student.phone ? (
-                      <a href={`tel:${student.phone}`} className="hover:text-[#0F766E] transition-colors">{student.phone}</a>
+                      <a href={`tel:${student.phone}`} className="hover:text-[#3B82F6] transition-colors">{student.phone}</a>
                     ) : "-"}
-                  </span>
+                  </p>
                 </div>
-                <div className="flex justify-between items-center p-4 bg-slate-50 rounded-2xl">
-                  <span className="text-sm text-slate-500">ঠিকানা:</span>
-                  <span className="font-bold text-slate-900 text-right">{student.address || "-"}</span>
+                
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">ঠিকানা</p>
+                  <p className="font-bold text-slate-800">{student.address || "-"}</p>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
 
-          {/* Academic History */}
-          <div className="lg:col-span-2 space-y-6">
-            <div className="bg-white p-6 rounded-3xl shadow-lg shadow-slate-100/50 border border-[#E2E8F0]">
-              <h3 className="text-xl font-bold text-slate-900 mb-6 flex items-center gap-2">
-                <BookOpen className="w-6 h-6 text-[#0F766E]" />
-                একাডেমিক ইতিহাস
-              </h3>
+          {/* Right Column: Academic History */}
+          <motion.div variants={itemVariants} className="lg:col-span-2">
+            <div className="flex items-center gap-2 px-2 mb-4">
+              <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-[#0F9D8A]" />
+              </div>
+              <h4 className="text-lg font-bold text-slate-800">একাডেমিক ইতিহাস</h4>
+            </div>
 
+            <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="text-slate-500 border-b border-slate-100">
-                      <th className="py-4 px-4 text-xs font-bold uppercase">শিক্ষাবর্ষ</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase">পরীক্ষা</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase">শ্রেণি</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase text-center">মোট নম্বর</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase text-center">শতকরা</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase text-center">বিভাগ</th>
-                      <th className="py-4 px-4 text-xs font-bold uppercase text-center">মেধাক্রম</th>
+                    <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">শিক্ষাবর্ষ</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">পরীক্ষা</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">শ্রেণি</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">মোট নম্বর</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">শতকরা</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">বিভাগ</th>
+                      <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">মেধাক্রম</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-slate-50">
                     {academicHistory.length > 0 ? (
                       academicHistory.map((item, idx) => (
-                        <tr key={`${item.academicYear}-${item.exam}-${item.class}`} className="hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0">
-                          <td className="py-4 px-4 text-sm font-medium text-slate-900">{item.academicYear}</td>
-                          <td className="py-4 px-4 text-sm text-slate-700">{item.exam}</td>
-                          <td className="py-4 px-4 text-sm text-slate-700">{item.class}</td>
-                          <td className="py-4 px-4 text-sm text-slate-900 text-center font-bold">{toBengaliNumber(item.totalMarks)}</td>
-                          <td className="py-4 px-4 text-sm text-slate-700 text-center">{toBengaliNumber(item.percentage)}%</td>
-                          <td className="py-4 px-4 text-sm font-bold text-[#0F766E] text-center">{item.grade}</td>
-                          <td className="py-4 px-4 text-sm font-bold text-[#0F766E] text-center">{item.rank}</td>
+                        <tr key={`${item.academicYear}-${item.exam}-${item.class}`} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="py-4 px-5 text-sm font-medium text-slate-800">{item.academicYear}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600">{item.exam}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600">{item.class}</td>
+                          <td className="py-4 px-5 text-sm text-slate-800 text-center font-bold">{toBengaliNumber(item.totalMarks)}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600 text-center">{toBengaliNumber(item.percentage)}%</td>
+                          <td className="py-4 px-5 text-sm font-bold text-[#0F9D8A] text-center">{item.grade}</td>
+                          <td className="py-4 px-5 text-sm font-bold text-[#3B82F6] text-center">{item.rank}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-slate-400 italic">
+                        <td colSpan={7} className="py-10 text-center text-slate-400 text-sm">
                           কোন ফলাফল পাওয়া যায়নি।
                         </td>
                       </tr>
@@ -400,8 +466,9 @@ const StudentProfile: React.FC = () => {
                 </table>
               </div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
+        
         {editingStudent && (
           <StudentEditModal
             student={editingStudent}

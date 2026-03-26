@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2 } from "lucide-react";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser, updateProfile } from "firebase/auth";
 import { db, auth } from "../firebase";
 import toast from "react-hot-toast";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled } = useAuth();
+  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -25,6 +25,22 @@ const Settings: React.FC = () => {
   const [orgCode, setOrgCode] = useState("");
 
   const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+
+  const handleToggleNotificationPreference = async (key: 'signupRequests' | 'joinRequests') => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      const newPreferences = {
+        ...notificationPreferences,
+        [key]: !notificationPreferences?.[key]
+      };
+      await updateDoc(userRef, { notificationPreferences: newPreferences });
+      toast.success("নোটিফিকেশন সেটিংস আপডেট করা হয়েছে।");
+    } catch (error) {
+      console.error("Error updating notification preferences:", error);
+      toast.error("নোটিফিকেশন সেটিংস আপডেট করতে ব্যর্থ হয়েছে।");
+    }
+  };
 
   const toggleApproval = async () => {
     setIsTogglingApproval(true);
@@ -480,6 +496,67 @@ const Settings: React.FC = () => {
                 >
                   {isSaving ? "সংরক্ষণ হচ্ছে..." : "পরিবর্তন সংরক্ষণ করুন"}
                 </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Notification Preferences Section */}
+        <div className="col-span-1 md:col-span-2 card-premium p-8">
+          <div className="flex items-center gap-4 mb-8">
+            <div className="w-14 h-14 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center text-[#0F5C7A] shadow-inner border border-white">
+              <Bell className="w-7 h-7" />
+            </div>
+            <div>
+              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                নোটিফিকেশন সেটিংস
+              </h3>
+              <p className="text-sm text-slate-500 mt-1">
+                আপনার নোটিফিকেশন পছন্দসমূহ পরিচালনা করুন
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-6">
+            {isSuperAdmin && (
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div>
+                  <h4 className="font-medium text-slate-800">নতুন সাইন-আপ রিকোয়েস্ট</h4>
+                  <p className="text-sm text-slate-500 mt-1">নতুন ব্যবহারকারী সাইন-আপ করলে নোটিফিকেশন পান</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={notificationPreferences?.signupRequests ?? true}
+                    onChange={() => handleToggleNotificationPreference('signupRequests')}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                </label>
+              </div>
+            )}
+
+            {role === "admin" && (
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div>
+                  <h4 className="font-medium text-slate-800">নতুন জয়েন রিকোয়েস্ট</h4>
+                  <p className="text-sm text-slate-500 mt-1">আপনার প্রতিষ্ঠানে কেউ যুক্ত হতে চাইলে নোটিফিকেশন পান</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={notificationPreferences?.joinRequests ?? true}
+                    onChange={() => handleToggleNotificationPreference('joinRequests')}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                </label>
+              </div>
+            )}
+            
+            {!isSuperAdmin && role !== "admin" && (
+              <div className="text-center py-6 text-slate-500">
+                আপনার জন্য কোনো নোটিফিকেশন সেটিংস উপলব্ধ নেই।
               </div>
             )}
           </div>

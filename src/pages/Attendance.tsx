@@ -464,22 +464,26 @@ const Attendance: React.FC = () => {
 
       {/* Notify Absentees Modal */}
       {isNotifyModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50 flex-shrink-0">
-              <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-                <MessageCircle className="w-6 h-6 text-[#25D366]" />
-                অনুপস্থিতদের জানান
-              </h3>
-              <button onClick={() => setIsNotifyModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors">
-                <XCircle className="w-6 h-6" />
+        <div className="fixed inset-0 z-[999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6 transition-all">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200">
+            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-teal-50 flex-shrink-0">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-[#25D366]">
+                  <MessageCircle className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-bold text-slate-800">
+                  অনুপস্থিতদের জানান
+                </h3>
+              </div>
+              <button onClick={() => setIsNotifyModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all shadow-sm">
+                <XCircle className="w-5 h-5" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1">
-              <p className="text-sm text-slate-600 mb-4">
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
+              <p className="text-sm font-medium text-slate-600 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                 নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠাতে নামের পাশের বাটনে ক্লিক করুন।
               </p>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 {classStudents
                   .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
                   .map(student => {
@@ -489,19 +493,26 @@ const Attendance: React.FC = () => {
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
                     
                     return (
-                      <div key={student.id} className="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-slate-50 transition-colors">
-                        <div>
-                          <p className="font-semibold text-slate-800">{student.name}</p>
-                          <p className="text-xs text-slate-500">রোল: {toBengaliNumber(student.roll)} {phone ? `| মোবাইল: ${toBengaliNumber(phone)}` : '| মোবাইল নম্বর নেই'}</p>
+                      <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all group">
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-800 text-lg mb-1">{student.name}</p>
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">রোল: {toBengaliNumber(student.roll)}</span>
+                            {phone ? (
+                              <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
+                            ) : (
+                              <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
+                            )}
+                          </div>
                         </div>
                         <a
                           href={phone ? whatsappUrl : '#'}
                           target={phone ? "_blank" : "_self"}
                           rel="noopener noreferrer"
                           className={clsx(
-                            "px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors",
+                            "px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
                             phone 
-                              ? "bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white" 
+                              ? "bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white hover:shadow-lg hover:shadow-[#25D366]/20" 
                               : "bg-slate-100 text-slate-400 cursor-not-allowed"
                           )}
                           onClick={(e) => {
@@ -511,18 +522,24 @@ const Attendance: React.FC = () => {
                             }
                           }}
                         >
-                          <MessageCircle className="w-4 h-4" />
+                          <MessageCircle className="w-5 h-5" />
                           মেসেজ
                         </a>
                       </div>
                     );
                   })}
+                {classStudents.filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent).length === 0 && (
+                  <div className="text-center py-10 bg-white rounded-2xl border border-slate-100 shadow-sm">
+                    <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                    <p className="text-slate-600 font-medium">আজ কেউ অনুপস্থিত নেই!</p>
+                  </div>
+                )}
               </div>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-slate-50 flex justify-end">
+            <div className="p-6 border-t border-slate-100 bg-white flex justify-end flex-shrink-0">
               <button
                 onClick={() => setIsNotifyModalOpen(false)}
-                className="px-6 py-2 rounded-xl font-medium text-slate-600 hover:bg-slate-200 transition-colors"
+                className="px-8 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-full sm:w-auto"
               >
                 বন্ধ করুন
               </button>

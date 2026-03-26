@@ -27,6 +27,10 @@ interface AuthContextType {
   photoURL: string | null;
   visitedOrgs: { [key: string]: string };
   isApprovalEnabled: boolean;
+  notificationPreferences: {
+    signupRequests: boolean;
+    joinRequests: boolean;
+  };
   loading: boolean;
   setLoading: (loading: boolean) => void;
   createOrganization: (name: string) => Promise<string | null>;
@@ -48,6 +52,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    signupRequests: true,
+    joinRequests: true
+  });
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -131,6 +139,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const userPhone = data.phone || null;
             const userStatus = data.status || "active";
             const userPhotoURL = data.photoURL || null;
+            const userNotificationPreferences = data.notificationPreferences || {
+              signupRequests: true,
+              joinRequests: true
+            };
 
             // Set initial state
             setRole(userRole);
@@ -138,6 +150,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setVisitedOrgs(history);
             setPhone(userPhone);
             setPhotoURL(userPhotoURL);
+            setNotificationPreferences(userNotificationPreferences);
             
             let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
             setOrgName(currentOrgName);
@@ -496,6 +509,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         photoURL,
         visitedOrgs,
         isApprovalEnabled,
+        notificationPreferences,
         loading,
         setLoading,
         createOrganization,
