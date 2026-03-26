@@ -5,6 +5,10 @@ import { collection, query, where, getDocs } from "firebase/firestore";
 import { Result, AttendanceStatus } from "../types";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import { useAcademicYears } from "../hooks/useAcademicYears";
+import { useExams } from "../hooks/useExams";
+import { useSubjects } from "../hooks/useSubjects";
+import { calculateResultMetrics } from "../utils/resultCalculations";
+import { useAuth } from "../hooks/useAuth";
 
 interface StudentHistoryModalProps {
   studentId: string;
@@ -16,7 +20,10 @@ interface StudentHistoryModalProps {
 const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, orgId, isOpen, onClose }) => {
   const [history, setHistory] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { academicYears } = useAcademicYears(orgId, { uid: 'temp' } as any);
+  const { user } = useAuth();
+  const { academicYears } = useAcademicYears(orgId, user);
+  const { exams } = useExams(orgId, user);
+  const { subjects } = useSubjects(orgId, user);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -50,11 +57,15 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
           }
         });
 
-        // Group results by academic year
+        // Group results by academic year and then by exam
         const grouped = results.reduce((acc, result) => {
           const yearId = result.academic_year_id || "N/A";
-          if (!acc[yearId]) acc[yearId] = { results: [], attendance: attendanceData[yearId] || { present: 0, absent: 0 } };
-          acc[yearId].results.push(result);
+          if (!acc[yearId]) acc[yearId] = { exams: {}, attendance: attendanceData[yearId] || { present: 0, absent: 0 } };
+          
+          const examId = result.exam_id;
+          if (!acc[yearId].exams[examId]) acc[yearId].exams[examId] = [];
+          acc[yearId].exams[examId].push(result);
+          
           return acc;
         }, {} as any);
 
@@ -85,10 +96,10 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
         </div>
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {loading ? (
-            <div className="text-center py-10">লোড হচ্ছে...</div>
+            <div className="text-center py-10 text-slate-500">লোড হচ্ছে...</div>
           ) : history.length > 0 ? (
             history.map(([yearId, data]: [string, any]) => (
-              <div key={yearId} className="border border-slate-100 rounded-2xl p-5 shadow-sm">
+              <div key={yearId} className="border border-slate-100 rounded-2xl p-5 shadow-sm bg-white">
                 <h4 className="text-lg font-bold text-[#0F766E] mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5" />
                   শিক্ষাবর্ষ: {academicYears.find(ay => ay.id === yearId)?.year_name || yearId}
@@ -107,12 +118,42 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
 
                 <div className="space-y-3">
                   <h5 className="font-bold text-slate-700 mb-2">পরীক্ষার ফলাফল:</h5>
-                  {data.results.map((res: Result, idx: number) => (
-                    <div key={idx} className="flex justify-between items-center p-3 bg-slate-50 rounded-lg">
-                      <span className="font-medium text-slate-700">{res.exam_id || "পরীক্ষা"}</span>
-                      <span className="font-bold text-[#0F766E]">{res.marks}</span>
-                    </div>
-                  ))}
+                  {Object.keys(data.exams).length > 0 ? (
+                    Object.entries(data.exams).map(([examId, examResults]: [string, any]) => {
+                      const exam = exams.find(e => e.id === examId);
+                      const examName = exam?.name || examId;
+                      
+                      const classId = examResults[0]?.class_id;
+                      const examSubjects = subjects.filter(s => s.classId === classId);
+                      
+                      const metrics = calculateResultMetrics(examResults, examSubjects);
+                      
+                      return (
+                        <div key={examId} className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-100">
+                          <div className="flex justify-between items-center mb-3">
+                            <span className="font-bold text-slate-800 text-base">{examName}</span>
+                            <span className={`font-bold px-3 py-1 rounded-full text-sm ${
+                              metrics.hasFailed ? 'bg-rose-100 text-rose-700' : 'bg-teal-50 text-[#0F766E]'
+                            }`}>
+                              {metrics.grade}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-sm text-slate-600">
+                            <div className="flex flex-col">
+                              <span className="text-xs text-slate-400">মোট নম্বর</span>
+                              <span className="font-medium text-slate-700">{toBengaliNumber(metrics.totalMarks)} / {toBengaliNumber(metrics.totalFullMarks)}</span>
+                            </div>
+                            <div className="flex flex-col">
+                              <span className="text-xs text-slate-400">শতকরা</span>
+                              <span className="font-medium text-slate-700">{toBengaliNumber(metrics.percentage)}%</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-sm text-slate-500 italic">কোনো পরীক্ষার ফলাফল নেই</div>
+                  )}
                 </div>
               </div>
             ))

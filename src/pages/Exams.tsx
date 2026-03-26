@@ -24,6 +24,7 @@ const Exams: React.FC = () => {
     (filterAcademicYear === "" || exam.academicYearId === filterAcademicYear) &&
     (filterClass === "" || exam.classId === filterClass || exam.classId === "all")
   );
+  const [name, setName] = useState("");
   const [academicYearId, setAcademicYearId] = useState("");
   const [classId, setClassId] = useState("");
   const [examDate, setExamDate] = useState("");
