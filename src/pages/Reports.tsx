@@ -74,7 +74,9 @@ const Reports: React.FC = () => {
         const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
 
         return {
+          id: student.id,
           name: student.name,
+          displayName: `${student.name} (${student.roll})`,
           roll: student.roll,
           present: stats.present,
           absent: stats.absent,
@@ -209,7 +211,8 @@ const Reports: React.FC = () => {
             }
         });
         return {
-            session: session.date + " " + session.time,
+            id: session.id,
+            session: `${session.date} ${session.time} (${session.id.substring(0, 4)})`,
             percentage: total > 0 ? Math.round((present / total) * 100) : 0
         };
     });
@@ -258,20 +261,20 @@ const Reports: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">রিপোর্ট</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-col sm:flex-row gap-3">
           <button 
             onClick={handleExportCSV}
-            className="bg-[#0F5C7A] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0C6C8A] transition-all duration-300 font-medium shadow-sm"
+            className="w-full sm:w-auto h-[48px] px-6 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0C6C8A] transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-5 h-5" />
             CSV এক্সপোর্ট
           </button>
           <button 
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="bg-[#0F5C7A] text-white flex items-center px-4 py-2 rounded-[12px] hover:bg-[#0C6C8A] transition-all duration-300 font-medium shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            className="w-full sm:w-auto h-[48px] px-6 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0C6C8A] transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            <Download className="w-4 h-4 mr-2" />
+            <Download className="w-5 h-5" />
             {isExporting ? "প্রসেসিং..." : "PDF এক্সপোর্ট"}
           </button>
         </div>
@@ -414,7 +417,7 @@ const Reports: React.FC = () => {
                   <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={reportData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="name" axisLine={false} tickLine={false} />
+                    <XAxis dataKey="displayName" axisLine={false} tickLine={false} />
                     <YAxis axisLine={false} tickLine={false} />
                     <Tooltip 
                       cursor={{ fill: "transparent" }}
@@ -470,7 +473,7 @@ const Reports: React.FC = () => {
                 <tbody>
                   {reportData.map((student) => (
                     <tr
-                      key={student.roll}
+                      key={student.id}
                       className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors"
                     >
                       <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base">

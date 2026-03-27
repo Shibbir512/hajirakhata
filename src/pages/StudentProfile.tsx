@@ -445,7 +445,7 @@ const StudentProfile: React.FC = () => {
                   <tbody className="divide-y divide-slate-50">
                     {academicHistory.length > 0 ? (
                       academicHistory.map((item, idx) => (
-                        <tr key={`${item.academicYear}-${item.exam}-${item.class}`} className="hover:bg-slate-50/50 transition-colors">
+                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
                           <td className="py-4 px-5 text-sm font-medium text-slate-800">{item.academicYear}</td>
                           <td className="py-4 px-5 text-sm text-slate-600">{item.exam}</td>
                           <td className="py-4 px-5 text-sm text-slate-600">{item.class}</td>

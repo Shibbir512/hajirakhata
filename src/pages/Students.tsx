@@ -656,7 +656,7 @@ const Students: React.FC = () => {
                 <div className="space-y-2">
                   {studentAttendance.length > 0 ? (
                     studentAttendance.map((record, idx) => (
-                      <div key={`${record.date}-${record.status}`} className="flex justify-between items-center p-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[14px] text-[13px]">
+                      <div key={idx} className="flex justify-between items-center p-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[14px] text-[13px]">
                         <span className="text-[#6B7280] font-medium">{toBengaliDate(record.date)}</span>
                         <span className={clsx(
                           "font-bold px-3 py-1 rounded-full text-[11px]",

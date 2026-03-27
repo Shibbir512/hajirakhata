@@ -110,7 +110,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
+      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-[#14B8A6]">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
             <BookOpen className="w-6 h-6 text-[#0F766E]" />
