@@ -329,7 +329,11 @@ const StudentProfile: React.FC = () => {
               
               <div className="px-6 pb-8 -mt-12 relative flex flex-col items-center text-center">
                 <div className="relative w-24 h-24 rounded-full bg-white shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white">
-                  <User className="w-12 h-12 text-[#0F9D8A]" />
+                  {student.photoUrl ? (
+                    <img src={student.photoUrl} alt={student.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                  ) : (
+                    <User className="w-12 h-12 text-[#0F9D8A]" />
+                  )}
                 </div>
                 
                 <h3 className="text-2xl font-bold text-slate-800 tracking-tight">{student.name}</h3>

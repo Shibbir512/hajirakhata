@@ -4,6 +4,7 @@ import { useAcademicYears } from "../hooks/useAcademicYears";
 import { Plus, Edit, Trash2, CalendarDays, CheckCircle, Circle, X } from "lucide-react";
 import { AcademicYear } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { DataTable, Column } from "../components/DataTable";
 
 const AcademicYears: React.FC = () => {
   const { user, orgId } = useAuth();
@@ -43,6 +44,70 @@ const AcademicYears: React.FC = () => {
     setIsModalOpen(false);
   };
 
+  const columns: Column<AcademicYear>[] = [
+    {
+      header: "শিক্ষাবর্ষ",
+      accessorKey: "year_name",
+      sortable: true,
+      className: "text-slate-800 font-medium",
+    },
+    {
+      header: "হিজরি সন",
+      accessorKey: "hijri_year",
+      sortable: true,
+      className: "text-slate-600",
+    },
+    {
+      header: "স্ট্যাটাস",
+      accessorKey: "is_active",
+      sortable: true,
+      cell: (year) => (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            if (!year.is_active) setActiveAcademicYear(year.id);
+          }}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
+            year.is_active 
+              ? "bg-[#22C55E]/10 text-[#22C55E] cursor-default" 
+              : "bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
+          }`}
+        >
+          {year.is_active ? <CheckCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
+          {year.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
+        </button>
+      ),
+    },
+    {
+      header: "কার্যক্রম",
+      className: "text-right",
+      cell: (year) => (
+        <div className="flex justify-end gap-2">
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              openEditModal(year);
+            }} 
+            className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button 
+            onClick={(e) => {
+              e.stopPropagation();
+              setYearToDelete(year);
+            }} 
+            className="p-2 text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 rounded-lg transition-colors"
+            disabled={year.is_active}
+            title={year.is_active ? "সক্রিয় শিক্ষাবর্ষ মুছে ফেলা যাবে না" : "মুছে ফেলুন"}
+          >
+            <Trash2 className={`w-4 h-4 ${year.is_active ? "opacity-50" : ""}`} />
+          </button>
+        </div>
+      ),
+    }
+  ];
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -57,59 +122,13 @@ const AcademicYears: React.FC = () => {
       </div>
 
       <div className="card-premium p-6">
-        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
-          <table className="w-full text-left border-collapse">
-            <thead className="bg-[#F8F9FA] sticky top-0 z-10">
-              <tr>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">শিক্ষাবর্ষ</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">হিজরি সন</th>
-                <th className="py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">স্ট্যাটাস</th>
-                <th className="text-right py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB]">কার্যক্রম</th>
-              </tr>
-            </thead>
-            <tbody>
-              {academicYears.map((year) => (
-                <tr key={year.id} className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200">
-                  <td className="py-4 px-5 text-slate-800 font-medium">{year.year_name}</td>
-                  <td className="py-4 px-5 text-slate-600">{year.hijri_year}</td>
-                  <td className="py-4 px-5">
-                    <button
-                      onClick={() => !year.is_active && setActiveAcademicYear(year.id)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold transition-colors ${
-                        year.is_active 
-                          ? "bg-[#22C55E]/10 text-[#22C55E] cursor-default" 
-                          : "bg-slate-100 text-slate-600 hover:bg-slate-200 cursor-pointer"
-                      }`}
-                    >
-                      {year.is_active ? <CheckCircle className="w-3.5 h-3.5" /> : <Circle className="w-3.5 h-3.5" />}
-                      {year.is_active ? "সক্রিয়" : "নিষ্ক্রিয়"}
-                    </button>
-                  </td>
-                  <td className="py-4 px-5 text-right">
-                    <div className="flex justify-end gap-2">
-                      <button onClick={() => openEditModal(year)} className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors">
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button 
-                        onClick={() => setYearToDelete(year)} 
-                        className="p-2 text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 rounded-lg transition-colors"
-                        disabled={year.is_active}
-                        title={year.is_active ? "সক্রিয় শিক্ষাবর্ষ মুছে ফেলা যাবে না" : "মুছে ফেলুন"}
-                      >
-                        <Trash2 className={`w-4 h-4 ${year.is_active ? "opacity-50" : ""}`} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-              {academicYears.length === 0 && (
-                <tr>
-                  <td colSpan={4} className="text-center py-12 text-slate-500">কোন শিক্ষাবর্ষ পাওয়া যায়নি।</td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
+        <DataTable 
+          data={academicYears} 
+          columns={columns} 
+          keyExtractor={(year) => year.id} 
+          emptyMessage="কোন শিক্ষাবর্ষ পাওয়া যায়নি।"
+          onRowClick={(year) => openEditModal(year)}
+        />
       </div>
 
       {isModalOpen && (

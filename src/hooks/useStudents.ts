@@ -73,7 +73,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   }, [user, orgId]);
 
   const addStudent = useCallback(
-    async (classId: string, name: string, fatherName?: string, phone?: string, address?: string) => {
+    async (classId: string, name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string) => {
       if (!user || !db || !orgId) return;
       try {
         const studentsRef = collection(db, `organizations/${orgId}/students`);
@@ -118,6 +118,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           fatherName: fatherName ?? "",
           phone: phone ?? "",
           address: address ?? "",
+          photoUrl: photoUrl ?? "",
           isActive: true,
           version: 1,
         };
@@ -131,7 +132,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         toast.error("শিক্ষার্থী যোগ করতে ব্যর্থ হয়েছে।");
       }
     },
-    [user, orgId],
+    [user, orgId, orgCode],
   );
 
   const archiveStudent = useCallback(

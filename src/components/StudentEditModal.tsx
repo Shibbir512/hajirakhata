@@ -1,7 +1,10 @@
-import React, { useState } from "react";
-import { X, Edit3 } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { X, Edit3, Camera, Upload } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber } from "../utils/dateFormatter";
+import { compressAndUploadImage } from "../utils/imageUpload";
+import { useAuth } from "../hooks/useAuth";
+import toast from "react-hot-toast";
 
 interface StudentEditModalProps {
   student: Student;
@@ -15,26 +18,71 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   onClose,
   onSave,
 }) => {
+  const { orgId } = useAuth();
   const [name, setName] = useState(student.name);
   const [fatherName, setFatherName] = useState(student.fatherName || "");
   const [phone, setPhone] = useState(student.phone || "");
   const [address, setAddress] = useState(student.address || "");
   const [error, setError] = useState("");
+  const [imageFile, setImageFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState<string | null>(student.photoUrl || null);
+  const [isUploading, setIsUploading] = useState(false);
+  
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        toast.error("অনুগ্রহ করে একটি ছবি নির্বাচন করুন।");
+        return;
+      }
+      setImageFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!name.trim()) {
       setError("Name is required");
       return;
     }
     
-    onSave({
-      name: name.trim(),
-      fatherName: fatherName.trim(),
-      phone: phone.trim(),
-      address: address.trim(),
-    });
-    onClose();
+    setIsUploading(true);
+    let photoUrl = student.photoUrl;
+
+    try {
+      if (imageFile && orgId) {
+        const safeFileName = imageFile.name ? imageFile.name.replace(/[^a-zA-Z0-9.]/g, '_') : 'image.jpg';
+        const path = `organizations/${orgId}/students/${Date.now()}_${safeFileName}`;
+        photoUrl = await compressAndUploadImage(imageFile, path) || undefined;
+      }
+
+      onSave({
+        name: name.trim(),
+        fatherName: fatherName.trim(),
+        phone: phone.trim(),
+        address: address.trim(),
+        photoUrl: photoUrl,
+      });
+      onClose();
+    } catch (err: any) {
+      console.error("Upload error:", err);
+      const errMsg = err?.message || "";
+      if (errMsg.includes("unauthorized") || errMsg.includes("permission") || errMsg.includes("স্টোরেজ পারমিশন")) {
+        toast.error("স্টোরেজ পারমিশন নেই! ফায়ারবেস স্টোরেজ রুলস আপডেট করুন।");
+      } else {
+        toast.error(`ছবি আপলোড করতে সমস্যা হয়েছে: ${errMsg}`);
+      }
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   return (
@@ -60,8 +108,54 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
         </div>
 
         {/* Body */}
-        <div className="p-5 overflow-y-auto max-h-[60vh]">
+        <div className="p-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
           <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-4">
+            
+            {/* Image Upload Section */}
+            <div className="flex flex-col items-center justify-center gap-3 mb-4">
+              <div className="relative w-24 h-24 rounded-full border-2 border-dashed border-[#D1D5DB] flex items-center justify-center bg-[#F9FAFB] overflow-hidden">
+                {imagePreview ? (
+                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                ) : (
+                  <Edit3 className="w-8 h-8 text-[#9CA3AF]" />
+                )}
+              </div>
+              
+              <div className="flex gap-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  ref={fileInputRef}
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <input
+                  type="file"
+                  accept="image/*"
+                  capture="environment"
+                  ref={cameraInputRef}
+                  onChange={handleImageChange}
+                  className="hidden"
+                />
+                <button
+                  type="button"
+                  onClick={() => fileInputRef.current?.click()}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F3F4F6] text-[#374151] rounded-lg text-sm font-medium hover:bg-[#E5E7EB] transition-colors"
+                >
+                  <Upload className="w-4 h-4" />
+                  গ্যালারি
+                </button>
+                <button
+                  type="button"
+                  onClick={() => cameraInputRef.current?.click()}
+                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F3F4F6] text-[#374151] rounded-lg text-sm font-medium hover:bg-[#E5E7EB] transition-colors"
+                >
+                  <Camera className="w-4 h-4" />
+                  ক্যামেরা
+                </button>
+              </div>
+            </div>
+
             <div className="bg-[#F9FAFB] p-4 rounded-[16px] border border-[#E5E7EB] flex items-center gap-3">
               <span className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] flex items-center justify-center text-lg font-bold">#</span>
               <div>
@@ -131,16 +225,25 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
           <button
             type="button"
             onClick={onClose}
-            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors"
+            disabled={isUploading}
+            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors disabled:opacity-50"
           >
             বাতিল
           </button>
           <button
             type="submit"
             form="edit-student-form"
-            className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] shadow-[0_6px_15px_rgba(15,92,122,0.35)] font-bold hover:bg-[#0C4A63] transition-colors"
+            disabled={isUploading}
+            className="flex-1 bg-[#0F5C7A] text-white h-[48px] rounded-[14px] shadow-[0_6px_15px_rgba(15,92,122,0.35)] font-bold hover:bg-[#0C4A63] transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
-            সংরক্ষণ করুন
+            {isUploading ? (
+              <>
+                <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                আপলোড হচ্ছে...
+              </>
+            ) : (
+              "সংরক্ষণ করুন"
+            )}
           </button>
         </div>
       </div>

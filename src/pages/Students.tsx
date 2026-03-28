@@ -159,9 +159,9 @@ const Students: React.FC = () => {
     return filteredStudents.slice(start, start + itemsPerPage);
   }, [filteredStudents, currentPage, itemsPerPage]);
 
-  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string) => {
+  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string) => {
     if (selectedClassId) {
-      addStudent(selectedClassId, name, fatherName, phone, address);
+      addStudent(selectedClassId, name, fatherName, phone, address, photoUrl);
       setIsAddModalOpen(false);
     }
   };
@@ -441,6 +441,13 @@ const Students: React.FC = () => {
                       onClick={() => navigate(`/student-profile/${student.id}`)}
                       className="flex items-center gap-3 text-[14px] hover:text-[#0F5C7A] transition-colors"
                     >
+                      {student.photoUrl ? (
+                        <img src={student.photoUrl} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-200" referrerPolicy="no-referrer" />
+                      ) : (
+                        <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-xs">
+                          {student.name.charAt(0)}
+                        </div>
+                      )}
                       {student.name}
                     </button>
                   </td>
@@ -627,9 +634,18 @@ const Students: React.FC = () => {
 
             {/* Body */}
             <div className="p-5 space-y-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
-              <div className="bg-[#F4F7FB] p-4 rounded-[16px] border border-[#E5E7EB]">
-                <h4 className="text-[16px] font-bold text-[#1F2937] mb-1">{viewingStudent.name}</h4>
-                <p className="text-[14px] text-[#6B7280]">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
+              <div className="flex items-center gap-4 bg-[#F4F7FB] p-4 rounded-[16px] border border-[#E5E7EB]">
+                {viewingStudent.photoUrl ? (
+                  <img src={viewingStudent.photoUrl} alt={viewingStudent.name} className="w-16 h-16 rounded-full object-cover border-2 border-white shadow-sm" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-16 h-16 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-2xl border-2 border-white shadow-sm">
+                    {viewingStudent.name.charAt(0)}
+                  </div>
+                )}
+                <div>
+                  <h4 className="text-[16px] font-bold text-[#1F2937] mb-1">{viewingStudent.name}</h4>
+                  <p className="text-[14px] text-[#6B7280]">রোল: {toBengaliNumber(viewingStudent.roll)}</p>
+                </div>
               </div>
 
               <div className="space-y-3">

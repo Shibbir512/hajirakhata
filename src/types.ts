@@ -7,6 +7,7 @@ export interface Student {
   fatherName?: string;
   phone?: string;
   address?: string;
+  photoUrl?: string;
   version?: number;
   isActive?: boolean;
   archivedAt?: number;
