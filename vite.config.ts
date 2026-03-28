@@ -15,6 +15,28 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       tailwindcss(),
+      VitePWA({
+        registerType: 'autoUpdate',
+        includeAssets: ['icon.svg'],
+        manifest: {
+          short_name: "হাজিরা খাতা",
+          name: "ছাত্র হাজিরা খাতা (Student Attendance)",
+          icons: [
+            {
+              src: "/icon.svg",
+              type: "image/svg+xml",
+              sizes: "192x192 512x512"
+            }
+          ],
+          start_url: ".",
+          display: "standalone",
+          theme_color: "#1e293b",
+          background_color: "#f8fafc"
+        },
+        devOptions: {
+          enabled: true
+        }
+      })
     ],
     define: {
       "process.env.API_KEY": JSON.stringify(env.GEMINI_API_KEY),
