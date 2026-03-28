@@ -366,12 +366,15 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         const q = query(studentsRef, where("isActive", "==", false));
         const archivedSnapshot = await getDocs(q);
 
-        if (archivedSnapshot.empty) {
+        // Filter out alumni from the archived list so they don't get deleted
+        const archivedDocs = archivedSnapshot.docs.filter(doc => doc.data().isAlumni !== true);
+
+        if (archivedDocs.length === 0) {
           toast.success("কোনো আর্কাইভ করা শিক্ষার্থী পাওয়া যায়নি।", { id: loadingToast });
           return;
         }
 
-        const studentIds = archivedSnapshot.docs.map(doc => doc.id);
+        const studentIds = archivedDocs.map(doc => doc.id);
 
         const deleteInBatches = async (refsToDelete: any[]) => {
           const chunks = [];
@@ -389,7 +392,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
 
         let allRefsToDelete: any[] = [];
 
-        archivedSnapshot.docs.forEach(doc => {
+        archivedDocs.forEach(doc => {
           allRefsToDelete.push(doc.ref);
         });
 

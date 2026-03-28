@@ -34,14 +34,16 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      if (!file.type.startsWith('image/')) {
-        toast.error("অনুগ্রহ করে একটি ছবি নির্বাচন করুন।");
-        return;
-      }
+      // Removed strict file.type check to prevent blocking valid images on some Android devices
+      // where the camera might return a file with an empty or incorrect type.
       setImageFile(file);
+      
+      // Use FileReader for better compatibility on older Android WebViews
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          setImagePreview(e.target.result as string);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -127,6 +129,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                   accept="image/*"
                   ref={fileInputRef}
                   onChange={handleImageChange}
+                  onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
                   className="hidden"
                 />
                 <input
@@ -135,6 +138,7 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                   capture="environment"
                   ref={cameraInputRef}
                   onChange={handleImageChange}
+                  onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
                   className="hidden"
                 />
                 <button

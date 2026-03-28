@@ -21,7 +21,7 @@ import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, Width
 import { saveAs } from "file-saver";
 
 const Marksheet: React.FC = () => {
-  const { user, orgId, role } = useAuth();
+  const { user, orgId, role, orgName } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
   const { subjects } = useSubjects(orgId, user);
@@ -564,7 +564,7 @@ const Marksheet: React.FC = () => {
             dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
           >
             <div className="text-center mb-8 border-b-4 border-[#0F5C7A] pb-6">
-              <h1 className="text-4xl font-bold text-[#0F5C7A] mb-2">দারুল উলুম দত্তপাড়া মাদরাসা, নরসিংদী</h1>
+              <h1 className="text-4xl font-bold text-[#0F5C7A] mb-2">{orgName || "দারুল উলুম দত্তপাড়া মাদরাসা, নরসিংদী"}</h1>
               <h2 className="text-2xl font-semibold text-slate-800 mb-2">
                 {exams.find(e => e.id === selectedExamId)?.name} পরীক্ষার ফলাফল
               </h2>

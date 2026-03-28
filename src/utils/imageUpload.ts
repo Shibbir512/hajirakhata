@@ -1,44 +1,6 @@
 import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-
-const compressImageNative = (file: File, maxWidth = 500, quality = 0.7): Promise<Blob> => {
-  return new Promise((resolve) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = (event) => {
-      const img = new Image();
-      img.src = event.target?.result as string;
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        let width = img.width;
-        let height = img.height;
-
-        if (width > maxWidth) {
-          height = Math.round((height * maxWidth) / width);
-          width = maxWidth;
-        }
-
-        canvas.width = width;
-        canvas.height = height;
-        const ctx = canvas.getContext('2d');
-        if (!ctx) {
-          resolve(file); // Fallback to original file
-          return;
-        }
-        ctx.drawImage(img, 0, 0, width, height);
-        canvas.toBlob((blob) => {
-          if (blob) {
-            resolve(blob);
-          } else {
-            resolve(file); // Fallback
-          }
-        }, 'image/jpeg', quality);
-      };
-      img.onerror = () => resolve(file); // Fallback
-    };
-    reader.onerror = () => resolve(file); // Fallback
-  });
-};
+import imageCompression from 'browser-image-compression';
 
 export const compressAndUploadImage = async (
   file: File,
@@ -50,14 +12,31 @@ export const compressAndUploadImage = async (
   }
 
   try {
-    // Use native compression to prevent hanging on mobile devices
-    const compressedBlob = await compressImageNative(file, 500, 0.7);
+    // Use robust browser-image-compression library
+    const options = {
+      maxSizeMB: 0.5,
+      maxWidthOrHeight: 800,
+      useWebWorker: false, // Disabled web worker for better mobile compatibility
+      fileType: 'image/jpeg'
+    };
+    
+    let compressedFile: File | Blob = file;
+    try {
+      compressedFile = await imageCompression(file, options);
+    } catch (compressionError) {
+      console.warn("Compression failed, using original file:", compressionError);
+      // Fallback to original file if compression fails
+      compressedFile = file;
+    }
     
     // Create a storage reference
     const storageRef = ref(storage, path);
     
-    // Upload the compressed image
-    const snapshot = await uploadBytes(storageRef, compressedBlob);
+    // Upload the compressed image with metadata
+    const metadata = {
+      contentType: file.type || 'image/jpeg',
+    };
+    const snapshot = await uploadBytes(storageRef, compressedFile, metadata);
     
     // Get the download URL
     const downloadURL = await getDownloadURL(snapshot.ref);

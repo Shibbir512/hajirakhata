@@ -101,7 +101,7 @@ const Students: React.FC = () => {
       list = Object.values(students).flat();
     }
     
-    return list.filter(s => showArchived ? !s.isActive : s.isActive !== false);
+    return list.filter(s => showArchived ? (!s.isActive && !s.isAlumni) : s.isActive !== false);
   }, [selectedClassId, students, showArchived]);
 
   const fuse = useMemo(() => {
