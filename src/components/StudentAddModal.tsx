@@ -74,13 +74,20 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
       setImagePreview(null);
       setError("");
     } catch (err: any) {
-      console.error("Upload error:", err);
-      const errMsg = err?.message || "";
-      if (errMsg.includes("unauthorized") || errMsg.includes("permission") || errMsg.includes("স্টোরেজ পারমিশন")) {
-        toast.error("স্টোরেজ পারমিশন নেই! ফায়ারবেস স্টোরেজ রুলস আপডেট করুন।");
-      } else {
-        toast.error(`ছবি আপলোড করতে সমস্যা হয়েছে: ${errMsg}`);
+      console.error("Upload error details:", err);
+      
+      // Check for specific Firebase Storage error codes
+      let errorMessage = "ছবি আপলোড করতে সমস্যা হয়েছে।";
+      
+      if (err.code === 'storage/unauthorized') {
+        errorMessage = "ছবি আপলোডের অনুমতি নেই (Storage Unauthorized)।";
+      } else if (err.code === 'storage/retry-limit-exceeded') {
+        errorMessage = "আপলোডের সময়সীমা শেষ হয়ে গেছে। আবার চেষ্টা করুন।";
+      } else if (err.message) {
+        errorMessage = err.message;
       }
+      
+      toast.error(errorMessage);
     } finally {
       setIsUploading(false);
     }

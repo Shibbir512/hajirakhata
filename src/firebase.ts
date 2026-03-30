@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
-import { getFirestore, Firestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager } from 'firebase/firestore';
+import { getFirestore, Firestore } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import firebaseConfig from '../firebase-applet-config.json';
 
@@ -13,12 +13,8 @@ try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   
-  // Initialize Firestore with persistent cache and correct database ID
-  db = initializeFirestore(app, {
-    localCache: persistentLocalCache({
-      tabManager: persistentMultipleTabManager(),
-    }),
-  }, firebaseConfig.firestoreDatabaseId);
+  // Initialize Firestore with correct database ID
+  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
 
   storage = getStorage(app);
 

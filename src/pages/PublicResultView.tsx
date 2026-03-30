@@ -9,13 +9,14 @@ import { Printer, Download, Share2, ArrowLeft, FileBadge } from "lucide-react";
 import { MARKSHEET_TRANSLATIONS } from "../constants";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 
 const PublicResultView: React.FC = () => {
   const { orgId, studentId, examId } = useParams<{ orgId: string; studentId: string; examId: string }>();
   const navigate = useNavigate();
 
   const [loading, setLoading] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [student, setStudent] = useState<Student | null>(null);
   const [subjects, setSubjects] = useState<Subject[]>([]);
@@ -125,12 +126,13 @@ const PublicResultView: React.FC = () => {
   };
 
   const exportToPDF = async () => {
-    const input = document.getElementById('marksheet-container');
-    if (!input) return;
-
-    setLoading(true);
+    setIsExporting(true);
     try {
       await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+      
+      const input = document.getElementById('marksheet-container');
+      if (!input) throw new Error("Marksheet container not found");
       
       const targetWidth = 800;
       const originalWidth = input.style.width;
@@ -141,43 +143,25 @@ const PublicResultView: React.FC = () => {
       input.style.maxWidth = `${targetWidth}px`;
       input.style.position = 'absolute';
       
+      // Small delay to let browser apply styles
       await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
 
-      const canvas = await html2canvas(input, { 
-        scale: 3,
-        useCORS: true,
-        logging: false,
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 3,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (clonedDoc) => {
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          const clonedElement = clonedDoc.getElementById('marksheet-container');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.position = 'absolute';
-            clonedElement.style.top = '0';
-            clonedElement.style.left = '0';
-            clonedElement.style.width = width + 'px';
-          }
+        style: {
+          height: 'auto',
+          maxHeight: 'none',
+          overflow: 'visible',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: width + 'px',
         }
       });
       
@@ -207,17 +191,18 @@ const PublicResultView: React.FC = () => {
       console.error("PDF Export Error:", error);
       toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
   const handleShare = async () => {
-    const input = document.getElementById('marksheet-container');
-    if (!input) return;
-
-    setLoading(true);
+    setIsExporting(true);
     try {
       await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+      
+      const input = document.getElementById('marksheet-container');
+      if (!input) throw new Error("Marksheet container not found");
       
       const targetWidth = 800;
       const originalWidth = input.style.width;
@@ -228,43 +213,25 @@ const PublicResultView: React.FC = () => {
       input.style.maxWidth = `${targetWidth}px`;
       input.style.position = 'absolute';
       
+      // Small delay to let browser apply styles
       await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
 
-      const canvas = await html2canvas(input, { 
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (clonedDoc) => {
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          const clonedElement = clonedDoc.getElementById('marksheet-container');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.position = 'absolute';
-            clonedElement.style.top = '0';
-            clonedElement.style.left = '0';
-            clonedElement.style.width = width + 'px';
-          }
+        style: {
+          height: 'auto',
+          maxHeight: 'none',
+          overflow: 'visible',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: width + 'px',
         }
       });
       
@@ -308,7 +275,7 @@ const PublicResultView: React.FC = () => {
         toast.error("শেয়ার করতে ব্যর্থ হয়েছে।");
       }
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
@@ -356,13 +323,13 @@ const PublicResultView: React.FC = () => {
               </select>
             </div>
             <div className="flex flex-wrap items-end gap-2">
-              <button onClick={handlePrint} className="btn-secondary h-9 px-3" title={t.print}>
+              <button onClick={handlePrint} disabled={isExporting} className="btn-secondary h-9 px-3" title={t.print}>
                   <Printer className="w-4 h-4" />
               </button>
-              <button onClick={exportToPDF} className="btn-secondary h-9 px-3" title="PDF">
+              <button onClick={exportToPDF} disabled={isExporting} className="btn-secondary h-9 px-3" title="PDF">
                   <Download className="w-4 h-4" />
               </button>
-              <button onClick={handleShare} className="btn-secondary h-9 px-3" title={t.share}>
+              <button onClick={handleShare} disabled={isExporting} className="btn-secondary h-9 px-3" title={t.share}>
                   <Share2 className="w-4 h-4" />
               </button>
             </div>

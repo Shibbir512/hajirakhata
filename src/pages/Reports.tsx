@@ -22,7 +22,7 @@ import {
 import { Download, Calendar, ChevronDown, Users } from "lucide-react";
 import clsx from "clsx";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
 
@@ -87,38 +87,21 @@ const Reports: React.FC = () => {
   }, [selectedClassId, attendanceSessions, students]);
 
   const handleExportPDF = async () => {
-    const input = document.getElementById('report-container');
-    if (!input) return;
-
     setIsExporting(true);
     const toastId = toast.loading("PDF তৈরি হচ্ছে...");
 
     try {
-      const canvas = await html2canvas(input, { 
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        backgroundColor: '#ffffff',
-        windowWidth: input.scrollWidth,
-        windowHeight: input.scrollHeight,
-        onclone: (clonedDoc) => {
-          // Fix for oklab/oklch color parsing error in html2canvas
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+      const input = document.getElementById('report-container');
+      if (!input) throw new Error("Report container not found");
 
-          const clonedElement = clonedDoc.getElementById('report-container');
-          if (clonedElement) {
-            clonedElement.style.width = `${input.offsetWidth}px`;
-          }
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 2,
+        backgroundColor: '#ffffff',
+        width: input.scrollWidth,
+        height: input.scrollHeight,
+        style: {
+          width: `${input.offsetWidth}px`,
         }
       });
       
@@ -329,7 +312,7 @@ const Reports: React.FC = () => {
                   হাজিরা ওভারভিউ
                 </h3>
                 <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <PieChart>
                     <Pie
                       data={pieData}
@@ -367,7 +350,7 @@ const Reports: React.FC = () => {
                   হাজিরা ট্রেন্ড (লাইন চার্ট)
                 </h3>
                 <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="date" axisLine={false} tickLine={false} />
@@ -384,7 +367,7 @@ const Reports: React.FC = () => {
                   সেশন অনুযায়ী উপস্থিতি (%)
                 </h3>
                 <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={sessionData}>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} />
                       <XAxis dataKey="session" axisLine={false} tickLine={false} />
@@ -414,7 +397,7 @@ const Reports: React.FC = () => {
                   শিক্ষার্থীর পারফরম্যান্স (সেরা ১০)
                 </h3>
                 <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%">
+                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                     <BarChart data={reportData.slice(0, 10)}>
                     <CartesianGrid strokeDasharray="3 3" vertical={false} />
                     <XAxis dataKey="displayName" axisLine={false} tickLine={false} />

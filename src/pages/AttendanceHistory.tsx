@@ -6,7 +6,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users } from "lucide-react";
-import { toBengaliDate, toBengaliTime, toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliDate, toBengaliTime, toBengaliNumber, getDayNameInBengali } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
@@ -234,7 +234,13 @@ const AttendanceHistory: React.FC = () => {
               <div className="flex justify-between items-start mb-4">
                 <div className="text-sm text-slate-600 space-y-2 flex-1">
                   <p className="text-lg font-bold text-[#0F5C7A] mb-1">{className}</p>
-                  <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">তারিখঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span></p>
+                  <p className="flex items-center gap-2">
+                    <span className="font-semibold text-slate-900">তারিখঃ</span>
+                    <span className="flex flex-col items-center">
+                      <span className="font-bold text-lg text-[#0F5C7A]">{session.date ? getDayNameInBengali(session.date) : ""}</span>
+                      <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.date ? toBengaliDate(session.date) : ""}</span>
+                    </span>
+                  </p>
                   <p className="flex items-center gap-2"><span className="font-semibold text-slate-900">সময়ঃ</span> <span className="font-mono font-bold text-base bg-slate-100 px-2 py-0.5 rounded-md text-slate-800">{session.time ? toBengaliTime(session.time) : ""}</span></p>
                 </div>
                 <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>

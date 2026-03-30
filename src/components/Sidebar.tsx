@@ -21,6 +21,7 @@ import {
   ChevronRight,
   CalendarDays,
   Search,
+  Megaphone,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -57,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
+    { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
   ] : [];
 
   const resultLinks = orgId ? [

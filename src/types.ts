@@ -88,3 +88,11 @@ export interface AcademicYear {
   hijri_year: string;
   is_active: boolean;
 }
+
+export interface Announcement {
+  id: string;
+  message: string;
+  createdAt: number;
+  createdBy: string;
+  creatorName: string;
+}

@@ -13,7 +13,7 @@ import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
 
@@ -30,6 +30,7 @@ const ResultReports: React.FC = () => {
   const [selectedExamId, setSelectedExamId] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
   const [searchTerm, setSearchTerm] = useState("");
   const [sortBy, setSortBy] = useState<'roll' | 'rank' | 'percentage' | 'totalMarks'>('roll');
@@ -277,12 +278,13 @@ const ResultReports: React.FC = () => {
   };
 
   const exportToPDF = async () => {
-    const input = document.getElementById('tabulation-sheet-container');
-    if (!input) return;
-
-    setLoading(true);
+    setIsExporting(true);
     try {
       await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+
+      const input = document.getElementById('tabulation-sheet-container');
+      if (!input) throw new Error("Tabulation sheet container not found");
 
       const originalWidth = input.style.width;
       const originalMaxWidth = input.style.maxWidth;
@@ -305,44 +307,19 @@ const ResultReports: React.FC = () => {
       const width = input.scrollWidth;
       const height = input.scrollHeight;
 
-      const canvas = await html2canvas(input, { 
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (clonedDoc) => {
-          // Fix for oklab/oklch color parsing error in html2canvas
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          const clonedElement = clonedDoc.getElementById('tabulation-sheet-container');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.position = 'absolute';
-            clonedElement.style.top = '0';
-            clonedElement.style.left = '0';
-            clonedElement.style.width = width + 'px';
-            
-            const clonedOverflowDiv = clonedElement.querySelector('.overflow-x-auto') as HTMLElement;
-            if (clonedOverflowDiv) {
-              clonedOverflowDiv.style.overflow = 'visible';
-            }
-          }
+        style: {
+          height: 'auto',
+          maxHeight: 'none',
+          overflow: 'visible',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: width + 'px',
         }
       });
       
@@ -380,7 +357,7 @@ const ResultReports: React.FC = () => {
       console.error("PDF Export Error:", error);
       toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
@@ -463,11 +440,11 @@ const ResultReports: React.FC = () => {
                   <Printer className="w-4 h-4" />
                   প্রিন্ট করুন
                 </button>
-                <button onClick={exportToDOCX} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
+                <button onClick={exportToDOCX} disabled={isExporting} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Download className="w-4 h-4" />
                   DOCX
                 </button>
-                <button onClick={exportToPDF} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
+                <button onClick={exportToPDF} disabled={isExporting} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Download className="w-4 h-4" />
                   PDF
                 </button>

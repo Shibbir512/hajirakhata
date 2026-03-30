@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from "docx";
 import { saveAs } from "file-saver";
@@ -34,6 +34,7 @@ const Marksheet: React.FC = () => {
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
   const [marksheetLanguage, setMarksheetLanguage] = useState<'bn' | 'ar' | 'en'>('bn');
@@ -258,12 +259,13 @@ const Marksheet: React.FC = () => {
   }, [academicHistory, academicYears, exams, classes, subjects, historyRanks, t, numeralFormat]);
 
   const exportToPDF = async () => {
-    const input = document.getElementById('marksheet-container');
-    if (!input) return;
-
-    setLoading(true);
+    setIsExporting(true);
     try {
       await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+      
+      const input = document.getElementById('marksheet-container');
+      if (!input) throw new Error("Marksheet container not found");
       
       const targetWidth = 800;
       const originalWidth = input.style.width;
@@ -274,44 +276,25 @@ const Marksheet: React.FC = () => {
       input.style.maxWidth = `${targetWidth}px`;
       input.style.position = 'absolute';
       
+      // Small delay to let browser apply styles
       await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
 
-      const canvas = await html2canvas(input, { 
-        scale: 3,
-        useCORS: true,
-        logging: false,
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 3,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (clonedDoc) => {
-          // Fix for oklab/oklch color parsing error in html2canvas
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          const clonedElement = clonedDoc.getElementById('marksheet-container');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.position = 'absolute';
-            clonedElement.style.top = '0';
-            clonedElement.style.left = '0';
-            clonedElement.style.width = width + 'px';
-          }
+        style: {
+          height: 'auto',
+          maxHeight: 'none',
+          overflow: 'visible',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: width + 'px',
         }
       });
       
@@ -341,17 +324,18 @@ const Marksheet: React.FC = () => {
       console.error("PDF Export Error:", error);
       toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
   const handleShare = async () => {
-    const input = document.getElementById('marksheet-container');
-    if (!input) return;
-
-    setLoading(true);
+    setIsExporting(true);
     try {
       await document.fonts.ready;
+      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
+      
+      const input = document.getElementById('marksheet-container');
+      if (!input) throw new Error("Marksheet container not found");
       
       const targetWidth = 800;
       const originalWidth = input.style.width;
@@ -362,44 +346,25 @@ const Marksheet: React.FC = () => {
       input.style.maxWidth = `${targetWidth}px`;
       input.style.position = 'absolute';
       
+      // Small delay to let browser apply styles
       await new Promise(resolve => setTimeout(resolve, 50));
       
       const width = input.scrollWidth;
       const height = input.scrollHeight;
 
-      const canvas = await html2canvas(input, { 
-        scale: 2,
-        useCORS: true,
-        logging: false,
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 2,
         backgroundColor: '#ffffff',
         width: width,
         height: height,
-        windowWidth: width,
-        windowHeight: height,
-        onclone: (clonedDoc) => {
-          // Fix for oklab/oklch color parsing error in html2canvas
-          const style = clonedDoc.createElement('style');
-          style.innerHTML = `
-            :root {
-              color-scheme: light !important;
-            }
-            * {
-              -webkit-print-color-adjust: exact !important;
-              color-adjust: exact !important;
-            }
-          `;
-          clonedDoc.head.appendChild(style);
-
-          const clonedElement = clonedDoc.getElementById('marksheet-container');
-          if (clonedElement) {
-            clonedElement.style.height = 'auto';
-            clonedElement.style.maxHeight = 'none';
-            clonedElement.style.overflow = 'visible';
-            clonedElement.style.position = 'absolute';
-            clonedElement.style.top = '0';
-            clonedElement.style.left = '0';
-            clonedElement.style.width = width + 'px';
-          }
+        style: {
+          height: 'auto',
+          maxHeight: 'none',
+          overflow: 'visible',
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: width + 'px',
         }
       });
       
@@ -449,7 +414,7 @@ const Marksheet: React.FC = () => {
         toast.error("শেয়ার করতে ব্যর্থ হয়েছে।");
       }
     } finally {
-      setLoading(false);
+      setIsExporting(false);
     }
   };
 
@@ -522,13 +487,13 @@ const Marksheet: React.FC = () => {
                         )}
                       </>
                     )}
-                    <button onClick={handlePrint} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.print}>
+                    <button onClick={handlePrint} disabled={isExporting} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.print}>
                         <Printer className="w-4 h-4" />
                     </button>
-                    <button onClick={exportToPDF} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title="PDF">
+                    <button onClick={exportToPDF} disabled={isExporting} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title="PDF">
                         <Download className="w-4 h-4" />
                     </button>
-                    <button onClick={handleShare} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.share}>
+                    <button onClick={handleShare} disabled={isExporting} className="btn-secondary h-9 px-3 w-full sm:w-auto whitespace-nowrap" title={t.share}>
                         <Share2 className="w-4 h-4" />
                     </button>
                 </div>

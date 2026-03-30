@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell } from "lucide-react";
+import { AnnouncementBanner } from "../components/AnnouncementBanner";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
@@ -265,6 +266,7 @@ const DashboardLayout: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
+                {location.pathname === '/' && <AnnouncementBanner orgId={orgId} />}
                 <Outlet />
               </motion.div>
             </AnimatePresence>

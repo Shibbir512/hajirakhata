@@ -7,9 +7,9 @@ import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    if (confirm('New content available. Reload?')) {
-      updateSW(true);
-    }
+    // Auto update or just log it, avoiding confirm() which blocks iframe
+    console.log('New content available. Auto-updating...');
+    updateSW(true);
   },
   onOfflineReady() {
     console.log('App ready to work offline');

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
 import { WifiOff } from "lucide-react";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
@@ -26,6 +26,7 @@ const ResultEntry = lazy(() => import("./src/pages/ResultEntry"));
 const ResultReports = lazy(() => import("./src/pages/ResultReports"));
 const Marksheet = lazy(() => import("./src/pages/Marksheet"));
 const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
+const Announcements = lazy(() => import("./src/pages/Announcements"));
 const StudentProfile = lazy(() => import("./src/pages/StudentProfile"));
 const PublicResultView = lazy(() => import("./src/pages/PublicResultView"));
 const PublicClassResult = lazy(() => import("./src/pages/PublicClassResult"));
@@ -102,6 +103,9 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
+  const isSrcDoc = window.location.protocol === 'about:' || window.location.href === 'about:srcdoc' || window.location.origin === 'null';
+  const currentPath = window.location.pathname + window.location.search + window.location.hash;
+  
   return (
     <>
       <Toaster 
@@ -125,52 +129,67 @@ const App: React.FC = () => {
         }}
       />
       <AuthProvider>
-        <BrowserRouter>
-          <OfflineIndicator />
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/login" element={<Login />} />
-              <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
-              <Route path="/public-result/:orgId/:studentId/:examId" element={<PublicResultView />} />
-              <Route path="/public-class-result/:orgId/:yearId/:classId/:examId" element={<PublicClassResult />} />
-              <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
-
-              <Route
-                path="/"
-                element={
-                  <ProtectedRoute>
-                    <DashboardLayout />
-                  </ProtectedRoute>
-                }
-              >
-                <Route index element={<Dashboard />} />
-                <Route path="attendance" element={<Attendance />} />
-                <Route path="attendance/history" element={<AttendanceHistory />} />
-                <Route path="students" element={<Students />} />
-                <Route path="alumni" element={<Alumni />} />
-                <Route path="classes" element={<Classes />} />
-                <Route path="classes/:classId" element={<ClassDetails />} />
-                <Route path="reports" element={<Reports />} />
-                <Route path="settings" element={<Settings />} />
-                <Route path="super-admin" element={<SuperAdminDashboard />} />
-                
-                {/* Result Management Routes */}
-                <Route path="subjects" element={<Subjects />} />
-                <Route path="exams" element={<Exams />} />
-                <Route path="result-entry" element={<ResultEntry />} />
-                <Route path="result-reports" element={<ResultReports />} />
-                <Route path="marksheet" element={<Marksheet />} />
-                <Route path="academic-years" element={<AcademicYears />} />
-                <Route path="student-profile/:studentId" element={<StudentProfile />} />
-                <Route path="result-search" element={<PublicResultSearchPage />} />
-                <Route path="result-search/:orgId" element={<PublicResultSearchPage />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+        {isSrcDoc ? (
+          <MemoryRouter initialEntries={[currentPath || '/']}>
+            <AppRoutes />
+          </MemoryRouter>
+        ) : (
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        )}
       </AuthProvider>
     </>
   );
 };
+
+const AppRoutes = () => (
+  <>
+    <OfflineIndicator />
+    <Suspense fallback={<LoadingFallback />}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/result/student/:studentId/:examId" element={<ResultCard />} />
+        <Route path="/public-result/:orgId/:studentId/:examId" element={<PublicResultView />} />
+        <Route path="/public-class-result/:orgId/:yearId/:classId/:examId" element={<PublicClassResult />} />
+        <Route path="/org-management" element={<ProtectedRoute><OrgManagementPage /></ProtectedRoute>} />
+
+        <Route
+          path="/"
+          element={
+            <ProtectedRoute>
+              <DashboardLayout />
+            </ProtectedRoute>
+          }
+        >
+          <Route index element={<Dashboard />} />
+          <Route path="attendance" element={<Attendance />} />
+          <Route path="attendance/history" element={<AttendanceHistory />} />
+          <Route path="students" element={<Students />} />
+          <Route path="alumni" element={<Alumni />} />
+          <Route path="classes" element={<Classes />} />
+          <Route path="classes/:classId" element={<ClassDetails />} />
+          <Route path="reports" element={<Reports />} />
+          <Route path="settings" element={<Settings />} />
+          <Route path="super-admin" element={<SuperAdminDashboard />} />
+          
+          {/* Result Management Routes */}
+          <Route path="subjects" element={<Subjects />} />
+          <Route path="exams" element={<Exams />} />
+          <Route path="result-entry" element={<ResultEntry />} />
+          <Route path="result-reports" element={<ResultReports />} />
+          <Route path="marksheet" element={<Marksheet />} />
+          <Route path="academic-years" element={<AcademicYears />} />
+          <Route path="announcements" element={<Announcements />} />
+          <Route path="student-profile/:studentId" element={<StudentProfile />} />
+          <Route path="result-search" element={<PublicResultSearchPage />} />
+          <Route path="result-search/:orgId" element={<PublicResultSearchPage />} />
+        </Route>
+        
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
+  </>
+);
 
 export default App;

@@ -18,6 +18,44 @@ export const toBengaliDate = (dateStr: string) => {
   return `${toBengaliNumber(day)} ${monthName}, ${toBengaliNumber(year)}`;
 };
 
+export const getDayNameInBengali = (dateStr: string) => {
+  if (!dateStr || typeof dateStr !== 'string') return "";
+  
+  // Try different separators
+  const separator = dateStr.includes("-") ? "-" : dateStr.includes("/") ? "/" : " ";
+  const parts = dateStr.split(separator);
+  
+  if (parts.length !== 3) {
+    console.error("Invalid date format in getDayNameInBengali:", dateStr);
+    return "";
+  }
+
+  // Handle formats: dd mm yyyy, dd-mm-yyyy, dd/mm/yyyy
+  let day, month, year;
+  if (parts[0].length === 4) { // yyyy-mm-dd
+    year = parseInt(parts[0]);
+    month = parseInt(parts[1]);
+    day = parseInt(parts[2]);
+  } else { // dd-mm-yyyy or dd mm yyyy
+    day = parseInt(parts[0]);
+    month = parseInt(parts[1]);
+    year = parseInt(parts[2]);
+  }
+
+  const date = new Date(year, month - 1, day);
+  
+  if (isNaN(date.getTime())) {
+    console.error("Invalid date object in getDayNameInBengali:", dateStr, year, month, day);
+    return "Invalid Date";
+  }
+  
+  const dayNames = [
+    "রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"
+  ];
+  
+  return dayNames[date.getDay()];
+};
+
 export const toBengaliNumber = (num: string | number | undefined | null) => {
   if (num === undefined || num === null) return "";
   const bengaliNumbers = ["০", "১", "২", "৩", "৪", "৫", "৬", "৭", "৮", "৯"];
