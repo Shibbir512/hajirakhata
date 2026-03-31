@@ -267,18 +267,6 @@ const StudentProfile: React.FC = () => {
   const [isAttendanceExpanded, setIsAttendanceExpanded] = useState(false);
   const [attendanceSortOrder, setAttendanceSortOrder] = useState<'asc' | 'desc'>('desc');
 
-  const attendanceHistory = useMemo(() => {
-    if (!studentId) return [];
-    
-    // Fetch all sessions to filter for this student
-    // This is a bit inefficient, but matches the existing pattern in useEffect
-    const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
-    // NOTE: This needs to be fetched properly. 
-    // The current approach in useEffect only fetches stats, not the full list.
-    // I will need to update the useEffect to fetch all sessions.
-    return []; 
-  }, [studentId, orgId]);
-
   const studentAttendance = useStudentAttendance(studentId || "", allAttendanceSessions);
   
   const sortedAttendance = useMemo(() => {
