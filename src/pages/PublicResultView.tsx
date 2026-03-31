@@ -122,7 +122,10 @@ const PublicResultView: React.FC = () => {
   );
 
   const handlePrint = () => {
-    window.print();
+    window.focus();
+    setTimeout(() => {
+      window.print();
+    }, 500);
   };
 
   const exportToPDF = async () => {
@@ -134,40 +137,10 @@ const PublicResultView: React.FC = () => {
       const input = document.getElementById('marksheet-container');
       if (!input) throw new Error("Marksheet container not found");
       
-      const targetWidth = 800;
-      const originalWidth = input.style.width;
-      const originalMaxWidth = input.style.maxWidth;
-      const originalPosition = input.style.position;
-      
-      input.style.width = `${targetWidth}px`;
-      input.style.maxWidth = `${targetWidth}px`;
-      input.style.position = 'absolute';
-      
-      // Small delay to let browser apply styles
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const width = input.scrollWidth;
-      const height = input.scrollHeight;
-
       const canvas = await toCanvas(input, { 
-        pixelRatio: 3,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height,
-        style: {
-          height: 'auto',
-          maxHeight: 'none',
-          overflow: 'visible',
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          width: width + 'px',
-        }
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
       });
-      
-      input.style.width = originalWidth;
-      input.style.maxWidth = originalMaxWidth;
-      input.style.position = originalPosition;
       
       const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF("p", "mm", "a4");
@@ -175,20 +148,26 @@ const PublicResultView: React.FC = () => {
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
       
-      const imgProps = pdf.getImageProperties(imgData);
-      const ratio = Math.min(pdfWidth / imgProps.width, (pdfHeight - 10) / imgProps.height);
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
       
-      const imgWidth = imgProps.width * ratio;
-      const imgHeight = imgProps.height * ratio;
-      
-      const x = (pdfWidth - imgWidth) / 2;
-      const y = 5;
+      let heightLeft = imgHeight;
+      let position = 0;
 
-      pdf.addImage(imgData, 'JPEG', x, y, imgWidth, imgHeight);
-      pdf.save(`marksheet_${student?.name}.pdf`);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`Result_${student?.name}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
-      console.error("PDF Export Error:", error);
+      console.error("PDF Error:", error);
       toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
     } finally {
       setIsExporting(false);
@@ -204,56 +183,35 @@ const PublicResultView: React.FC = () => {
       const input = document.getElementById('marksheet-container');
       if (!input) throw new Error("Marksheet container not found");
       
-      const targetWidth = 800;
-      const originalWidth = input.style.width;
-      const originalMaxWidth = input.style.maxWidth;
-      const originalPosition = input.style.position;
-      
-      input.style.width = `${targetWidth}px`;
-      input.style.maxWidth = `${targetWidth}px`;
-      input.style.position = 'absolute';
-      
-      // Small delay to let browser apply styles
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const width = input.scrollWidth;
-      const height = input.scrollHeight;
-
       const canvas = await toCanvas(input, { 
         pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height,
-        style: {
-          height: 'auto',
-          maxHeight: 'none',
-          overflow: 'visible',
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          width: width + 'px',
-        }
+        backgroundColor: '#ffffff'
       });
       
-      input.style.width = originalWidth;
-      input.style.maxWidth = originalMaxWidth;
-      input.style.position = originalPosition;
-
       const imgData = canvas.toDataURL('image/jpeg', 0.8);
       const pdf = new jsPDF("p", "mm", "a4");
+      
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
-      const imgProps = pdf.getImageProperties(imgData);
-      const ratio = Math.min(pdfWidth / imgProps.width, (pdfHeight - 10) / imgProps.height);
       
-      const imgWidth = imgProps.width * ratio;
-      const imgHeight = imgProps.height * ratio;
-      const x = (pdfWidth - imgWidth) / 2;
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
 
-      pdf.addImage(imgData, 'JPEG', x, 5, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
       
       const pdfBlob = pdf.output('blob');
-      const fileName = `marksheet_${student?.name}.pdf`;
+      const fileName = `Result_${student?.name}.pdf`;
       const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -337,11 +295,12 @@ const PublicResultView: React.FC = () => {
         </div>
 
         {results.length > 0 && student && (
-          <div 
-            id="marksheet-container" 
-            className={`card-premium p-8 print:shadow-none print:border-none print:p-0 max-w-4xl mx-auto bg-white border-4 border-[#0F5C7A] rounded-2xl ${marksheetLanguage === 'ar' ? 'rtl' : 'ltr'} ${fontStyle === 'modern' ? 'font-modern' : 'font-classic'}`}
-            dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
-          >
+          <div className="w-full overflow-x-auto pb-4">
+            <div 
+              id="marksheet-container" 
+              className={`card-premium print:shadow-none print:border-none print:p-0 bg-white border-4 border-[#0F5C7A] rounded-2xl ${marksheetLanguage === 'ar' ? 'rtl' : 'ltr'} ${fontStyle === 'modern' ? 'font-modern' : 'font-classic'}`}
+              dir={marksheetLanguage === 'ar' ? 'rtl' : 'ltr'}
+            >
             <div className="text-center mb-8 border-b-4 border-[#0F5C7A] pb-6">
               <h1 className="text-4xl font-bold text-[#0F5C7A] mb-2">{orgName}</h1>
               <h2 className="text-2xl font-semibold text-slate-800 mb-2">
@@ -370,10 +329,10 @@ const PublicResultView: React.FC = () => {
               <table className="w-full text-left border-collapse">
                 <thead className="bg-slate-100 border-b border-slate-300">
                   <tr>
-                    <th className={`p-4 font-semibold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-right border-l' : 'text-left border-r'} border-slate-300`}>{t.subject}</th>
-                    <th className={`p-4 font-semibold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.fullMarks}</th>
-                    <th className={`p-4 font-semibold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.passMarks}</th>
-                    <th className="p-4 font-semibold text-slate-800 text-center">{t.obtainedMarks}</th>
+                    <th className={`p-4 font-semibold text-slate-800 border border-slate-300 ${marksheetLanguage === 'ar' ? 'text-right' : 'text-left'}`}>{t.subject}</th>
+                    <th className="p-4 font-semibold text-slate-800 text-center border border-slate-300">{t.fullMarks}</th>
+                    <th className="p-4 font-semibold text-slate-800 text-center border border-slate-300">{t.passMarks}</th>
+                    <th className="p-4 font-semibold text-slate-800 text-center border border-slate-300">{t.obtainedMarks}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-300">
@@ -383,10 +342,10 @@ const PublicResultView: React.FC = () => {
                     
                     return (
                       <tr key={subject.id} className="hover:bg-slate-50 transition-colors">
-                        <td className={`p-4 text-slate-800 font-medium ${marksheetLanguage === 'ar' ? 'text-right border-l' : 'text-left border-r'} border-slate-300`}>{subject.name}</td>
-                        <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.fullMarks, numeralFormat)}</td>
-                        <td className={`p-4 text-slate-600 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(subject.passMarks, numeralFormat)}</td>
-                        <td className={`p-4 text-center font-bold ${isFail ? 'text-[#EF4444]' : 'text-slate-800'}`}>
+                        <td className={`p-4 text-slate-800 font-medium border border-slate-300 ${marksheetLanguage === 'ar' ? 'text-right' : 'text-left'}`}>{subject.name}</td>
+                        <td className="p-4 text-slate-600 text-center border border-slate-300">{convertNumber(subject.fullMarks, numeralFormat)}</td>
+                        <td className="p-4 text-slate-600 text-center border border-slate-300">{convertNumber(subject.passMarks, numeralFormat)}</td>
+                        <td className={`p-4 text-center font-bold border border-slate-300 ${isFail ? 'text-[#EF4444]' : 'text-slate-800'}`}>
                           {result ? convertNumber(result.marks, numeralFormat) : "-"}
                         </td>
                       </tr>
@@ -395,16 +354,16 @@ const PublicResultView: React.FC = () => {
                 </tbody>
                 <tfoot className="bg-slate-100 border-t-2 border-slate-300">
                   <tr>
-                    <td className={`p-4 font-bold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-left border-l' : 'text-right border-r'} border-slate-300`}>{t.total}:</td>
-                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(calculatedTotalMarks, numeralFormat)}</td>
-                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.rank}:</td>
-                    <td className="p-4 font-bold text-slate-800 text-center">{convertNumber(rank, numeralFormat)}</td>
+                    <td className={`p-4 font-bold text-slate-800 border border-slate-300 ${marksheetLanguage === 'ar' ? 'text-left' : 'text-right'}`}>{t.total}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{convertNumber(calculatedTotalMarks, numeralFormat)}</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{t.rank}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{convertNumber(rank, numeralFormat)}</td>
                   </tr>
                   <tr>
-                    <td className={`p-4 font-bold text-slate-800 ${marksheetLanguage === 'ar' ? 'text-left border-l' : 'text-right border-r'} border-slate-300`}>{t.percentage}:</td>
-                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{convertNumber(percentage, numeralFormat)}%</td>
-                    <td className={`p-4 font-bold text-slate-800 text-center ${marksheetLanguage === 'ar' ? 'border-l' : 'border-r'} border-slate-300`}>{t.grade}:</td>
-                    <td className="p-4 font-bold text-slate-800 text-center">{grade}</td>
+                    <td className={`p-4 font-bold text-slate-800 border border-slate-300 ${marksheetLanguage === 'ar' ? 'text-left' : 'text-right'}`}>{t.percentage}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{convertNumber(percentage, numeralFormat)}%</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{t.grade}:</td>
+                    <td className="p-4 font-bold text-slate-800 text-center border border-slate-300">{grade}</td>
                   </tr>
                 </tfoot>
               </table>
@@ -424,6 +383,7 @@ const PublicResultView: React.FC = () => {
             <div className="text-center text-slate-400 text-xs italic mt-8">
               * এটি একটি অনলাইন কপি। মূল মার্কশিটের জন্য মাদরাসা অফিসে যোগাযোগ করুন।
             </div>
+          </div>
           </div>
         )}
       </div>

@@ -365,6 +365,13 @@
   }
 }
 
+#marksheet-container {
+  width: 800px !important;
+  background: white;
+  padding: 40px;
+  margin: 0 auto;
+}
+
 @media print {
   @page {
     size: A4 landscape;
@@ -375,6 +382,9 @@
     background-color: white !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   .print\:hidden {
@@ -389,13 +399,15 @@
   }
 
   /* Ensure the tabulation sheet takes full width */
-  #tabulation-sheet-container {
+  #tabulation-sheet-container, #marksheet-container {
     width: 100% !important;
     max-width: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
   /* Hide navigation, headers, and other UI elements */
-  nav, .sidebar, header, .no-print {
+  nav, .sidebar, header, footer, button, .no-print {
     display: none !important;
   }
 
@@ -414,5 +426,9 @@
   
   tfoot {
     display: table-footer-group;
+  }
+
+  .page-break {
+    page-break-before: always;
   }
 }

@@ -12,6 +12,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
+import { addBengaliFont } from "../utils/pdfFont";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
@@ -280,78 +281,50 @@ const ResultReports: React.FC = () => {
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
-
-      const input = document.getElementById('tabulation-sheet-container');
-      if (!input) throw new Error("Tabulation sheet container not found");
-
-      const originalWidth = input.style.width;
-      const originalMaxWidth = input.style.maxWidth;
-      const originalPosition = input.style.position;
+      const doc = new jsPDF("l", "mm", "a4");
       
-      // Temporarily remove overflow to get full width
-      const overflowDiv = input.querySelector('.overflow-x-auto') as HTMLElement;
-      let originalOverflowChild = '';
-      if (overflowDiv) {
-        originalOverflowChild = overflowDiv.style.overflow;
-        overflowDiv.style.overflow = 'visible';
+      // Load Bengali font
+      const fontLoaded = await addBengaliFont(doc);
+      if (fontLoaded) {
+        doc.setFont('TiroBangla');
       }
-
-      input.style.width = 'max-content';
-      input.style.maxWidth = 'none';
-      input.style.position = 'absolute';
       
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const width = input.scrollWidth;
-      const height = input.scrollHeight;
+      // Header
+      doc.setFontSize(16);
+      doc.text(reportHeader.orgName, 148, 15, { align: 'center' });
+      doc.setFontSize(10);
+      doc.text(reportHeader.examTitle, 148, 22, { align: 'center' });
 
-      const canvas = await toCanvas(input, { 
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height,
-        style: {
-          height: 'auto',
-          maxHeight: 'none',
-          overflow: 'visible',
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          width: width + 'px',
+      // Table Data
+      const head = [["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "বিভাগ", "মেধাক্রম"]];
+      const body = processedResults.map(({ student, metrics }) => [
+        student.roll.toString(),
+        student.name,
+        ...filteredSubjects.map(s => {
+          const result = results.find(r => r.student_id === student.id && r.subject_id === s.id);
+          return (result?.marks ?? 0).toString();
+        }),
+        metrics.totalMarks.toString(),
+        metrics.totalFullMarks.toString(),
+        `${metrics.percentage}%`,
+        `${metrics.statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য'} (${metrics.grade})`,
+        metrics.rank
+      ]);
+
+      autoTable(doc, {
+        head,
+        body,
+        startY: 30,
+        theme: 'grid',
+        styles: { fontSize: 8, font: fontLoaded ? 'TiroBangla' : 'helvetica' },
+        columnStyles: {
+          0: { cellWidth: 15 }, // Roll
+          1: { cellWidth: 30 }, // Name
+          // Subject columns will automatically adjust
         }
       });
-      
-      input.style.width = originalWidth;
-      input.style.maxWidth = originalMaxWidth;
-      input.style.position = originalPosition;
-      if (overflowDiv) {
-        overflowDiv.style.overflow = originalOverflowChild;
-      }
 
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF("l", "mm", "a4");
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save("tabulation_sheet.pdf");
+      doc.save("tabulation_sheet.pdf");
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
       console.error("PDF Export Error:", error);
