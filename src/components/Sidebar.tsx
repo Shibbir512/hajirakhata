@@ -103,7 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
                   isActive
                     ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
+                    : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
                 )
               }
             >
@@ -270,7 +270,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
                   isActive
                     ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white",
+                    : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
                 )
               }
             >
@@ -290,7 +290,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               setIsOpen(false);
               navigate("/org-management");
             }}
-            className="w-full flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white mt-2"
+            className="w-full flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.15)] hover:scale-[1.02] hover:text-white font-medium text-[16px] text-white mt-2"
           >
             <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
               <Building2 className="w-5 h-5 text-white/70" />
