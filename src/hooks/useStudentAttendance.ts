@@ -15,6 +15,7 @@ export const useStudentAttendance = (studentId: string, attendanceSessions: any[
           time: session.time,
           status: studentRecord?.status,
           classId: session.classId,
+          note: studentRecord?.note,
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());

@@ -7,6 +7,7 @@ import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
 import { useStudents } from "../hooks/useStudents";
+import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import StudentEditModal from "../components/StudentEditModal";
 import { db } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
@@ -15,6 +16,7 @@ import { Student, Result, Subject, AttendanceStatus } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
+import { clsx } from "clsx";
 
 const StudentProfile: React.FC = () => {
   const { studentId } = useParams<{ studentId: string }>();
@@ -30,6 +32,7 @@ const StudentProfile: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0 });
+  const [allAttendanceSessions, setAllAttendanceSessions] = useState<any[]>([]);
   const [lastExamRank, setLastExamRank] = useState<string>("-");
   const [lastExamGrade, setLastExamGrade] = useState<string>("-");
   const [loading, setLoading] = useState(true);
@@ -43,18 +46,21 @@ const StudentProfile: React.FC = () => {
         const studentRef = doc(db, `organizations/${orgId}/students`, studentId);
         const studentSnap = await getDoc(studentRef);
         if (studentSnap.exists()) {
-          setStudent(studentSnap.data() as Student);
+          const studentData = studentSnap.data() as Student;
+          setStudent(studentData);
           
-          // Fetch attendance stats
+          // Fetch all attendance sessions for the class
           const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
-          const attendanceQuery = query(sessionsRef, where("classId", "==", studentSnap.data()?.classId));
+          const attendanceQuery = query(sessionsRef, where("classId", "==", studentData.classId));
           const attendanceSnapshot = await getDocs(attendanceQuery);
           
           let presentCount = 0;
           let absentCount = 0;
+          const sessions: any[] = [];
           
           attendanceSnapshot.docs.forEach(doc => {
             const session = doc.data();
+            sessions.push({ id: doc.id, ...session });
             const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
             if (studentRecord) {
               if (studentRecord.status === AttendanceStatus.Present) presentCount++;
@@ -62,6 +68,7 @@ const StudentProfile: React.FC = () => {
             }
           });
           setAttendanceStats({ present: presentCount, absent: absentCount });
+          setAllAttendanceSessions(sessions);
         } else {
           toast.error("শিক্ষার্থী খুঁজে পাওয়া যায়নি।");
           navigate("/students");
@@ -256,6 +263,31 @@ const StudentProfile: React.FC = () => {
     // Sort by academic year (assuming year_name can be sorted or we use ID)
     return history.sort((a, b) => b.academicYear.localeCompare(a.academicYear));
   }, [student, results, academicYears, exams, classes, subjects, historyRanks]);
+
+  const [isAttendanceExpanded, setIsAttendanceExpanded] = useState(false);
+  const [attendanceSortOrder, setAttendanceSortOrder] = useState<'asc' | 'desc'>('desc');
+
+  const attendanceHistory = useMemo(() => {
+    if (!studentId) return [];
+    
+    // Fetch all sessions to filter for this student
+    // This is a bit inefficient, but matches the existing pattern in useEffect
+    const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+    // NOTE: This needs to be fetched properly. 
+    // The current approach in useEffect only fetches stats, not the full list.
+    // I will need to update the useEffect to fetch all sessions.
+    return []; 
+  }, [studentId, orgId]);
+
+  const studentAttendance = useStudentAttendance(studentId || "", allAttendanceSessions);
+  
+  const sortedAttendance = useMemo(() => {
+    return [...studentAttendance].sort((a, b) => {
+      const dateA = new Date(a.date).getTime();
+      const dateB = new Date(b.date).getTime();
+      return attendanceSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
+    });
+  }, [studentAttendance, attendanceSortOrder]);
 
   const handleUpdateStudent = (data: Partial<Student>) => {
     if (editingStudent) {
@@ -470,6 +502,74 @@ const StudentProfile: React.FC = () => {
                 </table>
               </div>
             </div>
+            {/* Attendance History Section */}
+            <motion.div variants={itemVariants} className="mt-8">
+              <div 
+                onClick={() => setIsAttendanceExpanded(!isAttendanceExpanded)}
+                className="flex items-center justify-between w-full gap-2 px-2 mb-4 bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-emerald-600" />
+                  </div>
+                  <h4 className="text-lg font-bold text-slate-800">হাজিরা ইতিহাস</h4>
+                </div>
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setAttendanceSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
+                  }}
+                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+                >
+                  <ArrowUpDown className="w-4 h-4" />
+                  {attendanceSortOrder === 'asc' ? 'পুরানো থেকে নতুন' : 'নতুন থেকে পুরানো'}
+                </button>
+              </div>
+
+              {isAttendanceExpanded && (
+                <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                          <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">তারিখ</th>
+                          <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">সময়</th>
+                          <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">অবস্থা</th>
+                          <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">নোট</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-50">
+                        {sortedAttendance.length > 0 ? (
+                          sortedAttendance.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                              <td className="py-4 px-5 text-sm text-slate-800">{item.date}</td>
+                              <td className="py-4 px-5 text-sm text-slate-600">{item.time}</td>
+                              <td className="py-4 px-5 text-sm text-center">
+                                <span className={clsx(
+                                  "px-3 py-1 rounded-full text-xs font-bold",
+                                  item.status === AttendanceStatus.Present 
+                                    ? "bg-emerald-100 text-emerald-700" 
+                                    : "bg-rose-100 text-rose-700"
+                                )}>
+                                  {item.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                                </span>
+                              </td>
+                              <td className="py-4 px-5 text-sm text-slate-600">{item.note || "-"}</td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="py-10 text-center text-slate-400 text-sm">
+                              কোন হাজিরা রেকর্ড পাওয়া যায়নি।
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </motion.div>
           </motion.div>
         </motion.div>
         
