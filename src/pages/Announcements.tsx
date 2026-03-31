@@ -3,6 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useAnnouncements } from "../hooks/useAnnouncements";
 import { Plus, Trash2, Edit2, Save, X } from "lucide-react";
 import toast from "react-hot-toast";
+import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const Announcements: React.FC = () => {
   const { orgId, user } = useAuth();
@@ -10,6 +11,7 @@ const Announcements: React.FC = () => {
   const [newMessage, setNewMessage] = useState("");
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editMessage, setEditMessage] = useState("");
+  const [announcementToDelete, setAnnouncementToDelete] = useState<string | null>(null);
 
   const handleAdd = async () => {
     if (!newMessage.trim()) return;
@@ -35,16 +37,19 @@ const Announcements: React.FC = () => {
   };
 
   const handleDelete = async (id: string) => {
-    console.log("Delete button clicked for ID:", id);
-    if (!window.confirm("আপনি কি নিশ্চিত এই বার্তাটি মুছে ফেলতে চান?")) return;
+    setAnnouncementToDelete(id);
+  };
+
+  const confirmDelete = async () => {
+    if (!announcementToDelete) return;
     try {
-      console.log("Attempting to delete announcement:", id);
-      await deleteAnnouncement(id);
-      console.log("Announcement deleted successfully");
+      await deleteAnnouncement(announcementToDelete);
       toast.success("বার্তা মুছে ফেলা হয়েছে");
     } catch (error) {
       console.error("Error deleting announcement:", error);
       toast.error("বার্তা মুছতে ব্যর্থ হয়েছে");
+    } finally {
+      setAnnouncementToDelete(null);
     }
   };
 
@@ -94,6 +99,14 @@ const Announcements: React.FC = () => {
           </div>
         ))}
       </div>
+
+      <ConfirmationDialog
+        isOpen={!!announcementToDelete}
+        onClose={() => setAnnouncementToDelete(null)}
+        onConfirm={confirmDelete}
+        title="বার্তা মুছে ফেলুন"
+        message="আপনি কি নিশ্চিত যে আপনি এই বার্তাটি মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।"
+      />
     </div>
   );
 };

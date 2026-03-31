@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { createPortal } from "react-dom";
 import { X, UserPlus, Camera, Upload } from "lucide-react";
 import { compressAndUploadImage } from "../utils/imageUpload";
 import { useAuth } from "../hooks/useAuth";
@@ -93,8 +94,8 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
     }
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px]">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-[6px]">
       <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
@@ -249,7 +250,8 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

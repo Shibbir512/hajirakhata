@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { createPortal } from "react-dom";
 import { XCircle, BookOpen, Calendar, Award, Activity } from "lucide-react";
 import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
@@ -108,8 +109,8 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
   const presentPercentage = totalAttendance.total > 0 ? Math.round((totalAttendance.present / totalAttendance.total) * 100) : 0;
   const absentPercentage = totalAttendance.total > 0 ? Math.round((totalAttendance.absent / totalAttendance.total) * 100) : 0;
 
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+  return createPortal(
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
       <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-[#14B8A6]">
         <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
           <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
@@ -236,7 +237,8 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

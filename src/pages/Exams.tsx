@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
@@ -136,8 +137,8 @@ const Exams: React.FC = () => {
         </div>
       </div>
 
-      {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+      {isModalOpen && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
           <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
@@ -241,11 +242,12 @@ const Exams: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {viewingInstructions && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
+      {viewingInstructions && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-4">
           <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] p-6">
             <h3 className="text-lg font-bold text-slate-800 mb-4">পরীক্ষার নির্দেশনা</h3>
             <p className="text-slate-600 text-sm mb-6 whitespace-pre-wrap">{viewingInstructions.instructions}</p>
@@ -253,7 +255,8 @@ const Exams: React.FC = () => {
               বন্ধ করুন
             </button>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {examToDelete && (

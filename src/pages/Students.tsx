@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
@@ -610,8 +611,8 @@ const Students: React.FC = () => {
         />
       )}
 
-      {viewingStudent && (
-        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+      {viewingStudent && createPortal(
+        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
           <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
@@ -708,7 +709,8 @@ const Students: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {studentToDelete && (
         <ConfirmationDialog

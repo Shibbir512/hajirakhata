@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useCallback } from "react";
+import { createPortal } from "react-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -361,8 +362,8 @@ const AttendanceHistory: React.FC = () => {
         </div>
       )}
 
-      {viewingSession && (
-        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+      {viewingSession && createPortal(
+        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
           <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
@@ -470,11 +471,12 @@ const AttendanceHistory: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {isEditMode && selectedSession && (
-        <div className="fixed inset-0 z-[70] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
+      {isEditMode && selectedSession && createPortal(
+        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
           <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
@@ -566,7 +568,8 @@ const AttendanceHistory: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
       {sessionToDelete && (
         <ConfirmationDialog
