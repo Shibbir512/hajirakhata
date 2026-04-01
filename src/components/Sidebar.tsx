@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
@@ -22,6 +22,7 @@ import {
   CalendarDays,
   Search,
   Megaphone,
+  LogOut,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -32,11 +33,23 @@ interface SidebarProps {
 }
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const { user, photoURL, orgId } = useAuth();
+  const { user, photoURL, orgId, logout } = useAuth();
   const navigate = useNavigate();
   const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
   const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
   const [isAttendanceMenuOpen, setIsAttendanceMenuOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setIsProfileMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
@@ -299,8 +312,22 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           </button>
         </nav>
       </div>
-      <div className="p-4 border-t border-white/10 w-full">
-        <div className="flex items-center gap-3">
+      <div className="p-4 border-t border-white/10 w-full relative" ref={profileMenuRef}>
+        {isProfileMenuOpen && (
+          <div className="absolute bottom-[calc(100%-10px)] left-4 right-4 mb-2 bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-[110] animate-in fade-in slide-in-from-bottom-2 duration-200">
+            <button
+              onClick={logout}
+              className="w-full flex items-center px-4 py-3 text-red-600 hover:bg-red-50 transition-colors font-medium text-[14px]"
+            >
+              <LogOut className="w-4 h-4 mr-3" />
+              লগ আউট
+            </button>
+          </div>
+        )}
+        <button
+          onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+          className="w-full flex items-center gap-3 p-2 -mx-2 rounded-xl hover:bg-white/10 transition-colors text-left"
+        >
           <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center text-white font-bold shadow-sm border border-white/30 overflow-hidden shrink-0">
             {photoURL ? (
               <img src={photoURL} alt="Profile" className="w-full h-full object-cover" />
@@ -314,7 +341,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </p>
             <p className="text-[12px] text-white/70 truncate">{user?.email}</p>
           </div>
-        </div>
+          <ChevronDown className={clsx("w-4 h-4 text-white/70 transition-transform flex-shrink-0", isProfileMenuOpen && "rotate-180")} />
+        </button>
       </div>
     </div>
   );
