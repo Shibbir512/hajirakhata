@@ -264,21 +264,35 @@ const Attendance: React.FC = () => {
 
         {selectedClassId ? (
           <>
-            <div className="flex flex-col sm:flex-row gap-3 mb-6">
+            <div className="flex flex-row gap-3 mb-4">
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
-                className="w-full sm:w-auto h-[48px] px-6 bg-[#22C55E] text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                className="flex-1 h-[48px] px-2 sm:px-6 bg-[#22C55E] text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base"
               >
-                <CheckCircle className="w-5 h-5" />
+                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 সবাই উপস্থিত
               </button>
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
-                className="w-full sm:w-auto h-[48px] px-6 bg-white text-[#EF4444] border-2 border-[#EF4444] font-bold rounded-xl hover:bg-rose-50 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
+                className="flex-1 h-[48px] px-2 sm:px-6 bg-white text-[#EF4444] border-2 border-[#EF4444] font-bold rounded-xl hover:bg-rose-50 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base"
               >
-                <XCircle className="w-5 h-5" />
+                <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
                 সবাই অনুপস্থিত
               </button>
+            </div>
+
+            <div className="relative w-full mb-6">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setCurrentPage(1);
+                }}
+                className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              />
             </div>
 
             <div className="overflow-x-auto bg-white rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">

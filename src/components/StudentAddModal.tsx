@@ -8,7 +8,7 @@ import toast from "react-hot-toast";
 interface StudentAddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string) => void;
+  onAdd: (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => void;
 }
 
 const StudentAddModal: React.FC<StudentAddModalProps> = ({
@@ -21,6 +21,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   const [fatherName, setFatherName] = useState("");
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
+  const [bloodGroup, setBloodGroup] = useState("");
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -66,11 +67,12 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
         photoUrl = await compressAndUploadImage(imageFile, path);
       }
 
-      onAdd(name, fatherName, phone, address, photoUrl || undefined);
+      onAdd(name, fatherName, phone, address, photoUrl || undefined, bloodGroup);
       setName("");
       setFatherName("");
       setPhone("");
       setAddress("");
+      setBloodGroup("");
       setImageFile(null);
       setImagePreview(null);
       setError("");
@@ -121,12 +123,39 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           <form id="add-student-form" onSubmit={handleSubmit} className="space-y-4">
             
             {/* Image Upload Section */}
-            <div className="flex flex-col items-center justify-center gap-3 mb-4">
-              <div className="relative w-24 h-24 rounded-full border-2 border-dashed border-[#D1D5DB] flex items-center justify-center bg-[#F9FAFB] overflow-hidden">
-                {imagePreview ? (
-                  <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
-                ) : (
-                  <UserPlus className="w-8 h-8 text-[#9CA3AF]" />
+            <div className="flex flex-col items-center justify-center mb-6">
+              <div className="relative group mb-4">
+                <div className="w-28 h-28 rounded-full border-4 border-white shadow-lg flex items-center justify-center bg-gradient-to-tr from-slate-100 to-slate-200 overflow-hidden relative">
+                  {imagePreview ? (
+                    <img src={imagePreview} alt="Preview" className="w-full h-full object-cover" />
+                  ) : (
+                    <div className="flex flex-col items-center text-slate-400">
+                      <Camera className="w-8 h-8 mb-1" />
+                      <span className="text-[10px] font-bold uppercase tracking-wider">ছবি দিন</span>
+                    </div>
+                  )}
+                  
+                  {/* Hover Overlay */}
+                  <div 
+                    onClick={() => fileInputRef.current?.click()}
+                    className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+                  >
+                    <Upload className="w-6 h-6 text-white" />
+                  </div>
+                </div>
+
+                {/* Remove Button */}
+                {imagePreview && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageFile(null);
+                      setImagePreview(null);
+                    }}
+                    className="absolute bottom-0 right-0 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center shadow-md hover:bg-rose-600 transition-colors border-2 border-white"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
                 )}
               </div>
               
@@ -148,22 +177,26 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                   onClick={(e) => { (e.target as HTMLInputElement).value = ''; }}
                   className="hidden"
                 />
-                <button
-                  type="button"
-                  onClick={() => fileInputRef.current?.click()}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F3F4F6] text-[#374151] rounded-lg text-sm font-medium hover:bg-[#E5E7EB] transition-colors"
-                >
-                  <Upload className="w-4 h-4" />
-                  গ্যালারি
-                </button>
-                <button
-                  type="button"
-                  onClick={() => cameraInputRef.current?.click()}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-[#F3F4F6] text-[#374151] rounded-lg text-sm font-medium hover:bg-[#E5E7EB] transition-colors"
-                >
-                  <Camera className="w-4 h-4" />
-                  ক্যামেরা
-                </button>
+                {!imagePreview && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => fileInputRef.current?.click()}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                    >
+                      <Upload className="w-4 h-4" />
+                      গ্যালারি
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => cameraInputRef.current?.click()}
+                      className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-700 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
+                    >
+                      <Camera className="w-4 h-4" />
+                      ক্যামেরা
+                    </button>
+                  </>
+                )}
               </div>
             </div>
 
@@ -205,6 +238,27 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                 className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />
+            </div>
+
+            <div>
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                রক্তের গ্রুপ
+              </label>
+              <select
+                value={bloodGroup}
+                onChange={(e) => setBloodGroup(e.target.value)}
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none appearance-none"
+              >
+                <option value="">রক্তের গ্রুপ নির্বাচন করুন</option>
+                <option value="A+">A+</option>
+                <option value="A-">A-</option>
+                <option value="B+">B+</option>
+                <option value="B-">B-</option>
+                <option value="AB+">AB+</option>
+                <option value="AB-">AB-</option>
+                <option value="O+">O+</option>
+                <option value="O-">O-</option>
+              </select>
             </div>
 
             <div>

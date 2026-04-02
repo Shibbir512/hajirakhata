@@ -73,7 +73,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
   }, [user, orgId]);
 
   const addStudent = useCallback(
-    async (classId: string, name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string) => {
+    async (classId: string, name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => {
       if (!user || !db || !orgId) return;
       try {
         const studentsRef = collection(db, `organizations/${orgId}/students`);
@@ -118,6 +118,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
           fatherName: fatherName ?? "",
           phone: phone ?? "",
           address: address ?? "",
+          bloodGroup: bloodGroup ?? "",
           photoUrl: photoUrl ?? "",
           isActive: true,
           version: 1,

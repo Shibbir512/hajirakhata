@@ -7,7 +7,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -30,7 +30,7 @@ const normalizeBengali = (text: string) => {
 
 const Students: React.FC = () => {
   const navigate = useNavigate();
-  const { user, orgId, role } = useAuth();
+  const { user, orgId, role, orgName } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { academicYears } = useAcademicYears(orgId, user);
   const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents } =
@@ -45,6 +45,7 @@ const Students: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showArchived, setShowArchived] = useState(false);
+  const [bloodGroupFilter, setBloodGroupFilter] = useState("");
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -122,29 +123,36 @@ const Students: React.FC = () => {
   }, [allStudentsList, classes]);
 
   const filteredStudents = useMemo(() => {
-    if (!searchQuery) return allStudentsList;
+    let list = allStudentsList;
     
-    const queryStr = searchQuery.trim();
-    const normalizedQuery = normalizeBengali(queryStr);
-    const englishQuery = toEnglishNumber(queryStr);
-    
-    // First, try to find exact matches for roll number or student ID
-    const exactMatches = allStudentsList.filter(s => 
-      s.roll.toString() === englishQuery || 
-      (s.studentUid && s.studentUid === englishQuery)
-    );
-    
-    if (exactMatches.length > 0) {
-      const exactMatchIds = new Set(exactMatches.map(s => s.id));
-      const fuzzyMatches = fuse.search(normalizedQuery)
-        .map(result => result.item)
-        .filter(item => !exactMatchIds.has(item.id));
-        
-      return [...exactMatches, ...fuzzyMatches];
+    if (searchQuery) {
+      const queryStr = searchQuery.trim();
+      const normalizedQuery = normalizeBengali(queryStr);
+      const englishQuery = toEnglishNumber(queryStr);
+      
+      const exactMatches = list.filter(s => 
+        s.roll.toString() === englishQuery || 
+        (s.studentUid && s.studentUid === englishQuery)
+      );
+      
+      if (exactMatches.length > 0) {
+        const exactMatchIds = new Set(exactMatches.map(s => s.id));
+        const fuzzyMatches = fuse.search(normalizedQuery)
+          .map(result => result.item)
+          .filter(item => !exactMatchIds.has(item.id));
+          
+        list = [...exactMatches, ...fuzzyMatches];
+      } else {
+        list = fuse.search(normalizedQuery).map(result => result.item);
+      }
     }
     
-    return fuse.search(normalizedQuery).map(result => result.item);
-  }, [fuse, searchQuery, allStudentsList]);
+    if (bloodGroupFilter) {
+      list = list.filter(s => s.bloodGroup === bloodGroupFilter);
+    }
+    
+    return list;
+  }, [fuse, searchQuery, allStudentsList, bloodGroupFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredStudents.length / itemsPerPage));
 
@@ -160,9 +168,9 @@ const Students: React.FC = () => {
     return filteredStudents.slice(start, start + itemsPerPage);
   }, [filteredStudents, currentPage, itemsPerPage]);
 
-  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string) => {
+  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => {
     if (selectedClassId) {
-      addStudent(selectedClassId, name, fatherName, phone, address, photoUrl);
+      addStudent(selectedClassId, name, fatherName, phone, address, photoUrl, bloodGroup);
       setIsAddModalOpen(false);
     }
   };
@@ -251,6 +259,80 @@ const Students: React.FC = () => {
     }
   };
 
+  const handlePrint = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) {
+      toast.error("Pop-up blocker is preventing printing. Please allow pop-ups for this site.");
+      return;
+    }
+
+    const className = selectedClassId ? classes.find(c => c.id === selectedClassId)?.name : 'সকল শিক্ষার্থী';
+    
+    // Sort students by roll number for printing
+    const sortedStudents = [...filteredStudents].sort((a, b) => a.roll - b.roll);
+
+    const html = `
+      <!DOCTYPE html>
+      <html lang="bn">
+        <head>
+          <meta charset="UTF-8">
+          <title>শিক্ষার্থীর তালিকা - ${className}</title>
+          <style>
+            body { font-family: sans-serif; padding: 20px; color: #000; }
+            .header { text-align: center; margin-bottom: 20px; }
+            h1 { margin: 0 0 5px 0; font-size: 24px; }
+            h2 { margin: 0; font-size: 18px; color: #444; }
+            table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+            th, td { border: 1px solid #000; padding: 8px; text-align: left; font-size: 14px; }
+            th { background-color: #f4f4f4; font-weight: bold; }
+            @media print {
+              @page { margin: 15mm; }
+              body { padding: 0; }
+              th { background-color: #f4f4f4 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>${orgName || 'প্রতিষ্ঠান'}</h1>
+            <h2>শ্রেণি: ${className}</h2>
+          </div>
+          <table>
+            <thead>
+              <tr>
+                <th style="width: 10%;">রোল</th>
+                <th style="width: 20%;">ইউনিক আইডি</th>
+                <th style="width: 35%;">নাম</th>
+                <th style="width: 35%;">পিতার নাম</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sortedStudents.map(s => `
+                <tr>
+                  <td>${toBengaliNumber(s.roll)}</td>
+                  <td>${s.studentUid ? toBengaliNumber(s.studentUid) : '-'}</td>
+                  <td>${s.name}</td>
+                  <td>${s.fatherName || '-'}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+          <script>
+            window.onload = () => {
+              setTimeout(() => {
+                window.print();
+                window.onafterprint = () => window.close();
+              }, 500);
+            };
+          </script>
+        </body>
+      </html>
+    `;
+    
+    printWindow.document.write(html);
+    printWindow.document.close();
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -328,6 +410,17 @@ const Students: React.FC = () => {
             <Download className="w-4 h-4" />
             DOCX এক্সপোর্ট
           </button>
+          <button
+            onClick={handlePrint}
+            disabled={allStudentsList.length === 0}
+            className={clsx(
+              "btn-primary w-full md:w-auto whitespace-nowrap col-span-2 md:col-span-1 !h-[44px] !py-2",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
+            )}
+          >
+            <Printer className="w-4 h-4" />
+            প্রিন্ট করুন
+          </button>
         </div>
       </div>
     </div>
@@ -359,6 +452,25 @@ const Students: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
             />
+          </div>
+
+          <div className="relative bg-[#fbfbfb]">
+            <select
+              value={bloodGroupFilter}
+              onChange={(e) => setBloodGroupFilter(e.target.value)}
+              className="w-full h-[52px] border border-[#D1D5DB] rounded-xl bg-white px-4 focus:border-[#0F5C7A] outline-none appearance-none text-slate-700 font-medium"
+            >
+              <option value="">সব রক্তের গ্রুপ</option>
+              <option value="A+">A+</option>
+              <option value="A-">A-</option>
+              <option value="B+">B+</option>
+              <option value="B-">B-</option>
+              <option value="AB+">AB+</option>
+              <option value="AB-">AB-</option>
+              <option value="O+">O+</option>
+              <option value="O-">O-</option>
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
           
           <div className="flex items-center gap-3">
@@ -657,6 +769,10 @@ const Students: React.FC = () => {
                 <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
                   <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">ফোন নম্বর</p>
                   <p className="text-[14px] text-[#1F2937] font-medium">{viewingStudent.phone || "-"}</p>
+                </div>
+                <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
+                  <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">রক্তের গ্রুপ</p>
+                  <p className="text-[14px] text-[#1F2937] font-medium">{viewingStudent.bloodGroup || "-"}</p>
                 </div>
                 <div className="bg-white p-3 rounded-[16px] border border-[#E5E7EB]">
                   <p className="text-[12px] font-semibold text-[#6B7280] uppercase tracking-wider mb-1">ঠিকানা</p>
