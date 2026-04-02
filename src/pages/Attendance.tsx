@@ -5,7 +5,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle } from "lucide-react";
+import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle, X } from "lucide-react";
 import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -467,17 +467,21 @@ const Attendance: React.FC = () => {
       {isNotifyModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6 transition-all">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-gradient-to-r from-emerald-50 to-teal-50 flex-shrink-0">
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white shadow-sm flex items-center justify-center text-[#25D366]">
-                  <MessageCircle className="w-5 h-5" />
+                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
+                  <MessageCircle className="w-7 h-7 text-white" />
                 </div>
-                <h3 className="text-xl font-bold text-slate-800">
-                  অনুপস্থিতদের জানান
-                </h3>
+                <div>
+                  <h3 className="text-lg font-bold">অনুপস্থিতদের জানান</h3>
+                  <p className="text-xs text-white/80">WhatsApp মেসেজ</p>
+                </div>
               </div>
-              <button onClick={() => setIsNotifyModalOpen(false)} className="w-8 h-8 flex items-center justify-center rounded-full bg-white text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all shadow-sm">
-                <XCircle className="w-5 h-5" />
+              <button
+                onClick={() => setIsNotifyModalOpen(false)}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
               </button>
             </div>
             <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">

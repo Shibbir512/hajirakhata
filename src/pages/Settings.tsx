@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell } from "lucide-react";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser, updateProfile } from "firebase/auth";
 import { db, auth } from "../firebase";
@@ -383,6 +383,23 @@ const Settings: React.FC = () => {
                   value={role === "admin" ? "অ্যাডমিন" : "শিক্ষক"}
                   disabled
                   className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70 font-medium text-[#0F5C7A]"
+                />
+              </div>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                সর্বশেষ লগইন (Last Login)
+              </label>
+              <div className="relative">
+                <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  value={user?.metadata?.lastSignInTime ? new Date(user.metadata.lastSignInTime).toLocaleString('bn-BD', {
+                    dateStyle: 'medium',
+                    timeStyle: 'short'
+                  }) : "অজানা"}
+                  disabled
+                  className="input-premium pl-10 bg-slate-50/50 cursor-not-allowed opacity-70"
                 />
               </div>
             </div>
