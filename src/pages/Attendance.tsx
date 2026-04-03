@@ -184,6 +184,24 @@ const Attendance: React.FC = () => {
     setIsConfirmDialogOpen(true);
   };
 
+  const sendWhatsAppToAbsentees = () => {
+    const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent && s.phone);
+    if (absentees.length === 0) {
+      toast.error("কোনো অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি অথবা কারো ফোন নাম্বার নেই।");
+      return;
+    }
+
+    absentees.forEach((student, index) => {
+      const message = `প্রিয় অভিভাবক, আপনার সন্তান ${student.name} (রোল: ${student.roll}) আজ অনুপস্থিত।`;
+      const url = `https://wa.me/${student.phone}?text=${encodeURIComponent(message)}`;
+      
+      // Open with delay to avoid browser blocking
+      setTimeout(() => {
+        window.open(url, '_blank');
+      }, index * 500);
+    });
+  };
+
   const confirmSave = async () => {
     setIsConfirmDialogOpen(false);
     await takeAttendance(selectedClassId, attendanceState);
@@ -491,6 +509,12 @@ const Attendance: React.FC = () => {
                   <p className="text-xs text-white/80">WhatsApp মেসেজ</p>
                 </div>
               </div>
+              <button
+                onClick={sendWhatsAppToAbsentees}
+                className="bg-white text-[#0F5C7A] px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors"
+              >
+                সবাইকে পাঠান
+              </button>
               <button
                 onClick={() => setIsNotifyModalOpen(false)}
                 className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"

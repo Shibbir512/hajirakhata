@@ -2,11 +2,9 @@ import React, { useState, useRef, useEffect } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
-import IconBadge from "./IconBadge";
 import {
   LayoutDashboard,
   CalendarCheck,
-  Users,
   BookOpen,
   BarChart3,
   Settings,
@@ -18,7 +16,6 @@ import {
   FileText,
   ClipboardEdit,
   ChevronDown,
-  ChevronRight,
   CalendarDays,
   Search,
   Megaphone,
@@ -35,9 +32,6 @@ interface SidebarProps {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL, orgId, logout } = useAuth();
   const navigate = useNavigate();
-  const [isResultMenuOpen, setIsResultMenuOpen] = useState(false);
-  const [isConfigMenuOpen, setIsConfigMenuOpen] = useState(false);
-  const [isAttendanceMenuOpen, setIsAttendanceMenuOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
@@ -67,11 +61,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const attendanceLinks = orgId ? [
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
-    { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
-    { name: "শিক্ষার্থী", path: "/students", icon: Users },
-    { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
-    { name: "শ্রেণি", path: "/classes", icon: BookOpen },
-    { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
   ] : [];
 
   const resultLinks = orgId ? [
@@ -81,16 +70,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
   ] : [];
 
+  const studentLinks = orgId ? [
+    { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
+    { name: "শ্রেণি", path: "/classes", icon: BookOpen },
+  ] : [];
+
   const configLinks = orgId ? [
     { name: "বিষয়", path: "/subjects", icon: Book },
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
   ] : [];
 
+  const otherLinks = orgId ? [
+    { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
+    { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
+    { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
+  ] : [
+    { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
+  ];
+
   return (
     <div
       className={clsx(
-        "fixed inset-y-0 left-0 z-[100] w-[260px] h-full transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
+        "hidden lg:flex fixed inset-y-0 left-0 z-[100] w-[260px] h-full transform transition-transform duration-300 ease-in-out flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
       style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
@@ -100,12 +102,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <img src={logo} alt="হাজিরা খাতা" className="h-10 w-auto" />
           <span className="text-[22px] font-semibold text-white tracking-tight">হাজিরা খাতা</span>
         </div>
-        <button onClick={() => setIsOpen(false)} className="lg:hidden p-2 text-white hover:bg-white/10 rounded-full">
+        <button onClick={() => setIsOpen(false)} className="p-2 text-white hover:bg-white/10 rounded-full">
           <X className="w-6 h-6" />
         </button>
       </div>
       <div className="flex-1 overflow-y-auto py-4 text-white">
-        <nav className="px-4 space-y-2">
+        <nav className="px-4 space-y-4">
+          {/* Dashboard Link */}
           {topLinks.map((link) => (
             <NavLink
               key={link.name}
@@ -131,185 +134,215 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </NavLink>
           ))}
 
-          {/* Attendance Management Section */}
+          {/* হাজিরা খাতা Group */}
           {attendanceLinks.length > 0 && (
             <div className="pt-2">
-              <button
-                onClick={() => setIsAttendanceMenuOpen(!isAttendanceMenuOpen)}
-                className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white"
-              >
-                <div className="flex items-center">
-                  <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
-                    <CalendarCheck className="w-5 h-5 text-white/70" />
-                  </div>
-                  হাজিরা খাতা
-                </div>
-                {isAttendanceMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
-              
-              {isAttendanceMenuOpen && (
-                <div className="pl-4 mt-1 space-y-1">
-                  {attendanceLinks.map((link) => (
-                    <NavLink
-                      key={link.name}
-                      to={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className={({ isActive }) =>
-                        clsx(
-                          "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
-                          isActive
-                            ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                            : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
-                        )
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
-                            <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
-                          </div>
-                          {link.name}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-                </div>
-              )}
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                হাজিরা খাতা
+              </div>
+              <div className="space-y-1">
+                {attendanceLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Result Management Section */}
+          {/* ফলাফল ব্যবস্থাপনা Group */}
           {resultLinks.length > 0 && (
             <div className="pt-2">
-              <button
-                onClick={() => setIsResultMenuOpen(!isResultMenuOpen)}
-                className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[16px] text-white"
-              >
-                <div className="flex items-center">
-                  <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
-                    <GraduationCap className="w-5 h-5 text-white/70" />
-                  </div>
-                  ফলাফল ব্যবস্থাপনা
-                </div>
-                {isResultMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-              </button>
-              
-              {isResultMenuOpen && (
-                <div className="pl-4 mt-1 space-y-1">
-                  {resultLinks.map((link) => (
-                    <NavLink
-                      key={link.name}
-                      to={link.path}
-                      onClick={() => setIsOpen(false)}
-                      className={({ isActive }) =>
-                        clsx(
-                          "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
-                          isActive
-                            ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                            : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
-                        )
-                      }
-                    >
-                      {({ isActive }) => (
-                        <>
-                          <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
-                            <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
-                          </div>
-                          {link.name}
-                        </>
-                      )}
-                    </NavLink>
-                  ))}
-
-                  {/* Configuration Sub-menu */}
-                  {configLinks.length > 0 && (
-                    <div className="pt-1">
-                      <button
-                        onClick={() => setIsConfigMenuOpen(!isConfigMenuOpen)}
-                        className="w-full flex items-center justify-between px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.1)] hover:text-white font-medium text-[15px] text-white/90"
-                      >
-                        <div className="flex items-center">
-                          <div className="w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3 bg-transparent">
-                            <Settings className="w-4 h-4 text-white/70" />
-                          </div>
-                          কনফিগারেশন
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                ফলাফল ব্যবস্থাপনা
+              </div>
+              <div className="space-y-1">
+                {resultLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                         </div>
-                        {isConfigMenuOpen ? <ChevronDown className="w-4 h-4" /> : <ChevronRight className="w-4 h-4" />}
-                      </button>
-                      
-                      {isConfigMenuOpen && (
-                        <div className="pl-4 mt-1 space-y-1">
-                          {configLinks.map((link) => (
-                            <NavLink
-                              key={link.name}
-                              to={link.path}
-                              onClick={() => setIsOpen(false)}
-                              className={({ isActive }) =>
-                                clsx(
-                                  "flex items-center px-4 h-[44px] rounded-[14px] transition-all duration-200 font-medium text-[15px]",
-                                  isActive
-                                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                                    : "hover:bg-[rgba(255,255,255,0.1)] hover:text-white text-white/80",
-                                )
-                              }
-                            >
-                              {({ isActive }) => (
-                                <>
-                                  <div className={clsx("w-[32px] h-[32px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-transparent")}>
-                                    <link.icon className={clsx("w-4 h-4", isActive ? "text-white" : "text-white/70")} />
-                                  </div>
-                                  {link.name}
-                                </>
-                              )}
-                            </NavLink>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
             </div>
           )}
 
-          {/* Bottom Links (Settings, Super Admin) */}
-          {bottomLinks.map((link) => (
-            <NavLink
-              key={link.name}
-              to={link.path}
-              onClick={() => setIsOpen(false)}
-              className={({ isActive }) =>
-                clsx(
-                  "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
-                  isActive
-                    ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                    : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
-                )
-              }
-            >
-              {({ isActive }) => (
-                <>
-                  <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
-                    <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
-                  </div>
-                  {link.name}
-                </>
-              )}
-            </NavLink>
-          ))}
-
-          <button
-            onClick={() => {
-              setIsOpen(false);
-              navigate("/org-management");
-            }}
-            className="w-full flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 hover:bg-[rgba(255,255,255,0.15)] hover:scale-[1.02] hover:text-white font-medium text-[16px] text-white mt-2"
-          >
-            <div className="w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3 bg-[rgba(255,255,255,0.1)]">
-              <Building2 className="w-5 h-5 text-white/70" />
+          {/* শিক্ষার্থী Group */}
+          {studentLinks.length > 0 && (
+            <div className="pt-2">
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                শিক্ষার্থী
+              </div>
+              <div className="space-y-1">
+                {studentLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
             </div>
-            {orgId ? "প্রতিষ্ঠান পরিবর্তন" : "প্রতিষ্ঠানে যোগ দিন"}
-          </button>
+          )}
+
+          {/* কনফিগারেশন Group */}
+          {configLinks.length > 0 && (
+            <div className="pt-2">
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                কনফিগারেশন
+              </div>
+              <div className="space-y-1">
+                {configLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* অন্যান্য Group */}
+          {otherLinks.length > 0 && (
+            <div className="pt-2">
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                অন্যান্য
+              </div>
+              <div className="space-y-1">
+                {otherLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* সেটিংস Group */}
+          {bottomLinks.length > 0 && (
+            <div className="pt-2 pb-4">
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                সেটিংস
+              </div>
+              <div className="space-y-1">
+                {bottomLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
         </nav>
       </div>
       <div className="p-4 border-t border-white/10 w-full relative" ref={profileMenuRef}>

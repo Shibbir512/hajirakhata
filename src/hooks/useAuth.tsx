@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import { auth, db } from "../firebase";
+import { auth, db, handleFirestoreError, OperationType } from "../firebase";
 import { onAuthStateChanged, User, signOut } from "firebase/auth";
 import {
   doc,
@@ -71,6 +71,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         // Silently handle permission errors to avoid annoying the user
         // This usually happens if Firebase Rules are not deployed correctly
         setIsApprovalEnabled(true);
+        handleFirestoreError(error, OperationType.GET, "globalSettings/config");
       });
       
       return () => unsubscribe();
@@ -121,12 +122,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const configSnap = await getDoc(doc(db, "globalSettings", "config"));
             const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
             updateData.status = approvalEnabled ? "pending" : "active";
-            setDoc(userDocRef, updateData).catch(console.error);
+            setDoc(userDocRef, updateData).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
           } else {
-            updateDoc(userDocRef, updateData).catch(console.error);
+            updateDoc(userDocRef, updateData).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
           }
         } catch (e) {
           console.error("Error saving user info:", e);
+          handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`);
         }
 
         unsubUser = onSnapshot(userDocRef, async (docSnap) => {
@@ -164,10 +166,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (orgSnap.exists() && orgSnap.data().createdBy === currentUser.uid) {
                   userRole = "admin";
                   setRole(userRole);
-                  updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(console.error);
+                  updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
                 }
               } catch (e) {
                 console.error("Error checking org owner:", e);
+                handleFirestoreError(e, OperationType.GET, `organizations/${currentOrgId}`);
               }
             }
 
@@ -184,10 +187,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                     {
                       [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
                     }
-                  ).catch(console.error);
+                  ).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
                 }
               } catch (e) {
                 console.error("Error auto-populating history:", e);
+                handleFirestoreError(e, OperationType.GET, `organizations/${currentOrgId}`);
               }
             }
             
@@ -201,6 +205,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }, (error) => {
           console.error("Error in userDoc snapshot listener:", error);
+          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
           setLoading(false);
         });
       } else {

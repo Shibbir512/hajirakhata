@@ -44,7 +44,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       <div className="flex items-center gap-4">
         <button
           onClick={onMenuClick}
-          className="lg:hidden p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
+          className="hidden lg:block p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
         >
           <Menu className="w-6 h-6" />
         </button>

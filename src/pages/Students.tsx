@@ -221,19 +221,23 @@ const Students: React.FC = () => {
 
   const handleExport = async (format: 'csv' | 'docx') => {
     if (format === 'csv') {
-      const csv = Papa.unparse(allStudentsList.map(s => ({
-        Name: s.name,
-        Roll: s.roll,
-        Class: classes.find(c => c.id === s.classId)?.name || "N/A",
-        FatherName: s.fatherName,
-        Phone: s.phone,
-        Address: s.address
-      })));
-      const blob = new Blob([csv], { type: 'text/csv' });
+      const csvData = allStudentsList.map(s => ({
+        'শিক্ষার্থী আইডি': s.studentUid || 'N/A',
+        'নাম': s.name,
+        'রোল': s.roll,
+        'শ্রেণি': classes.find(c => c.id === s.classId)?.name || "N/A",
+        'ফোন নম্বর': s.phone || 'N/A',
+        'ঠিকানা': s.address || 'N/A',
+        'রক্তের গ্রুপ': s.bloodGroup || 'N/A'
+      }));
+      
+      const csv = Papa.unparse(csvData);
+      // Add UTF-8 BOM for Excel to correctly display Bengali characters
+      const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = 'students.csv';
+      a.download = 'students_list.csv';
       a.click();
     } else if (format === 'docx') {
       const { Document, Packer, Paragraph, TextRun } = await import('docx');

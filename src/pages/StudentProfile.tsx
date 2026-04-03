@@ -436,6 +436,11 @@ const StudentProfile: React.FC = () => {
                 </div>
                 
                 <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">রক্তের গ্রুপ</p>
+                  <p className="font-bold text-slate-800">{student.bloodGroup || "-"}</p>
+                </div>
+                
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
                   <p className="text-xs text-slate-400 font-medium mb-1">ঠিকানা</p>
                   <p className="font-bold text-slate-800">{student.address || "-"}</p>
                 </div>

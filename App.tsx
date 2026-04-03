@@ -1,8 +1,68 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { WifiOff } from "lucide-react";
+import { WifiOff, AlertTriangle, RefreshCcw } from "lucide-react";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
+
+class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
+  constructor(props: any) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: any) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: any, errorInfo: any) {
+    console.error("ErrorBoundary caught an error", error, errorInfo);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      let errorDetails = null;
+      try {
+        errorDetails = JSON.parse(this.state.error.message);
+      } catch (e) {
+        // Not a JSON error
+      }
+
+      return (
+        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 text-center">
+          <div className="max-w-md w-full bg-white p-8 rounded-3xl shadow-xl border border-slate-100">
+            <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <AlertTriangle className="w-10 h-10 text-red-500" />
+            </div>
+            <h1 className="text-2xl font-bold text-slate-800 mb-4">কিছু একটা সমস্যা হয়েছে</h1>
+            <p className="text-slate-600 mb-8">
+              {errorDetails ? "সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।" : "অ্যাপ্লিকেশনটি লোড করতে সমস্যা হচ্ছে।"}
+            </p>
+            
+            {errorDetails && (
+              <div className="bg-slate-50 p-4 rounded-xl mb-8 text-left overflow-hidden">
+                <p className="text-xs font-mono text-slate-500 break-all">
+                  Error: {errorDetails.error}<br />
+                  Op: {errorDetails.operationType}<br />
+                  Path: {errorDetails.path}
+                </p>
+              </div>
+            )}
+
+            <button
+              onClick={() => window.location.reload()}
+              className="w-full bg-[#0F5C7A] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[#0F5C7A]/90 transition-all shadow-lg shadow-[#0F5C7A]/20"
+            >
+              <RefreshCcw className="w-5 h-5" />
+              আবার চেষ্টা করুন
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    return this.props.children;
+  }
+}
 
 const OrgManagementPage = lazy(() => import("./src/pages/OrgManagementPage"));
 const DashboardLayout = lazy(() => import("./src/layouts/DashboardLayout"));
@@ -129,15 +189,17 @@ const App: React.FC = () => {
         }}
       />
       <AuthProvider>
-        {isSrcDoc ? (
-          <MemoryRouter initialEntries={[currentPath || '/']}>
-            <AppRoutes />
-          </MemoryRouter>
-        ) : (
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        )}
+        <ErrorBoundary>
+          {isSrcDoc ? (
+            <MemoryRouter initialEntries={[currentPath || '/']}>
+              <AppRoutes />
+            </MemoryRouter>
+          ) : (
+            <BrowserRouter>
+              <AppRoutes />
+            </BrowserRouter>
+          )}
+        </ErrorBoundary>
       </AuthProvider>
     </>
   );
