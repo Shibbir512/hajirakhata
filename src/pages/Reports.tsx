@@ -195,7 +195,7 @@ const Reports: React.FC = () => {
         });
         return {
             id: session.id,
-            session: `${session.date} ${session.time} (${session.id.substring(0, 4)})`,
+            session: `${session.date} | ${session.time}`,
             percentage: total > 0 ? Math.round((present / total) * 100) : 0
         };
     });
@@ -244,32 +244,33 @@ const Reports: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">রিপোর্ট</h2>
-        <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex flex-row gap-3">
           <button 
             onClick={handleExportCSV}
-            className="w-full sm:w-auto h-[48px] px-6 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0C6C8A] transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap"
+            className="flex-1 h-[52px] px-4 bg-[#F1F5F9] text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-200 transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
           >
-            <Download className="w-5 h-5" />
-            CSV এক্সপোর্ট
+            <Download className="w-4 h-4" />
+            CSV
           </button>
           <button 
             onClick={handleExportPDF}
             disabled={isExporting}
-            className="w-full sm:w-auto h-[48px] px-6 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0C6C8A] transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
+            className="flex-1 h-[52px] px-4 bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] text-white font-bold rounded-xl hover:opacity-90 transition-all shadow-soft flex items-center justify-center gap-2 text-sm disabled:opacity-50"
           >
-            <Download className="w-5 h-5" />
-            {isExporting ? "প্রসেসিং..." : "PDF এক্সপোর্ট"}
+            <Download className="w-4 h-4" />
+            {isExporting ? "..." : "PDF"}
           </button>
         </div>
       </div>
 
-      <div id="report-container" className="card-premium p-4 sm:p-8 bg-white border border-[#E5E7EB]">
-        <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative min-w-[240px]">
+      <div id="report-container" className="p-4 sm:p-8">
+        <div className="flex flex-col gap-4 mb-8">
+          <div className="relative w-full">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white text-center appearance-none pr-10 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-base"
+              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-soft text-base"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -278,36 +279,36 @@ const Reports: React.FC = () => {
                 </option>
               ))}
             </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
           </div>
 
-            <div className="flex items-center gap-2 flex-1 sm:flex-none">
-              <div className="relative flex-1 sm:flex-none min-w-[140px]">
-                <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
-                <DatePicker
-                  selected={startDate}
-                  onChange={(date: Date | null) => date && setStartDate(date)}
-                  dateFormat="dd-MM-yyyy"
-                  className="input-premium pl-8 pr-2 w-full text-sm sm:text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                />
-              </div>
-              <span className="text-[#0F5C7A] font-medium text-xs sm:text-sm">থেকে</span>
-              <div className="relative flex-1 sm:flex-none min-w-[140px]">
-                <Calendar className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
-                <DatePicker
-                  selected={endDate}
-                  onChange={(date: Date | null) => date && setEndDate(date)}
-                  dateFormat="dd-MM-yyyy"
-                  className="input-premium pl-8 pr-2 w-full text-sm sm:text-base font-medium text-[#0F5C7A] border-[#D1D5DB] bg-white rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                />
-              </div>
+          <div className="flex items-center gap-2 w-full">
+            <div className="relative flex-1 min-w-0">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
+              <DatePicker
+                selected={startDate}
+                onChange={(date: Date | null) => date && setStartDate(date)}
+                dateFormat="dd-MM-yyyy"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-medium text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              />
             </div>
+            <span className="text-slate-500 font-medium shrink-0">থেকে</span>
+            <div className="relative flex-1 min-w-0">
+              <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
+              <DatePicker
+                selected={endDate}
+                onChange={(date: Date | null) => date && setEndDate(date)}
+                dateFormat="dd-MM-yyyy"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-medium text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              />
+            </div>
+          </div>
         </div>
 
         {selectedClassId ? (
           <>
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+              <div className="h-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-soft overflow-hidden">
                 <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
                   হাজিরা ওভারভিউ
                 </h3>
