@@ -261,13 +261,13 @@ const Attendance: React.FC = () => {
       )}
 
       <div className="card-premium p-6 sm:p-8">
-        <div className="flex flex-col sm:flex-row justify-center items-center gap-4 mb-8">
-          <div className="relative w-full max-w-md">
+        <div className="mb-6">
+          <div className="relative w-full">
             <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[50px] bg-white border border-slate-200 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-sm text-lg"
+              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-soft text-base"
             >
               <option value="">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -282,23 +282,35 @@ const Attendance: React.FC = () => {
 
         {selectedClassId ? (
           <>
-            <div className="flex flex-row gap-3 mb-4">
+            {/* Bulk Action - Segmented Control */}
+            <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
               <button
                 onClick={() => markAll(AttendanceStatus.Present)}
-                className="flex-1 h-[48px] px-2 sm:px-6 bg-[#22C55E] text-white font-bold rounded-xl hover:bg-emerald-600 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base"
+                className={clsx(
+                  "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
+                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Present)
+                    ? "bg-[#22C55E] text-white shadow-md"
+                    : "text-[#22C55E] hover:bg-emerald-50"
+                )}
               >
-                <CheckCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <CheckCircle className="w-4 h-4" />
                 সবাই উপস্থিত
               </button>
               <button
                 onClick={() => markAll(AttendanceStatus.Absent)}
-                className="flex-1 h-[48px] px-2 sm:px-6 bg-white text-[#EF4444] border-2 border-[#EF4444] font-bold rounded-xl hover:bg-rose-50 transition-all shadow-sm flex items-center justify-center gap-2 whitespace-nowrap text-sm sm:text-base"
+                className={clsx(
+                  "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
+                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Absent)
+                    ? "bg-[#EF4444] text-white shadow-md"
+                    : "text-[#EF4444] hover:bg-rose-50"
+                )}
               >
-                <XCircle className="w-4 h-4 sm:w-5 sm:h-5" />
+                <XCircle className="w-4 h-4" />
                 সবাই অনুপস্থিত
               </button>
             </div>
 
+            {/* Search */}
             <div className="relative w-full mb-6">
               <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
               <input
@@ -309,119 +321,56 @@ const Attendance: React.FC = () => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                className="w-full h-[52px] text-base font-medium text-slate-700 bg-white pl-12 rounded-2xl shadow-soft border border-slate-100 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
               />
             </div>
 
-            <div className="overflow-x-auto bg-white rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] border border-[#E5E7EB]">
-              <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F8F9FA] sticky top-0 z-10">
-                  <tr>
-                    <th 
-                      className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-10 sm:w-16"
-                      onClick={() => handleSort('roll')}
-                    >
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        রোল <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
+            <div className="space-y-3">
+              {paginatedStudents.map((student) => {
+                const status = attendanceState.get(student.id)?.status;
+                const isPresent = status === AttendanceStatus.Present;
+                const isAbsent = status === AttendanceStatus.Absent;
+
+                return (
+                  <div key={student.id} className="bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
+                          className={clsx(
+                            "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                            isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
+                          )}
+                        >
+                          <CheckCircle className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
+                          className={clsx(
+                            "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
+                            isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
+                          )}
+                        >
+                          <XCircle className="w-5 h-5" />
+                        </button>
                       </div>
-                    </th>
-                    <th 
-                      className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] cursor-pointer hover:bg-slate-100/50 transition-colors w-full"
-                      onClick={() => handleSort('name')}
-                    >
-                      <div className="flex items-center gap-1 sm:gap-2">
-                        শিক্ষার্থীর নাম <ArrowUpDown className="w-3 h-3 sm:w-4 sm:h-4 text-slate-400" />
-                      </div>
-                    </th>
-                    <th className="text-left py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] whitespace-nowrap">
-                      অবস্থা
-                    </th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {paginatedStudents.map((student) => {
-                    const status = attendanceState.get(student.id)?.status;
-                    return (
-                      <tr
-                        key={student.id}
-                        className="border-b border-[#E5E7EB] hover:bg-slate-50 transition-colors group"
-                        style={{ height: '72px' }}
-                      >
-                        <td className="py-2 px-5 text-slate-800 font-bold text-[15px] w-10 sm:w-16">
-                          {toBengaliNumber(student.roll)}
-                        </td>
-                        <td className="py-2 px-5 text-slate-800 font-medium text-sm sm:text-base w-full">
-                          <div className="flex flex-col">
-                            <span className="text-[14px] font-medium">{student.name}</span>
-                          </div>
-                        </td>
-                        <td className="py-2 px-5 whitespace-nowrap">
-                          <div className="flex flex-col gap-2">
-                            <div className="flex flex-row justify-start gap-2">
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(
-                                    student.id,
-                                    AttendanceStatus.Present,
-                                  )
-                                }
-                                title="উপস্থিত"
-                                className={clsx(
-                                  "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
-                                  status === AttendanceStatus.Present
-                                    ? "bg-[#22C55E] text-white shadow-md"
-                                    : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
-                                )}
-                                style={{ borderRadius: '12px', padding: '10px 18px' }}
-                              >
-                                <CheckCircle className="w-4 h-4" />
-                                <span className="hidden sm:inline">উপস্থিত</span>
-                              </button>
-                              <button
-                                onClick={() =>
-                                  handleStatusChange(
-                                    student.id,
-                                    AttendanceStatus.Absent,
-                                  )
-                                }
-                                title="অনুপস্থিত"
-                                className={clsx(
-                                  "transition-all duration-300 flex items-center justify-center gap-1.5 font-medium text-[13px]",
-                                  status === AttendanceStatus.Absent
-                                    ? "bg-[#FEE2E2] text-[#EF4444] shadow-md"
-                                    : "bg-white text-slate-500 border border-slate-200 hover:bg-slate-50",
-                                )}
-                                style={{ borderRadius: '12px', padding: '10px 18px' }}
-                              >
-                                <XCircle className="w-4 h-4" />
-                                <span className="hidden sm:inline">অনুপস্থিত</span>
-                              </button>
-                            </div>
-                            <input
-                              type="text"
-                              placeholder="নোট (ঐচ্ছিক)"
-                              value={attendanceState.get(student.id)?.note || ''}
-                              onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                              className="text-[13px] border border-slate-200 rounded-lg px-3 py-2 outline-none focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A] transition-all"
-                            />
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                  {paginatedStudents.length === 0 && (
-                    <tr>
-                      <td
-                        colSpan={3}
-                        className="text-center py-12 text-slate-500"
-                      >
-                        কোন শিক্ষার্থী পাওয়া যায়নি।
-                      </td>
-                    </tr>
-                  )
-                  }
-                </tbody>
-              </table>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="+ নোট যোগ করুন"
+                      value={attendanceState.get(student.id)?.note || ''}
+                      onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                      className="w-full text-sm text-slate-500 bg-slate-50 p-2 rounded-lg outline-none"
+                    />
+                  </div>
+                );
+              })}
+              {paginatedStudents.length === 0 && (
+                <div className="text-center py-12 text-slate-500">
+                  কোন শিক্ষার্থী পাওয়া যায়নি।
+                </div>
+              )}
             </div>
 
             {/* Pagination */}
@@ -452,17 +401,16 @@ const Attendance: React.FC = () => {
               </div>
             )}
 
-            <div className="mt-8 flex flex-col sm:flex-row justify-center gap-4">
+            <div className="mt-8 flex flex-col gap-4">
               <button
                 onClick={handleSave}
                 disabled={isTakingAttendance}
-                className="btn-primary px-8 py-3 text-base w-full sm:w-auto"
-                style={{ backgroundColor: '#0F5C7A' }}
+                className="w-full h-[52px] bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
               >
                 {isTakingAttendance ? (
-                  <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                  <Loader2 className="w-5 h-5 animate-spin" />
                 ) : (
-                  <Save className="w-5 h-5 mr-2" />
+                  <Save className="w-5 h-5" />
                 )}
                 {isTakingAttendance ? 'সংরক্ষণ করা হচ্ছে...' : 'হাজিরা সংরক্ষণ করুন'}
               </button>
@@ -470,10 +418,9 @@ const Attendance: React.FC = () => {
               {liveCounter.absent > 0 && (
                 <button
                   onClick={() => setIsNotifyModalOpen(true)}
-                  className="px-8 py-3 text-base font-bold text-white rounded-[16px] flex items-center justify-center transition-all duration-300 hover:shadow-lg hover:-translate-y-0.5 w-full sm:w-auto"
-                  style={{ backgroundColor: '#25D366' }}
+                  className="w-full h-[52px] bg-[#F1F5F9] text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 border border-slate-200"
                 >
-                  <MessageCircle className="w-5 h-5 mr-2" />
+                  <MessageCircle className="w-5 h-5" />
                   অনুপস্থিতদের জানান
                 </button>
               )}
