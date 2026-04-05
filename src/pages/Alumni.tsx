@@ -61,7 +61,7 @@ const Alumni: React.FC = () => {
     <div className="p-6 max-w-7xl mx-auto">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 flex items-center gap-3">
+          <h1 className="text-3xl font-bold text-[#0ea682] flex items-center gap-3">
             <GraduationCap className="w-8 h-8 text-teal-600" />
             প্রাক্তন শিক্ষার্থী (Alumni)
           </h1>
@@ -69,7 +69,7 @@ const Alumni: React.FC = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 mb-8">
+      <div className="bg-white rounded-2xl shadow-sm border border-[#0aa7a7] p-6 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">পাসের শিক্ষাবর্ষ</label>
@@ -110,7 +110,7 @@ const Alumni: React.FC = () => {
         </div>
       ) : filteredAlumni.length === 0 ? (
         <div className="text-center py-20 bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <GraduationCap className="w-16 h-16 text-slate-300 mx-auto mb-4" />
+          <GraduationCap className="w-16 h-16 text-[#0fa3b0] mx-auto mb-4" />
           <h3 className="text-xl font-medium text-slate-600">কোনো প্রাক্তন শিক্ষার্থী পাওয়া যায়নি</h3>
           <p className="text-slate-500 mt-2">শিক্ষাবর্ষ বা অনুসন্ধানের শর্ত পরিবর্তন করে দেখুন</p>
         </div>

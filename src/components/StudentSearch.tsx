@@ -62,7 +62,7 @@ const StudentSearch: React.FC = () => {
           placeholder="শিক্ষার্থীর নাম, রোল বা আইডি দিয়ে খুঁজুন..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-[#E2E8F0] rounded-full focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all shadow-sm text-[#0F172A] placeholder:text-slate-400"
+          className="w-full pl-12 pr-4 py-3 bg-white border border-[#ddf8f8] rounded-full focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all shadow-sm text-[#0F172A] placeholder:text-slate-400"
         />
       </div>
 

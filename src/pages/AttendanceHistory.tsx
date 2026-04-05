@@ -6,7 +6,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle } from "lucide-react";
 import { toBengaliDate, toBengaliTime, toBengaliNumber, getDayNameInBengali } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -33,6 +33,8 @@ const AttendanceHistory: React.FC = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedStudents, setEditedStudents] = useState<any[]>([]);
   const [sessionToDelete, setSessionToDelete] = useState<any | null>(null);
+  const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
+  const [notifySession, setNotifySession] = useState<any | null>(null);
   const [isConfirmSaveDialogOpen, setIsConfirmSaveDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
@@ -129,8 +131,10 @@ const AttendanceHistory: React.FC = () => {
           title: 'হাজিরা রিপোর্ট',
           text: text,
         });
-      } catch (err) {
-        console.error('Error sharing:', err);
+      } catch (err: any) {
+        if (err.name !== 'AbortError') {
+          console.error('Error sharing:', err);
+        }
       }
     } else {
       // Fallback: Copy to clipboard
@@ -250,6 +254,17 @@ const AttendanceHistory: React.FC = () => {
                   </button>
                   <button onClick={() => setSessionToDelete(session)} className="text-slate-400 hover:text-[#EF4444] p-2 hover:bg-[#EF4444]/10 rounded-xl transition-colors">
                     <Trash2 className="w-4 h-4" />
+                  </button>
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setNotifySession(session);
+                      setIsNotifyModalOpen(true);
+                    }} 
+                    className="text-slate-400 hover:text-[#25D366] p-2 hover:bg-[#25D366]/10 rounded-xl transition-colors"
+                    title="অনুপস্থিতদের জানান"
+                  >
+                    <MessageCircle className="w-4 h-4" />
                   </button>
                 </div>
               </div>
@@ -582,6 +597,107 @@ const AttendanceHistory: React.FC = () => {
           title="হাজিরা সেশন মুছে ফেলুন"
           message="আপনি কি নিশ্চিত যে এই হাজিরা সেশনটি মুছে ফেলতে চান? এই কাজটি অপরিবর্তনীয়।"
         />
+      )}
+      {isNotifyModalOpen && notifySession && createPortal(
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6 transition-all">
+          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200">
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[80px] flex-shrink-0 flex items-center justify-between px-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-[48px] h-[48px] rounded-full bg-white/20 flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-bold">অনুপস্থিতদের জানান</h3>
+                  <p className="text-xs text-white/80">WhatsApp মেসেজ</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsNotifyModalOpen(false)}
+                className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+              >
+                <X className="w-5 h-5 text-white" />
+              </button>
+            </div>
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm font-medium text-slate-600">
+                  নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠান।
+                </p>
+                <button
+                  onClick={() => {
+                    const absentStudents = (notifySession.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
+                    absentStudents.forEach((student: any) => {
+                      const phone = student.phone || '';
+                      if (phone) {
+                        const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+                        const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                      }
+                    });
+                  }}
+                  className="bg-[#0F5C7A] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#0C6C8A] transition-colors shadow-soft"
+                >
+                  সবাইকে পাঠান
+                </button>
+              </div>
+              <div className="space-y-4">
+                {(notifySession.students || [])
+                  .filter((student: any) => student.status === AttendanceStatus.Absent)
+                  .map((student: any) => {
+                    const phone = student.phone || '';
+                    const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+                    const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+                    
+                    return (
+                      <div key={student.studentId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
+                        <div className="flex-1">
+                          <p className="font-bold text-slate-800 text-lg mb-1">{student.studentName}</p>
+                          <div className="flex items-center gap-2 text-sm text-slate-500">
+                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">রোল: {toBengaliNumber(getStudentRoll(notifySession.classId, student.studentId))}</span>
+                            {phone ? (
+                              <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
+                            ) : (
+                              <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
+                            )}
+                          </div>
+                        </div>
+                        <a
+                          href={phone ? whatsappUrl : '#'}
+                          target={phone ? "_blank" : "_self"}
+                          rel="noopener noreferrer"
+                          className={clsx(
+                            "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
+                            phone 
+                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
+                              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                          )}
+                          onClick={(e) => {
+                            if (!phone) {
+                              e.preventDefault();
+                              toast.error('এই শিক্ষার্থীর মোবাইল নম্বর দেওয়া নেই।');
+                            }
+                          }}
+                        >
+                          <MessageCircle className="w-5 h-5" />
+                          মেসেজ
+                        </a>
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+            <div className="p-6 border-t border-slate-100 bg-white flex justify-end flex-shrink-0">
+              <button
+                onClick={() => setIsNotifyModalOpen(false)}
+                className="px-8 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-full sm:w-auto"
+              >
+                বন্ধ করুন
+              </button>
+            </div>
+          </div>
+        </div>,
+        document.body
       )}
       <ConfirmationDialog
         isOpen={isConfirmSaveDialogOpen}

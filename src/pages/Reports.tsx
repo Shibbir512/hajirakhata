@@ -270,7 +270,7 @@ const Reports: React.FC = () => {
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-soft text-base"
+              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#0c81a3] text-center shadow-soft text-base"
             >
               <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -289,7 +289,7 @@ const Reports: React.FC = () => {
                 selected={startDate}
                 onChange={(date: Date | null) => date && setStartDate(date)}
                 dateFormat="dd-MM-yyyy"
-                className="w-full pl-10 pr-2 h-[52px] text-sm font-medium text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
               />
             </div>
             <span className="text-slate-500 font-medium shrink-0">থেকে</span>
@@ -299,7 +299,7 @@ const Reports: React.FC = () => {
                 selected={endDate}
                 onChange={(date: Date | null) => date && setEndDate(date)}
                 dateFormat="dd-MM-yyyy"
-                className="w-full pl-10 pr-2 h-[52px] text-sm font-medium text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
               />
             </div>
           </div>

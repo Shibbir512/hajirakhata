@@ -106,7 +106,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold text-[#0F172A] tracking-tight">ড্যাশবোর্ড ওভারভিউ</h2>
+        <h2 className="text-2xl font-bold text-[#0a9880] border-[#1d45a4] tracking-tight text-left" style={{ fontFamily: "Georgia" }}>ড্যাশবোর্ড ওভারভিউ</h2>
         <StudentSearch />
       </div>
 
@@ -117,6 +117,7 @@ const Dashboard: React.FC = () => {
           icon={CheckCircle}
           color="text-[#22C55E]"
           gradient="bg-[#22C55E]/10"
+          valueColor="text-[#0fb063]"
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
@@ -124,6 +125,7 @@ const Dashboard: React.FC = () => {
           icon={Clock}
           color="text-[#F59E0B]"
           gradient="bg-[#F59E0B]/10"
+          valueColor="text-[#debf0b] border-[#edb30e]"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
@@ -131,6 +133,7 @@ const Dashboard: React.FC = () => {
           icon={Users}
           color="text-[#3B82F6]"
           gradient="bg-[#3B82F6]/10"
+          valueColor="text-[#2158d7]"
         />
         <StatCard
           title="আজ উপস্থিত"
@@ -138,6 +141,7 @@ const Dashboard: React.FC = () => {
           icon={UserCheck}
           color="text-[#22C55E]"
           gradient="bg-[#22C55E]/10"
+          valueColor="text-[#08c268]"
         />
         <StatCard
           title="আজ অনুপস্থিত"
@@ -145,6 +149,7 @@ const Dashboard: React.FC = () => {
           icon={UserX}
           color="text-[#EF4444]"
           gradient="bg-[#EF4444]/10"
+          valueColor="text-[#f92e2e]"
         />
         <StatCard
           title="মোট শ্রেণি"
@@ -152,11 +157,12 @@ const Dashboard: React.FC = () => {
           icon={BookOpen}
           color="text-[#3B82F6]"
           gradient="bg-[#3B82F6]/10"
+          valueColor="text-[#2158d7] border-[#1354ea]"
         />
       </div>
 
         <div className="bg-white p-6 rounded-[20px] shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0]">
-        <h3 className="text-lg font-bold text-[#0F172A] mb-6 tracking-tight">
+        <h3 className="font-bold mb-6 tracking-tight text-center text-[#079999] text-[17.875px]">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
@@ -223,6 +229,7 @@ const StatCard = React.memo<StatCardProps>(({
   icon: Icon,
   color,
   gradient,
+  valueColor,
 }) => {
   return (
     <div className="bg-white rounded-[20px] p-[18px] flex items-center gap-4 shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] group cursor-default">
@@ -231,7 +238,7 @@ const StatCard = React.memo<StatCardProps>(({
       </div>
       <div className="flex flex-col">
         <p className="text-[14px] text-[#64748B]">{title}</p>
-        <p className="text-[28px] font-bold text-[#0F172A]">{toBengaliNumber(value)}</p>
+        <p className={clsx("text-[28px] font-bold", valueColor || "text-[#0F172A]")}>{toBengaliNumber(value)}</p>
       </div>
     </div>
   );

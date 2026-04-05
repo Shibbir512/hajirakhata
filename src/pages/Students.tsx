@@ -113,11 +113,13 @@ const Students: React.FC = () => {
         ...s,
         className,
         normalizedName: normalizeBengali(s.name),
-        normalizedClassName: normalizeBengali(className)
+        normalizedClassName: normalizeBengali(className),
+        normalizedPhone: s.phone ? toEnglishNumber(s.phone) : "",
+        normalizedAddress: s.address ? normalizeBengali(s.address) : ""
       };
     });
     return new Fuse(normalizedStudents, {
-      keys: ['normalizedName', 'roll', 'normalizedClassName', 'studentUid'],
+      keys: ['normalizedName', 'roll', 'normalizedClassName', 'studentUid', 'normalizedPhone', 'normalizedAddress'],
       threshold: 0.3,
     });
   }, [allStudentsList, classes]);
@@ -132,7 +134,8 @@ const Students: React.FC = () => {
       
       const exactMatches = list.filter(s => 
         s.roll.toString() === englishQuery || 
-        (s.studentUid && s.studentUid === englishQuery)
+        (s.studentUid && s.studentUid === englishQuery) ||
+        (s.phone && toEnglishNumber(s.phone).includes(englishQuery))
       );
       
       if (exactMatches.length > 0) {
@@ -429,7 +432,7 @@ const Students: React.FC = () => {
       </div>
     </div>
 
-      <div className="card-premium p-8">
+      <div className="card-premium p-8 border-[#0aa7a7]">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
           <div className="relative min-w-[240px]">
             <select
@@ -451,7 +454,7 @@ const Students: React.FC = () => {
             <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <input
               type="text"
-              placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
+              placeholder="নাম, রোল, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"

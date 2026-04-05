@@ -260,14 +260,14 @@ const Attendance: React.FC = () => {
         </div>
       )}
 
-      <div className="card-premium p-6 sm:p-8">
+      <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
         <div className="mb-6">
           <div className="relative w-full">
             <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <select
               value={selectedClassId}
               onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-slate-700 shadow-soft text-base"
+              className="w-full pl-12 pr-10 h-[52px] bg-white border border-[#0fa2b0] rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#089191] text-center shadow-soft text-[16px]"
             >
               <option value="">শ্রেণি নির্বাচন করুন</option>
               {classes.map((cls) => (
@@ -446,10 +446,10 @@ const Attendance: React.FC = () => {
       {isNotifyModalOpen && createPortal(
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6 transition-all">
           <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200">
-            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
+            <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[80px] flex-shrink-0 flex items-center justify-between px-6 text-white">
               <div className="flex items-center gap-3">
-                <div className="w-[56px] h-[56px] rounded-full bg-white/15 flex items-center justify-center">
-                  <MessageCircle className="w-7 h-7 text-white" />
+                <div className="w-[48px] h-[48px] rounded-full bg-white/20 flex items-center justify-center">
+                  <MessageCircle className="w-6 h-6 text-white" />
                 </div>
                 <div>
                   <h3 className="text-lg font-bold">অনুপস্থিতদের জানান</h3>
@@ -457,22 +457,24 @@ const Attendance: React.FC = () => {
                 </div>
               </div>
               <button
-                onClick={sendWhatsAppToAbsentees}
-                className="bg-white text-[#0F5C7A] px-4 py-2 rounded-xl text-sm font-bold hover:bg-white/90 transition-colors"
-              >
-                সবাইকে পাঠান
-              </button>
-              <button
                 onClick={() => setIsNotifyModalOpen(false)}
                 className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
               >
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/50">
-              <p className="text-sm font-medium text-slate-600 mb-6 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
-                নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠাতে নামের পাশের বাটনে ক্লিক করুন।
-              </p>
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30">
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-sm font-medium text-slate-600">
+                  নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠান।
+                </p>
+                <button
+                  onClick={sendWhatsAppToAbsentees}
+                  className="bg-[#0F5C7A] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#0C6C8A] transition-colors shadow-soft"
+                >
+                  সবাইকে পাঠান
+                </button>
+              </div>
               <div className="space-y-4">
                 {classStudents
                   .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
@@ -483,7 +485,7 @@ const Attendance: React.FC = () => {
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
                     
                     return (
-                      <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-sm hover:shadow-md transition-all group">
+                      <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
                           <p className="font-bold text-slate-800 text-lg mb-1">{student.name}</p>
                           <div className="flex items-center gap-2 text-sm text-slate-500">
@@ -500,9 +502,9 @@ const Attendance: React.FC = () => {
                           target={phone ? "_blank" : "_self"}
                           rel="noopener noreferrer"
                           className={clsx(
-                            "px-5 py-2.5 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
+                            "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
                             phone 
-                              ? "bg-[#25D366]/10 text-[#25D366] hover:bg-[#25D366] hover:text-white hover:shadow-lg hover:shadow-[#25D366]/20" 
+                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
                               : "bg-slate-100 text-slate-400 cursor-not-allowed"
                           )}
                           onClick={(e) => {

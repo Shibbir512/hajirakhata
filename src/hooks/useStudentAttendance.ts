@@ -1,5 +1,17 @@
 import { useMemo } from "react";
 
+const parseDateString = (dateStr: string) => {
+  if (!dateStr) return 0;
+  const parts = dateStr.split(' ');
+  if (parts.length === 3) {
+    const day = parseInt(parts[0], 10);
+    const month = parseInt(parts[1], 10) - 1;
+    const year = parseInt(parts[2], 10);
+    return new Date(year, month, day).getTime();
+  }
+  return new Date(dateStr).getTime() || 0;
+};
+
 export const useStudentAttendance = (studentId: string, attendanceSessions: any[]) => {
   return useMemo(() => {
     if (!studentId || !attendanceSessions) return [];
@@ -18,6 +30,6 @@ export const useStudentAttendance = (studentId: string, attendanceSessions: any[
           note: studentRecord?.note,
         };
       })
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .sort((a, b) => parseDateString(b.date) - parseDateString(a.date));
   }, [studentId, attendanceSessions]);
 };

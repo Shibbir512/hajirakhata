@@ -270,9 +270,21 @@ const StudentProfile: React.FC = () => {
   const studentAttendance = useStudentAttendance(studentId || "", allAttendanceSessions);
   
   const sortedAttendance = useMemo(() => {
+    const parseDateString = (dateStr: string) => {
+      if (!dateStr) return 0;
+      const parts = dateStr.split(' ');
+      if (parts.length === 3) {
+        const day = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const year = parseInt(parts[2], 10);
+        return new Date(year, month, day).getTime();
+      }
+      return new Date(dateStr).getTime() || 0;
+    };
+
     return [...studentAttendance].sort((a, b) => {
-      const dateA = new Date(a.date).getTime();
-      const dateB = new Date(b.date).getTime();
+      const dateA = parseDateString(a.date);
+      const dateB = parseDateString(b.date);
       return attendanceSortOrder === 'asc' ? dateA - dateB : dateB - dateA;
     });
   }, [studentAttendance, attendanceSortOrder]);
