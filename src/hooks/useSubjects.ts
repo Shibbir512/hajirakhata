@@ -42,7 +42,9 @@ export const useSubjects = (orgId: string | null, user: any) => {
       if (!user || !db || !orgId) return;
       try {
         const newSubjectId = `subject-${Date.now()}`;
-        const newSubject: Subject = { id: newSubjectId, institution_id: orgId, name, nameAr, classId, fullMarks, passMarks, subjectOrder, subjectType };
+        const newSubject: any = { id: newSubjectId, institution_id: orgId, name, classId, fullMarks, passMarks, subjectOrder, subjectType };
+        if (nameAr !== undefined) newSubject.nameAr = nameAr;
+        
         await setDoc(
           doc(db, `organizations/${orgId}/subjects`, newSubjectId),
           newSubject,
@@ -60,7 +62,8 @@ export const useSubjects = (orgId: string | null, user: any) => {
     async (id: string, data: Partial<Subject>) => {
       if (!user || !db || !orgId) return;
       try {
-        await updateDoc(doc(db, `organizations/${orgId}/subjects`, id), data);
+        const cleanData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+        await updateDoc(doc(db, `organizations/${orgId}/subjects`, id), cleanData);
         toast.success("বিষয় সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating subject:", error);

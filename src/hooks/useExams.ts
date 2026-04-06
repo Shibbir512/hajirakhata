@@ -43,7 +43,10 @@ export const useExams = (orgId: string | null, user: any) => {
       if (!user || !db || !orgId) return;
       try {
         const newExamId = `exam-${Date.now()}`;
-        const newExam: Exam = { id: newExamId, institution_id: orgId, name, academicYearId, classId, examDate, instructions };
+        const newExam: any = { id: newExamId, institution_id: orgId, name, academicYearId, classId };
+        if (examDate !== undefined) newExam.examDate = examDate;
+        if (instructions !== undefined) newExam.instructions = instructions;
+        
         await setDoc(
           doc(db, `organizations/${orgId}/exams`, newExamId),
           newExam,
@@ -61,7 +64,8 @@ export const useExams = (orgId: string | null, user: any) => {
     async (id: string, data: Partial<Exam>) => {
       if (!user || !db || !orgId) return;
       try {
-        await updateDoc(doc(db, `organizations/${orgId}/exams`, id), data);
+        const cleanData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+        await updateDoc(doc(db, `organizations/${orgId}/exams`, id), cleanData);
         toast.success("পরীক্ষা সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {
         console.error("Error updating exam:", error);

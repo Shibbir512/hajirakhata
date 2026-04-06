@@ -65,6 +65,13 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
           status: result.status || existingData?.status || 'draft'
         };
 
+        // Remove undefined values
+        Object.keys(resultToSave).forEach(key => {
+          if (resultToSave[key] === undefined) {
+            delete resultToSave[key];
+          }
+        });
+
         if (!existingData) {
           resultToSave.created_by = user.uid;
           resultToSave.created_at = Date.now();

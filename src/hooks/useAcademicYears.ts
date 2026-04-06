@@ -72,7 +72,8 @@ export const useAcademicYears = (orgId: string | null, user: any) => {
     async (id: string, data: Partial<AcademicYear>) => {
       if (!user || !db || !orgId) return;
       try {
-        if (data.is_active) {
+        const cleanData = Object.fromEntries(Object.entries(data).filter(([_, v]) => v !== undefined));
+        if (cleanData.is_active) {
           // Set all others to inactive
           const batch = writeBatch(db);
           academicYears.forEach(ay => {
@@ -80,10 +81,10 @@ export const useAcademicYears = (orgId: string | null, user: any) => {
               batch.update(doc(db, `organizations/${orgId}/academic_years`, ay.id), { is_active: false });
             }
           });
-          batch.update(doc(db, `organizations/${orgId}/academic_years`, id), data);
+          batch.update(doc(db, `organizations/${orgId}/academic_years`, id), cleanData);
           await batch.commit();
         } else {
-          await updateDoc(doc(db, `organizations/${orgId}/academic_years`, id), data);
+          await updateDoc(doc(db, `organizations/${orgId}/academic_years`, id), cleanData);
         }
         toast.success("শিক্ষাবর্ষ সফলভাবে আপডেট করা হয়েছে!");
       } catch (error) {

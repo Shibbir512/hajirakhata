@@ -20,6 +20,7 @@ import {
   Search,
   Megaphone,
   LogOut,
+  Users,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -72,6 +73,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   ] : [];
 
   const studentLinks = orgId ? [
+    { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
   ] : [];
@@ -92,10 +94,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   return (
     <div
-      className={clsx(
-        "hidden lg:flex fixed inset-y-0 left-0 z-[100] w-[260px] h-full transform transition-transform duration-300 ease-in-out flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)]",
-        isOpen ? "translate-x-0" : "-translate-x-full",
-      )}
+      className="hidden lg:flex relative z-[100] w-[260px] h-full flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0"
       style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
     >
       <div className="flex items-center justify-between h-[70px] border-b border-white/10 px-6">
@@ -103,9 +102,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           <img src={logo} alt="হাজিরা খাতা" className="h-10 w-auto" />
           <span className="text-[22px] font-semibold text-white tracking-tight">হাজিরা খাতা</span>
         </div>
-        <button onClick={() => setIsOpen(false)} className="p-2 text-white hover:bg-white/10 rounded-full">
-          <X className="w-6 h-6" />
-        </button>
       </div>
       <div className="flex-1 overflow-y-auto py-4 text-white">
         <nav className="px-4 space-y-4">

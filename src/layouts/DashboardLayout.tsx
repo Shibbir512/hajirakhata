@@ -249,12 +249,6 @@ const DashboardLayout: React.FC = () => {
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
       {(orgId || isSuperAdmin) && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
-      {(orgId || isSuperAdmin) && isSidebarOpen && (
-        <div
-          className="hidden lg:block fixed inset-0 bg-black bg-opacity-50 z-[95]"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
       <div className="flex-1 flex flex-col overflow-hidden">
         {(orgId || isSuperAdmin) && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] p-4 md:p-6 lg:p-8 pb-[90px] lg:pb-8">

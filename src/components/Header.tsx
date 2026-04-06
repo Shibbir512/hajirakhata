@@ -42,12 +42,6 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
       }}
     >
       <div className="flex items-center gap-4">
-        <button
-          onClick={onMenuClick}
-          className="hidden lg:block p-2 text-white hover:bg-white/10 rounded-lg transition-colors"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
         <div className="block relative">
           <h1 className="text-xs md:text-sm font-medium text-white/80 tracking-tight">{getPageTitle()}</h1>
           <p className="text-[14.875px] md:text-[22px] font-semibold text-white truncate max-w-[200px] sm:max-w-[300px] md:max-w-xl">
