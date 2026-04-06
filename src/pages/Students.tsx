@@ -203,6 +203,7 @@ const Students: React.FC = () => {
             fatherName: row.fatherName,
             phone: row.phone,
             address: row.address,
+            bloodGroup: row.bloodGroup,
           }));
           bulkAddStudents(selectedClassId, studentsList);
         },
@@ -212,8 +213,14 @@ const Students: React.FC = () => {
       const result = await mammoth.extractRawText({ arrayBuffer });
       const lines = result.value.split("\n");
       const studentsList = lines.map(line => {
-        const [name, fatherName, phone, address] = line.split(",");
-        return { name: name?.trim(), fatherName: fatherName?.trim(), phone: phone?.trim(), address: address?.trim() };
+        const [name, fatherName, phone, address, bloodGroup] = line.split(",");
+        return { 
+          name: name?.trim(), 
+          fatherName: fatherName?.trim(), 
+          phone: phone?.trim(), 
+          address: address?.trim(),
+          bloodGroup: bloodGroup?.trim()
+        };
       }).filter(s => s.name);
       bulkAddStudents(selectedClassId, studentsList);
     } else {

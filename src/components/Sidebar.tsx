@@ -21,6 +21,7 @@ import {
   Megaphone,
   LogOut,
   Users,
+  Calendar as CalendarIcon,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -50,6 +51,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   const topLinks = orgId ? [
     { name: "ড্যাশবোর্ড", path: "/", icon: LayoutDashboard },
+    { name: "ক্যালেন্ডার", path: "/calendar", icon: CalendarIcon },
   ] : [];
 
   const bottomLinks = orgId ? [
