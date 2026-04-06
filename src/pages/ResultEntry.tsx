@@ -9,6 +9,7 @@ import { useClasses } from "../hooks/useClasses";
 import { ClipboardEdit, EyeOff, Trash2 } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
@@ -222,7 +223,7 @@ const ResultEntry: React.FC = () => {
       <div className="card-premium p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <select value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)} className="input-premium">
           <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-          {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.year_name}</option>)}
+          {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
         </select>
         <select value={examId} onChange={(e) => setExamId(e.target.value)} className="input-premium">
           <option value="">পরীক্ষা নির্বাচন করুন</option>

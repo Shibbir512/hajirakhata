@@ -3,7 +3,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Search, Loader2, Award, BookOpen, Calendar, Building2, User, Users } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { toEnglishNumber } from '../utils/dateFormatter';
+import { toEnglishNumber, formatAcademicYear } from '../utils/dateFormatter';
 import { useAuth } from '../hooks/useAuth';
 
 const PublicResultSearch: React.FC = () => {
@@ -327,7 +327,7 @@ const PublicResultSearch: React.FC = () => {
                 >
                   <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
                   {academicYears.map(year => (
-                    <option key={year.id} value={year.id}>{year.year_name}</option>
+                    <option key={year.id} value={year.id}>{formatAcademicYear(year)}</option>
                   ))}
                 </select>
               </div>

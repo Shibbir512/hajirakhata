@@ -1,6 +1,7 @@
 import React from "react";
 import { AcademicYear, ClassData, Exam, Student } from "../types";
 import { Calendar, Users, FileText, User, ChevronDown } from "lucide-react";
+import { formatAcademicYear } from "../utils/dateFormatter";
 
 interface MarksheetFilterProps {
   t: any;
@@ -57,7 +58,7 @@ export const MarksheetFilter: React.FC<MarksheetFilterProps> = ({
             >
               <option value="">{t.select}</option>
               {academicYears.map((ay) => (
-                <option key={ay.id} value={ay.id}>{ay.year_name}</option>
+                <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>
               ))}
             </select>
             <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />

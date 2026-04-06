@@ -4,7 +4,7 @@ import { db } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { Search, GraduationCap, User, Calendar, BookOpen, ChevronDown } from "lucide-react";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
 import StudentHistoryModal from "../components/StudentHistoryModal";
 import { Student } from "../types";
 
@@ -82,7 +82,7 @@ const Alumni: React.FC = () => {
               >
                 <option value="">সকল শিক্ষাবর্ষ</option>
                 {academicYears.map(year => (
-                  <option key={year.id} value={year.id}>{year.year_name}</option>
+                  <option key={year.id} value={year.id}>{formatAcademicYear(year)}</option>
                 ))}
               </select>
             </div>
@@ -145,7 +145,7 @@ const Alumni: React.FC = () => {
                 {student.graduationYearId && (
                   <div className="flex items-center gap-2">
                     <Calendar className="w-4 h-4 text-slate-400" />
-                    <span>পাসের শিক্ষাবর্ষ: {academicYears.find(y => y.id === student.graduationYearId)?.year_name || '-'}</span>
+                    <span>পাসের শিক্ষাবর্ষ: {formatAcademicYear(academicYears.find(y => y.id === student.graduationYearId))}</span>
                   </div>
                 )}
               </div>

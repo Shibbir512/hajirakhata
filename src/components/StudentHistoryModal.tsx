@@ -4,7 +4,7 @@ import { XCircle, BookOpen, Calendar, Award, Activity } from "lucide-react";
 import { db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { Result, AttendanceStatus } from "../types";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
@@ -163,7 +163,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                     <div key={yearId} className="border border-slate-100 rounded-2xl p-5 shadow-sm bg-white">
                       <h4 className="text-lg font-bold text-[#0F766E] mb-4 flex items-center gap-2">
                         <Calendar className="w-5 h-5" />
-                        শিক্ষাবর্ষ: {academicYears.find(ay => ay.id === yearId)?.year_name || yearId}
+                        শিক্ষাবর্ষ: {formatAcademicYear(academicYears.find(ay => ay.id === yearId))}
                       </h4>
                       
                       <div className="grid grid-cols-2 gap-4 mb-6">

@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import { Result, Student, Subject, Exam, AcademicYear, ClassData } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import { Printer, Download, Share2, ArrowLeft, FileBadge } from "lucide-react";
 import { MARKSHEET_TRANSLATIONS } from "../constants";
 import toast from "react-hot-toast";
@@ -307,8 +308,7 @@ const PublicResultView: React.FC = () => {
                 {exam?.name} পরীক্ষার ফলাফল
               </h2>
               <p className="text-slate-600 font-medium">
-                {t.academicYear}: {academicYear?.year_name} 
-                ({academicYear?.hijri_year})
+                {t.academicYear}: {formatAcademicYear(academicYear)}
               </p>
             </div>
 

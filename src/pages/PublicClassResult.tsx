@@ -5,6 +5,7 @@ import { db } from "../firebase";
 import { Result, Student, Subject, Exam, AcademicYear, ClassData } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import { Printer, Download, ArrowLeft, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, FileText } from "lucide-react";
 import toast from "react-hot-toast";
 import jsPDF from "jspdf";
@@ -96,7 +97,7 @@ const PublicClassResult: React.FC = () => {
             orgName: orgName || "প্রতিষ্ঠানের নাম",
             address: "",
             examTitle: `${examData?.name || ""} পরীক্ষার ফলাফল`,
-            academicYearText: `শিক্ষাবর্ষ: ${yearData?.hijri_year || ""} হিজরী / ${yearData?.year_name || ""} ঈসাব্দ`,
+            academicYearText: `শিক্ষাবর্ষ: ${formatAcademicYear(yearData)}`,
             classNameText: `জামাত: ${classData?.name || ""}`,
             publishDate: `ফলাফল প্রকাশের তারিখ: ${new Date().toLocaleDateString('bn-BD')}`
           });

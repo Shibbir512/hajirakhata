@@ -6,6 +6,7 @@ import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useClasses } from "../hooks/useClasses";
 import { Plus, Edit, Trash2, FileText, X, Info, Calendar, Users, ChevronDown } from "lucide-react";
 import { Exam } from "../types";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const Exams: React.FC = () => {
@@ -74,7 +75,7 @@ const Exams: React.FC = () => {
           <div className="flex gap-2 w-full sm:w-auto">
             <select value={filterAcademicYear} onChange={(e) => setFilterAcademicYear(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
               <option value="">সব শিক্ষাবর্ষ</option>
-              {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.year_name}</option>)}
+              {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
             </select>
             <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
               <option value="">সব শ্রেণি</option>
@@ -105,7 +106,7 @@ const Exams: React.FC = () => {
               {filteredExams.map((exam) => (
                 <tr key={exam.id} className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200">
                   <td className="py-4 px-5 text-slate-800 font-medium">{exam.name}</td>
-                  <td className="py-4 px-5 text-slate-600">{academicYears.find(ay => ay.id === exam.academicYearId)?.year_name || "N/A"}</td>
+                  <td className="py-4 px-5 text-slate-600">{formatAcademicYear(academicYears.find(ay => ay.id === exam.academicYearId))}</td>
                   <td className="py-4 px-5 text-slate-600">{classes.find(c => c.id === exam.classId)?.name || "সব শ্রেণি"}</td>
                   <td className="py-4 px-5 text-slate-600">{exam.examDate ? new Date(exam.examDate).toLocaleDateString('bn-BD') : "-"}</td>
                   <td className="py-4 px-5 text-slate-600">
@@ -184,7 +185,7 @@ const Exams: React.FC = () => {
                     className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
                   >
                     <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-                    {academicYears.map(ay => <option key={ay.id} value={ay.id}>{ay.year_name}</option>)}
+                    {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
                   </select>
                 </div>
                 <div>

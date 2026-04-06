@@ -100,3 +100,11 @@ export const toBengaliTime = (timeStr: string) => {
   
   return `${result} ${displayAMPM}`;
 };
+
+export const formatAcademicYear = (ay: { year_name?: string; hijri_year?: string } | null | undefined): string => {
+  if (!ay) return "N/A";
+  const hijriPart = ay.hijri_year ? `${ay.hijri_year} হি. ` : "";
+  const gregorianPart = ay.year_name ? `${ay.year_name} ঈ.` : "";
+  const result = `${hijriPart}${gregorianPart}`.trim();
+  return result || "N/A";
+};

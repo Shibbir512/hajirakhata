@@ -14,6 +14,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
@@ -246,7 +247,7 @@ const Marksheet: React.FC = () => {
       const metrics = calculateResultMetrics(groupResults, classSubjects);
 
       // Fallback to ID if name not found (in case IDs are names or lists not loaded)
-      const yearName = academicYears.find(ay => ay.id === yearId)?.year_name || yearId;
+      const yearName = formatAcademicYear(academicYears.find(ay => ay.id === yearId));
       const examName = exams.find(e => e.id === examId)?.name || examId;
 
       return {
@@ -496,8 +497,7 @@ const Marksheet: React.FC = () => {
                 {exams.find(e => e.id === selectedExamId)?.name} পরীক্ষার ফলাফল
               </h2>
               <p className="text-slate-600 font-medium">
-                {t.academicYear}: {academicYears.find(ay => ay.id === selectedAcademicYearId)?.year_name} 
-                ({academicYears.find(ay => ay.id === selectedAcademicYearId)?.hijri_year})
+                {t.academicYear}: {formatAcademicYear(academicYears.find(ay => ay.id === selectedAcademicYearId))}
               </p>
             </div>
 

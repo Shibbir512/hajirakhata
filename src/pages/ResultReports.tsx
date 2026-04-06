@@ -12,6 +12,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
+import { formatAcademicYear } from "../utils/dateFormatter";
 import { addBengaliFont } from "../utils/pdfFont";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
@@ -197,7 +198,7 @@ const ResultReports: React.FC = () => {
           orgName: orgName || "প্রতিষ্ঠানের নাম",
           address: "ঠিকানা এখানে লিখুন",
           examTitle: `${currentExam?.name || ""} পরীক্ষার ফলাফল`,
-          academicYearText: `শিক্ষাবর্ষ: ${currentYear?.hijri_year || ""} হিজরী / ${currentYear?.year_name || ""} ঈসাব্দ`,
+          academicYearText: `শিক্ষাবর্ষ: ${formatAcademicYear(currentYear)}`,
           classNameText: `জামাত: ${currentClass?.name || ""}`,
           publishDate: `ফলাফল প্রকাশের তারিখ: ${new Date().toLocaleDateString('bn-BD')}`
         });
@@ -441,7 +442,7 @@ const ResultReports: React.FC = () => {
             >
               <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
               {academicYears.map((ay) => (
-                <option key={ay.id} value={ay.id}>{ay.year_name}</option>
+                <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>
               ))}
             </select>
           </div>

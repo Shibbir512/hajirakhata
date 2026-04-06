@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Student, ClassData } from "../types";
 import { X, ArrowRight, UserCheck, GraduationCap } from "lucide-react";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 
 interface StudentPromotionModalProps {
@@ -168,7 +168,7 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
                 >
                   <option value="">-- শিক্ষাবর্ষ নির্বাচন করুন --</option>
                   {academicYears.map(year => (
-                    <option key={year.id} value={year.id}>{year.year_name}</option>
+                    <option key={year.id} value={year.id}>{formatAcademicYear(year)}</option>
                   ))}
                 </select>
               </div>
