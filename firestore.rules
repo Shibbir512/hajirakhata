@@ -93,6 +93,12 @@ service cloud.firestore {
         allow update: if isTeacher(orgId) && isVersionCorrect();
         allow delete: if isAdmin(orgId) || isSuperAdmin();
       }
+      match /leaves/{leaveId} {
+        allow read: if isViewer(orgId);
+        allow create: if isTeacher(orgId);
+        allow update: if isTeacher(orgId);
+        allow delete: if isAdmin(orgId) || isSuperAdmin();
+      }
       match /{document=**} {
         allow read, write: if isMember(orgId);
         allow delete: if isSuperAdmin();

@@ -61,6 +61,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const attendanceLinks = orgId ? [
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
+    { name: "ছুটি", path: "/attendance/leave", icon: CalendarDays },
   ] : [];
 
   const resultLinks = orgId ? [

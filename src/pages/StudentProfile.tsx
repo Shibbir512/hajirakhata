@@ -429,6 +429,11 @@ const StudentProfile: React.FC = () => {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
                 <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">শিক্ষাবর্ষ</p>
+                  <p className="font-bold text-slate-800">{academicYears.find(ay => ay.is_active)?.year_name || "N/A"}</p>
+                </div>
+
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
                   <p className="text-xs text-slate-400 font-medium mb-1">শ্রেণি</p>
                   <p className="font-bold text-slate-800">{classes.find(c => c.id === student.classId)?.name || "N/A"}</p>
                 </div>

@@ -37,6 +37,20 @@
       },
       "required": ["name", "roll", "classId"]
     },
+    "Leave": {
+      "title": "Leave",
+      "description": "Student leave record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "studentId": { "type": "string" },
+        "classId": { "type": "string" },
+        "date": { "type": "string" },
+        "reason": { "type": "string" },
+        "createdAt": { "type": "object" }
+      },
+      "required": ["studentId", "classId", "date"]
+    },
     "User": {
       "title": "User",
       "description": "User profile and roles",
@@ -67,6 +81,10 @@
     "organizations/{orgId}/students/{studentId}": {
       "schema": "Student",
       "description": "Students collection nested under organization"
+    },
+    "organizations/{orgId}/leaves/{leaveId}": {
+      "schema": "Leave",
+      "description": "Leaves collection nested under organization"
     }
   }
 }

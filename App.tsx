@@ -70,6 +70,7 @@ const Login = lazy(() => import("./src/pages/Login"));
 const Dashboard = lazy(() => import("./src/pages/Dashboard"));
 const Attendance = lazy(() => import("./src/pages/Attendance"));
 const AttendanceHistory = lazy(() => import("./src/pages/AttendanceHistory"));
+const LeaveManagement = lazy(() => import("./src/pages/LeaveManagement"));
 const Students = lazy(() => import("./src/pages/Students"));
 const Alumni = lazy(() => import("./src/pages/Alumni"));
 const Classes = lazy(() => import("./src/pages/Classes"));
@@ -227,6 +228,7 @@ const AppRoutes = () => (
           <Route index element={<Dashboard />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="attendance/history" element={<AttendanceHistory />} />
+          <Route path="attendance/leave" element={<LeaveManagement />} />
           <Route path="students" element={<Students />} />
           <Route path="alumni" element={<Alumni />} />
           <Route path="classes" element={<Classes />} />
