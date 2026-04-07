@@ -30,6 +30,7 @@ const ResultReports: React.FC = () => {
   const [selectedAcademicYearId, setSelectedAcademicYearId] = useState("");
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedExamId, setSelectedExamId] = useState("");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -121,6 +122,11 @@ const ResultReports: React.FC = () => {
 
     let filteredData = data;
     
+    // Student dropdown filter
+    if (selectedStudentId) {
+      filteredData = filteredData.filter(item => item.student.id === selectedStudentId);
+    }
+
     // Search filter
     if (searchTerm) {
       const lowerSearch = searchTerm.toLowerCase();
@@ -428,7 +434,7 @@ const ResultReports: React.FC = () => {
       </div>
 
       <div className="card-premium p-6 print:hidden">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষাবর্ষ নির্বাচন করুন</label>
             <select
@@ -453,6 +459,7 @@ const ResultReports: React.FC = () => {
               onChange={(e) => {
                 setSelectedClassId(e.target.value);
                 setSelectedExamId("");
+                setSelectedStudentId("");
                 setResults([]);
               }}
               className="input-premium w-full"
@@ -477,6 +484,20 @@ const ResultReports: React.FC = () => {
               <option value="">পরীক্ষা নির্বাচন করুন</option>
               {filteredExams.map((e) => (
                 <option key={e.id} value={e.id}>{e.name}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষার্থী নির্বাচন করুন</label>
+            <select
+              value={selectedStudentId}
+              onChange={(e) => setSelectedStudentId(e.target.value)}
+              className="input-premium w-full"
+              disabled={!selectedClassId}
+            >
+              <option value="">সকল শিক্ষার্থী</option>
+              {filteredStudents.map((s) => (
+                <option key={s.id} value={s.id}>{s.roll} - {s.name}</option>
               ))}
             </select>
           </div>

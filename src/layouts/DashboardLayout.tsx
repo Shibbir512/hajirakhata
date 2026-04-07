@@ -6,17 +6,19 @@ import BottomNavigation from "../components/BottomNavigation";
 import { useAuth } from "../hooks/useAuth";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Bell } from "lucide-react";
+import { Bell, MonitorPlay } from "lucide-react";
 import { AnnouncementBanner } from "../components/AnnouncementBanner";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
+import clsx from "clsx";
 
 const DashboardLayout: React.FC = () => {
   const { orgId, loading, role, user, status, logout, notificationPreferences } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isPresentationMode, setIsPresentationMode] = useState(false);
   
   // Notification sound
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -248,11 +250,11 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
-      {(orgId || isSuperAdmin) && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
+      {(orgId || isSuperAdmin) && !isPresentationMode && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
       <div className="flex-1 flex flex-col overflow-hidden">
-        {(orgId || isSuperAdmin) && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} />}
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] p-4 md:p-6 lg:p-8 pb-[90px] lg:pb-8">
-          <div className="max-w-7xl mx-auto w-full">
+        {(orgId || isSuperAdmin) && !isPresentationMode && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} onTogglePresentationMode={() => setIsPresentationMode(true)} />}
+        <main className={clsx("flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)]", !isPresentationMode ? "p-4 md:p-6 lg:p-8 pb-[90px] lg:pb-8" : "p-4")}>
+          <div className={clsx("mx-auto w-full", !isPresentationMode ? "max-w-7xl" : "max-w-full")}>
             <AnimatePresence mode="wait">
               <motion.div
                 key={location.pathname}
@@ -261,14 +263,25 @@ const DashboardLayout: React.FC = () => {
                 exit={{ opacity: 0, y: -10 }}
                 transition={{ duration: 0.2 }}
               >
-                {location.pathname === '/' && <AnnouncementBanner orgId={orgId} />}
+                {location.pathname === '/' && !isPresentationMode && <AnnouncementBanner orgId={orgId} />}
                 <Outlet />
               </motion.div>
             </AnimatePresence>
           </div>
         </main>
-        <BottomNavigation />
+        {!isPresentationMode && <BottomNavigation />}
       </div>
+      
+      {/* Floating Exit Presentation Mode Button */}
+      {isPresentationMode && (
+        <button
+          onClick={() => setIsPresentationMode(false)}
+          className="fixed bottom-6 right-6 z-[100] bg-slate-800 text-white px-4 py-3 rounded-full shadow-2xl flex items-center gap-2 hover:bg-slate-700 transition-all font-medium"
+        >
+          <MonitorPlay className="w-5 h-5" />
+          প্রেজেন্টেশন মোড বন্ধ করুন
+        </button>
+      )}
     </div>
   );
 };

@@ -1,13 +1,14 @@
 import React from "react";
-import { Menu } from "lucide-react";
+import { Menu, MonitorPlay } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
 
 interface HeaderProps {
   onMenuClick: () => void;
+  onTogglePresentationMode?: () => void;
 }
 
-const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
+const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }) => {
   const { orgName, orgId } = useAuth();
   const location = useLocation();
 
@@ -48,6 +49,19 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন ড্যাশবোর্ড" : "প্রতিষ্ঠান নির্বাচন করুন")}
           </p>
         </div>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        {onTogglePresentationMode && (
+          <button 
+            onClick={onTogglePresentationMode}
+            className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors flex items-center gap-2 text-sm font-medium"
+            title="প্রেজেন্টেশন মোড"
+          >
+            <MonitorPlay className="w-4 h-4 md:w-5 md:h-5 text-white" />
+            <span className="hidden md:inline">প্রেজেন্টেশন</span>
+          </button>
+        )}
       </div>
     </header>
   );

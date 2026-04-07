@@ -193,18 +193,34 @@ const Students: React.FC = () => {
     const file = event.target.files?.[0];
     if (!file || !selectedClassId) return;
 
-    if (file.type === "text/csv") {
+    if (file.type === "text/csv" || file.name.endsWith(".csv")) {
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
-          const studentsList = results.data.map((row: any) => ({
-            name: row.name,
-            fatherName: row.fatherName,
-            phone: row.phone,
-            address: row.address,
-            bloodGroup: row.bloodGroup,
-          }));
+          const studentsList = results.data.map((row: any) => {
+            // Try to find values using common Bengali and English header names
+            const name = row['নাম'] || row['name'] || row['Name'] || row['শিক্ষার্থীর নাম'] || row['Student Name'];
+            const fatherName = row['পিতার নাম'] || row['fatherName'] || row['Father Name'] || row['FatherName'] || row['পিতা'];
+            const phone = row['ফোন নম্বর'] || row['ফোন'] || row['phone'] || row['Phone'] || row['Mobile'];
+            const address = row['ঠিকানা'] || row['address'] || row['Address'];
+            const bloodGroup = row['রক্তের গ্রুপ'] || row['bloodGroup'] || row['Blood Group'] || row['Blood'];
+
+            // Check if any recognized header was found
+            const hasRecognizedHeader = name || fatherName || phone || address || bloodGroup;
+
+            // If headers don't match at all, fallback to values array (assuming simple format: name, father, phone, address, blood)
+            const values = Object.values(row) as string[];
+            
+            return {
+              name: (name || (!hasRecognizedHeader ? values[0] : "") || "").trim(),
+              fatherName: (fatherName || (!hasRecognizedHeader ? values[1] : "") || "").trim(),
+              phone: (phone || (!hasRecognizedHeader ? values[2] : "") || "").trim(),
+              address: (address || (!hasRecognizedHeader ? values[3] : "") || "").trim(),
+              bloodGroup: (bloodGroup || (!hasRecognizedHeader ? values[4] : "") || "").trim(),
+            };
+          }).filter(s => s.name && s.name !== "");
+          
           bulkAddStudents(selectedClassId, studentsList);
         },
       });
@@ -400,7 +416,7 @@ const Students: React.FC = () => {
             )}
           >
             <Upload className="w-4 h-4" />
-            আমদানি
+            CSV আমদানি
           </button>
           <button
             onClick={() => handleExport('csv')}

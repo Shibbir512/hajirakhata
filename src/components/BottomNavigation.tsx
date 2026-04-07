@@ -75,6 +75,7 @@ const BottomNavigation: React.FC = () => {
     ],
     settings: [
       { name: "সেটিংস", path: "/settings", icon: Settings },
+      { name: "ক্যালেন্ডার", path: "/calendar", icon: CalendarDays },
       { name: "বিষয়", path: "/subjects", icon: Book },
       { name: "পরীক্ষা", path: "/exams", icon: FileText },
       { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
