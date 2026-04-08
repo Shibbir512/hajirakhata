@@ -199,24 +199,45 @@ const Students: React.FC = () => {
         skipEmptyLines: true,
         complete: (results) => {
           const studentsList = results.data.map((row: any) => {
-            // Try to find values using common Bengali and English header names
-            const name = row['নাম'] || row['name'] || row['Name'] || row['শিক্ষার্থীর নাম'] || row['Student Name'];
-            const fatherName = row['পিতার নাম'] || row['fatherName'] || row['Father Name'] || row['FatherName'] || row['পিতা'];
-            const phone = row['ফোন নম্বর'] || row['ফোন'] || row['phone'] || row['Phone'] || row['Mobile'];
-            const address = row['ঠিকানা'] || row['address'] || row['Address'];
-            const bloodGroup = row['রক্তের গ্রুপ'] || row['bloodGroup'] || row['Blood Group'] || row['Blood'];
+            // Normalize keys to handle things like "১. নাম (Name)" or "Phone Number"
+            const normalizedRow: Record<string, string> = {};
+            Object.keys(row).forEach(key => {
+              const normalizedKey = key.toLowerCase().replace(/[\d.()]/g, '').trim();
+              normalizedRow[normalizedKey] = row[key];
+            });
+
+            const name = normalizedRow['নাম'] || normalizedRow['name'] || normalizedRow['শিক্ষার্থীর নাম'] || normalizedRow['student name'] || row['নাম'] || row['Name'] || row['name'];
+            const fatherName = normalizedRow['পিতার নাম'] || normalizedRow['fathername'] || normalizedRow['father name'] || normalizedRow['পিতা'] || row['পিতার নাম'] || row['Father Name'] || row['fatherName'];
+            const phone = normalizedRow['ফোন নম্বর'] || normalizedRow['ফোন'] || normalizedRow['phone'] || normalizedRow['mobile'] || row['ফোন নম্বর'] || row['Phone'] || row['phone'];
+            const address = normalizedRow['ঠিকানা'] || normalizedRow['address'] || row['ঠিকানা'] || row['Address'] || row['address'];
+            const bloodGroup = normalizedRow['রক্তের গ্রুপ'] || normalizedRow['bloodgroup'] || normalizedRow['blood group'] || normalizedRow['blood'] || row['রক্তের গ্রুপ'] || row['Blood Group'] || row['bloodGroup'];
 
             // Check if any recognized header was found
             const hasRecognizedHeader = name || fatherName || phone || address || bloodGroup;
 
-            // If headers don't match at all, fallback to values array (assuming simple format: name, father, phone, address, blood)
+            // If headers don't match at all, fallback to values array
             const values = Object.values(row) as string[];
             
+            let finalPhone = (phone || (!hasRecognizedHeader ? values[2] : "") || "").trim();
+            let finalAddress = (address || (!hasRecognizedHeader ? values[3] : "") || "").trim();
+            
+            // Smart swap if finalPhone contains letters and finalAddress looks like a phone number
+            // Also handle Bengali numbers
+            const isNumeric = (str: string) => /^[\d\u09E6-\u09EF\+\-\s()]+$/.test(str.trim());
+            const hasLetters = (str: string) => /[a-zA-Z\u0980-\u09E5\u09F0-\u09FF]/.test(str);
+            
+            // If phone has letters (like "ঢাকা") OR address is purely numeric (like "01712345678")
+            if ((hasLetters(finalPhone) && isNumeric(finalAddress)) || (!isNumeric(finalPhone) && isNumeric(finalAddress))) {
+               const temp = finalPhone;
+               finalPhone = finalAddress;
+               finalAddress = temp;
+            }
+
             return {
               name: (name || (!hasRecognizedHeader ? values[0] : "") || "").trim(),
               fatherName: (fatherName || (!hasRecognizedHeader ? values[1] : "") || "").trim(),
-              phone: (phone || (!hasRecognizedHeader ? values[2] : "") || "").trim(),
-              address: (address || (!hasRecognizedHeader ? values[3] : "") || "").trim(),
+              phone: finalPhone,
+              address: finalAddress,
               bloodGroup: (bloodGroup || (!hasRecognizedHeader ? values[4] : "") || "").trim(),
             };
           }).filter(s => s.name && s.name !== "");
@@ -287,6 +308,33 @@ const Students: React.FC = () => {
       a.download = 'students.docx';
       a.click();
     }
+  };
+
+  const handleDownloadSampleCSV = () => {
+    const csvData = [
+      {
+        'নাম': 'মোঃ আব্দুল্লাহ',
+        'পিতার নাম': 'মোঃ আব্দুর রহমান',
+        'ফোন নম্বর': '01712345678',
+        'ঠিকানা': 'ঢাকা, বাংলাদেশ',
+        'রক্তের গ্রুপ': 'O+'
+      },
+      {
+        'নাম': 'ফাতেমা আক্তার',
+        'পিতার নাম': 'মোঃ রফিকুল ইসলাম',
+        'ফোন নম্বর': '01812345678',
+        'ঠিকানা': 'চট্টগ্রাম, বাংলাদেশ',
+        'রক্তের গ্রুপ': 'B+'
+      }
+    ];
+    
+    const csv = Papa.unparse(csvData);
+    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_students.csv';
+    a.click();
   };
 
   const handlePrint = () => {
@@ -417,6 +465,13 @@ const Students: React.FC = () => {
           >
             <Upload className="w-4 h-4" />
             CSV আমদানি
+          </button>
+          <button
+            onClick={handleDownloadSampleCSV}
+            className="btn-secondary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2 border border-slate-300"
+          >
+            <Download className="w-4 h-4" />
+            নমুনা CSV
           </button>
           <button
             onClick={() => handleExport('csv')}

@@ -82,8 +82,11 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         
         let maxRoll = 0;
         querySnapshot.docs.forEach(doc => {
-          const roll = doc.data().roll;
-          if (roll > maxRoll) maxRoll = roll;
+          const data = doc.data();
+          if (data.isActive !== false && data.roll !== 9999) {
+            const roll = data.roll;
+            if (roll > maxRoll) maxRoll = roll;
+          }
         });
         const newRoll = maxRoll + 1;
 
@@ -224,8 +227,11 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         
         let maxRoll = 0;
         querySnapshot.docs.forEach(doc => {
-          const roll = doc.data().roll;
-          if (roll > maxRoll) maxRoll = roll;
+          const data = doc.data();
+          if (data.isActive !== false && data.roll !== 9999) {
+            const roll = data.roll;
+            if (roll > maxRoll) maxRoll = roll;
+          }
         });
 
         const year = new Date().getFullYear();
@@ -256,6 +262,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
             fatherName: studentData.fatherName ?? "",
             phone: studentData.phone ?? "",
             address: studentData.address ?? "",
+            bloodGroup: studentData.bloodGroup ?? "",
             id: studentId,
             studentUid,
             classId,
