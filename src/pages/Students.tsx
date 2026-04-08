@@ -310,33 +310,6 @@ const Students: React.FC = () => {
     }
   };
 
-  const handleDownloadSampleCSV = () => {
-    const csvData = [
-      {
-        'নাম': 'মোঃ আব্দুল্লাহ',
-        'পিতার নাম': 'মোঃ আব্দুর রহমান',
-        'ফোন নম্বর': '01712345678',
-        'ঠিকানা': 'ঢাকা, বাংলাদেশ',
-        'রক্তের গ্রুপ': 'O+'
-      },
-      {
-        'নাম': 'ফাতেমা আক্তার',
-        'পিতার নাম': 'মোঃ রফিকুল ইসলাম',
-        'ফোন নম্বর': '01812345678',
-        'ঠিকানা': 'চট্টগ্রাম, বাংলাদেশ',
-        'রক্তের গ্রুপ': 'B+'
-      }
-    ];
-    
-    const csv = Papa.unparse(csvData);
-    const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'sample_students.csv';
-    a.click();
-  };
-
   const handlePrint = () => {
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
@@ -465,13 +438,6 @@ const Students: React.FC = () => {
           >
             <Upload className="w-4 h-4" />
             CSV আমদানি
-          </button>
-          <button
-            onClick={handleDownloadSampleCSV}
-            className="btn-secondary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2 border border-slate-300"
-          >
-            <Download className="w-4 h-4" />
-            নমুনা CSV
           </button>
           <button
             onClick={() => handleExport('csv')}
