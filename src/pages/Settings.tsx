@@ -24,6 +24,32 @@ const Settings: React.FC = () => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [orgCode, setOrgCode] = useState("");
 
+  const [isResettingId, setIsResettingId] = useState(false);
+
+  const handleResetIdCounter = async () => {
+    if (!orgId) return;
+    
+    if (!window.confirm("আপনি কি নিশ্চিত যে আপনি স্টুডেন্ট আইডি কাউন্টার রিসেট করতে চান? এটি শুধুমাত্র তখনই করা উচিত যখন আপনি সমস্ত ছাত্র মুছে ফেলেছেন।")) {
+      return;
+    }
+
+    setIsResettingId(true);
+    try {
+      const year = new Date().getFullYear();
+      const counterRef = doc(db, "counters", `students_${orgCode}_${year}`);
+      
+      // We set last_serial to 0 so the next student gets 001
+      await setDoc(counterRef, { last_serial: 0 }, { merge: true });
+      
+      toast.success("স্টুডেন্ট আইডি কাউন্টার সফলভাবে রিসেট করা হয়েছে!");
+    } catch (error) {
+      console.error("Error resetting ID counter:", error);
+      toast.error("কাউন্টার রিসেট করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setIsResettingId(false);
+    }
+  };
+
   const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
 
   const handleToggleNotificationPreference = async (key: 'signupRequests' | 'joinRequests') => {
@@ -920,6 +946,23 @@ const Settings: React.FC = () => {
             </button>
           </div>
           
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-rose-50/50 rounded-2xl border border-rose-100 gap-4 mt-4">
+            <div>
+              <h4 className="font-semibold text-rose-900 text-lg">স্টুডেন্ট আইডি রিসেট</h4>
+              <p className="text-sm text-rose-700/80 mt-1">
+                সাবধান! এটি স্টুডেন্ট আইডি কাউন্টার ০ থেকে শুরু করবে। শুধুমাত্র সমস্ত ছাত্র মুছে ফেলার পর এটি ব্যবহার করুন।
+              </p>
+            </div>
+            <button
+              onClick={handleResetIdCounter}
+              disabled={isResettingId || role !== "admin"}
+              className="flex items-center px-6 py-3 bg-white border border-rose-200 text-rose-600 rounded-xl hover:bg-rose-50 hover:text-rose-700 transition-all shadow-sm hover:shadow-md font-medium w-full sm:w-auto justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <Trash2 className="w-4 h-4 mr-2" />
+              {isResettingId ? "রিসেট হচ্ছে..." : "আইডি রিসেট করুন"}
+            </button>
+          </div>
+
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between p-6 bg-rose-50/50 rounded-2xl border border-rose-100 gap-4 mt-4">
             <div>
               <h4 className="font-semibold text-rose-900 text-lg">অ্যাকাউন্ট মুছে ফেলুন</h4>
