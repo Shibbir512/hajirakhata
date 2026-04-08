@@ -586,7 +586,7 @@ const Students: React.FC = () => {
           <table className="w-full text-left border-collapse">
             <thead className="bg-[#F8F9FA] sticky top-0 z-10">
               <tr>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   <input
                     type="checkbox"
                     checked={selectedStudents.size === paginatedStudents.length && paginatedStudents.length > 0}
@@ -594,22 +594,28 @@ const Students: React.FC = () => {
                     className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
                   />
                 </th>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   রোল
                 </th>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   আইডি
                 </th>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শিক্ষার্থীর নাম
                 </th>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শ্রেণি
                 </th>
-                <th className="py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] hidden md:table-cell">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] hidden md:table-cell">
                   ফোন
                 </th>
-                <th className="text-right py-4 px-5 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] hidden lg:table-cell">
+                  ঠিকানা
+                </th>
+                <th className="py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB] hidden lg:table-cell">
+                  রক্তের গ্রুপ
+                </th>
+                <th className="text-right py-4 px-3 text-[12px] font-semibold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   কার্যক্রম
                 </th>
               </tr>
@@ -624,7 +630,7 @@ const Students: React.FC = () => {
                   )}
                   style={{ height: '72px' }}
                 >
-                  <td className="py-2 px-5">
+                  <td className="py-2 px-3">
                     <input
                       type="checkbox"
                       checked={selectedStudents.has(student.id)}
@@ -632,30 +638,40 @@ const Students: React.FC = () => {
                       className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
                     />
                   </td>
-                  <td className="py-2 px-5 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
-                  <td className="py-2 px-5 text-[#0F5C7A] font-mono text-[13px] font-semibold">{student.studentUid || "-"}</td>
-                  <td className="py-2 px-5 text-slate-800 font-medium">
+                  <td className="py-2 px-3 text-slate-800 font-bold">{toBengaliNumber(student.roll)}</td>
+                  <td className="py-2 px-3 text-[#0F5C7A] font-mono text-[13px] font-semibold">{student.studentUid || "-"}</td>
+                  <td className="py-2 px-3 text-slate-800 font-medium">
                     <button 
                       onClick={() => navigate(`/student-profile/${student.id}`)}
-                      className="flex items-center gap-3 text-[14px] hover:text-[#0F5C7A] transition-colors"
+                      className="flex items-center gap-3 text-[14px] hover:text-[#0F5C7A] transition-colors text-left"
                     >
                       {student.photoUrl ? (
-                        <img src={student.photoUrl} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-200" referrerPolicy="no-referrer" />
+                        <img src={student.photoUrl} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 flex-shrink-0" referrerPolicy="no-referrer" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-xs">
+                        <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-xs flex-shrink-0">
                           {student.name.charAt(0)}
                         </div>
                       )}
-                      {student.name}
+                      <span className="line-clamp-2">{student.name}</span>
                     </button>
                   </td>
-                  <td className="py-2 px-5 text-slate-600 text-[14px]">
+                  <td className="py-2 px-3 text-slate-600 text-[14px] whitespace-nowrap">
                     {classes.find(c => c.id === student.classId)?.name || "N/A"}
                   </td>
-                  <td className="py-2 px-5 text-slate-500 text-[14px] hidden md:table-cell">
+                  <td className="py-2 px-3 text-slate-500 text-[14px] hidden md:table-cell whitespace-nowrap">
                     {student.phone || "-"}
                   </td>
-                  <td className="py-2 px-5 text-right">
+                  <td className="py-2 px-3 text-slate-500 text-[14px] hidden lg:table-cell max-w-[150px] truncate" title={student.address}>
+                    {student.address || "-"}
+                  </td>
+                  <td className="py-2 px-3 text-slate-500 text-[14px] hidden lg:table-cell whitespace-nowrap">
+                    {student.bloodGroup ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-rose-100 text-rose-800">
+                        {student.bloodGroup}
+                      </span>
+                    ) : "-"}
+                  </td>
+                  <td className="py-2 px-3 text-right">
                     <div className="flex justify-end gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                       <button
                         onClick={() => setViewingStudent(student)}
