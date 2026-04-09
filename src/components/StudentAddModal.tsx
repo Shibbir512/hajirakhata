@@ -25,6 +25,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [compressionLevel, setCompressionLevel] = useState<'high' | 'medium' | 'low'>('medium');
   const [isUploading, setIsUploading] = useState(false);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -64,7 +65,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
       if (imageFile && orgId) {
         const safeFileName = imageFile.name ? imageFile.name.replace(/[^a-zA-Z0-9.]/g, '_') : 'image.jpg';
         const path = `organizations/${orgId}/students/${Date.now()}_${safeFileName}`;
-        photoUrl = await compressAndUploadImage(imageFile, path);
+        photoUrl = await compressAndUploadImage(imageFile, path, compressionLevel);
       }
 
       onAdd(name, fatherName, phone, address, photoUrl || undefined, bloodGroup);
@@ -158,8 +159,23 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                   </button>
                 )}
               </div>
+
+              {imagePreview && (
+                <div className="w-full mt-2">
+                  <label className="block text-xs font-semibold text-slate-500 mb-1">ছবির কোয়ালিটি (Image Quality)</label>
+                  <select
+                    value={compressionLevel}
+                    onChange={(e) => setCompressionLevel(e.target.value as CompressionLevel)}
+                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
+                  >
+                    <option value="high">High Quality (Large size)</option>
+                    <option value="medium">Medium Quality (Balanced)</option>
+                    <option value="low">Low Quality (Fast upload)</option>
+                  </select>
+                </div>
+              )}
               
-              <div className="flex gap-2">
+              <div className="flex gap-2 mt-2">
                 <input
                   type="file"
                   accept="image/*"

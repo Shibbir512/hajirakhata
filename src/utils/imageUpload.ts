@@ -2,9 +2,12 @@ import { storage } from '../firebase';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import imageCompression from 'browser-image-compression';
 
+export type CompressionLevel = 'high' | 'medium' | 'low';
+
 export const compressAndUploadImage = async (
   file: File,
-  path: string
+  path: string,
+  compressionLevel: CompressionLevel = 'medium'
 ): Promise<string | null> => {
   if (!storage) {
     console.error("Firebase Storage is not initialized.");
@@ -13,10 +16,22 @@ export const compressAndUploadImage = async (
 
   try {
     console.log("Starting image upload process...");
+    
+    let maxSizeMB = 0.5;
+    let maxWidthOrHeight = 800;
+
+    if (compressionLevel === 'high') {
+      maxSizeMB = 1;
+      maxWidthOrHeight = 1200;
+    } else if (compressionLevel === 'low') {
+      maxSizeMB = 0.2;
+      maxWidthOrHeight = 500;
+    }
+
     // Use robust browser-image-compression library
     const options = {
-      maxSizeMB: 0.5,
-      maxWidthOrHeight: 800,
+      maxSizeMB,
+      maxWidthOrHeight,
       useWebWorker: false, // Disabled web worker for better mobile compatibility
       fileType: 'image/jpeg'
     };
