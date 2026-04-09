@@ -8,6 +8,7 @@ import { useAuth } from "../hooks/useAuth";
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, MonitorPlay } from "lucide-react";
 import { AnnouncementBanner } from "../components/AnnouncementBanner";
+import { AttendanceReminder } from "../components/AttendanceReminder";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
@@ -250,6 +251,7 @@ const DashboardLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen bg-[var(--color-bg-main)] overflow-hidden">
+      <AttendanceReminder />
       {(orgId || isSuperAdmin) && !isPresentationMode && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
       <div className="flex-1 flex flex-col overflow-hidden">
         {(orgId || isSuperAdmin) && !isPresentationMode && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} onTogglePresentationMode={() => setIsPresentationMode(true)} />}

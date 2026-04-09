@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
@@ -144,14 +144,36 @@ const Attendance: React.FC = () => {
 
   const totalPages = Math.ceil(filteredAndSortedStudents.length / ITEMS_PER_PAGE);
   const paginatedStudents = useMemo(() => {
-    const start = (currentPage - 1) * ITEMS_PER_PAGE;
-    return filteredAndSortedStudents.slice(start, start + ITEMS_PER_PAGE);
+    return filteredAndSortedStudents.slice(0, currentPage * ITEMS_PER_PAGE);
   }, [filteredAndSortedStudents, currentPage]);
 
   // Reset page when search or class changes
   useEffect(() => {
     setCurrentPage(1);
   }, [searchQuery, selectedClassId]);
+
+  // Infinite scroll observer
+  const observerTarget = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && currentPage < totalPages) {
+          setCurrentPage((prev) => prev + 1);
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [observerTarget, currentPage, totalPages]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
@@ -373,31 +395,16 @@ const Attendance: React.FC = () => {
               )}
             </div>
 
-            {/* Pagination */}
-            {totalPages > 1 && (
-              <div className="flex items-center justify-between mt-4 px-2">
-                <p className="text-sm text-slate-500">
-                  <span className="font-bold">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, filteredAndSortedStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(filteredAndSortedStudents.length)}</span> জন শিক্ষার্থী
-                </p>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                    className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronLeft className="w-4 h-4" />
-                  </button>
-                  <span className="text-sm font-medium text-slate-700">
-                    পৃষ্ঠা {toBengaliNumber(currentPage)} এর {toBengaliNumber(totalPages)}
-                  </span>
-                  <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                    className="p-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </button>
-                </div>
+            {/* Infinite Scroll Target */}
+            {currentPage < totalPages && (
+              <div ref={observerTarget} className="flex justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-[#0F5C7A]" />
+              </div>
+            )}
+            
+            {totalPages > 1 && currentPage === totalPages && (
+              <div className="text-center py-4 text-sm text-slate-500">
+                সব শিক্ষার্থী দেখানো হয়েছে (মোট {toBengaliNumber(filteredAndSortedStudents.length)} জন)
               </div>
             )}
 

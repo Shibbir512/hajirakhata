@@ -7,7 +7,7 @@ import { db, auth } from "../firebase";
 import toast from "react-hot-toast";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences } = useAuth();
+  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
   const [isSaving, setIsSaving] = useState(false);
@@ -65,6 +65,30 @@ const Settings: React.FC = () => {
     } catch (error) {
       console.error("Error updating notification preferences:", error);
       toast.error("নোটিফিকেশন সেটিংস আপডেট করতে ব্যর্থ হয়েছে।");
+    }
+  };
+
+  const handleToggleAttendanceReminder = async () => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { attendanceReminderEnabled: !attendanceReminderEnabled });
+      toast.success("উপস্থিতি রিমাইন্ডার সেটিংস আপডেট করা হয়েছে।");
+    } catch (error) {
+      console.error("Error updating attendance reminder:", error);
+      toast.error("উপস্থিতি রিমাইন্ডার সেটিংস আপডেট করতে ব্যর্থ হয়েছে।");
+    }
+  };
+
+  const handleUpdateAttendanceReminderTime = async (time: string) => {
+    if (!user) return;
+    try {
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { attendanceReminderTime: time });
+      toast.success("উপস্থিতি রিমাইন্ডার সময় আপডেট করা হয়েছে।");
+    } catch (error) {
+      console.error("Error updating attendance reminder time:", error);
+      toast.error("উপস্থিতি রিমাইন্ডার সময় আপডেট করতে ব্যর্থ হয়েছে।");
     }
   };
 
@@ -596,10 +620,40 @@ const Settings: React.FC = () => {
                 </label>
               </div>
             )}
+
+            <div className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h4 className="font-medium text-slate-800">দৈনিক উপস্থিতি রিমাইন্ডার</h4>
+                  <p className="text-sm text-slate-500 mt-1">প্রতিদিন নির্দিষ্ট সময়ে উপস্থিতি নেওয়ার জন্য রিমাইন্ডার পান</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={attendanceReminderEnabled}
+                    onChange={handleToggleAttendanceReminder}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                </label>
+              </div>
+              
+              {attendanceReminderEnabled && (
+                <div className="flex items-center gap-4 pt-4 border-t border-slate-200">
+                  <label className="text-sm font-medium text-slate-700">রিমাইন্ডারের সময়:</label>
+                  <input
+                    type="time"
+                    value={attendanceReminderTime}
+                    onChange={(e) => handleUpdateAttendanceReminderTime(e.target.value)}
+                    className="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
+                  />
+                </div>
+              )}
+            </div>
             
-            {!isSuperAdmin && role !== "admin" && (
+            {!isSuperAdmin && role !== "admin" && !attendanceReminderEnabled && (
               <div className="text-center py-6 text-slate-500">
-                আপনার জন্য কোনো নোটিফিকেশন সেটিংস উপলব্ধ নেই।
+                অন্য কোনো নোটিফিকেশন সেটিংস উপলব্ধ নেই।
               </div>
             )}
           </div>

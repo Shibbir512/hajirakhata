@@ -31,6 +31,8 @@ interface AuthContextType {
     signupRequests: boolean;
     joinRequests: boolean;
   };
+  attendanceReminderEnabled: boolean;
+  attendanceReminderTime: string;
   loading: boolean;
   setLoading: (loading: boolean) => void;
   createOrganization: (name: string) => Promise<string | null>;
@@ -56,6 +58,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     signupRequests: true,
     joinRequests: true
   });
+  const [attendanceReminderEnabled, setAttendanceReminderEnabled] = useState(false);
+  const [attendanceReminderTime, setAttendanceReminderTime] = useState("09:00");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -145,6 +149,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               signupRequests: true,
               joinRequests: true
             };
+            const userAttendanceReminderEnabled = data.attendanceReminderEnabled ?? false;
+            const userAttendanceReminderTime = data.attendanceReminderTime || "09:00";
 
             // Set initial state
             setRole(userRole);
@@ -153,6 +159,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setPhone(userPhone);
             setPhotoURL(userPhotoURL);
             setNotificationPreferences(userNotificationPreferences);
+            setAttendanceReminderEnabled(userAttendanceReminderEnabled);
+            setAttendanceReminderTime(userAttendanceReminderTime);
             
             let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
             setOrgName(currentOrgName);
@@ -515,6 +523,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         visitedOrgs,
         isApprovalEnabled,
         notificationPreferences,
+        attendanceReminderEnabled,
+        attendanceReminderTime,
         loading,
         setLoading,
         createOrganization,
