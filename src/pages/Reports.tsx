@@ -28,17 +28,35 @@ import toast from "react-hot-toast";
 
 import Papa from "papaparse";
 
+import { startOfDay, endOfDay, startOfWeek, startOfMonth } from "date-fns";
+
 const Reports: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [startDate, setStartDate] = useState<Date>(
-    new Date(new Date().getFullYear(), new Date().getMonth(), 1) // Default to start of current month
-  );
+  const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isExporting, setIsExporting] = useState(false);
+
+  const setDailyReport = () => {
+    const today = new Date();
+    setStartDate(startOfDay(today));
+    setEndDate(endOfDay(today));
+  };
+
+  const setWeeklyReport = () => {
+    const today = new Date();
+    setStartDate(startOfWeek(today, { weekStartsOn: 6 })); // Assuming week starts on Saturday in Bangladesh
+    setEndDate(endOfDay(today));
+  };
+
+  const setMonthlyReport = () => {
+    const today = new Date();
+    setStartDate(startOfMonth(today));
+    setEndDate(endOfDay(today));
+  };
 
   const { attendanceSessions } = useAttendance(orgId, user, classes, students, role, {
     classId: selectedClassId || undefined,
@@ -280,6 +298,27 @@ const Reports: React.FC = () => {
               ))}
             </select>
             <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+          </div>
+
+          <div className="flex gap-2 w-full">
+            <button
+              onClick={setDailyReport}
+              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+            >
+              আজকের
+            </button>
+            <button
+              onClick={setWeeklyReport}
+              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+            >
+              সাপ্তাহিক
+            </button>
+            <button
+              onClick={setMonthlyReport}
+              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+            >
+              মাসিক
+            </button>
           </div>
 
           <div className="flex items-center gap-2 w-full">

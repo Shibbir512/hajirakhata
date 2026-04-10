@@ -1,7 +1,13 @@
 import React from "react";
-import { Menu, MonitorPlay } from "lucide-react";
+import { MonitorPlay, Bell } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
+
+const MosqueIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 4.5a2.5 2.5 0 0 0-1.5-2.3 2.5 2.5 0 0 1 2.5 2.3h-1Zm0 1.5A5.5 5.5 0 0 0 6.5 11.5v4.5H5v-2a1 1 0 1 0-2 0v6a1 1 0 1 0 2 0v-2h3v4h2v-3a2 2 0 1 1 4 0v3h2v-4h3v2a1 1 0 1 0 2 0v-6a1 1 0 1 0-2 0v2h-1.5v-4.5A5.5 5.5 0 0 0 12 6Z" />
+  </svg>
+);
 
 interface HeaderProps {
   onMenuClick: () => void;
@@ -9,59 +15,70 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }) => {
-  const { orgName, orgId } = useAuth();
+  const { orgName } = useAuth();
   const location = useLocation();
 
   const getPageTitle = () => {
     switch (location.pathname) {
-      case "/":
-        return "ড্যাশবোর্ড";
-      case "/attendance":
-        return "হাজিরা";
-      case "/students":
-        return "শিক্ষার্থী";
-      case "/classes":
-        return "শ্রেণি";
-      case "/reports":
-        return "রিপোর্ট";
-      case "/settings":
-        return "সেটিংস";
-      case "/super-admin":
-        return "সুপার অ্যাডমিন";
-      default:
-        return "ড্যাশবোর্ড";
+      case "/": return "ড্যাশবোর্ড";
+      case "/attendance": return "হাজিরা";
+      case "/students": return "শিক্ষার্থী";
+      case "/classes": return "শ্রেণি";
+      case "/reports": return "রিপোর্ট";
+      case "/settings": return "সেটিংস";
+      case "/super-admin": return "সুপার অ্যাডমিন";
+      default: return "ড্যাশবোর্ড";
     }
   };
 
   return (
     <header 
-      className="text-white flex items-center justify-between px-4 md:px-8 z-[90]"
+      className="relative flex items-center justify-between px-5 z-[90] shrink-0"
       style={{ 
-        height: '70px',
-        background: 'linear-gradient(to right, #14B8A6, #3B82F6)',
-        boxShadow: '0px 2px 10px rgba(0,0,0,0.08)'
+        height: '115px',
+        paddingTop: '35px', // Simulates status bar space
+        background: 'linear-gradient(180deg, #0d7587 0%, #24b5a6 100%)',
       }}
     >
-      <div className="flex items-center gap-4">
-        <div className="block relative">
-          <h1 className="text-xs md:text-sm font-medium text-white/80 tracking-tight">{getPageTitle()}</h1>
-          <p className="text-[14.875px] md:text-[22px] font-semibold text-white truncate max-w-[200px] sm:max-w-[300px] md:max-w-xl">
-            {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন ড্যাশবোর্ড" : "প্রতিষ্ঠান নির্বাচন করুন")}
+      {/* Bottom Glow Effect (আস্তে আস্তে নিচের দিকে এগিয়ে আসা) */}
+      <div className="absolute -bottom-5 left-0 right-0 h-5 bg-gradient-to-b from-[#24b5a6]/40 to-transparent blur-sm pointer-events-none"></div>
+      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-white/30 pointer-events-none"></div>
+      
+      <div className="flex items-center gap-4 relative z-10">
+        {/* Mosque Icon */}
+        <div className="flex items-center justify-center">
+          <MosqueIcon className="w-11 h-11 text-white drop-shadow-sm" />
+        </div>
+        
+        {/* Title & Subtitle */}
+        <div className="flex flex-col justify-center">
+          <h1 className="text-[22px] font-bold text-white leading-tight tracking-tight max-w-[220px] sm:max-w-[300px] truncate drop-shadow-sm">
+            {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
+          </h1>
+          <p className="text-[14px] font-medium text-white/90 mt-0.5 tracking-wide">
+            {getPageTitle()}
           </p>
         </div>
       </div>
       
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-3 relative z-10">
         {onTogglePresentationMode && (
           <button 
             onClick={onTogglePresentationMode}
-            className="p-2 bg-white/10 hover:bg-white/20 rounded-full transition-colors flex items-center gap-2 text-sm font-medium"
+            className="w-11 h-11 bg-[#38c1b1] hover:bg-[#2fa89a] rounded-[14px] transition-colors flex items-center justify-center shadow-sm"
             title="প্রেজেন্টেশন মোড"
           >
-            <MonitorPlay className="w-4 h-4 md:w-5 md:h-5 text-white" />
-            <span className="hidden md:inline">প্রেজেন্টেশন</span>
+            <MonitorPlay className="w-5 h-5 text-white" />
           </button>
         )}
+        
+        {/* Notification Bell */}
+        <button className="relative w-11 h-11 bg-[#38c1b1] hover:bg-[#2fa89a] rounded-[14px] transition-colors flex items-center justify-center shadow-sm">
+          <Bell className="w-6 h-6 text-white" fill="currentColor" />
+          <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-[#38c1b1]">
+            ৭
+          </span>
+        </button>
       </div>
     </header>
   );
