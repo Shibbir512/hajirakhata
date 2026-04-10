@@ -35,23 +35,21 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
     <header 
       className="relative flex items-center justify-between px-4 z-[90] shrink-0"
       style={{ 
-        height: '96px', // Compact height including status bar
+        height: '114px', // 90px + 24px status bar
         paddingTop: '24px', // Space for status bar
-        background: 'linear-gradient(135deg, #0FAF9A 0%, #3B82F6 100%)',
+        background: 'linear-gradient(to bottom right, #0FAF9A, #3B82F6)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        borderBottomLeftRadius: '16px',
-        borderBottomRightRadius: '16px',
       }}
     >
-      <div className="flex items-center gap-3.5 relative z-10">
+      <div className="flex items-center gap-3 relative z-10">
         {/* Mosque Icon */}
         <div className="flex items-center justify-center">
-          <MosqueIcon className="w-10 h-10 text-white/90" />
+          <MosqueIcon className="w-8 h-8 text-white" />
         </div>
         
         {/* Title & Subtitle */}
         <div className="flex flex-col justify-center">
-          <h1 className="text-[20px] font-bold text-white leading-tight tracking-tight max-w-[200px] sm:max-w-[280px] truncate">
+          <h1 className="text-[18px] font-bold text-white leading-tight tracking-tight max-w-[200px] sm:max-w-[280px] truncate">
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
           </h1>
           <p className="text-[13px] font-medium text-white/60 mt-0.5 tracking-wide">
@@ -64,17 +62,16 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
         {onTogglePresentationMode && (
           <button 
             onClick={onTogglePresentationMode}
-            className="w-10 h-10 bg-white/15 hover:bg-white/25 rounded-[14px] transition-colors flex items-center justify-center backdrop-blur-md"
+            className="w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md"
             title="প্রেজেন্টেশন মোড"
           >
-            <MonitorPlay className="w-5 h-5 text-white" />
+            <MonitorPlay className="w-6 h-6 text-white" />
           </button>
         )}
         
         {/* Notification Bell */}
-        <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-[14px] transition-colors flex items-center justify-center backdrop-blur-md">
-          <Bell className="w-5 h-5 text-white" />
-          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#EF4444] rounded-full border border-white/20"></span>
+        <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
+          <Bell className="w-6 h-6 text-white" />
         </button>
       </div>
     </header>
