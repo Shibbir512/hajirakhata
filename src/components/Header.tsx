@@ -33,29 +33,28 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
   return (
     <header 
-      className="relative flex items-center justify-between px-5 z-[90] shrink-0"
+      className="relative flex items-center justify-between px-4 z-[90] shrink-0"
       style={{ 
-        height: '115px',
-        paddingTop: '35px', // Simulates status bar space
-        background: 'linear-gradient(180deg, #0d7587 0%, #24b5a6 100%)',
+        height: '96px', // Compact height including status bar
+        paddingTop: '24px', // Space for status bar
+        background: 'linear-gradient(135deg, #0FAF9A 0%, #3B82F6 100%)',
+        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        borderBottomLeftRadius: '16px',
+        borderBottomRightRadius: '16px',
       }}
     >
-      {/* Bottom Glow Effect (আস্তে আস্তে নিচের দিকে এগিয়ে আসা) */}
-      <div className="absolute -bottom-5 left-0 right-0 h-5 bg-gradient-to-b from-[#24b5a6]/40 to-transparent blur-sm pointer-events-none"></div>
-      <div className="absolute bottom-0 left-0 right-0 h-[1px] bg-white/30 pointer-events-none"></div>
-      
-      <div className="flex items-center gap-4 relative z-10">
+      <div className="flex items-center gap-3.5 relative z-10">
         {/* Mosque Icon */}
         <div className="flex items-center justify-center">
-          <MosqueIcon className="w-11 h-11 text-white drop-shadow-sm" />
+          <MosqueIcon className="w-10 h-10 text-white/90" />
         </div>
         
         {/* Title & Subtitle */}
         <div className="flex flex-col justify-center">
-          <h1 className="text-[22px] font-bold text-white leading-tight tracking-tight max-w-[220px] sm:max-w-[300px] truncate drop-shadow-sm">
+          <h1 className="text-[20px] font-bold text-white leading-tight tracking-tight max-w-[200px] sm:max-w-[280px] truncate">
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
           </h1>
-          <p className="text-[14px] font-medium text-white/90 mt-0.5 tracking-wide">
+          <p className="text-[13px] font-medium text-white/60 mt-0.5 tracking-wide">
             {getPageTitle()}
           </p>
         </div>
@@ -65,7 +64,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
         {onTogglePresentationMode && (
           <button 
             onClick={onTogglePresentationMode}
-            className="w-11 h-11 bg-[#38c1b1] hover:bg-[#2fa89a] rounded-[14px] transition-colors flex items-center justify-center shadow-sm"
+            className="w-10 h-10 bg-white/15 hover:bg-white/25 rounded-[14px] transition-colors flex items-center justify-center backdrop-blur-md"
             title="প্রেজেন্টেশন মোড"
           >
             <MonitorPlay className="w-5 h-5 text-white" />
@@ -73,11 +72,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
         )}
         
         {/* Notification Bell */}
-        <button className="relative w-11 h-11 bg-[#38c1b1] hover:bg-[#2fa89a] rounded-[14px] transition-colors flex items-center justify-center shadow-sm">
-          <Bell className="w-6 h-6 text-white" fill="currentColor" />
-          <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#EF4444] text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-[#38c1b1]">
-            ৭
-          </span>
+        <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-[14px] transition-colors flex items-center justify-center backdrop-blur-md">
+          <Bell className="w-5 h-5 text-white" />
+          <span className="absolute top-2 right-2.5 w-2 h-2 bg-[#EF4444] rounded-full border border-white/20"></span>
         </button>
       </div>
     </header>
