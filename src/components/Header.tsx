@@ -1,5 +1,5 @@
 import React from "react";
-import { MonitorPlay, Bell } from "lucide-react";
+import { Bell } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
 
@@ -35,44 +35,37 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
     <header 
       className="relative flex items-center justify-between px-4 z-[90] shrink-0"
       style={{ 
-        height: '114px', // 90px + 24px status bar
+        height: '120px', // Total height (compact + status bar)
         paddingTop: '24px', // Space for status bar
         background: 'linear-gradient(to bottom right, #0FAF9A, #3B82F6)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
+        borderBottomLeftRadius: '16px',
+        borderBottomRightRadius: '16px',
       }}
     >
-      <div className="flex items-center gap-3 relative z-10">
+      <div className="flex items-center gap-[10px] relative z-10 w-full">
         {/* Mosque Icon */}
-        <div className="flex items-center justify-center">
-          <MosqueIcon className="w-8 h-8 text-white" />
+        <div className="flex items-center justify-center shrink-0">
+          <MosqueIcon className="w-7 h-7 text-white" />
         </div>
         
         {/* Title & Subtitle */}
-        <div className="flex flex-col justify-center">
-          <h1 className="text-[18px] font-bold text-white leading-tight tracking-tight max-w-[200px] sm:max-w-[280px] truncate">
+        <div className="flex flex-col justify-center flex-1 min-w-0">
+          <h1 className="text-[18px] font-bold text-white leading-[1.2] tracking-tight truncate">
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
           </h1>
-          <p className="text-[13px] font-medium text-white/60 mt-0.5 tracking-wide">
+          <div className="h-[2px]"></div>
+          <p className="text-[13px] font-medium text-white/65 tracking-wide">
             {getPageTitle()}
           </p>
         </div>
-      </div>
-      
-      <div className="flex items-center gap-3 relative z-10">
-        {onTogglePresentationMode && (
-          <button 
-            onClick={onTogglePresentationMode}
-            className="w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md"
-            title="প্রেজেন্টেশন মোড"
-          >
-            <MonitorPlay className="w-6 h-6 text-white" />
-          </button>
-        )}
         
         {/* Notification Bell */}
-        <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
-          <Bell className="w-6 h-6 text-white" />
-        </button>
+        <div className="shrink-0 ml-[10px]">
+          <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
+            <Bell className="w-[22px] h-[22px] text-white" />
+          </button>
+        </div>
       </div>
     </header>
   );
