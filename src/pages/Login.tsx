@@ -106,9 +106,11 @@ const Login: React.FC = () => {
       // Skip phone requirement for super admins
       const isSuperAdmin = user.email === "shibbir.ahma.2025@gmail.com";
       if (!isSuperAdmin && (!userDoc.exists() || !userDoc.data()?.phone)) {
-        setIsNewUser(true);
-        setLoading(false);
-        return;
+        if (!phoneNumber.trim()) {
+          setIsNewUser(true);
+          setLoading(false);
+          return;
+        }
       }
 
       const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
@@ -327,6 +329,19 @@ const Login: React.FC = () => {
           </div>
         )}
 
+        {!isNewUser && (
+          <div className="mb-6 relative">
+            <Phone className="absolute left-4 top-1/2 transform -translate-y-1/2 text-[#0F5C7A]/40 w-5 h-5" />
+            <input
+              type="tel"
+              value={phoneNumber}
+              onChange={(e) => setPhoneNumber(e.target.value)}
+              placeholder="ফোন নম্বর (নতুন রেজিস্ট্রেশনের জন্য)"
+              className="input-premium w-full pl-12 pr-4 py-4 text-lg"
+            />
+          </div>
+        )}
+
         {isNewUser ? (
           <>
             <div className="mb-6 relative">
@@ -353,7 +368,7 @@ const Login: React.FC = () => {
 
         <div className="flex items-center justify-center gap-2 text-[#0F766E] font-bold mb-4">
           <LogIn className="w-5 h-5" />
-          <span>লগইন করুন</span>
+          <span>{isNewUser ? 'রেজিস্ট্রেশন সম্পন্ন করুন' : 'লগইন বা রেজিস্ট্রেশন করুন'}</span>
         </div>
 
         <button

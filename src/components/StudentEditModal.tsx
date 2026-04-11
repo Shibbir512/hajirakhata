@@ -6,6 +6,8 @@ import { toBengaliNumber } from "../utils/dateFormatter";
 import { compressAndUploadImage } from "../utils/imageUpload";
 import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
+import ImageCropper from "./ImageCropper";
+import { base64ToFile } from "../utils/cropImage";
 
 interface StudentEditModalProps {
   student: Student;
@@ -30,6 +32,8 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   const [imagePreview, setImagePreview] = useState<string | null>(student.photoUrl || null);
   const [compressionLevel, setCompressionLevel] = useState<'high' | 'medium' | 'low'>('medium');
   const [isUploading, setIsUploading] = useState(false);
+  const [showCropper, setShowCropper] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState<string | null>(null);
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
@@ -37,19 +41,28 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Removed strict file.type check to prevent blocking valid images on some Android devices
-      // where the camera might return a file with an empty or incorrect type.
-      setImageFile(file);
-      
-      // Use FileReader for better compatibility on older Android WebViews
       const reader = new FileReader();
       reader.onload = (e) => {
         if (e.target?.result) {
-          setImagePreview(e.target.result as string);
+          setCropImageSrc(e.target.result as string);
+          setShowCropper(true);
         }
       };
       reader.readAsDataURL(file);
     }
+  };
+
+  const handleCropComplete = (croppedImageBase64: string) => {
+    setImagePreview(croppedImageBase64);
+    const croppedFile = base64ToFile(croppedImageBase64, 'cropped_image.jpg');
+    setImageFile(croppedFile);
+    setShowCropper(false);
+    setCropImageSrc(null);
+  };
+
+  const handleCropCancel = () => {
+    setShowCropper(false);
+    setCropImageSrc(null);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -154,6 +167,15 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                   </button>
                 )}
               </div>
+
+              {/* Cropper Modal */}
+              {showCropper && cropImageSrc && (
+                <ImageCropper
+                  imageSrc={cropImageSrc}
+                  onCropComplete={handleCropComplete}
+                  onCancel={handleCropCancel}
+                />
+              )}
 
               {imagePreview && (
                 <div className="w-full mt-2">
