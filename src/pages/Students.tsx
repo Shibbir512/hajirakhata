@@ -384,12 +384,16 @@ const Students: React.FC = () => {
     printWindow.document.close();
   };
 
+  const selectedClass = classes.find(c => c.id === selectedClassId);
+  const isAssignedTeacher = selectedClass?.teacherIds?.includes(user?.uid || "") || false;
+  const canManageStudents = role === 'admin' || role === 'super_admin' || isAssignedTeacher;
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থী</h2>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-          {selectedStudents.size > 0 && (
+          {selectedStudents.size > 0 && canManageStudents && (
           <button
             onClick={handleDeleteSelected}
             className="btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2"
@@ -408,10 +412,10 @@ const Students: React.FC = () => {
           />
           <button
             onClick={() => setIsAddModalOpen(true)}
-            disabled={!selectedClassId || (role !== 'admin' && role !== 'super_admin')}
+            disabled={!selectedClassId || !canManageStudents}
             className={clsx(
               "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (!selectedClassId || (role !== 'admin' && role !== 'super_admin')) && "opacity-50 cursor-not-allowed"
+              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
             )}
           >
             <Plus className="w-4 h-4" />
@@ -419,10 +423,10 @@ const Students: React.FC = () => {
           </button>
           <button
             onClick={() => setIsPromotionModalOpen(true)}
-            disabled={!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0}
+            disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
             className={clsx(
               "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (!selectedClassId || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
+              (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
             )}
           >
             <ArrowRight className="w-4 h-4" />
@@ -430,10 +434,10 @@ const Students: React.FC = () => {
           </button>
           <button
             onClick={() => fileInputRef.current?.click()}
-            disabled={!selectedClassId}
+            disabled={!selectedClassId || !canManageStudents}
             className={clsx(
               "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              !selectedClassId && "opacity-50 cursor-not-allowed"
+              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
             )}
           >
             <Upload className="w-4 h-4" />
@@ -646,43 +650,47 @@ const Students: React.FC = () => {
                       >
                         <Eye className="w-4 h-4" strokeWidth={2} />
                       </button>
-                      <button
-                        onClick={() => setEditingStudent(student)}
-                        className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors"
-                        title="সম্পাদনা"
-                      >
-                        <Edit className="w-4 h-4" strokeWidth={2} />
-                      </button>
-                      {student.isActive === false ? (
-                        <div className="flex items-center gap-2">
+                      {canManageStudents && (
+                        <>
                           <button
-                            onClick={() => {
-                              updateStudent(student.id, { isActive: true }, student.version);
-                              toast.success(`${student.name}-কে পুনরায় সক্রিয় করা হয়েছে।`);
-                            }}
-                            className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
-                            title="পুনরায় সক্রিয় করুন"
+                            onClick={() => setEditingStudent(student)}
+                            className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-lg transition-colors"
+                            title="সম্পাদনা"
                           >
-                            <CheckCircle className="w-4 h-4" strokeWidth={2} />
+                            <Edit className="w-4 h-4" strokeWidth={2} />
                           </button>
-                          {role === 'admin' && (
+                          {student.isActive === false ? (
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => {
+                                  updateStudent(student.id, { isActive: true }, student.version);
+                                  toast.success(`${student.name}-কে পুনরায় সক্রিয় করা হয়েছে।`);
+                                }}
+                                className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
+                                title="পুনরায় সক্রিয় করুন"
+                              >
+                                <CheckCircle className="w-4 h-4" strokeWidth={2} />
+                              </button>
+                              {role === 'admin' && (
+                                <button
+                                  onClick={() => setStudentToPermanentDelete(student)}
+                                  className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
+                                  title="স্থায়ীভাবে মুছুন"
+                                >
+                                  <Trash2 className="w-4 h-4" strokeWidth={2} />
+                                </button>
+                              )}
+                            </div>
+                          ) : (
                             <button
-                              onClick={() => setStudentToPermanentDelete(student)}
+                              onClick={() => handleDeleteStudent(student)}
                               className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                              title="স্থায়ীভাবে মুছুন"
+                              title="আর্কাইভ করুন"
                             >
                               <Trash2 className="w-4 h-4" strokeWidth={2} />
                             </button>
                           )}
-                        </div>
-                      ) : (
-                        <button
-                          onClick={() => handleDeleteStudent(student)}
-                          className="p-2 text-rose-600 bg-rose-50 hover:bg-rose-100 rounded-lg transition-colors"
-                          title="আর্কাইভ করুন"
-                        >
-                          <Trash2 className="w-4 h-4" strokeWidth={2} />
-                        </button>
+                        </>
                       )}
                     </div>
                   </td>

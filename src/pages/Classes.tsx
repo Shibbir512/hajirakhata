@@ -115,13 +115,19 @@ const Classes: React.FC = () => {
                 {(role === "admin" || role === "moderator") && (
                   <div className="flex gap-2 opacity-100 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
                     <button
-                      onClick={() => setEditingClass(cls)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setEditingClass(cls);
+                      }}
                       className="p-2 text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors"
                     >
                       <Edit className="w-4 h-4" />
                     </button>
                     <button
-                      onClick={() => handleDeleteClass(cls.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteClass(cls.id);
+                      }}
                       className="p-2 text-[#EF4444] bg-[#EF4444]/10 hover:bg-[#EF4444]/20 rounded-xl transition-colors"
                     >
                       <Trash2 className="w-4 h-4" />

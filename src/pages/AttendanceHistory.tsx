@@ -244,9 +244,11 @@ const AttendanceHistory: React.FC = () => {
                   <button onClick={() => handleEdit(session)} className="bg-[#F1F5F9] text-[#4A9D9C] hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors">
                     <Edit2 className="w-4 h-4" />
                   </button>
-                  <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] p-2.5 rounded-full transition-colors">
-                    <Trash2 className="w-4 h-4" />
-                  </button>
+                  {(role === 'admin' || role === 'super_admin') && (
+                    <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] p-2.5 rounded-full transition-colors">
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  )}
                   <button 
                     onClick={(e) => {
                       e.stopPropagation();
