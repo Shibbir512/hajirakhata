@@ -408,10 +408,10 @@ const Students: React.FC = () => {
           />
           <button
             onClick={() => setIsAddModalOpen(true)}
-            disabled={!selectedClassId}
+            disabled={!selectedClassId || (role !== 'admin' && role !== 'super_admin')}
             className={clsx(
               "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              !selectedClassId && "opacity-50 cursor-not-allowed"
+              (!selectedClassId || (role !== 'admin' && role !== 'super_admin')) && "opacity-50 cursor-not-allowed"
             )}
           >
             <Plus className="w-4 h-4" />

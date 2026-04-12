@@ -14,6 +14,7 @@ export interface Student {
   archivedAt?: number;
   isAlumni?: boolean;
   graduationYearId?: string;
+  clearedAbsenceDate?: any; // Timestamp
 }
 
 export interface ClassData {

@@ -111,7 +111,7 @@ service cloud.firestore {
     }
 
     match /counters/{document=**} {
-      allow read, write: if isSuperAdmin();
+      allow read, write: if isAuthenticated();
     }
   }
 }

@@ -5,7 +5,8 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
-import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle, X } from "lucide-react";
+import { useStruckOffStudents } from "../hooks/useStruckOffStudents";
+import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle, X, AlertTriangle, Check } from "lucide-react";
 import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -55,6 +56,8 @@ const Attendance: React.FC = () => {
     role,
     { skipFetch: true }
   );
+
+  const { struckOffStudents, loading: struckOffLoading, markAsActionTaken } = useStruckOffStudents(orgId, students);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -248,8 +251,11 @@ const Attendance: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা</h2>
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা</h2>
+          <p className="text-slate-500 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
+        </div>
       </div>
 
       {/* Live Counter */}

@@ -61,6 +61,7 @@ const BottomNavigation: React.FC = () => {
       { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
       { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
       { name: "ছুটি", path: "/attendance/leave", icon: CalendarDays },
+      { name: "নাম কাটা", path: "/attendance/struck-off", icon: Users },
     ],
     results: [
       { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
