@@ -11,6 +11,7 @@ import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import ImageModal from "../components/ImageModal";
 
 interface StatCardProps {
   title: string;
@@ -63,6 +64,7 @@ const Attendance: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);
+  const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
   const [attendanceState, setAttendanceState] = useState<
@@ -362,7 +364,22 @@ const Attendance: React.FC = () => {
                 return (
                   <div key={student.id} className="bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                      <div className="flex items-center gap-3">
+                        {student.photoUrl ? (
+                          <img 
+                            src={student.photoUrl} 
+                            alt={student.name} 
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 cursor-pointer hover:scale-110 transition-transform" 
+                            referrerPolicy="no-referrer"
+                            onClick={() => setViewingImage({ url: student.photoUrl!, name: student.name })}
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-sm">
+                            {student.name.charAt(0)}
+                          </div>
+                        )}
+                        <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                      </div>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
@@ -552,6 +569,15 @@ const Attendance: React.FC = () => {
           </div>
         </div>,
         document.body
+      )}
+
+      {viewingImage && (
+        <ImageModal
+          isOpen={!!viewingImage}
+          onClose={() => setViewingImage(null)}
+          imageUrl={viewingImage.url}
+          title={viewingImage.name}
+        />
       )}
     </div>
   );

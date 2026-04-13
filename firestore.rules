@@ -114,6 +114,10 @@ service cloud.firestore {
         allow update: if isTeacher(orgId);
         allow delete: if isAdmin(orgId);
       }
+      match /holidays/{holidayId} {
+        allow read: if isMember(orgId);
+        allow write: if isAdmin(orgId);
+      }
       match /{document=**} {
         allow read: if isMember(orgId);
         allow write: if isAdmin(orgId);

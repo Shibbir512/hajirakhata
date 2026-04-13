@@ -16,6 +16,8 @@ interface StudentEditModalProps {
   history?: any[];
 }
 
+type CompressionLevel = 'high' | 'medium' | 'low';
+
 const StudentEditModal: React.FC<StudentEditModalProps> = ({
   student,
   onClose,

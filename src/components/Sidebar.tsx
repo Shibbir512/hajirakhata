@@ -84,6 +84,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const configLinks = orgId ? [
     { name: "বিষয়", path: "/subjects", icon: Book },
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
+    { name: "ছুটি ও ইভেন্ট", path: "/calendar", icon: CalendarIcon },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
   ] : [];
 

@@ -9,6 +9,7 @@ import { useSubjects } from "../hooks/useSubjects";
 import { useStudents } from "../hooks/useStudents";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import StudentEditModal from "../components/StudentEditModal";
+import ImageModal from "../components/ImageModal";
 import { db } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown, Pencil } from "lucide-react";
@@ -30,6 +31,7 @@ const StudentProfile: React.FC = () => {
 
   const [student, setStudent] = useState<Student | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
   const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0 });
   const [allAttendanceSessions, setAllAttendanceSessions] = useState<any[]>([]);
@@ -360,7 +362,13 @@ const StudentProfile: React.FC = () => {
               </div>
               
               <div className="px-6 pb-8 -mt-12 relative flex flex-col items-center text-center">
-                <div className="relative w-24 h-24 rounded-full bg-white shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white">
+                <div 
+                  onClick={() => student.photoUrl && setIsImageModalOpen(true)}
+                  className={clsx(
+                    "relative w-24 h-24 rounded-full bg-white shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white",
+                    student.photoUrl && "cursor-pointer hover:scale-105 transition-transform"
+                  )}
+                >
                   {student.photoUrl ? (
                     <img src={student.photoUrl} alt={student.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
@@ -588,6 +596,15 @@ const StudentProfile: React.FC = () => {
             student={editingStudent}
             onClose={() => setEditingStudent(null)}
             onSave={handleUpdateStudent}
+          />
+        )}
+
+        {student.photoUrl && (
+          <ImageModal
+            isOpen={isImageModalOpen}
+            onClose={() => setIsImageModalOpen(false)}
+            imageUrl={student.photoUrl}
+            title={student.name}
           />
         )}
       </div>

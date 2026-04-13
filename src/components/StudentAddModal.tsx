@@ -13,6 +13,8 @@ interface StudentAddModalProps {
   onAdd: (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => void;
 }
 
+type CompressionLevel = 'high' | 'medium' | 'low';
+
 const StudentAddModal: React.FC<StudentAddModalProps> = ({
   isOpen,
   onClose,

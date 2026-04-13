@@ -14,6 +14,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
+import ImageModal from "../components/ImageModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import StudentPromotionModal from "../components/StudentPromotionModal";
 import Papa from "papaparse";
@@ -50,6 +51,7 @@ const Students: React.FC = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
+  const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [studentToPermanentDelete, setStudentToPermanentDelete] = useState<Student | null>(null);
   const [showDeleteAllArchivedModal, setShowDeleteAllArchivedModal] = useState(false);
@@ -616,7 +618,16 @@ const Students: React.FC = () => {
                       className="flex items-center gap-3 text-[14px] hover:text-[#0F5C7A] transition-colors text-left"
                     >
                       {student.photoUrl ? (
-                        <img src={student.photoUrl} alt={student.name} className="w-8 h-8 rounded-full object-cover border border-slate-200 flex-shrink-0" referrerPolicy="no-referrer" />
+                        <img 
+                          src={student.photoUrl} 
+                          alt={student.name} 
+                          className="w-8 h-8 rounded-full object-cover border border-slate-200 flex-shrink-0 cursor-pointer hover:scale-110 transition-transform" 
+                          referrerPolicy="no-referrer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setViewingImage({ url: student.photoUrl!, name: student.name });
+                          }}
+                        />
                       ) : (
                         <div className="w-8 h-8 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-xs flex-shrink-0">
                           {student.name.charAt(0)}
@@ -955,6 +966,15 @@ const Students: React.FC = () => {
           academicYears={academicYears}
           students={allStudentsList}
           onPromote={promoteStudents}
+        />
+      )}
+
+      {viewingImage && (
+        <ImageModal
+          isOpen={!!viewingImage}
+          onClose={() => setViewingImage(null)}
+          imageUrl={viewingImage.url}
+          title={viewingImage.name}
         />
       )}
     </div>

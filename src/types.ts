@@ -98,3 +98,12 @@ export interface Announcement {
   createdBy: string;
   creatorName: string;
 }
+
+export interface Holiday {
+  id: string;
+  name: string;
+  startDate: number;
+  endDate: number;
+  description?: string;
+  type: 'holiday' | 'event';
+}
