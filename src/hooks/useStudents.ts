@@ -70,7 +70,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     });
 
     return () => unsubStudents();
-  }, [user, orgId]);
+  }, [user, orgId, role]);
 
   const addStudent = useCallback(
     async (classId: string, name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => {

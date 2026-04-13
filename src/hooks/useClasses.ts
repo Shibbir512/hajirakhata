@@ -29,21 +29,14 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
     // If role is teacher, only fetch classes where they are assigned, or if teacherIds is not present (for backward compatibility)
     // Actually, Firestore doesn't support "array-contains OR field-not-exists", so we fetch all and filter client-side for now since class list is small.
     const unsubClasses = onSnapshot(classesRef, (snapshot) => {
-      let loadedClasses = snapshot.docs.map((doc) => doc.data() as ClassData);
-      
-      if (role === "teacher" && user?.uid) {
-        loadedClasses = loadedClasses.filter(cls => 
-          !cls.teacherIds || cls.teacherIds.length === 0 || cls.teacherIds.includes(user.uid)
-        );
-      }
-      
+      let loadedClasses = snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() } as ClassData));
       setClasses(loadedClasses);
     }, (error) => {
       console.error("Error fetching classes:", error);
     });
 
     return () => unsubClasses();
-  }, [user, orgId]);
+  }, [user, orgId, role]);
 
   const [isAdding, setIsAdding] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);

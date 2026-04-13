@@ -18,23 +18,36 @@ service cloud.firestore {
 
     function getRole(orgId) {
       let data = getUserData();
-      return (data != null && data.roles is map && orgId in data.roles) ? data.roles[orgId] : null;
+      return data == null ? null : 
+             (data.roles is map && orgId in data.roles) ? data.roles[orgId] :
+             (data.get('organizationId', '') == orgId && data.get('role', '') is string) ? data.role :
+             null;
     }
 
     function isAdmin(orgId) {
-      return isSuperAdmin() || (isAuthenticated() && getRole(orgId) == 'admin');
+      let role = getRole(orgId);
+      return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin'));
     }
 
     function isTeacher(orgId) {
-      return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher'));
+      let role = getRole(orgId);
+      return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin' || role == 'teacher'));
     }
 
     function isViewer(orgId) {
-      return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) == 'admin' || getRole(orgId) == 'teacher' || getRole(orgId) == 'viewer'));
+      let role = getRole(orgId);
+      return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin' || role == 'teacher' || role == 'viewer'));
+    }
+
+    function isAssignedTeacher(orgId, classId) {
+      let classDoc = get(/databases/$(database)/documents/organizations/$(orgId)/classes/$(classId));
+      return classDoc != null && classDoc.data != null && 
+             classDoc.data.teacherIds != null && 
+             request.auth.uid in classDoc.data.teacherIds;
     }
 
     function isMember(orgId) {
-      return true;
+      return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) != null || (getUserData() != null && getUserData().organizationId == orgId)));
     }
 
     function isVersionCorrect() {
@@ -63,45 +76,47 @@ service cloud.firestore {
 
       match /academic_years/{yearId} {
         allow read: if true;
-        allow delete: if isSuperAdmin();
+        allow write: if isAdmin(orgId);
       }
       match /classes/{classId} {
         allow read: if true;
-        allow delete: if isSuperAdmin();
+        allow write: if isAdmin(orgId);
       }
       match /exams/{examId} {
         allow read: if true;
-        allow delete: if isSuperAdmin();
+        allow write: if isAdmin(orgId);
       }
       match /subjects/{subjectId} {
         allow read: if true;
-        allow delete: if isSuperAdmin();
+        allow write: if isAdmin(orgId);
       }
       match /students/{studentId} {
         allow read: if true;
-        allow delete: if isSuperAdmin();
+        allow create: if isAdmin(orgId) || isAssignedTeacher(orgId, request.resource.data.classId);
+        allow update: if isAdmin(orgId) || isAssignedTeacher(orgId, resource.data.classId);
+        allow delete: if isAdmin(orgId) || isAssignedTeacher(orgId, resource.data.classId);
       }
       match /results/{resultId} {
         allow read: if isTeacher(orgId) || resource.data.status == 'published';
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId) && isVersionCorrect();
-        allow delete: if isAdmin(orgId) || isSuperAdmin();
+        allow delete: if isAdmin(orgId);
       }
       match /attendance_sessions/{sessionId} {
         allow read: if isViewer(orgId);
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId) && isVersionCorrect();
-        allow delete: if isAdmin(orgId) || isSuperAdmin();
+        allow delete: if isAdmin(orgId);
       }
       match /leaves/{leaveId} {
         allow read: if isViewer(orgId);
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId);
-        allow delete: if isAdmin(orgId) || isSuperAdmin();
+        allow delete: if isAdmin(orgId);
       }
       match /{document=**} {
-        allow read, write: if isMember(orgId);
-        allow delete: if isSuperAdmin();
+        allow read: if isMember(orgId);
+        allow write: if isAdmin(orgId);
       }
     }
     
