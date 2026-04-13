@@ -29,6 +29,7 @@ import toast from "react-hot-toast";
 import Papa from "papaparse";
 
 import { startOfDay, endOfDay, startOfWeek, startOfMonth } from "date-fns";
+import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 
 const Reports: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -39,6 +40,7 @@ const Reports: React.FC = () => {
   const [startDate, setStartDate] = useState<Date>(startOfMonth(new Date()));
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isExporting, setIsExporting] = useState(false);
+  const [showAllAbsent, setShowAllAbsent] = useState(false);
 
   const setDailyReport = () => {
     const today = new Date();
@@ -65,44 +67,111 @@ const Reports: React.FC = () => {
   });
 
   const reportData = useMemo(() => {
-    if (!selectedClassId) return [];
+    if (selectedClassId) {
+      const classStudents = students[selectedClassId] || [];
+      const statsMap = new Map<string, { present: number, absent: number }>();
+      
+      classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0 }));
 
-    const classStudents = students[selectedClassId] || [];
-    const statsMap = new Map<string, { present: number, absent: number }>();
-    
-    classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0 }));
-
-    attendanceSessions.forEach(session => {
-      session.students.forEach((studentRecord: any) => {
-        const stats = statsMap.get(studentRecord.studentId);
-        if (stats) {
-          if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) {
-            stats.present++;
-          } else if (studentRecord.status === AttendanceStatus.Absent) {
-            stats.absent++;
+      attendanceSessions.forEach(session => {
+        session.students.forEach((studentRecord: any) => {
+          const stats = statsMap.get(studentRecord.studentId);
+          if (stats) {
+            if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) {
+              stats.present++;
+            } else if (studentRecord.status === AttendanceStatus.Absent) {
+              stats.absent++;
+            }
           }
+        });
+      });
+
+      return classStudents
+        .map((student) => {
+          const stats = statsMap.get(student.id) || { present: 0, absent: 0 };
+          const total = stats.present + stats.absent;
+          const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
+
+          return {
+            id: student.id,
+            name: student.name,
+            displayName: `${student.name} (${student.roll})`,
+            roll: student.roll,
+            present: stats.present,
+            absent: stats.absent,
+            percentage,
+          };
+        })
+        .sort((a, b) => a.roll - b.roll);
+    } else {
+      // Combined Report: Class-wise summaries
+      return classes.map(cls => {
+        let present = 0;
+        let absent = 0;
+        
+        attendanceSessions.filter(s => s.classId === cls.id).forEach(session => {
+          session.students.forEach((st: any) => {
+            if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+              present++;
+            } else if (st.status === AttendanceStatus.Absent) {
+              absent++;
+            }
+          });
+        });
+
+        const total = present + absent;
+        const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
+
+        return {
+          id: cls.id,
+          name: cls.name,
+          displayName: cls.name,
+          present,
+          absent,
+          percentage,
+          roll: 0 // Not applicable for classes
+        };
+      }).filter(c => c.present + c.absent > 0);
+    }
+  }, [selectedClassId, attendanceSessions, students, classes]);
+
+  const absentStudentsList = useMemo(() => {
+    const list: any[] = [];
+    attendanceSessions.forEach(session => {
+      const classIndex = classes.findIndex(c => c.id === session.classId);
+      const className = classIndex !== -1 ? classes[classIndex].name : "অজানা শ্রেণি";
+      const classStudents = students[session.classId] || [];
+      
+      session.students.forEach((st: any) => {
+        if (st.status === AttendanceStatus.Absent) {
+          const studentInfo = classStudents.find(s => s.id === st.studentId);
+          const rawRoll = studentInfo ? studentInfo.roll : (st.roll ? parseInt(toEnglishNumber(st.roll.toString())) : 9999);
+          const roll = studentInfo ? toBengaliNumber(studentInfo.roll) : (st.roll ? toBengaliNumber(st.roll) : "N/A");
+          
+          list.push({
+            id: `${session.id}-${st.studentId}`,
+            name: st.studentName,
+            roll: roll,
+            rawRoll: isNaN(rawRoll) ? 9999 : rawRoll,
+            className,
+            classIndex: classIndex !== -1 ? classIndex : 999,
+            date: session.date,
+            time: session.time
+          });
         }
       });
     });
-
-    return classStudents
-      .map((student) => {
-        const stats = statsMap.get(student.id) || { present: 0, absent: 0 };
-        const total = stats.present + stats.absent;
-        const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
-
-        return {
-          id: student.id,
-          name: student.name,
-          displayName: `${student.name} (${student.roll})`,
-          roll: student.roll,
-          present: stats.present,
-          absent: stats.absent,
-          percentage,
-        };
-      })
-      .sort((a, b) => a.roll - b.roll);
-  }, [selectedClassId, attendanceSessions, students]);
+    // Sort by date (newest first), then class index, then roll
+    return list.sort((a, b) => {
+      const [d1, m1, y1] = a.date.split(" ").map(Number);
+      const [d2, m2, y2] = b.date.split(" ").map(Number);
+      const timeDiff = new Date(y2, m2 - 1, d2).getTime() - new Date(y1, m1 - 1, d1).getTime();
+      
+      if (timeDiff !== 0) return timeDiff;
+      if (a.classIndex !== b.classIndex) return a.classIndex - b.classIndex;
+      return a.rawRoll - b.rawRoll;
+    });
+  }, [attendanceSessions, classes, students]);
 
   const handleExportPDF = async () => {
     setIsExporting(true);
@@ -172,8 +241,6 @@ const Reports: React.FC = () => {
   };
 
   const trendData = useMemo(() => {
-    if (!selectedClassId) return [];
-    
     // Aggregate present/total by date
     const dailyData: { [date: string]: { present: number, total: number } } = {};
     
@@ -198,11 +265,9 @@ const Reports: React.FC = () => {
         const [d2, m2, y2] = b.date.split(" ").map(Number);
         return new Date(y1, m1 - 1, d1).getTime() - new Date(y2, m2 - 1, d2).getTime();
     });
-  }, [selectedClassId, attendanceSessions]);
+  }, [attendanceSessions]);
 
   const sessionData = useMemo(() => {
-    if (!selectedClassId) return [];
-    
     return attendanceSessions.map(session => {
         let present = 0;
         let total = session.students.length;
@@ -211,17 +276,16 @@ const Reports: React.FC = () => {
                 present++;
             }
         });
+        const className = classes.find(c => c.id === session.classId)?.name || "";
         return {
             id: session.id,
-            session: `${session.date} | ${session.time}`,
+            session: `${className} | ${session.date}`,
             percentage: total > 0 ? Math.round((present / total) * 100) : 0
         };
     });
-  }, [selectedClassId, attendanceSessions]);
+  }, [attendanceSessions, classes]);
 
   const heatmapData = useMemo(() => {
-    if (!selectedClassId) return [];
-    
     // Aggregate present/total by date
     const dailyData: { [date: string]: { present: number, total: number } } = {};
     
@@ -242,7 +306,7 @@ const Reports: React.FC = () => {
       date,
       percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
     }));
-  }, [selectedClassId, attendanceSessions]);
+  }, [attendanceSessions]);
 
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(
@@ -290,7 +354,7 @@ const Reports: React.FC = () => {
               onChange={(e) => setSelectedClassId(e.target.value)}
               className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#0c81a3] text-center shadow-soft text-base"
             >
-              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
+              <option value="">সকল শ্রেণি (সম্মিলিত)</option>
               {classes.map((cls) => (
                 <option key={cls.id} value={cls.id}>
                   {cls.name}
@@ -344,206 +408,217 @@ const Reports: React.FC = () => {
           </div>
         </div>
 
-        {selectedClassId ? (
-          <>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-              <div className="h-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-soft overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
-                  হাজিরা ওভারভিউ
-                </h3>
-                <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <PieChart>
-                    <Pie
-                      data={pieData}
-                      cx="50%"
-                      cy="50%"
-                      innerRadius={60}
-                      outerRadius={80}
-                      fill="#8884d8"
-                      paddingAngle={5}
-                      dataKey="value"
-                    >
-                      {pieData.map((entry, index) => (
-                        <Cell
-                          key={`cell-${index}`}
-                          fill={COLORS[index % COLORS.length]}
-                        />
-                      ))}
-                    </Pie>
-                    <Tooltip 
-                      contentStyle={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+          <div className="h-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-soft overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+              হাজিরা ওভারভিউ
+            </h3>
+            <div className="w-full h-[calc(100%-2rem)]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <PieChart>
+                <Pie
+                  data={pieData}
+                  cx="50%"
+                  cy="50%"
+                  innerRadius={60}
+                  outerRadius={80}
+                  fill="#8884d8"
+                  paddingAngle={5}
+                  dataKey="value"
+                >
+                  {pieData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
                     />
-                    <Legend />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              </div>
-
-              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
-                  হাজিরা ট্রেন্ড (লাইন চার্ট)
-                </h3>
-                <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="date" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                      <Tooltip />
-                      <Line type="monotone" dataKey="percentage" stroke="#0F5C7A" strokeWidth={2} />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
-                  সেশন অনুযায়ী উপস্থিতি (%)
-                </h3>
-                <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <BarChart data={sessionData}>
-                      <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                      <XAxis dataKey="session" axisLine={false} tickLine={false} />
-                      <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                      <Tooltip />
-                      <Bar dataKey="percentage" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
-              </div>
-
-              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
-                  দৈনিক হাজিরার হিটম্যাপ
-                </h3>
-                <div className="flex flex-wrap gap-2 overflow-y-auto h-[calc(100%-2rem)]">
-                  {heatmapData.map(d => (
-                    <div key={d.date} className={clsx("w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold text-white", d.percentage > 75 ? "bg-emerald-500" : d.percentage > 50 ? "bg-amber-500" : "bg-rose-500")} title={`${d.date}: ${d.percentage}%`}>
-                      {d.percentage}%
-                    </div>
                   ))}
-                </div>
-              </div>
+                </Pie>
+                <Tooltip 
+                  contentStyle={{
+                    backgroundColor: "#fff",
+                    borderRadius: "8px",
+                    border: "none",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                  }}
+                />
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          </div>
 
-              <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-                <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
-                  শিক্ষার্থীর পারফরম্যান্স (সেরা ১০)
-                </h3>
-                <div className="w-full h-[calc(100%-2rem)]">
-                  <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
-                    <BarChart data={reportData.slice(0, 10)}>
-                    <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                    <XAxis dataKey="displayName" axisLine={false} tickLine={false} />
-                    <YAxis axisLine={false} tickLine={false} />
-                    <Tooltip 
-                      cursor={{ fill: "transparent" }}
-                      contentStyle={{
-                        backgroundColor: "#fff",
-                        borderRadius: "8px",
-                        border: "none",
-                        boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
-                      }}
-                    />
-                    <Legend />
-                    <Bar
-                      dataKey="present"
-                      name="উপস্থিত"
-                      fill="#22c55e"
-                      radius={[4, 4, 0, 0]}
-                      barSize={15}
-                    />
-                    <Bar
-                      dataKey="absent"
-                      name="অনুপস্থিত"
-                      fill="#ef4444"
-                      radius={[4, 4, 0, 0]}
-                      barSize={15}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-              </div>
+          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+              হাজিরা ট্রেন্ড (লাইন চার্ট)
+            </h3>
+            <div className="w-full h-[calc(100%-2rem)]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <LineChart data={trendData}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <Tooltip />
+                  <Line type="monotone" dataKey="percentage" stroke="#0F5C7A" strokeWidth={2} />
+                </LineChart>
+              </ResponsiveContainer>
             </div>
+          </div>
 
-            <div className="overflow-x-auto border border-[#E5E7EB] rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] max-w-full">
+          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+              {selectedClassId ? "সেশন অনুযায়ী উপস্থিতি (%)" : "শ্রেণি অনুযায়ী উপস্থিতি (%)"}
+            </h3>
+            <div className="w-full h-[calc(100%-2rem)]">
+              <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                <BarChart data={(selectedClassId ? sessionData : reportData) as any[]}>
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                  <XAxis dataKey={selectedClassId ? "session" : "name"} axisLine={false} tickLine={false} />
+                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
+                  <Tooltip />
+                  <Bar dataKey="percentage" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+          </div>
+
+          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+              দৈনিক হাজিরার হিটম্যাপ
+            </h3>
+            <div className="flex flex-wrap gap-2 overflow-y-auto h-[calc(100%-2rem)]">
+              {heatmapData.map(d => (
+                <div key={d.date} className={clsx("w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold text-white", d.percentage > 75 ? "bg-emerald-500" : d.percentage > 50 ? "bg-amber-500" : "bg-rose-500")} title={`${d.date}: ${d.percentage}%`}>
+                  {d.percentage}%
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {!selectedClassId && absentStudentsList.length > 0 && (
+          <div className="mb-8 overflow-hidden border border-rose-100 rounded-[20px] shadow-soft bg-rose-50/30">
+            <div className="bg-rose-500 px-6 py-3">
+              <h3 className="text-white font-bold flex items-center gap-2">
+                <Users className="w-5 h-5" />
+                অনুপস্থিত শিক্ষার্থীদের তালিকা (সকল শ্রেণি)
+              </h3>
+            </div>
+            <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-[#F8F9FA] sticky top-0 z-10">
+                <thead className="bg-rose-50">
                   <tr>
-                    <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
-                      রোল
-                    </th>
-                    <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
-                      শিক্ষার্থীর নাম
-                    </th>
-                    <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
-                      উপস্থিত
-                    </th>
-                    <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
-                      অনুপস্থিত
-                    </th>
-                    <th className="text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
-                      শতকরা
-                    </th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">রোল</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">নাম</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">শ্রেণি</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">তারিখ</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {reportData.map((student) => (
-                    <tr
-                      key={student.id}
-                      className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors"
-                    >
-                      <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base">
-                        {student.roll}
-                      </td>
-                      <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base truncate max-w-[100px] sm:max-w-none">
-                        {student.name}
-                      </td>
-                      <td className="hidden sm:table-cell py-4 px-5 text-center text-emerald-600 font-medium text-sm sm:text-base">
-                        {student.present}
-                      </td>
-                      <td className="hidden sm:table-cell py-4 px-5 text-center text-rose-600 font-medium text-sm sm:text-base">
-                        {student.absent}
-                      </td>
-                      <td className="py-4 px-5 text-center">
-                        <span
-                          className={clsx(
-                            "px-2.5 py-1 rounded-full text-xs font-bold",
-                            student.percentage >= 75
-                              ? "bg-emerald-100 text-emerald-700"
-                              : student.percentage >= 50
-                                ? "bg-amber-100 text-amber-700"
-                                : "bg-rose-100 text-rose-700",
-                          )}
-                        >
-                          {student.percentage}%
+                  {(showAllAbsent ? absentStudentsList : absentStudentsList.slice(0, 50)).map((s) => (
+                    <tr key={s.id} className="border-b border-rose-50 hover:bg-rose-100/50 transition-colors">
+                      <td className="py-3 px-5 text-slate-700 font-medium text-sm">{s.roll}</td>
+                      <td className="py-3 px-5 text-slate-700 font-bold text-sm">{s.name}</td>
+                      <td className="py-3 px-5 text-slate-700 font-medium text-sm">
+                        <span className="bg-white px-2 py-0.5 rounded border border-rose-200 text-rose-600 text-xs">
+                          {s.className}
                         </span>
                       </td>
+                      <td className="py-3 px-5 text-slate-500 text-xs">{s.date}</td>
                     </tr>
                   ))}
-                  {reportData.length === 0 && (
-                    <tr>
-                      <td colSpan={5} className="text-center py-12 text-slate-500">
-                        এই সময়ের জন্য কোন হাজিরার রেকর্ড পাওয়া যায়নি।
-                      </td>
-                    </tr>
-                  )}
                 </tbody>
               </table>
+              {!showAllAbsent && absentStudentsList.length > 50 && (
+                <button 
+                  onClick={() => setShowAllAbsent(true)}
+                  className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
+                >
+                  আরও {toBengaliNumber(absentStudentsList.length - 50)} জন অনুপস্থিত আছে... (সব দেখুন)
+                </button>
+              )}
+              {showAllAbsent && absentStudentsList.length > 50 && (
+                <button 
+                  onClick={() => setShowAllAbsent(false)}
+                  className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
+                >
+                  সংক্ষিপ্ত করুন
+                </button>
+              )}
             </div>
-          </>
-        ) : (
-          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-            <p className="text-lg font-medium text-[#0F5C7A] mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
-            <p className="text-sm">রিপোর্ট দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
         )}
+
+        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] max-w-full">
+          <div className="bg-slate-50 px-6 py-3 border-b border-slate-200">
+            <h3 className="text-slate-700 font-bold flex items-center gap-2">
+              <Users className="w-5 h-5" />
+              {selectedClassId ? "শিক্ষার্থীর পারফরম্যান্স" : "শ্রেণি ভিত্তিক পারফরম্যান্স"}
+            </h3>
+          </div>
+          <table className="w-full text-left border-collapse">
+            <thead className="bg-[#F8F9FA] sticky top-0 z-10">
+              <tr>
+                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  {selectedClassId ? "রোল" : "#"}
+                </th>
+                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  {selectedClassId ? "শিক্ষার্থীর নাম" : "শ্রেণির নাম"}
+                </th>
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  উপস্থিত
+                </th>
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  অনুপস্থিত
+                </th>
+                <th className="text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  শতকরা
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {reportData.map((item, index) => (
+                <tr
+                  key={item.id}
+                  className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors"
+                >
+                  <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base">
+                    {selectedClassId ? toBengaliNumber(item.roll) : toBengaliNumber(index + 1)}
+                  </td>
+                  <td className="py-4 px-5 text-slate-800 font-bold text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
+                    {item.name}
+                  </td>
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-emerald-600 font-medium text-sm sm:text-base">
+                    {item.present}
+                  </td>
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-rose-600 font-medium text-sm sm:text-base">
+                    {item.absent}
+                  </td>
+                  <td className="py-4 px-5 text-center">
+                    <span
+                      className={clsx(
+                        "px-2.5 py-1 rounded-full text-xs font-bold",
+                        item.percentage >= 75
+                          ? "bg-emerald-100 text-emerald-700"
+                          : item.percentage >= 50
+                            ? "bg-amber-100 text-amber-700"
+                            : "bg-rose-100 text-rose-700",
+                      )}
+                    >
+                      {item.percentage}%
+                    </span>
+                  </td>
+                </tr>
+              ))}
+              {reportData.length === 0 && (
+                <tr>
+                  <td colSpan={5} className="text-center py-12 text-slate-500">
+                    এই সময়ের জন্য কোন হাজিরার রেকর্ড পাওয়া যায়নি।
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

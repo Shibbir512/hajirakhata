@@ -35,26 +35,26 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
     <header 
       className="relative flex items-center justify-between px-4 z-[90] shrink-0"
       style={{ 
-        height: '120px', // Total height (compact + status bar)
-        paddingTop: '24px', // Space for status bar
+        height: '100px', // Reduced height
+        paddingTop: '16px', // Reduced top padding
         background: 'linear-gradient(to bottom right, #0FAF9A, #3B82F6)',
         boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        borderBottomLeftRadius: '16px',
-        borderBottomRightRadius: '16px',
+        borderBottomLeftRadius: '20px', // Adjusted radius
+        borderBottomRightRadius: '20px', // Adjusted radius
       }}
     >
       <div className="flex items-center gap-[10px] relative z-10 w-full">
         {/* Mosque Icon */}
         <div className="flex items-center justify-center shrink-0">
-          <MosqueIcon className="w-7 h-7 text-white" />
+          <MosqueIcon className="w-8 h-8 text-white" />
         </div>
         
         {/* Title & Subtitle */}
         <div className="flex flex-col justify-center flex-1 min-w-0">
-          <h1 className="text-[18px] font-bold text-white leading-[1.2] tracking-tight truncate">
+          <h1 className="text-[18px] font-bold text-white leading-[1.1] tracking-tight truncate">
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
           </h1>
-          <div className="h-[2px]"></div>
+          <div className="h-[1px]"></div>
           <p className="text-[13px] font-medium text-white/65 tracking-wide">
             {getPageTitle()}
           </p>
@@ -62,8 +62,8 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
         
         {/* Notification Bell */}
         <div className="shrink-0 ml-[10px]">
-          <button className="relative w-10 h-10 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
-            <Bell className="w-[22px] h-[22px] text-white" />
+          <button className="relative w-9 h-9 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
+            <Bell className="w-5 h-5 text-white" />
           </button>
         </div>
       </div>
