@@ -37,8 +37,8 @@ const StudentSearch: React.FC = () => {
     
     // First, try to find exact matches for roll number or student ID
     const exactMatches = allStudents.filter(s => 
-      s.roll.toString() === englishQuery || 
-      (s.studentUid && s.studentUid === englishQuery)
+      s.roll.toString().includes(englishQuery) || 
+      (s.studentUid && s.studentUid.includes(englishQuery))
     );
     
     if (exactMatches.length > 0) {

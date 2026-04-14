@@ -4,7 +4,7 @@ import { db } from "../firebase";
 import { useAuth } from "../hooks/useAuth";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { Search, GraduationCap, User, Calendar, BookOpen, ChevronDown } from "lucide-react";
-import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
+import { toBengaliNumber, formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import StudentHistoryModal from "../components/StudentHistoryModal";
 import { Student } from "../types";
 
@@ -47,11 +47,12 @@ const Alumni: React.FC = () => {
     return alumni.filter(student => {
       const matchesYear = selectedYearId ? student.graduationYearId === selectedYearId : true;
       const searchLower = searchText.toLowerCase();
+      const englishQuery = toEnglishNumber(searchLower);
       const matchesSearch = 
         !searchText || 
         student.name.toLowerCase().includes(searchLower) ||
-        (student.studentUid && student.studentUid.toLowerCase().includes(searchLower)) ||
-        student.roll.toString().includes(searchLower);
+        (student.studentUid && student.studentUid.toLowerCase().includes(englishQuery)) ||
+        student.roll.toString().includes(englishQuery);
         
       return matchesYear && matchesSearch;
     });

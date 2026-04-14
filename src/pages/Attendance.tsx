@@ -110,8 +110,8 @@ const Attendance: React.FC = () => {
       const englishQuery = toEnglishNumber(queryStr);
       
       exactMatches = classStudents.filter(s => 
-        s.roll.toString() === englishQuery || 
-        (s.studentUid && s.studentUid === englishQuery)
+        s.roll.toString().includes(englishQuery) || 
+        (s.studentUid && s.studentUid.includes(englishQuery))
       );
       
       const exactMatchIds = new Set(exactMatches.map(s => s.id));

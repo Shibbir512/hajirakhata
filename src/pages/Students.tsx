@@ -135,8 +135,8 @@ const Students: React.FC = () => {
       const englishQuery = toEnglishNumber(queryStr);
       
       const exactMatches = list.filter(s => 
-        s.roll.toString() === englishQuery || 
-        (s.studentUid && s.studentUid === englishQuery) ||
+        s.roll.toString().includes(englishQuery) || 
+        (s.studentUid && s.studentUid.includes(englishQuery)) ||
         (s.phone && toEnglishNumber(s.phone).includes(englishQuery))
       );
       

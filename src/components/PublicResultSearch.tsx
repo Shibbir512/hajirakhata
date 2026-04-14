@@ -126,9 +126,9 @@ const PublicResultSearch: React.FC = () => {
     const englishQuery = toEnglishNumber(searchLower);
     
     return (
-      student.roll?.toString() === englishQuery ||
-      student.studentUid?.toLowerCase() === englishQuery ||
-      student.studentId?.toLowerCase() === englishQuery ||
+      student.roll?.toString().includes(englishQuery) ||
+      student.studentUid?.toLowerCase().includes(englishQuery) ||
+      student.studentId?.toLowerCase().includes(englishQuery) ||
       student.name?.toLowerCase().includes(searchLower) ||
       combinedStr.includes(searchLower) ||
       searchLower.includes(student.name?.toLowerCase() || '')
@@ -136,8 +136,8 @@ const PublicResultSearch: React.FC = () => {
   }).sort((a, b) => {
     const searchLower = rollNumber.toLowerCase();
     const englishQuery = toEnglishNumber(searchLower);
-    const aExact = a.roll?.toString() === englishQuery || a.studentUid?.toLowerCase() === englishQuery || a.studentId?.toLowerCase() === englishQuery;
-    const bExact = b.roll?.toString() === englishQuery || b.studentUid?.toLowerCase() === englishQuery || b.studentId?.toLowerCase() === englishQuery;
+    const aExact = a.roll?.toString().includes(englishQuery) || a.studentUid?.toLowerCase().includes(englishQuery) || a.studentId?.toLowerCase().includes(englishQuery);
+    const bExact = b.roll?.toString().includes(englishQuery) || b.studentUid?.toLowerCase().includes(englishQuery) || b.studentId?.toLowerCase().includes(englishQuery);
     
     if (aExact && !bExact) return -1;
     if (!aExact && bExact) return 1;
