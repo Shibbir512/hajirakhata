@@ -9,7 +9,7 @@ import { useClasses } from "../hooks/useClasses";
 import { ClipboardEdit, EyeOff, Trash2 } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
-import { formatAcademicYear } from "../utils/dateFormatter";
+import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
@@ -370,9 +370,10 @@ const ResultCell = React.memo(({
     <div className="w-24 border-r border-slate-200 flex items-center justify-center p-0">
       <input
         ref={(el) => { inputRefs.current[getCellKey(rowIndex, colIdx)] = el; }}
-        type="number"
+        type="text"
+        inputMode="numeric"
         value={localValue}
-        onChange={handleChange}
+        onChange={(e) => setLocalValue(toEnglishNumber(e.target.value))}
         onBlur={handleBlur}
         onKeyDown={(e) => handleKeyDown(e, rowIndex, colIdx)}
         onPaste={(e) => handlePaste(e, rowIndex, colIdx)}

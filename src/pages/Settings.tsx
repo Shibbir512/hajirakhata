@@ -5,6 +5,7 @@ import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField,
 import { deleteUser, updateProfile } from "firebase/auth";
 import { db, auth } from "../firebase";
 import toast from "react-hot-toast";
+import { toEnglishNumber } from "../utils/dateFormatter";
 
 const Settings: React.FC = () => {
   const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
@@ -461,9 +462,10 @@ const Settings: React.FC = () => {
                 <div className="relative flex-1">
                   <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
                   <input
-                    type="tel"
+                    type="text"
+                    inputMode="numeric"
                     value={userPhone}
-                    onChange={(e) => setUserPhone(e.target.value)}
+                    onChange={(e) => setUserPhone(toEnglishNumber(e.target.value))}
                     placeholder="ফোন নম্বর লিখুন"
                     className="input-premium pl-10"
                   />

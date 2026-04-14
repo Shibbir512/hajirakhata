@@ -33,37 +33,32 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
   return (
     <header 
-      className="relative flex items-center justify-between px-4 z-[90] shrink-0"
+      className="sticky top-0 left-0 right-0 flex items-center justify-between px-4 z-[90] shrink-0 bg-[#0F5C7A] shadow-sm"
       style={{ 
-        height: '100px', // Reduced height
-        paddingTop: '16px', // Reduced top padding
-        background: 'linear-gradient(to bottom right, #0FAF9A, #3B82F6)',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-        borderBottomLeftRadius: '20px', // Adjusted radius
-        borderBottomRightRadius: '20px', // Adjusted radius
+        paddingTop: 'max(env(safe-area-inset-top), 16px)',
+        paddingBottom: '16px',
       }}
     >
-      <div className="flex items-center gap-[10px] relative z-10 w-full">
+      <div className="flex items-center gap-3 relative z-10 w-full">
         {/* Mosque Icon */}
         <div className="flex items-center justify-center shrink-0">
-          <MosqueIcon className="w-8 h-8 text-white" />
+          <MosqueIcon className="w-7 h-7 text-white" />
         </div>
         
         {/* Title & Subtitle */}
         <div className="flex flex-col justify-center flex-1 min-w-0">
-          <h1 className="text-[18px] font-bold text-white leading-[1.1] tracking-tight truncate">
+          <h1 className="text-[18px] font-bold text-white leading-tight truncate">
             {orgName || (location.pathname === "/super-admin" ? "সুপার অ্যাডমিন" : "দারুল উলুম দত্তপাড়া")}
           </h1>
-          <div className="h-[1px]"></div>
-          <p className="text-[13px] font-medium text-white/65 tracking-wide">
+          <p className="text-[13px] font-medium text-white/80 mt-0.5 truncate">
             {getPageTitle()}
           </p>
         </div>
         
         {/* Notification Bell */}
-        <div className="shrink-0 ml-[10px]">
-          <button className="relative w-9 h-9 bg-white/15 hover:bg-white/25 rounded-xl transition-colors flex items-center justify-center backdrop-blur-md">
-            <Bell className="w-5 h-5 text-white" />
+        <div className="shrink-0 ml-3">
+          <button className="relative w-8 h-8 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
+            <Bell className="w-[18px] h-[18px] text-white" />
           </button>
         </div>
       </div>

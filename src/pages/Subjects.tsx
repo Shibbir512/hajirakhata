@@ -6,6 +6,7 @@ import { useSubjects } from "../hooks/useSubjects";
 import { Plus, Edit, Trash2, Book, X, Users, ChevronDown } from "lucide-react";
 import { Subject } from "../types";
 import clsx from "clsx";
+import { toEnglishNumber } from "../utils/dateFormatter";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 const Subjects: React.FC = () => {
@@ -198,9 +199,9 @@ const Subjects: React.FC = () => {
                       <input type="text" placeholder="নাম (আরবি)" value={subject.nameAr} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], nameAr: e.target.value }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
                     </div>
                     <div className="grid grid-cols-3 gap-2">
-                      <input type="number" placeholder="পূর্ণমান" value={subject.fullMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], fullMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
-                      <input type="number" placeholder="পাস" value={subject.passMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], passMarks: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
-                      <input type="number" placeholder="অর্ডার" value={subject.subjectOrder} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], subjectOrder: Number(e.target.value) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <input type="text" inputMode="numeric" placeholder="পূর্ণমান" value={subject.fullMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], fullMarks: Number(toEnglishNumber(e.target.value)) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <input type="text" inputMode="numeric" placeholder="পাস" value={subject.passMarks} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], passMarks: Number(toEnglishNumber(e.target.value)) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
+                      <input type="text" inputMode="numeric" placeholder="অর্ডার" value={subject.subjectOrder} onChange={(e) => { const newList = [...subjectsList]; newList[index] = { ...newList[index], subjectOrder: Number(toEnglishNumber(e.target.value)) }; setSubjectsList(newList); }} className="w-full h-[40px] px-3 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[10px] text-[14px]" />
                     </div>
                   </div>
                 ))}

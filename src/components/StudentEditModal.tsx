@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
 import { X, Edit3, Camera, Upload } from "lucide-react";
 import { Student } from "../types";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
 import { compressAndUploadImage } from "../utils/imageUpload";
 import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
@@ -275,9 +275,10 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                 ফোন নম্বর
               </label>
               <input
-                type="tel"
+                type="text"
+                inputMode="numeric"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(toEnglishNumber(e.target.value))}
                 className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />

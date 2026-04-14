@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { Student, ClassData } from "../types";
 import { X, ArrowRight, UserCheck, GraduationCap } from "lucide-react";
-import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
+import { toBengaliNumber, formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 
 interface StudentPromotionModalProps {
@@ -223,10 +223,10 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
                             </span>
                           ) : (
                             <input
-                              type="number"
-                              min="1"
+                              type="text"
+                              inputMode="numeric"
                               value={newRolls[student.id] || ""}
-                              onChange={(e) => handleRollChange(student.id, e.target.value)}
+                              onChange={(e) => handleRollChange(student.id, toEnglishNumber(e.target.value))}
                               disabled={!isSelected}
                               className={`w-full px-2 py-1.5 rounded-lg border text-sm ${isSelected ? 'border-[#14B8A6] focus:ring-2 focus:ring-[#14B8A6]' : 'border-[#E5E7EB] bg-[#F9FAFB] text-[#9CA3AF]'} focus:outline-none`}
                             />

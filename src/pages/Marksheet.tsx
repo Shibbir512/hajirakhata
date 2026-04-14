@@ -14,7 +14,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
-import { formatAcademicYear } from "../utils/dateFormatter";
+import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
@@ -537,12 +537,11 @@ const Marksheet: React.FC = () => {
                       <td className={`p-4 text-center font-bold border border-slate-300 ${isFail ? 'text-[#EF4444]' : 'text-slate-800'}`}>
                         {isEditing ? (
                           <input
-                            type="number"
+                            type="text"
+                            inputMode="numeric"
                             value={result?.marks ?? 0}
-                            onChange={(e) => handleMarkChange(subject.id, e.target.value)}
+                            onChange={(e) => handleMarkChange(subject.id, toEnglishNumber(e.target.value))}
                             className="w-20 px-2 py-1 border border-slate-300 rounded text-center focus:ring-2 focus:ring-[#0F5C7A] outline-none"
-                            max={subject.fullMarks}
-                            min={0}
                           />
                         ) : (
                           result ? convertNumber(result.marks, numeralFormat) : "-"

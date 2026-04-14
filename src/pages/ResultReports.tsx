@@ -12,7 +12,7 @@ import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
-import { formatAcademicYear } from "../utils/dateFormatter";
+import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import { addBengaliFont } from "../utils/pdfFont";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
@@ -718,12 +718,11 @@ const ResultReports: React.FC = () => {
                           <td key={subject.id} className="py-4 px-5 text-center">
                             {isEditing ? (
                               <input
-                                type="number"
+                                type="text"
+                                inputMode="numeric"
                                 value={result?.marks ?? ""}
-                                onChange={(e) => handleMarkChange(student.id, subject.id, Number(e.target.value))}
+                                onChange={(e) => handleMarkChange(student.id, subject.id, Number(toEnglishNumber(e.target.value)))}
                                 className={`w-16 h-10 text-center border rounded-lg focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all ${isFail ? "border-rose-300 text-rose-600" : "border-slate-200 text-slate-700"}`}
-                                min="0"
-                                max={subject.fullMarks}
                               />
                             ) : (
                               <span className={isFail ? "text-rose-600 font-bold" : "text-slate-700"}>

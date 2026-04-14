@@ -6,6 +6,7 @@ import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import ImageCropper from "./ImageCropper";
 import { base64ToFile } from "../utils/cropImage";
+import { toEnglishNumber } from "../utils/dateFormatter";
 
 interface StudentAddModalProps {
   isOpen: boolean;
@@ -272,9 +273,10 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                 ফোন নম্বর
               </label>
               <input
-                type="tel"
+                type="text"
+                inputMode="numeric"
                 value={phone}
-                onChange={(e) => setPhone(e.target.value)}
+                onChange={(e) => setPhone(toEnglishNumber(e.target.value))}
                 className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />

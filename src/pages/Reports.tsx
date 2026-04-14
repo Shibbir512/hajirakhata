@@ -68,7 +68,7 @@ const Reports: React.FC = () => {
 
   const reportData = useMemo(() => {
     if (selectedClassId) {
-      const classStudents = students[selectedClassId] || [];
+      const classStudents = (students[selectedClassId] || []).filter(s => s.isActive !== false);
       const statsMap = new Map<string, { present: number, absent: number }>();
       
       classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0 }));
@@ -109,8 +109,13 @@ const Reports: React.FC = () => {
         let present = 0;
         let absent = 0;
         
+        const classStudents = students[cls.id] || [];
+        const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
+
         attendanceSessions.filter(s => s.classId === cls.id).forEach(session => {
           session.students.forEach((st: any) => {
+            if (!activeStudentIds.has(st.studentId)) return; // Skip archived/deleted students
+
             if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
               present++;
             } else if (st.status === AttendanceStatus.Absent) {
@@ -145,6 +150,10 @@ const Reports: React.FC = () => {
       session.students.forEach((st: any) => {
         if (st.status === AttendanceStatus.Absent) {
           const studentInfo = classStudents.find(s => s.id === st.studentId);
+          
+          // Skip if student is archived or deleted
+          if (!studentInfo || studentInfo.isActive === false) return;
+
           const rawRoll = studentInfo ? studentInfo.roll : (st.roll ? parseInt(toEnglishNumber(st.roll.toString())) : 9999);
           const roll = studentInfo ? toBengaliNumber(studentInfo.roll) : (st.roll ? toBengaliNumber(st.roll) : "N/A");
           
@@ -249,7 +258,12 @@ const Reports: React.FC = () => {
         dailyData[session.date] = { present: 0, total: 0 };
       }
       
+      const classStudents = students[session.classId] || [];
+      const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
+
       session.students.forEach((st: any) => {
+        if (!activeStudentIds.has(st.studentId)) return; // Skip archived/deleted students
+
         dailyData[session.date].total++;
         if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
           dailyData[session.date].present++;
@@ -265,13 +279,20 @@ const Reports: React.FC = () => {
         const [d2, m2, y2] = b.date.split(" ").map(Number);
         return new Date(y1, m1 - 1, d1).getTime() - new Date(y2, m2 - 1, d2).getTime();
     });
-  }, [attendanceSessions]);
+  }, [attendanceSessions, students]);
 
   const sessionData = useMemo(() => {
     return attendanceSessions.map(session => {
         let present = 0;
-        let total = session.students.length;
+        let total = 0;
+        
+        const classStudents = students[session.classId] || [];
+        const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
+
         session.students.forEach((st: any) => {
+            if (!activeStudentIds.has(st.studentId)) return; // Skip archived/deleted students
+            
+            total++;
             if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
                 present++;
             }
@@ -283,7 +304,7 @@ const Reports: React.FC = () => {
             percentage: total > 0 ? Math.round((present / total) * 100) : 0
         };
     });
-  }, [attendanceSessions, classes]);
+  }, [attendanceSessions, classes, students]);
 
   const heatmapData = useMemo(() => {
     // Aggregate present/total by date
@@ -294,7 +315,12 @@ const Reports: React.FC = () => {
         dailyData[session.date] = { present: 0, total: 0 };
       }
       
+      const classStudents = students[session.classId] || [];
+      const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
+
       session.students.forEach((st: any) => {
+        if (!activeStudentIds.has(st.studentId)) return; // Skip archived/deleted students
+
         dailyData[session.date].total++;
         if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
           dailyData[session.date].present++;
@@ -306,7 +332,7 @@ const Reports: React.FC = () => {
       date,
       percentage: data.total > 0 ? Math.round((data.present / data.total) * 100) : 0
     }));
-  }, [attendanceSessions]);
+  }, [attendanceSessions, students]);
 
   const pieData = useMemo(() => {
     const totalPresent = reportData.reduce(
