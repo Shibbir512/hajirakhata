@@ -33,7 +33,7 @@ const StudentProfile: React.FC = () => {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   const [results, setResults] = useState<Result[]>([]);
-  const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0 });
+  const [attendanceStats, setAttendanceStats] = useState({ present: 0, absent: 0, leave: 0 });
   const [allAttendanceSessions, setAllAttendanceSessions] = useState<any[]>([]);
   const [lastExamRank, setLastExamRank] = useState<string>("-");
   const [lastExamGrade, setLastExamGrade] = useState<string>("-");
@@ -58,6 +58,7 @@ const StudentProfile: React.FC = () => {
           
           let presentCount = 0;
           let absentCount = 0;
+          let leaveCount = 0;
           const sessions: any[] = [];
           
           attendanceSnapshot.docs.forEach(doc => {
@@ -67,9 +68,10 @@ const StudentProfile: React.FC = () => {
             if (studentRecord) {
               if (studentRecord.status === AttendanceStatus.Present) presentCount++;
               else if (studentRecord.status === AttendanceStatus.Absent) absentCount++;
+              else if (studentRecord.status === AttendanceStatus.Leave) leaveCount++;
             }
           });
-          setAttendanceStats({ present: presentCount, absent: absentCount });
+          setAttendanceStats({ present: presentCount, absent: absentCount, leave: leaveCount });
           setAllAttendanceSessions(sessions);
         } else {
           toast.error("শিক্ষার্থী খুঁজে পাওয়া যায়নি।");
@@ -402,26 +404,37 @@ const StudentProfile: React.FC = () => {
             </motion.div>
 
             {/* Stats Section */}
-            <motion.div variants={itemVariants} className="grid grid-cols-2 gap-4">
-              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4 relative overflow-hidden group">
+            <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
+              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#22C55E]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="w-12 h-12 rounded-full bg-[#22C55E]/10 flex items-center justify-center shrink-0 shadow-inner">
-                  <CheckCircle className="w-6 h-6 text-[#22C55E]" />
+                <div className="w-10 h-10 rounded-full bg-[#22C55E]/10 flex items-center justify-center shrink-0 shadow-inner">
+                  <CheckCircle className="w-5 h-5 text-[#22C55E]" />
                 </div>
-                <div>
+                <div className="text-center">
                   <p className="text-xs font-medium text-slate-500 mb-0.5">উপস্থিত</p>
-                  <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.present)}</p>
+                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.present)}</p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[20px] p-5 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4 relative overflow-hidden group">
+              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#EF4444]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="w-12 h-12 rounded-full bg-[#EF4444]/10 flex items-center justify-center shrink-0 shadow-inner">
-                  <XCircle className="w-6 h-6 text-[#EF4444]" />
+                <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 flex items-center justify-center shrink-0 shadow-inner">
+                  <XCircle className="w-5 h-5 text-[#EF4444]" />
                 </div>
-                <div>
+                <div className="text-center">
                   <p className="text-xs font-medium text-slate-500 mb-0.5">অনুপস্থিত</p>
-                  <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.absent)}</p>
+                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.absent)}</p>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0 shadow-inner">
+                  <Calendar className="w-5 h-5 text-orange-500" />
+                </div>
+                <div className="text-center">
+                  <p className="text-xs font-medium text-slate-500 mb-0.5">ছুটি</p>
+                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.leave)}</p>
                 </div>
               </div>
             </motion.div>
@@ -567,9 +580,11 @@ const StudentProfile: React.FC = () => {
                                   "px-3 py-1 rounded-full text-xs font-bold",
                                   item.status === AttendanceStatus.Present 
                                     ? "bg-emerald-100 text-emerald-700" 
+                                    : item.status === AttendanceStatus.Leave
+                                    ? "bg-orange-100 text-orange-700"
                                     : "bg-rose-100 text-rose-700"
                                 )}>
-                                  {item.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                                  {item.status === AttendanceStatus.Present ? "উপস্থিত" : item.status === AttendanceStatus.Leave ? "ছুটি" : "অনুপস্থিত"}
                                 </span>
                               </td>
                               <td className="py-4 px-5 text-sm text-slate-600">{item.note || "-"}</td>

@@ -69,9 +69,9 @@ const Reports: React.FC = () => {
   const reportData = useMemo(() => {
     if (selectedClassId) {
       const classStudents = (students[selectedClassId] || []).filter(s => s.isActive !== false);
-      const statsMap = new Map<string, { present: number, absent: number }>();
+      const statsMap = new Map<string, { present: number, absent: number, leave: number }>();
       
-      classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0 }));
+      classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0, leave: 0 }));
 
       attendanceSessions.forEach(session => {
         session.students.forEach((studentRecord: any) => {
@@ -81,6 +81,8 @@ const Reports: React.FC = () => {
               stats.present++;
             } else if (studentRecord.status === AttendanceStatus.Absent) {
               stats.absent++;
+            } else if (studentRecord.status === AttendanceStatus.Leave) {
+              stats.leave++;
             }
           }
         });
@@ -88,8 +90,8 @@ const Reports: React.FC = () => {
 
       return classStudents
         .map((student) => {
-          const stats = statsMap.get(student.id) || { present: 0, absent: 0 };
-          const total = stats.present + stats.absent;
+          const stats = statsMap.get(student.id) || { present: 0, absent: 0, leave: 0 };
+          const total = stats.present + stats.absent + stats.leave;
           const percentage = total > 0 ? Math.round((stats.present / total) * 100) : 0;
 
           return {
@@ -99,6 +101,7 @@ const Reports: React.FC = () => {
             roll: student.roll,
             present: stats.present,
             absent: stats.absent,
+            leave: stats.leave,
             percentage,
           };
         })
@@ -108,6 +111,7 @@ const Reports: React.FC = () => {
       return classes.map(cls => {
         let present = 0;
         let absent = 0;
+        let leave = 0;
         
         const classStudents = students[cls.id] || [];
         const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
@@ -120,11 +124,13 @@ const Reports: React.FC = () => {
               present++;
             } else if (st.status === AttendanceStatus.Absent) {
               absent++;
+            } else if (st.status === AttendanceStatus.Leave) {
+              leave++;
             }
           });
         });
 
-        const total = present + absent;
+        const total = present + absent + leave;
         const percentage = total > 0 ? Math.round((present / total) * 100) : 0;
 
         return {
@@ -133,10 +139,11 @@ const Reports: React.FC = () => {
           displayName: cls.name,
           present,
           absent,
+          leave,
           percentage,
           roll: 0 // Not applicable for classes
         };
-      }).filter(c => c.present + c.absent > 0);
+      }).filter(c => c.present + c.absent + c.leave > 0);
     }
   }, [selectedClassId, attendanceSessions, students, classes]);
 
@@ -340,13 +347,15 @@ const Reports: React.FC = () => {
       0,
     );
     const totalAbsent = reportData.reduce((acc, curr) => acc + curr.absent, 0);
+    const totalLeave = reportData.reduce((acc, curr) => acc + (curr.leave || 0), 0);
     return [
       { name: "Present", value: totalPresent },
       { name: "Absent", value: totalAbsent },
+      { name: "Leave", value: totalLeave },
     ];
   }, [reportData]);
 
-  const COLORS = ["#22c55e", "#ef4444"];
+  const COLORS = ["#22c55e", "#ef4444", "#f97316"];
 
   return (
     <div className="space-y-6">
@@ -596,6 +605,9 @@ const Reports: React.FC = () => {
                 <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   অনুপস্থিত
                 </th>
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                  ছুটি
+                </th>
                 <th className="text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
                   শতকরা
                 </th>
@@ -619,6 +631,9 @@ const Reports: React.FC = () => {
                   <td className="hidden sm:table-cell py-4 px-5 text-center text-rose-600 font-medium text-sm sm:text-base">
                     {item.absent}
                   </td>
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-orange-600 font-medium text-sm sm:text-base">
+                    {item.leave}
+                  </td>
                   <td className="py-4 px-5 text-center">
                     <span
                       className={clsx(
@@ -637,7 +652,7 @@ const Reports: React.FC = () => {
               ))}
               {reportData.length === 0 && (
                 <tr>
-                  <td colSpan={5} className="text-center py-12 text-slate-500">
+                  <td colSpan={6} className="text-center py-12 text-slate-500">
                     এই সময়ের জন্য কোন হাজিরার রেকর্ড পাওয়া যায়নি।
                   </td>
                 </tr>

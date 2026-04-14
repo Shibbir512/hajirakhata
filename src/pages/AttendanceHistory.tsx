@@ -470,22 +470,27 @@ const AttendanceHistory: React.FC = () => {
                   const searchLower = searchQuery.toLowerCase();
                   const name = student.studentName || "";
                   const matchesSearch = name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
-                  return matchesSearch && student.status === AttendanceStatus.Absent;
+                  return matchesSearch && (student.status === AttendanceStatus.Absent || student.status === AttendanceStatus.Leave);
                 }).map((student: any) => (
                   <div key={student.studentId} className={clsx(
                     "flex justify-between items-center p-4 border rounded-[16px] transition-all duration-300",
                     student.status === AttendanceStatus.Absent 
                       ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm" 
+                      : student.status === AttendanceStatus.Leave
+                      ? "bg-orange-50 border-orange-200 shadow-sm"
                       : "bg-white border-slate-100"
                   )}>
                     <div className="flex items-center gap-3">
                       {student.status === AttendanceStatus.Absent && (
                         <span className="w-2 h-2 rounded-full bg-[#EF4444] animate-pulse"></span>
                       )}
+                      {student.status === AttendanceStatus.Leave && (
+                        <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+                      )}
                       <div className="flex flex-col">
                         <span className={clsx(
                           "font-bold text-[15px]",
-                          student.status === AttendanceStatus.Absent ? "text-[#EF4444]" : "text-slate-800"
+                          student.status === AttendanceStatus.Absent ? "text-[#EF4444]" : student.status === AttendanceStatus.Leave ? "text-orange-600" : "text-slate-800"
                         )}>
                           {student.studentName}
                         </span>
@@ -498,9 +503,11 @@ const AttendanceHistory: React.FC = () => {
                       "px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm",
                       student.status === AttendanceStatus.Present 
                         ? "bg-[#DCFCE7] text-[#166534] border border-[#DCFCE7]" 
+                        : student.status === AttendanceStatus.Leave
+                        ? "bg-orange-100 text-orange-700 border border-orange-200"
                         : "bg-[#FEE2E2] text-[#991B1B] border border-[#FEE2E2]"
                     )}>
-                      {student.status === AttendanceStatus.Present ? "উপস্থিত" : "অনুপস্থিত"}
+                      {student.status === AttendanceStatus.Present ? "উপস্থিত" : student.status === AttendanceStatus.Leave ? "ছুটি" : "অনুপস্থিত"}
                     </span>
                   </div>
                 ))}
@@ -597,6 +604,17 @@ const AttendanceHistory: React.FC = () => {
                         )}
                       >
                         অনুপস্থিত
+                      </button>
+                      <button 
+                        onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Leave)}
+                        className={clsx(
+                          "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
+                          student.status === AttendanceStatus.Leave 
+                            ? "bg-orange-500 text-white border-orange-500/90" 
+                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                        )}
+                      >
+                        ছুটি
                       </button>
                     </div>
                   </div>

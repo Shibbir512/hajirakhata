@@ -4,6 +4,7 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import BottomNavigation from "../components/BottomNavigation";
 import { useAuth } from "../hooks/useAuth";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, MonitorPlay } from "lucide-react";
@@ -20,6 +21,9 @@ const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
+  
+  // Initialize push notifications
+  usePushNotifications();
   
   // Notification sound
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -50,6 +54,15 @@ const DashboardLayout: React.FC = () => {
       const count = snapshot.size;
       if (count > prevPendingCountRef.current) {
         playNotificationSound();
+        
+        const title = "নতুন সাইন-আপ রিকোয়েস্ট!";
+        const body = `${count} জন ইউজার অনুমোদনের অপেক্ষায় আছেন।`;
+        
+        // Show System Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/vite.svg' });
+        }
+
         toast.custom((t) => (
           <div
             className={`${
@@ -102,6 +115,15 @@ const DashboardLayout: React.FC = () => {
       const count = snapshot.size;
       if (count > prevJoinCountRef.current) {
         playNotificationSound();
+        
+        const title = "নতুন জয়েন রিকোয়েস্ট!";
+        const body = `আপনার প্রতিষ্ঠানে ${count} জন নতুন শিক্ষক যুক্ত হতে চাচ্ছেন।`;
+
+        // Show System Notification
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/vite.svg' });
+        }
+
         toast.custom((t) => (
           <div
             className={`${

@@ -45,10 +45,11 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
         const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
         const sessionsSnap = await getDocs(sessionsRef);
         
-        const attendanceData: {[key: string]: {present: number, absent: number}} = {};
+        const attendanceData: {[key: string]: {present: number, absent: number, leave: number}} = {};
         let totalSessions = 0;
         let totalPresent = 0;
         let totalAbsent = 0;
+        let totalLeave = 0;
 
         sessionsSnap.docs.forEach(doc => {
           const session = doc.data();
@@ -58,19 +59,22 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
             totalSessions++;
             const isPresent = studentRecord.status === AttendanceStatus.Present;
             const isAbsent = studentRecord.status === AttendanceStatus.Absent;
+            const isLeave = studentRecord.status === AttendanceStatus.Leave;
             
             if (isPresent) totalPresent++;
             if (isAbsent) totalAbsent++;
+            if (isLeave) totalLeave++;
 
             const yearId = session.academicYearId || "N/A";
-            if (!attendanceData[yearId]) attendanceData[yearId] = { present: 0, absent: 0 };
+            if (!attendanceData[yearId]) attendanceData[yearId] = { present: 0, absent: 0, leave: 0 };
             
             if (isPresent) attendanceData[yearId].present++;
             if (isAbsent) attendanceData[yearId].absent++;
+            if (isLeave) attendanceData[yearId].leave++;
           }
         });
 
-        setTotalAttendance({ total: totalSessions, present: totalPresent, absent: totalAbsent });
+        setTotalAttendance({ total: totalSessions, present: totalPresent, absent: totalAbsent, leave: totalLeave });
 
         // Group results and attendance by academic year
         const grouped: any = {};
@@ -84,7 +88,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
         results.forEach(result => {
           const yearId = result.academic_year_id || "N/A";
           if (!grouped[yearId]) {
-            grouped[yearId] = { exams: {}, attendance: { present: 0, absent: 0 } };
+            grouped[yearId] = { exams: {}, attendance: { present: 0, absent: 0, leave: 0 } };
           }
           
           const examId = result.exam_id;
@@ -108,6 +112,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
 
   const presentPercentage = totalAttendance.total > 0 ? Math.round((totalAttendance.present / totalAttendance.total) * 100) : 0;
   const absentPercentage = totalAttendance.total > 0 ? Math.round((totalAttendance.absent / totalAttendance.total) * 100) : 0;
+  const leavePercentage = totalAttendance.total > 0 ? Math.round(((totalAttendance.leave || 0) / totalAttendance.total) * 100) : 0;
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
@@ -132,7 +137,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                   <Activity className="w-5 h-5" />
                   পুরা শিক্ষা জীবনের উপস্থিতি
                 </h4>
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-slate-100">
                     <p className="text-xs font-bold text-slate-500 mb-1">মোট সেশন</p>
                     <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(totalAttendance.total)}</p>
@@ -147,16 +152,25 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                     <p className="text-2xl font-bold text-rose-700">{toBengaliNumber(absentPercentage)}%</p>
                     <p className="text-[10px] text-rose-500 mt-1">{toBengaliNumber(totalAttendance.absent)} দিন</p>
                   </div>
+                  <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-orange-100">
+                    <p className="text-xs font-bold text-orange-600 mb-1">ছুটির হার</p>
+                    <p className="text-2xl font-bold text-orange-700">{toBengaliNumber(leavePercentage)}%</p>
+                    <p className="text-[10px] text-orange-500 mt-1">{toBengaliNumber(totalAttendance.leave || 0)} দিন</p>
+                  </div>
                 </div>
               </div>
 
               {history.length > 0 ? (
                 history.map(([yearId, data]: [string, any]) => {
-                  const yearPresentPct = (data.attendance.present + data.attendance.absent) > 0 
-                    ? Math.round((data.attendance.present / (data.attendance.present + data.attendance.absent)) * 100) 
+                  const totalYearSessions = data.attendance.present + data.attendance.absent + (data.attendance.leave || 0);
+                  const yearPresentPct = totalYearSessions > 0 
+                    ? Math.round((data.attendance.present / totalYearSessions) * 100) 
                     : 0;
-                  const yearAbsentPct = (data.attendance.present + data.attendance.absent) > 0 
-                    ? Math.round((data.attendance.absent / (data.attendance.present + data.attendance.absent)) * 100) 
+                  const yearAbsentPct = totalYearSessions > 0 
+                    ? Math.round((data.attendance.absent / totalYearSessions) * 100) 
+                    : 0;
+                  const yearLeavePct = totalYearSessions > 0 
+                    ? Math.round(((data.attendance.leave || 0) / totalYearSessions) * 100) 
                     : 0;
 
                   return (
@@ -166,7 +180,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                         শিক্ষাবর্ষ: {formatAcademicYear(academicYears.find(ay => ay.id === yearId))}
                       </h4>
                       
-                      <div className="grid grid-cols-2 gap-4 mb-6">
+                      <div className="grid grid-cols-3 gap-4 mb-6">
                         <div className="bg-emerald-50 p-3 rounded-xl text-center flex flex-col justify-center">
                           <p className="text-xs font-bold text-emerald-600">উপস্থিতি</p>
                           <div className="flex items-baseline justify-center gap-1">
@@ -179,6 +193,13 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                           <div className="flex items-baseline justify-center gap-1">
                             <p className="text-lg font-bold text-rose-700">{toBengaliNumber(data.attendance.absent)} দিন</p>
                             <span className="text-xs text-rose-600 font-medium">({toBengaliNumber(yearAbsentPct)}%)</span>
+                          </div>
+                        </div>
+                        <div className="bg-orange-50 p-3 rounded-xl text-center flex flex-col justify-center">
+                          <p className="text-xs font-bold text-orange-600">ছুটি</p>
+                          <div className="flex items-baseline justify-center gap-1">
+                            <p className="text-lg font-bold text-orange-700">{toBengaliNumber(data.attendance.leave || 0)} দিন</p>
+                            <span className="text-xs text-orange-600 font-medium">({toBengaliNumber(yearLeavePct)}%)</span>
                           </div>
                         </div>
                       </div>

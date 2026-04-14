@@ -17,7 +17,10 @@ const LeaveManagement: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<"add" | "view">("add");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [selectedDate, setSelectedDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [startTime, setStartTime] = useState<string>("08:00");
+  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [endTime, setEndTime] = useState<string>("14:00");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,15 +66,18 @@ const LeaveManagement: React.FC = () => {
       toast.error("অন্তত একজন শিক্ষার্থী নির্বাচন করুন");
       return;
     }
-    if (!selectedDate) {
-      toast.error("তারিখ নির্বাচন করুন");
+    if (!startDate || !startTime || !endDate || !endTime) {
+      toast.error("তারিখ ও সময় নির্বাচন করুন");
       return;
     }
 
     const leaveData = Array.from(selectedStudents).map(studentId => ({
       studentId,
       classId: selectedClassId,
-      date: selectedDate,
+      startDate,
+      startTime,
+      endDate,
+      endTime,
       note: studentNotes[studentId] || "",
     }));
 
@@ -101,10 +107,11 @@ const LeaveManagement: React.FC = () => {
   const groupedLeaves = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
     leaves.forEach(leave => {
-      if (!groups[leave.date]) {
-        groups[leave.date] = [];
+      const dateKey = leave.startDate || leave.date || "Unknown";
+      if (!groups[dateKey]) {
+        groups[dateKey] = [];
       }
-      groups[leave.date].push(leave);
+      groups[dateKey].push(leave);
     });
     
     // Sort dates descending
@@ -152,7 +159,7 @@ const LeaveManagement: React.FC = () => {
 
       {activeTab === "add" && (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">শ্রেণি নির্বাচন করুন</label>
               <div className="relative">
@@ -174,11 +181,41 @@ const LeaveManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">তারিখ নির্বাচন করুন</label>
+              <label className="text-sm font-bold text-slate-700">শুরুর তারিখ</label>
               <input
                 type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+                className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">শুরুর সময়</label>
+              <input
+                type="time"
+                value={startTime}
+                onChange={(e) => setStartTime(e.target.value)}
+                className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">শেষ তারিখ</label>
+              <input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-bold text-slate-700">শেষ সময়</label>
+              <input
+                type="time"
+                value={endTime}
+                onChange={(e) => setEndTime(e.target.value)}
                 className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
               />
             </div>
@@ -311,6 +348,7 @@ const LeaveManagement: React.FC = () => {
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">শ্রেণি</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">রোল</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">শিক্ষার্থীর নাম</th>
+                          <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">সময়কাল</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">অ্যাকশন</th>
                         </tr>
                       </thead>
@@ -325,6 +363,17 @@ const LeaveManagement: React.FC = () => {
                                 <div className="inline-flex items-center mt-1.5 px-2.5 py-1 bg-[#0F5C7A]/5 border border-[#0F5C7A]/10 rounded-md">
                                   <span className="text-[11px] font-semibold text-[#0F5C7A]">{leave.note}</span>
                                 </div>
+                              )}
+                            </td>
+                            <td className="py-4 px-6 text-sm text-slate-600">
+                              {leave.startDate && leave.endDate ? (
+                                <div>
+                                  <div>{toBengaliDate(leave.startDate)} {leave.startTime && `(${toBengaliNumber(leave.startTime)})`}</div>
+                                  <div className="text-xs text-slate-400">থেকে</div>
+                                  <div>{toBengaliDate(leave.endDate)} {leave.endTime && `(${toBengaliNumber(leave.endTime)})`}</div>
+                                </div>
+                              ) : (
+                                <div>{toBengaliDate(leave.date || "")}</div>
                               )}
                             </td>
                             <td className="py-4 px-6 text-right">
@@ -385,14 +434,43 @@ const LeaveManagement: React.FC = () => {
                   {getStudentName(editingLeave.studentId, editingLeave.classId)} (রোল: {toBengaliNumber(getStudentRoll(editingLeave.studentId, editingLeave.classId))})
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">তারিখ</label>
-                <input
-                  type="date"
-                  value={editingLeave.date}
-                  onChange={(e) => setEditingLeave({ ...editingLeave, date: e.target.value })}
-                  className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শুরুর তারিখ</label>
+                  <input
+                    type="date"
+                    value={editingLeave.startDate || editingLeave.date || ""}
+                    onChange={(e) => setEditingLeave({ ...editingLeave, startDate: e.target.value })}
+                    className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শুরুর সময়</label>
+                  <input
+                    type="time"
+                    value={editingLeave.startTime || "08:00"}
+                    onChange={(e) => setEditingLeave({ ...editingLeave, startTime: e.target.value })}
+                    className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শেষ তারিখ</label>
+                  <input
+                    type="date"
+                    value={editingLeave.endDate || editingLeave.date || ""}
+                    onChange={(e) => setEditingLeave({ ...editingLeave, endDate: e.target.value })}
+                    className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শেষ সময়</label>
+                  <input
+                    type="time"
+                    value={editingLeave.endTime || "14:00"}
+                    onChange={(e) => setEditingLeave({ ...editingLeave, endTime: e.target.value })}
+                    className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-sm font-bold text-slate-700 mb-2">নোট (ঐচ্ছিক)</label>
@@ -413,7 +491,13 @@ const LeaveManagement: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  updateLeave(editingLeave.id, { date: editingLeave.date, note: editingLeave.note });
+                  updateLeave(editingLeave.id, { 
+                    startDate: editingLeave.startDate, 
+                    startTime: editingLeave.startTime,
+                    endDate: editingLeave.endDate,
+                    endTime: editingLeave.endTime,
+                    note: editingLeave.note 
+                  });
                   setEditingLeave(null);
                 }}
                 className="px-5 py-2.5 rounded-xl font-bold bg-[#0F5C7A] text-white hover:bg-[#0C4A62] transition-colors shadow-md"

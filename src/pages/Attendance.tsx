@@ -4,6 +4,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
+import { useLeaves } from "../hooks/useLeaves";
 import { AttendanceStatus } from "../types";
 import { useStruckOffStudents } from "../hooks/useStruckOffStudents";
 import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle, X, AlertTriangle, Check } from "lucide-react";
@@ -58,6 +59,8 @@ const Attendance: React.FC = () => {
     { skipFetch: true }
   );
 
+  const { leaves } = useLeaves(orgId, user);
+
   const { struckOffStudents, loading: struckOffLoading, markAsActionTaken } = useStruckOffStudents(orgId, students);
 
   const [selectedClassId, setSelectedClassId] = useState<string>("");
@@ -76,7 +79,7 @@ const Attendance: React.FC = () => {
     return (students[selectedClassId] || []).filter(s => s.isActive !== false);
   }, [selectedClassId, students]);
 
-  // Initialize attendance state with Default Present
+  // Initialize attendance state with Default Present or Leave
   useEffect(() => {
     if (!selectedClassId) {
       setAttendanceState(new Map());
@@ -84,20 +87,45 @@ const Attendance: React.FC = () => {
     }
     
     const newMap = new Map();
+    const now = new Date();
+    
     classStudents.forEach((student) => {
-      newMap.set(student.id, { status: AttendanceStatus.Present, studentName: student.name, note: '' });
+      // Check if student is on leave right now
+      let isOnLeave = false;
+      let leaveNote = '';
+      
+      for (const leave of leaves) {
+        if (leave.studentId === student.id) {
+          const start = new Date(`${leave.startDate || leave.date}T${leave.startTime || '00:00'}:00`);
+          const end = new Date(`${leave.endDate || leave.date}T${leave.endTime || '23:59'}:59`);
+          
+          if (now >= start && now <= end) {
+            isOnLeave = true;
+            leaveNote = leave.note || 'ছুটি';
+            break;
+          }
+        }
+      }
+      
+      if (isOnLeave) {
+        newMap.set(student.id, { status: AttendanceStatus.Leave, studentName: student.name, note: leaveNote });
+      } else {
+        newMap.set(student.id, { status: AttendanceStatus.Present, studentName: student.name, note: '' });
+      }
     });
     setAttendanceState(newMap);
-  }, [selectedClassId, classStudents]);
+  }, [selectedClassId, classStudents, leaves]);
 
   const liveCounter = useMemo(() => {
     let present = 0;
     let absent = 0;
+    let leave = 0;
     attendanceState.forEach((val) => {
       if (val.status === AttendanceStatus.Present) present++;
       else if (val.status === AttendanceStatus.Absent) absent++;
+      else if (val.status === AttendanceStatus.Leave) leave++;
     });
-    return { total: attendanceState.size, present, absent };
+    return { total: attendanceState.size, present, absent, leave };
   }, [attendanceState]);
 
   const filteredAndSortedStudents = useMemo(() => {
@@ -238,7 +266,9 @@ const Attendance: React.FC = () => {
     setAttendanceState((prev) => {
       const newMap = new Map(prev);
       newMap.forEach((value: { status: AttendanceStatus; studentName: string; note?: string }, key: string) => {
-        newMap.set(key, { ...value, status });
+        if (value.status !== AttendanceStatus.Leave) {
+          newMap.set(key, { ...value, status });
+        }
       });
       return newMap;
     });
@@ -262,7 +292,7 @@ const Attendance: React.FC = () => {
 
       {/* Live Counter */}
       {selectedClassId && (
-        <div className="grid grid-cols-3 gap-2 sm:gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-6">
           <StatCard
             title="মোট শিক্ষার্থী"
             value={liveCounter.total}
@@ -286,6 +316,14 @@ const Attendance: React.FC = () => {
             color="text-rose-600"
             gradient="bg-rose-50"
             valueColor="text-[#EF4444]"
+          />
+          <StatCard
+            title="ছুটি"
+            value={liveCounter.leave}
+            icon={Clock}
+            color="text-orange-600"
+            gradient="bg-orange-50"
+            valueColor="text-orange-500"
           />
         </div>
       )}
@@ -357,12 +395,14 @@ const Attendance: React.FC = () => {
 
             <div className="space-y-3">
               {paginatedStudents.map((student) => {
-                const status = attendanceState.get(student.id)?.status;
+                const statusData = attendanceState.get(student.id);
+                const status = statusData?.status;
                 const isPresent = status === AttendanceStatus.Present;
                 const isAbsent = status === AttendanceStatus.Absent;
+                const isLeave = status === AttendanceStatus.Leave;
 
                 return (
-                  <div key={student.id} className="bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3">
+                  <div key={student.id} className={clsx("bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3", isLeave && "opacity-80 border border-orange-200")}>
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-3">
                         {student.photoUrl ? (
@@ -378,36 +418,54 @@ const Attendance: React.FC = () => {
                             {student.name.charAt(0)}
                           </div>
                         )}
-                        <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                          {isLeave && statusData?.note && (
+                            <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                              কারণ: {statusData.note}
+                            </span>
+                          )}
+                        </div>
                       </div>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
-                          className={clsx(
-                            "w-9 h-9 rounded-full flex items-center justify-center transition-all",
-                            isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
-                          )}
-                        >
-                          <CheckCircle className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
-                          className={clsx(
-                            "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
-                            isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
-                          )}
-                        >
-                          <XCircle className="w-5 h-5" />
-                        </button>
+                      <div className="flex gap-2 items-center">
+                        {isLeave ? (
+                          <div className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm flex items-center gap-1.5">
+                            <Clock className="w-4 h-4" />
+                            ছুটি
+                          </div>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
+                              className={clsx(
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                                isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
+                              )}
+                            >
+                              <CheckCircle className="w-5 h-5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
+                              className={clsx(
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
+                                isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
+                              )}
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
-                    <input
-                      type="text"
-                      placeholder="+ নোট যোগ করুন"
-                      value={attendanceState.get(student.id)?.note || ''}
-                      onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                      className="w-full text-sm text-slate-500 bg-slate-50 p-2 rounded-lg outline-none"
-                    />
+                    {!isLeave && (
+                      <input
+                        type="text"
+                        placeholder="+ নোট যোগ করুন"
+                        value={statusData?.note || ''}
+                        onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                        className="w-full text-sm text-slate-500 bg-slate-50 p-2 rounded-lg outline-none"
+                      />
+                    )}
                   </div>
                 );
               })}
