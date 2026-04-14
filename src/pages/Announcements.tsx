@@ -17,6 +17,28 @@ const Announcements: React.FC = () => {
     if (!newMessage.trim()) return;
     try {
       await addAnnouncement(newMessage, user?.displayName || "Admin");
+      
+      // Send push notification to all users in the organization
+      if (orgId) {
+        try {
+          // We'll call our new Vercel API endpoint to send the notification
+          fetch('/api/send-announcement', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orgId: orgId,
+              title: 'নতুন ঘোষণা',
+              body: newMessage,
+              senderName: user?.displayName || "Admin"
+            }),
+          }).catch(err => console.error("Failed to trigger push notification:", err));
+        } catch (e) {
+          console.error("Error triggering push notification:", e);
+        }
+      }
+
       setNewMessage("");
       toast.success("বার্তা যোগ করা হয়েছে");
     } catch (error) {
