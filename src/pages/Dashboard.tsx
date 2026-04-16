@@ -1,8 +1,9 @@
 import React, { useMemo } from "react";
-import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock } from "lucide-react";
+import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock, CalendarOff } from "lucide-react";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
+import { useLeaves } from "../hooks/useLeaves";
 import { useAuth } from "../hooks/useAuth";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -36,6 +37,8 @@ const Dashboard: React.FC = () => {
     startDate,
     endDate
   });
+  
+  const { leaves } = useLeaves(orgId, user);
 
   const stats = useMemo(() => {
     const totalStudents = Object.values(students).flat().length;
@@ -65,9 +68,15 @@ const Dashboard: React.FC = () => {
 
     const presentToday = presentTodaySet.size;
     const absentToday = absentTodaySet.size;
+    
+    // Calculate leaves for today
+    const todayISO = new Date().toISOString().split('T')[0];
+    const leavesOnToday = leaves.filter(leave => {
+      return leave.status === 'approved' && leave.startDate <= todayISO && leave.endDate >= todayISO;
+    }).length;
 
-    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday };
-  }, [students, classes, attendanceSessions]);
+    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, leavesOnToday };
+  }, [students, classes, attendanceSessions, leaves]);
 
   const chartData = useMemo(() => {
     const data = [];
@@ -150,6 +159,14 @@ const Dashboard: React.FC = () => {
           color="text-[#EF4444]"
           gradient="bg-[#EF4444]/10"
           valueColor="text-[#f92e2e]"
+        />
+        <StatCard
+          title="আজ ছুটিতে"
+          value={stats.leavesOnToday}
+          icon={CalendarOff}
+          color="text-[#8B5CF6]"
+          gradient="bg-[#8B5CF6]/10"
+          valueColor="text-[#7C3AED]"
         />
         <StatCard
           title="মোট শ্রেণি"

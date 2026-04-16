@@ -87,7 +87,7 @@ const LeaveManagement: React.FC = () => {
       endDate,
       endTime,
       note: studentNotes[studentId] || "",
-      status: 'pending' as const,
+      status: 'approved' as const,
     }));
 
     addLeaves(leaveData);
