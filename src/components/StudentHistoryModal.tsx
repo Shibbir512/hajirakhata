@@ -20,7 +20,7 @@ interface StudentHistoryModalProps {
 
 const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, orgId, isOpen, onClose }) => {
   const [history, setHistory] = useState<any[]>([]);
-  const [totalAttendance, setTotalAttendance] = useState({ total: 0, present: 0, absent: 0 });
+  const [totalAttendance, setTotalAttendance] = useState({ total: 0, present: 0, absent: 0, leave: 0 });
   const [loading, setLoading] = useState(true);
   const { user } = useAuth();
   const { academicYears } = useAcademicYears(orgId, user);

@@ -95,6 +95,12 @@ const PublicResultView = lazy(() => import("./src/pages/PublicResultView"));
 const PublicClassResult = lazy(() => import("./src/pages/PublicClassResult"));
 const PublicResultSearchPage = lazy(() => import("./src/components/PublicResultSearch"));
 
+// Fee Management Pages
+const FeeCategories = lazy(() => import("./src/pages/fees/FeeCategories"));
+const FeeSetup = lazy(() => import("./src/pages/fees/FeeSetup"));
+const FeeCollection = lazy(() => import("./src/pages/fees/FeeCollection"));
+const FeeReports = lazy(() => import("./src/pages/fees/FeeReports"));
+
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
     <div className="w-12 h-12 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
@@ -252,6 +258,12 @@ const AppRoutes = () => (
           <Route path="student-profile/:studentId" element={<StudentProfile />} />
           <Route path="result-search" element={<PublicResultSearchPage />} />
           <Route path="result-search/:orgId" element={<PublicResultSearchPage />} />
+          
+          {/* Fee Management Routes */}
+          <Route path="fees/categories" element={<FeeCategories />} />
+          <Route path="fees/setup" element={<FeeSetup />} />
+          <Route path="fees/collection" element={<FeeCollection />} />
+          <Route path="fees/reports" element={<FeeReports />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

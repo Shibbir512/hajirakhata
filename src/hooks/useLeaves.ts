@@ -14,6 +14,7 @@ export interface LeaveRecord {
   endDate: string; // YYYY-MM-DD
   endTime: string; // HH:mm
   note?: string;
+  status?: 'pending' | 'approved' | 'rejected';
   createdAt?: any;
 }
 

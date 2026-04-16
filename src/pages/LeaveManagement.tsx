@@ -18,12 +18,20 @@ const LeaveManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"add" | "view">("add");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  const [startTime, setStartTime] = useState<string>("08:00");
+  
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  const [startTime, setStartTime] = useState<string>(currentTime);
+  
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endTime, setEndTime] = useState<string>("14:00");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // View Tab Filters
+  const [viewClassId, setViewClassId] = useState<string>("");
+  const [viewSearchQuery, setViewSearchQuery] = useState("");
   
   // Edit/Delete Modals
   const [editingLeave, setEditingLeave] = useState<any>(null);
@@ -79,6 +87,7 @@ const LeaveManagement: React.FC = () => {
       endDate,
       endTime,
       note: studentNotes[studentId] || "",
+      status: 'pending' as const,
     }));
 
     addLeaves(leaveData);
@@ -106,7 +115,24 @@ const LeaveManagement: React.FC = () => {
   // Group leaves by date
   const groupedLeaves = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
-    leaves.forEach(leave => {
+    
+    // Filter leaves based on viewClassId and viewSearchQuery
+    const filteredViewLeaves = leaves.filter(leave => {
+      if (viewClassId && leave.classId !== viewClassId) return false;
+      
+      if (viewSearchQuery) {
+        const studentName = getStudentName(leave.studentId, leave.classId).toLowerCase();
+        const studentRoll = getStudentRoll(leave.studentId, leave.classId).toString();
+        const query = viewSearchQuery.toLowerCase();
+        if (!studentName.includes(query) && !studentRoll.includes(query)) {
+          return false;
+        }
+      }
+      
+      return true;
+    });
+
+    filteredViewLeaves.forEach(leave => {
       const dateKey = leave.startDate || leave.date || "Unknown";
       if (!groups[dateKey]) {
         groups[dateKey] = [];
@@ -119,7 +145,7 @@ const LeaveManagement: React.FC = () => {
       date,
       leaves: groups[date]
     }));
-  }, [leaves]);
+  }, [leaves, viewClassId, viewSearchQuery, students]);
 
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
@@ -323,6 +349,38 @@ const LeaveManagement: React.FC = () => {
 
       {activeTab === "view" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
+            <div className="w-full sm:w-1/3">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">শ্রেণি ফিল্টার</label>
+              <div className="relative">
+                <select
+                  value={viewClassId}
+                  onChange={(e) => setViewClassId(e.target.value)}
+                  className="w-full text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 appearance-none pr-10 rounded-xl py-2.5 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                >
+                  <option value="">সকল শ্রেণি</option>
+                  {classes.map((cls) => (
+                    <option key={cls.id} value={cls.id}>{cls.name}</option>
+                  ))}
+                </select>
+                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+              </div>
+            </div>
+            <div className="w-full sm:w-2/3">
+              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">শিক্ষার্থী খুঁজুন</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <input
+                  type="text"
+                  placeholder="নাম বা রোল দিয়ে খুঁজুন..."
+                  value={viewSearchQuery}
+                  onChange={(e) => setViewSearchQuery(e.target.value)}
+                  className="w-full text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 pl-10 rounded-xl py-2.5 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
           {groupedLeaves.length > 0 ? (
             groupedLeaves.map((group) => {
               const dateObj = new Date(group.date);
@@ -349,6 +407,7 @@ const LeaveManagement: React.FC = () => {
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">রোল</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">শিক্ষার্থীর নাম</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">সময়কাল</th>
+                          <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">স্ট্যাটাস</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">অ্যাকশন</th>
                         </tr>
                       </thead>
@@ -375,6 +434,22 @@ const LeaveManagement: React.FC = () => {
                               ) : (
                                 <div>{toBengaliDate(leave.date || "")}</div>
                               )}
+                            </td>
+                            <td className="py-4 px-6">
+                              <select
+                                value={leave.status || 'pending'}
+                                onChange={(e) => updateLeave(leave.id, { status: e.target.value as any })}
+                                className={clsx(
+                                  "text-xs font-bold px-3 py-1.5 rounded-full border outline-none cursor-pointer transition-colors",
+                                  (!leave.status || leave.status === 'pending') && "bg-amber-50 text-amber-600 border-amber-200",
+                                  leave.status === 'approved' && "bg-emerald-50 text-emerald-600 border-emerald-200",
+                                  leave.status === 'rejected' && "bg-rose-50 text-rose-600 border-rose-200"
+                                )}
+                              >
+                                <option value="pending">অপেক্ষমান</option>
+                                <option value="approved">অনুমোদিত</option>
+                                <option value="rejected">বাতিল</option>
+                              </select>
                             </td>
                             <td className="py-4 px-6 text-right">
                               <div className="flex items-center justify-end gap-2">
@@ -481,6 +556,18 @@ const LeaveManagement: React.FC = () => {
                   placeholder="ছুটির নোট লিখুন..."
                 />
               </div>
+              <div>
+                <label className="block text-sm font-bold text-slate-700 mb-2">স্ট্যাটাস</label>
+                <select
+                  value={editingLeave.status || 'pending'}
+                  onChange={(e) => setEditingLeave({ ...editingLeave, status: e.target.value })}
+                  className="w-full text-base font-medium text-slate-700 bg-white border border-slate-300 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                >
+                  <option value="pending">অপেক্ষমান</option>
+                  <option value="approved">অনুমোদিত</option>
+                  <option value="rejected">বাতিল</option>
+                </select>
+              </div>
             </div>
             <div className="px-6 py-4 border-t border-slate-100 flex justify-end gap-3 bg-slate-50">
               <button
@@ -496,7 +583,8 @@ const LeaveManagement: React.FC = () => {
                     startTime: editingLeave.startTime,
                     endDate: editingLeave.endDate,
                     endTime: editingLeave.endTime,
-                    note: editingLeave.note 
+                    note: editingLeave.note,
+                    status: editingLeave.status || 'pending'
                   });
                   setEditingLeave(null);
                 }}

@@ -8,11 +8,14 @@ import { useExams } from "../hooks/useExams";
 import { useSubjects } from "../hooks/useSubjects";
 import { useStudents } from "../hooks/useStudents";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
+import { useFeeCollections } from "../hooks/useFeeCollections";
+import { useFeeCategories } from "../hooks/useFeeCategories";
+import { HIJRI_MONTHS } from "../constants/hijri";
 import StudentEditModal from "../components/StudentEditModal";
 import ImageModal from "../components/ImageModal";
 import { db } from "../firebase";
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
-import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown, Pencil } from "lucide-react";
+import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown, Pencil, CreditCard } from "lucide-react";
 import { Student, Result, Subject, AttendanceStatus } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
@@ -28,6 +31,10 @@ const StudentProfile: React.FC = () => {
   const { exams } = useExams(orgId, user);
   const { subjects } = useSubjects(orgId, user);
   const { updateStudent } = useStudents(orgId, user, role);
+  
+  // Fee hooks
+  const { categories } = useFeeCategories(orgId);
+  const { collections: feeCollections } = useFeeCollections(orgId);
 
   const [student, setStudent] = useState<Student | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -603,6 +610,77 @@ const StudentProfile: React.FC = () => {
                 </div>
               )}
             </motion.div>
+            {/* Fee History Section */}
+            <motion.div variants={itemVariants} className="mt-8">
+              <div className="flex items-center gap-2 px-2 mb-4">
+                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-blue-600" />
+                </div>
+                <h4 className="text-lg font-bold text-slate-800">ফি প্রদানের ইতিহাস</h4>
+              </div>
+
+              <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-left border-collapse">
+                    <thead>
+                      <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                        <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">হিজরি সন ও মাস</th>
+                        <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">খাতসমূহ</th>
+                        <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">মোট প্রদান</th>
+                        <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">তারিখ</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-50">
+                      {feeCollections.filter(c => c.studentId === student.id).length > 0 ? (
+                        feeCollections
+                          .filter(c => c.studentId === student.id)
+                          .sort((a, b) => {
+                            if (a.hijriYear !== b.hijriYear) return b.hijriYear - a.hijriYear;
+                            return b.hijriMonth - a.hijriMonth;
+                          })
+                          .map((record, idx) => {
+                            const monthName = HIJRI_MONTHS.find(m => m.id === record.hijriMonth)?.name || record.hijriMonth;
+                            const dateStr = record.datePaid?.toDate ? record.datePaid.toDate().toLocaleDateString('bn-BD') : '-';
+                            
+                            return (
+                              <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
+                                <td className="py-4 px-5 text-sm font-medium text-slate-800">
+                                  {toBengaliNumber(record.hijriYear)} - {monthName}
+                                </td>
+                                <td className="py-4 px-5 text-sm text-slate-600">
+                                  <div className="flex flex-wrap gap-1">
+                                    {record.payments.map((p, i) => {
+                                      const catName = categories.find(c => c.id === p.categoryId)?.name || 'Unknown';
+                                      return (
+                                        <span key={i} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">
+                                          {catName}: ৳{toBengaliNumber(p.amount)}
+                                        </span>
+                                      );
+                                    })}
+                                  </div>
+                                </td>
+                                <td className="py-4 px-5 text-sm font-bold text-green-600 text-center">
+                                  ৳{toBengaliNumber(record.totalAmount)}
+                                </td>
+                                <td className="py-4 px-5 text-sm text-slate-500 text-center">
+                                  {dateStr}
+                                </td>
+                              </tr>
+                            );
+                          })
+                      ) : (
+                        <tr>
+                          <td colSpan={4} className="py-10 text-center text-slate-400 text-sm">
+                            কোন ফি প্রদানের রেকর্ড পাওয়া যায়নি।
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </motion.div>
+
           </motion.div>
         </motion.div>
         

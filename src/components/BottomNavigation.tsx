@@ -51,7 +51,8 @@ const BottomNavigation: React.FC = () => {
   const tabs = [
     { id: "dashboard", name: "ড্যাশবোর্ড", icon: LayoutDashboard, path: "/" },
     { id: "attendance", name: "হাজিরা খাতা", icon: CalendarCheck },
-    { id: "results", name: "ফলাফল ব্যবস্থাপনা", icon: GraduationCap },
+    { id: "fees", name: "ফি", icon: ClipboardEdit },
+    { id: "results", name: "ফলাফল", icon: GraduationCap },
     { id: "students", name: "শিক্ষার্থী", icon: Users },
     { id: "settings", name: "সেটিংস", icon: Settings },
   ];
@@ -62,6 +63,12 @@ const BottomNavigation: React.FC = () => {
       { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
       { name: "ছুটি", path: "/attendance/leave", icon: CalendarDays },
       { name: "নাম কাটা", path: "/attendance/struck-off", icon: Users },
+    ],
+    fees: [
+      { name: "ফি আদায়", path: "/fees/collection", icon: ClipboardEdit },
+      { name: "ফি রিপোর্ট", path: "/fees/reports", icon: BarChart3 },
+      { name: "ফি সেটআপ", path: "/fees/setup", icon: Settings },
+      { name: "ফি খাত", path: "/fees/categories", icon: BookOpen },
     ],
     results: [
       { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },

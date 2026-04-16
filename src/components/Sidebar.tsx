@@ -75,6 +75,13 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
   ] : [];
 
+  const feeLinks = orgId ? [
+    { name: "ফি আদায়", path: "/fees/collection", icon: ClipboardEdit },
+    { name: "ফি রিপোর্ট", path: "/fees/reports", icon: BarChart3 },
+    { name: "ফি সেটআপ", path: "/fees/setup", icon: Settings },
+    { name: "ফি খাত", path: "/fees/categories", icon: BookOpen },
+  ] : [];
+
   const studentLinks = orgId ? [
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
@@ -178,6 +185,41 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
               </div>
               <div className="space-y-1">
                 {resultLinks.map((link) => (
+                  <NavLink
+                    key={link.name}
+                    to={link.path}
+                    onClick={() => setIsOpen(false)}
+                    className={({ isActive }) =>
+                      clsx(
+                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
+                        isActive
+                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
+                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
+                      )
+                    }
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
+                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
+                        </div>
+                        {link.name}
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* ফি ব্যবস্থাপনা Group */}
+          {feeLinks.length > 0 && (
+            <div className="pt-2">
+              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
+                ফি ব্যবস্থাপনা
+              </div>
+              <div className="space-y-1">
+                {feeLinks.map((link) => (
                   <NavLink
                     key={link.name}
                     to={link.path}
