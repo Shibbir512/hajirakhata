@@ -16,7 +16,9 @@ try {
   auth = getAuth(app);
   
   // Initialize Firestore with correct database ID
-  db = getFirestore(app, firebaseConfig.firestoreDatabaseId);
+  db = (firebaseConfig as any).firestoreDatabaseId 
+    ? getFirestore(app, (firebaseConfig as any).firestoreDatabaseId)
+    : getFirestore(app);
 
   // Disable offline persistence for now to troubleshoot connection issues
   /*

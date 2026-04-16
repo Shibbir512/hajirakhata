@@ -3,6 +3,7 @@ import { useAuth } from '../../hooks/useAuth';
 import { useFeeCategories } from '../../hooks/useFeeCategories';
 import { Plus, Edit2, Trash2, X, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ConfirmationDialog from '../../components/ConfirmationDialog';
 
 const FeeCategories: React.FC = () => {
   const { orgId, role } = useAuth();
@@ -12,6 +13,7 @@ const FeeCategories: React.FC = () => {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
+  const [categoryToDelete, setCategoryToDelete] = useState<string | null>(null);
 
   if (role !== 'admin' && role !== 'superadmin') {
     return <div className="p-6 text-center text-red-500">আপনার এই পেজটি দেখার অনুমতি নেই।</div>;
@@ -52,6 +54,7 @@ const FeeCategories: React.FC = () => {
     setName(cat.name);
     setDescription(cat.description || '');
     setIsAdding(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const cancelEdit = () => {
@@ -131,7 +134,7 @@ const FeeCategories: React.FC = () => {
                 <h3 className="text-lg font-bold text-slate-800">{cat.name}</h3>
                 {cat.description && <p className="text-sm text-slate-500 mt-1">{cat.description}</p>}
               </div>
-              <div className="flex justify-end gap-2 mt-4 opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex justify-end gap-2 mt-4 transition-opacity">
                 <button 
                   onClick={() => startEdit(cat)}
                   className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
@@ -139,11 +142,7 @@ const FeeCategories: React.FC = () => {
                   <Edit2 className="w-4 h-4" />
                 </button>
                 <button 
-                  onClick={() => {
-                    if (window.confirm('আপনি কি নিশ্চিত যে এই খাতটি মুছে ফেলতে চান?')) {
-                      deleteCategory(cat.id);
-                    }
-                  }}
+                  onClick={() => setCategoryToDelete(cat.id)}
                   className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
@@ -153,6 +152,18 @@ const FeeCategories: React.FC = () => {
           ))}
         </div>
       )}
+
+      <ConfirmationDialog
+        isOpen={!!categoryToDelete}
+        onClose={() => setCategoryToDelete(null)}
+        onConfirm={() => {
+          if (categoryToDelete) {
+            deleteCategory(categoryToDelete);
+          }
+        }}
+        title="খাত মুছে ফেলুন"
+        message="আপনি কি নিশ্চিত যে এই খাতটি মুছে ফেলতে চান? এই অ্যাকশনটি বাতিল করা যাবে না।"
+      />
     </div>
   );
 };
