@@ -129,6 +129,24 @@ service cloud.firestore {
       allow write: if isSuperAdmin();
     }
 
+    match /feeCategories/{categoryId} {
+      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && isAdmin(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && isAdmin(resource.data.orgId));
+    }
+
+    match /feeSetups/{setupId} {
+      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && isAdmin(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && isAdmin(resource.data.orgId));
+    }
+
+    match /feeCollections/{collectionId} {
+      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && isTeacher(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && isTeacher(resource.data.orgId));
+    }
+
     match /counters/{document=**} {
       allow read, write: if isAuthenticated();
     }

@@ -301,18 +301,7 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         // 1. Delete the student document
         await deleteDoc(doc(db, `organizations/${orgId}/students`, studentId));
         
-        // 2. Delete associated attendance records
-        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
-        const attendanceQuery = query(attendanceRef, where("studentId", "==", studentId));
-        const attendanceSnapshot = await getDocs(attendanceQuery);
-
         const batch = writeBatch(db);
-        
-        if (!attendanceSnapshot.empty) {
-          attendanceSnapshot.docs.forEach(doc => {
-            batch.delete(doc.ref);
-          });
-        }
 
         // 3. Delete associated results
         const resultsRef = collection(db, `organizations/${orgId}/results`);
@@ -403,14 +392,6 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         archivedDocs.forEach(doc => {
           allRefsToDelete.push(doc.ref);
         });
-
-        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
-        for (let i = 0; i < studentIds.length; i += 30) {
-          const chunkIds = studentIds.slice(i, i + 30);
-          const attQuery = query(attendanceRef, where("studentId", "in", chunkIds));
-          const attSnapshot = await getDocs(attQuery);
-          attSnapshot.docs.forEach(doc => allRefsToDelete.push(doc.ref));
-        }
 
         const resultsRef = collection(db, `organizations/${orgId}/results`);
         for (let i = 0; i < studentIds.length; i += 30) {

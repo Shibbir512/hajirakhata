@@ -32,8 +32,8 @@ export const AttendanceReminder: React.FC = () => {
         
         // Check if attendance was already taken today
         try {
-          const attendanceRef = collection(db, 'attendance');
-          const q = query(attendanceRef, where('orgId', '==', orgId), where('date', '==', todayFormatted));
+          const attendanceRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+          const q = query(attendanceRef, where('date', '==', todayFormatted));
           const querySnapshot = await getDocs(q);
           
           lastNotifiedDateRef.current = todayDateString;

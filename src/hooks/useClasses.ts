@@ -112,7 +112,7 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
         const studentsToDelete = studentsSnapshot.docs.filter(doc => doc.id.startsWith(`${id}-student-`));
         
         // 3. Delete associated attendance records
-        const attendanceRef = collection(db, `organizations/${orgId}/attendance`);
+        const attendanceRef = collection(db, `organizations/${orgId}/attendance_sessions`);
         const attendanceQuery = query(attendanceRef, where("classId", "==", id));
         const attendanceSnapshot = await getDocs(attendanceQuery);
 
