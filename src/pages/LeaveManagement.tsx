@@ -3,7 +3,7 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useLeaves } from "../hooks/useLeaves";
-import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown } from "lucide-react";
+import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock } from "lucide-react";
 import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -149,12 +149,60 @@ const LeaveManagement: React.FC = () => {
     }));
   }, [leaves, viewClassId, viewSearchQuery, students]);
 
+  const leaveStats = useMemo(() => {
+    const todayISO = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    let activeNow = 0;
+    let endingToday = 0;
+    
+    leaves.forEach(leave => {
+      if (leave.status === 'approved') {
+        const sDate = leave.startDate || leave.date;
+        const eDate = leave.endDate || leave.date;
+        
+        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
+          let isActive = true;
+          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
+          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
+          
+          if (isActive) activeNow++;
+          if (eDate === todayISO) endingToday++;
+        }
+      }
+    });
+    
+    return { activeNow, endingToday };
+  }, [leaves]);
+
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-[#0a9880] border-l-4 border-[#1d45a4] pl-3 tracking-tight" style={{ fontFamily: "Georgia" }}>
           ছুটি ব্যবস্থাপনা
         </h2>
+
+        <div className="flex gap-4">
+          <div className="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
+              <CalendarDays className="w-4 h-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">আজ ছুটিতে</p>
+              <p className="text-lg font-bold text-blue-600 leading-tight">{toBengaliNumber(leaveStats.activeNow)} <span className="text-xs font-normal">জন</span></p>
+            </div>
+          </div>
+          <div className="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-amber-50 flex items-center justify-center">
+              <Clock className="w-4 h-4 text-amber-600" />
+            </div>
+            <div>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">আজ শেষ হবে</p>
+              <p className="text-lg font-bold text-amber-600 leading-tight">{toBengaliNumber(leaveStats.endingToday)} <span className="text-xs font-normal">জন</span></p>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Tabs */}
