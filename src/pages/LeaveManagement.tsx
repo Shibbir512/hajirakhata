@@ -47,7 +47,9 @@ const LeaveManagement: React.FC = () => {
     const query = searchQuery.toLowerCase();
     return classStudents.filter(s => 
       s.name.toLowerCase().includes(query) || 
-      s.roll.toString().includes(query)
+      s.roll.toString().includes(query) ||
+      (s.id && s.id.toLowerCase().includes(query)) ||
+      (s.id && s.id.slice(5).includes(query))
     );
   }, [classStudents, searchQuery]);
 
@@ -285,17 +287,17 @@ const LeaveManagement: React.FC = () => {
                   <table className="w-full text-left border-collapse">
                     <thead>
                       <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="py-4 px-6 w-16">
+                        <th className="py-3 px-4 w-12">
                           <input
                             type="checkbox"
                             checked={filteredStudents.length > 0 && selectedStudents.size === filteredStudents.length}
                             onChange={toggleAllSelection}
-                            className="w-5 h-5 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
+                            className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
                           />
                         </th>
-                        <th className="py-4 px-6 text-sm font-bold text-slate-700">রোল</th>
-                        <th className="py-4 px-6 text-sm font-bold text-slate-700">শিক্ষার্থীর নাম</th>
-                        <th className="py-4 px-6 text-sm font-bold text-slate-700">নোট (ঐচ্ছিক)</th>
+                        <th className="py-3 px-4 text-xs font-bold text-slate-700">রোল</th>
+                        <th className="py-3 px-4 text-xs font-bold text-slate-700">শিক্ষার্থীর নাম</th>
+                        <th className="py-3 px-4 text-xs font-bold text-slate-700">নোট</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
@@ -309,24 +311,24 @@ const LeaveManagement: React.FC = () => {
                             )}
                             onClick={() => toggleStudentSelection(student.id)}
                           >
-                            <td className="py-4 px-6">
+                            <td className="py-3 px-4">
                               <input
                                 type="checkbox"
                                 checked={selectedStudents.has(student.id)}
                                 onChange={() => {}} // Handled by tr click
-                                className="w-5 h-5 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
+                                className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
                               />
                             </td>
-                            <td className="py-4 px-6 text-slate-700 font-medium">{toBengaliNumber(student.roll)}</td>
-                            <td className="py-4 px-6 text-slate-800 font-bold">{student.name}</td>
-                            <td className="py-4 px-6">
+                            <td className="py-3 px-4 text-slate-700 font-medium text-sm">{toBengaliNumber(student.roll)}</td>
+                            <td className="py-3 px-4 text-slate-800 font-bold text-sm">{student.name}</td>
+                            <td className="py-3 px-4">
                               <input
                                 type="text"
-                                placeholder="নোট লিখুন..."
+                                placeholder="..."
                                 value={studentNotes[student.id] || ""}
                                 onChange={(e) => setStudentNotes(prev => ({ ...prev, [student.id]: e.target.value }))}
                                 onClick={(e) => e.stopPropagation()}
-                                className="w-full text-sm bg-white border border-slate-200 rounded-lg py-2 px-3 focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A]/20 outline-none"
+                                className="w-full text-xs bg-white border border-slate-200 rounded-lg py-1.5 px-2 focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A]/20 outline-none"
                               />
                             </td>
                           </tr>
