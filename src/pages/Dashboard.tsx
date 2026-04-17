@@ -44,36 +44,71 @@ const Dashboard: React.FC = () => {
     const totalStudents = Object.values(students).flat().length;
     const totalClasses = classes.length;
 
-    const today = new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
+    const todayDateObj = new Date();
+    const today = todayDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
     const todaysSessions = attendanceSessions.filter((s) => s.date === today);
 
     const classesWithAttendanceToday = new Set(todaysSessions.map(s => s.classId)).size;
     const classesPendingAttendanceToday = Math.max(0, totalClasses - classesWithAttendanceToday);
 
-    const presentTodaySet = new Set();
-    const absentTodaySet = new Set();
+    const studentStatusMap = new Map();
 
     todaysSessions.forEach(s => {
       s.students.forEach((st: any) => {
+        const sid = st.studentId || st.id || st.name;
         if (st.status === "present") {
-          presentTodaySet.add(st.studentId);
-          absentTodaySet.delete(st.studentId);
+          studentStatusMap.set(sid, "present");
+        } else if (st.status === "leave") {
+          if (studentStatusMap.get(sid) !== "present") {
+            studentStatusMap.set(sid, "leave");
+          }
         } else {
-          if (!presentTodaySet.has(st.studentId)) {
-            absentTodaySet.add(st.studentId);
+          if (studentStatusMap.get(sid) !== "present") {
+            studentStatusMap.set(sid, "absent");
           }
         }
       });
     });
 
-    const presentToday = presentTodaySet.size;
-    const absentToday = absentTodaySet.size;
+    let presentToday = 0;
+    let absentToday = 0;
+
+    studentStatusMap.forEach((status) => {
+      if (status === 'present') presentToday++;
+      if (status === 'absent') absentToday++;
+    });
     
-    // Calculate leaves for today
-    const todayISO = new Date().toISOString().split('T')[0];
-    const leavesOnToday = leaves.filter(leave => {
-      return leave.status === 'approved' && leave.startDate <= todayISO && leave.endDate >= todayISO;
-    }).length;
+    // Calculate leaves for today with exact time check
+    const todayISO = todayDateObj.toISOString().split('T')[0];
+    const currentHour = String(todayDateObj.getHours()).padStart(2, '0');
+    const currentMinute = String(todayDateObj.getMinutes()).padStart(2, '0');
+    const currentTime = `${currentHour}:${currentMinute}`;
+    
+    const leavesOnTodaySet = new Set();
+
+    leaves.forEach(leave => {
+      if (leave.status === 'approved') {
+        const sDate = leave.startDate || leave.date;
+        const eDate = leave.endDate || leave.date;
+        
+        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
+          let isActive = true;
+          
+          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) {
+            isActive = false; // Hasn't started yet today
+          }
+          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) {
+            isActive = false; // Already finished today
+          }
+          
+          if (isActive) {
+            leavesOnTodaySet.add(leave.studentId);
+          }
+        }
+      }
+    });
+    
+    const leavesOnToday = leavesOnTodaySet.size;
 
     return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
@@ -87,26 +122,37 @@ const Dashboard: React.FC = () => {
 
       const daySessions = attendanceSessions.filter((s) => s.date === dateStr);
 
-      const presentSet = new Set();
-      const absentSet = new Set();
+      const studentStatusMap = new Map();
 
       daySessions.forEach(s => {
         s.students.forEach((st: any) => {
+          const sid = st.studentId || st.id || st.name;
           if (st.status === "present") {
-            presentSet.add(st.studentId);
-            absentSet.delete(st.studentId);
+            studentStatusMap.set(sid, "present");
+          } else if (st.status === "leave") {
+            if (studentStatusMap.get(sid) !== "present") {
+              studentStatusMap.set(sid, "leave");
+            }
           } else {
-            if (!presentSet.has(st.studentId)) {
-              absentSet.add(st.studentId);
+            if (studentStatusMap.get(sid) !== "present") {
+              studentStatusMap.set(sid, "absent");
             }
           }
         });
       });
 
+      let presentCount = 0;
+      let absentCount = 0;
+
+      studentStatusMap.forEach((status) => {
+        if (status === 'present') presentCount++;
+        if (status === 'absent') absentCount++;
+      });
+
       data.push({
         name: date.toLocaleDateString("en-US", { weekday: "short" }),
-        Present: presentSet.size,
-        Absent: absentSet.size,
+        Present: presentCount,
+        Absent: absentCount,
       });
     }
     return data;

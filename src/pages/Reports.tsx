@@ -73,17 +73,39 @@ const Reports: React.FC = () => {
       
       classStudents.forEach(s => statsMap.set(s.id, { present: 0, absent: 0, leave: 0 }));
 
+      // Group sessions by date to avoid counting the same day multiple times
+      const sessionsByDate = new Map<string, any[]>();
       attendanceSessions.forEach(session => {
-        session.students.forEach((studentRecord: any) => {
-          const stats = statsMap.get(studentRecord.studentId);
+        const date = session.date;
+        if (!sessionsByDate.has(date)) {
+          sessionsByDate.set(date, []);
+        }
+        sessionsByDate.get(date)?.push(session);
+      });
+
+      // Process each date exactly once
+      sessionsByDate.forEach((sessionsOnDate) => {
+        const dailyStatusMap = new Map<string, string>();
+        
+        sessionsOnDate.forEach(session => {
+          session.students.forEach((st: any) => {
+             const sid = st.studentId;
+             if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+               dailyStatusMap.set(sid, 'present');
+             } else if (st.status === AttendanceStatus.Leave) {
+               if (dailyStatusMap.get(sid) !== 'present') dailyStatusMap.set(sid, 'leave');
+             } else {
+               if (dailyStatusMap.get(sid) !== 'present') dailyStatusMap.set(sid, 'absent');
+             }
+          });
+        });
+
+        dailyStatusMap.forEach((status, sid) => {
+          const stats = statsMap.get(sid);
           if (stats) {
-            if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === AttendanceStatus.Late) {
-              stats.present++;
-            } else if (studentRecord.status === AttendanceStatus.Absent) {
-              stats.absent++;
-            } else if (studentRecord.status === AttendanceStatus.Leave) {
-              stats.leave++;
-            }
+            if (status === 'present') stats.present++;
+            else if (status === 'absent') stats.absent++;
+            else if (status === 'leave') stats.leave++;
           }
         });
       });
@@ -116,17 +138,39 @@ const Reports: React.FC = () => {
         const classStudents = students[cls.id] || [];
         const activeStudentIds = new Set(classStudents.filter(s => s.isActive !== false).map(s => s.id));
 
-        attendanceSessions.filter(s => s.classId === cls.id).forEach(session => {
-          session.students.forEach((st: any) => {
-            if (!activeStudentIds.has(st.studentId)) return; // Skip archived/deleted students
+        const classSessions = attendanceSessions.filter(s => s.classId === cls.id);
+        
+        const sessionsByDate = new Map<string, any[]>();
+        classSessions.forEach(session => {
+          const date = session.date;
+          if (!sessionsByDate.has(date)) {
+            sessionsByDate.set(date, []);
+          }
+          sessionsByDate.get(date)?.push(session);
+        });
 
-            if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
-              present++;
-            } else if (st.status === AttendanceStatus.Absent) {
-              absent++;
-            } else if (st.status === AttendanceStatus.Leave) {
-              leave++;
-            }
+        sessionsByDate.forEach((sessionsOnDate) => {
+          const dailyStatusMap = new Map<string, string>();
+          
+          sessionsOnDate.forEach(session => {
+            session.students.forEach((st: any) => {
+              if (!activeStudentIds.has(st.studentId)) return;
+              
+              const sid = st.studentId;
+              if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+                dailyStatusMap.set(sid, 'present');
+              } else if (st.status === AttendanceStatus.Leave) {
+                if (dailyStatusMap.get(sid) !== 'present') dailyStatusMap.set(sid, 'leave');
+              } else {
+                if (dailyStatusMap.get(sid) !== 'present') dailyStatusMap.set(sid, 'absent');
+              }
+            });
+          });
+
+          dailyStatusMap.forEach((status) => {
+            if (status === 'present') present++;
+            else if (status === 'absent') absent++;
+            else if (status === 'leave') leave++;
           });
         });
 
@@ -149,34 +193,70 @@ const Reports: React.FC = () => {
 
   const absentStudentsList = useMemo(() => {
     const list: any[] = [];
+    
+    // Group sessions by date and class
+    const sessionsByDateAndClass = new Map<string, any[]>();
+    
     attendanceSessions.forEach(session => {
-      const classIndex = classes.findIndex(c => c.id === session.classId);
+      const key = `${session.date}_${session.classId}`;
+      if (!sessionsByDateAndClass.has(key)) {
+        sessionsByDateAndClass.set(key, []);
+      }
+      sessionsByDateAndClass.get(key)?.push(session);
+    });
+
+    sessionsByDateAndClass.forEach((sessions, key) => {
+      const classId = sessions[0].classId;
+      const date = sessions[0].date;
+      const time = sessions[sessions.length - 1].time; // Use the latest time
+
+      const classIndex = classes.findIndex(c => c.id === classId);
       const className = classIndex !== -1 ? classes[classIndex].name : "অজানা শ্রেণি";
-      const classStudents = students[session.classId] || [];
+      const classStudents = students[classId] || [];
       
-      session.students.forEach((st: any) => {
-        if (st.status === AttendanceStatus.Absent) {
-          const studentInfo = classStudents.find(s => s.id === st.studentId);
+      const dailyStatusMap = new Map<string, any>();
+      
+      sessions.forEach(session => {
+        session.students.forEach((st: any) => {
+          const sid = st.studentId;
+          if (!dailyStatusMap.has(sid)) {
+            dailyStatusMap.set(sid, { status: st.status, studentName: st.studentName, roll: st.roll });
+          } else {
+            // Update status resolving duplicates
+            if (st.status === AttendanceStatus.Present || st.status === AttendanceStatus.Late) {
+              dailyStatusMap.get(sid).status = 'present';
+            } else if (st.status === AttendanceStatus.Leave) {
+              if (dailyStatusMap.get(sid).status !== 'present') dailyStatusMap.get(sid).status = 'leave';
+            } else {
+              if (dailyStatusMap.get(sid).status !== 'present') dailyStatusMap.get(sid).status = 'absent';
+            }
+          }
+        });
+      });
+
+      dailyStatusMap.forEach((data, sid) => {
+        if (data.status === AttendanceStatus.Absent || data.status === 'absent') {
+          const studentInfo = classStudents.find(s => s.id === sid);
           
-          // Skip if student is archived or deleted
           if (!studentInfo || studentInfo.isActive === false) return;
 
-          const rawRoll = studentInfo ? studentInfo.roll : (st.roll ? parseInt(toEnglishNumber(st.roll.toString())) : 9999);
-          const roll = studentInfo ? toBengaliNumber(studentInfo.roll) : (st.roll ? toBengaliNumber(st.roll) : "N/A");
+          const rawRoll = studentInfo ? studentInfo.roll : (data.roll ? parseInt(toEnglishNumber(data.roll.toString())) : 9999);
+          const roll = studentInfo ? toBengaliNumber(studentInfo.roll) : (data.roll ? toBengaliNumber(data.roll) : "N/A");
           
           list.push({
-            id: `${session.id}-${st.studentId}`,
-            name: st.studentName,
+            id: `${date}-${classId}-${sid}`,
+            name: data.studentName,
             roll: roll,
             rawRoll: isNaN(rawRoll) ? 9999 : rawRoll,
             className,
             classIndex: classIndex !== -1 ? classIndex : 999,
-            date: session.date,
-            time: session.time
+            date: date,
+            time: time
           });
         }
       });
     });
+
     // Sort by date (newest first), then class index, then roll
     return list.sort((a, b) => {
       const [d1, m1, y1] = a.date.split(" ").map(Number);
