@@ -68,7 +68,7 @@ const FeeCategories: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800">ফি খাত (Categories)</h2>
+          <h2 className="text-3xl font-bold gradient-text tracking-tight">ফি খাত</h2>
           <p className="text-sm text-slate-500">বিভিন্ন ধরনের ফি এর নাম নির্ধারণ করুন (যেমন: টিউশন ফি, আবাসিক চার্জ)</p>
         </div>
         {!isAdding && !editingId && (

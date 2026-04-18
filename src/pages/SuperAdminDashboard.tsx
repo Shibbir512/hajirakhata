@@ -188,7 +188,7 @@ const SuperAdminDashboard: React.FC = () => {
       )}
 
       <div className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold text-slate-800 tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">সুপার অ্যাডমিন ড্যাশবোর্ড</h2>
       </div>
       
       <div className="grid grid-cols-1 gap-6">

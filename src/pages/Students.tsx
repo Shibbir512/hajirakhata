@@ -393,7 +393,7 @@ const Students: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight">শিক্ষার্থী</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight">শিক্ষার্থী</h2>
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
           {selectedStudents.size > 0 && canManageStudents && (
           <button

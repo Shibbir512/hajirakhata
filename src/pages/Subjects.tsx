@@ -75,8 +75,8 @@ const Subjects: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <Book className="w-6 h-6 text-[#0F5C7A]" />
+        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3">
+          <Book className="w-8 h-8 text-[#0F5C7A]" />
           বিষয় ব্যবস্থাপনা
         </h2>
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">

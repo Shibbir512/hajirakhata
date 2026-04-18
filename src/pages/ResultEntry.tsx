@@ -180,9 +180,9 @@ const ResultEntry: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <ClipboardEdit className="w-6 h-6 text-[#0F5C7A]" />
-          ফলাফল এন্ট্রি (Spreadsheet Mode)
+        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3">
+          <ClipboardEdit className="w-8 h-8 text-[#0F5C7A]" />
+          ফলাফল এন্ট্রি
         </h2>
         {academicYearId && examId && classId && results.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">

@@ -385,8 +385,8 @@ const ResultReports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <FileText className="w-6 h-6 text-[#0F5C7A]" />
+        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3 mb-6">
+          <FileText className="w-8 h-8 text-[#0F5C7A]" />
           ফলাফল
         </h2>
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">

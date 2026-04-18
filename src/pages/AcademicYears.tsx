@@ -112,8 +112,8 @@ const AcademicYears: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-          <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
+        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3">
+          <CalendarDays className="w-8 h-8 text-[#0F5C7A]" />
           শিক্ষাবর্ষ ব্যবস্থাপনা
         </h2>
         <button onClick={openAddModal} className="btn-primary w-full sm:w-auto h-[42px] px-4 text-sm font-bold shadow-sm whitespace-nowrap flex items-center justify-center gap-2">

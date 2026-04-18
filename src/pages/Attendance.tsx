@@ -285,7 +285,7 @@ const Attendance: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          <h2 className="text-2xl font-bold text-slate-800 tracking-tight">হাজিরা</h2>
+          <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">হাজিরা</h2>
           <p className="text-slate-500 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
         </div>
       </div>

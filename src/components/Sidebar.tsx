@@ -31,6 +31,13 @@ interface SidebarProps {
   setIsOpen: (isOpen: boolean) => void;
 }
 
+const NavLabel = ({ name }: { name: string }) => {
+  if (name === "নাম কাটা") {
+    return <span className="text-red-400">{name}</span>;
+  }
+  return <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-100 to-cyan-100 font-semibold">{name}</span>;
+};
+
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL, orgId, logout } = useAuth();
   const navigate = useNavigate();
@@ -72,13 +79,12 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "ফলাফল এন্ট্রি", path: "/result-entry", icon: ClipboardEdit },
     { name: "ফলাফল", path: "/result-reports", icon: FileText },
     { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
-    { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
   ] : [];
 
   const feeLinks = orgId ? [
-    { name: "ফি আদায়", path: "/fees/collection", icon: ClipboardEdit },
-    { name: "ফি রিপোর্ট", path: "/fees/reports", icon: BarChart3 },
-    { name: "ফি সেটআপ", path: "/fees/setup", icon: Settings },
+    { name: "ফি আদায় এন্ট্রি", path: "/fees/collection", icon: ClipboardEdit },
+    { name: "ফি আদায় রিপোর্ট", path: "/fees/reports", icon: BarChart3 },
+    { name: "শ্রেণিভিত্তিক ফি নির্ধারণ", path: "/fees/setup", icon: Settings },
     { name: "ফি খাত", path: "/fees/categories", icon: BookOpen },
   ] : [];
 
@@ -89,19 +95,24 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   ] : [];
 
   const configLinks = orgId ? [
-    { name: "বিষয়", path: "/subjects", icon: Book },
-    { name: "পরীক্ষা", path: "/exams", icon: FileText },
-    { name: "ছুটি ও ইভেন্ট", path: "/calendar", icon: CalendarIcon },
-    { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
+    { name: "বিষয় ব্যবস্থাপনা", path: "/subjects", icon: Book },
+    { name: "পরীক্ষা ব্যবস্থাপনা", path: "/exams", icon: FileText },
+    { name: "ক্যালেন্ডার", path: "/calendar", icon: CalendarIcon },
+    { name: "শিক্ষাবর্ষ ব্যবস্থাপনা", path: "/academic-years", icon: CalendarDays },
   ] : [];
 
   const otherLinks = orgId ? [
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
-    { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
-    { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
+    { name: "ঘোষণা ব্যবস্থাপনা", path: "/announcements", icon: Megaphone },
+    { name: "প্রতিষ্ঠান ব্যবস্থাপনা", path: "/org-management", icon: Building2 },
   ] : [
-    { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
+    { name: "প্রতিষ্ঠান ব্যবস্থাপনা", path: "/org-management", icon: Building2 },
   ];
+
+  const getLinkLabel = (name: string) => {
+    return <span>{name}</span>;
+  };
+
 
   return (
     <div
@@ -136,7 +147,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
                     <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                   </div>
-                  {link.name}
+                  <span className="text-white">
+                    {link.name}
+                  </span>
                 </>
               )}
             </NavLink>
@@ -168,7 +181,9 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
                           <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                         </div>
-                        {link.name}
+                        <span className={clsx(link.name === "নাম কাটা" ? "text-red-300" : "bg-clip-text text-transparent bg-gradient-to-r from-emerald-100 to-cyan-100")}>
+                          {link.name}
+                        </span>
                       </>
                     )}
                   </NavLink>

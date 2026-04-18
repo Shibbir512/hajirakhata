@@ -61,7 +61,7 @@ const FeeSetup: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">শ্রেণিভিত্তিক ফি নির্ধারণ</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight mb-8">শ্রেণিভিত্তিক ফি নির্ধারণ</h2>
         <p className="text-sm text-slate-500">প্রতিটি শ্রেণির জন্য কোন খাতে কত টাকা ফি তা নির্ধারণ করুন</p>
       </div>
 

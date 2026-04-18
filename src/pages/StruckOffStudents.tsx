@@ -32,7 +32,7 @@ const StruckOffStudents: React.FC = () => {
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-slate-800">টানা ৬ দিন অনুপস্থিত শিক্ষার্থীদের তালিকা</h2>
+              <h2 className="text-3xl font-bold text-red-500 tracking-tight">নাম কাটা</h2>
               <p className="text-sm text-slate-500 mt-1">
                 এই শিক্ষার্থীরা শুক্রবার বাদে টানা ৬ দিন অনুপস্থিত রয়েছে। বাস্তব খাতা থেকে নাম কাটার পর "ব্যবস্থা নেওয়া হয়েছে" বাটনে ক্লিক করুন।
               </p>

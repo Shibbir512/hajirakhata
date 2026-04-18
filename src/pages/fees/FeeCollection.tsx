@@ -162,7 +162,7 @@ const FeeCollection: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-slate-800">ফি আদায় এন্ট্রি</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">ফি আদায় এন্ট্রি</h2>
         <p className="text-sm text-slate-500">শিক্ষার্থীদের মাসিক ফি জমা নিন</p>
       </div>
 

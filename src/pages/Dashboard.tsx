@@ -161,7 +161,7 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-2xl font-bold text-[#0a9880] border-[#1d45a4] tracking-tight text-left" style={{ fontFamily: "Georgia" }}>ড্যাশবোর্ড ওভারভিউ</h2>
+        <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">ড্যাশবোর্ড ওভারভিউ</h2>
         <StudentSearch />
       </div>
 
