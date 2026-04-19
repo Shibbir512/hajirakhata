@@ -77,7 +77,7 @@ const Announcements: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">ঘোষণা ব্যবস্থাপনা</h2>
+      
 
       <div className="card-premium p-6 bg-white rounded-[20px]">
         <h3 className="text-lg font-bold mb-4">নতুন বার্তা যোগ করুন</h3>

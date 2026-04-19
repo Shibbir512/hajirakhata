@@ -67,10 +67,7 @@ const Exams: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3">
-          <FileText className="w-8 h-8 text-[#0F5C7A]" />
-          পরীক্ষা ব্যবস্থাপনা
-        </h2>
+        
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
           <div className="flex gap-2 w-full sm:w-auto">
             <select value={filterAcademicYear} onChange={(e) => setFilterAcademicYear(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">

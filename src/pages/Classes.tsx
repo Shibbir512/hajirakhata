@@ -56,7 +56,7 @@ const Classes: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight">শ্রেণি</h2>
+        
         {(role === "admin" || role === "moderator") && (
           <button
             onClick={() => setIsAddModalOpen(true)}

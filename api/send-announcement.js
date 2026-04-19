@@ -36,30 +36,65 @@ export default async function handler(req, res) {
 
     let sentCount = 0;
     const tokens = [];
+    const tokenToUserId = {};
 
     for (const doc of usersSnapshot.docs) {
       const user = doc.data();
       if (user.fcmToken) {
         tokens.push(user.fcmToken);
+        tokenToUserId[user.fcmToken] = doc.id;
       }
     }
 
     if (tokens.length > 0) {
-      const message = {
-        notification: {
-          title: title,
-          body: `${senderName ? senderName + ': ' : ''}${body}`
-        },
-        tokens: tokens
-      };
+      // Chunk tokensToSend due to Firebase 500 tokens limit for sendEachForMulticast
+      const tokenChunks = [];
+      for (let i = 0; i < tokens.length; i += 500) {
+        tokenChunks.push(tokens.slice(i, i + 500));
+      }
 
-      try {
-        // Send to multiple devices
-        const response = await messaging.sendMulticast(message);
-        sentCount = response.successCount;
-        console.log(`${response.successCount} messages were sent successfully`);
-      } catch (err) {
-        console.error('Error sending multicast message:', err);
+      for (const chunk of tokenChunks) {
+        const message = {
+          notification: {
+            title: title,
+            body: `${senderName ? senderName + ': ' : ''}${body}`
+          },
+          tokens: chunk
+        };
+
+        try {
+          // Send to multiple devices
+          const response = await messaging.sendEachForMulticast(message);
+          sentCount += response.successCount;
+          console.log(`${response.successCount} messages were sent successfully`);
+
+          // Cleanup stale FCM tokens
+          if (response.failureCount > 0) {
+            const batch = db.batch();
+            let batchCount = 0;
+            
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                const error = resp.error;
+                if (error && (error.code === 'messaging/invalid-registration-token' ||
+                    error.code === 'messaging/registration-token-not-registered')) {
+                  const token = chunk[idx];
+                  const userId = tokenToUserId[token];
+                  if (userId) {
+                    batch.update(db.collection('users').doc(userId), { fcmToken: admin.firestore.FieldValue.delete() });
+                    batchCount++;
+                  }
+                }
+              }
+            });
+            
+            if (batchCount > 0) {
+              await batch.commit();
+            }
+          }
+        } catch (err) {
+          console.error('Error sending multicast message:', err);
+        }
       }
     }
 

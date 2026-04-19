@@ -15,15 +15,7 @@ const StruckOffStudents: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 md:pb-0">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-800 tracking-tight flex items-center gap-3">
-            <AlertTriangle className="w-8 h-8 text-rose-600" />
-            নাম কাটা
-          </h1>
-          <p className="text-slate-500 mt-1 text-sm sm:text-base">টানা ৬ দিন অনুপস্থিত শিক্ষার্থীদের তালিকা</p>
-        </div>
-      </div>
+      <p className="text-slate-600 font-medium">টানা ৬ দিন অনুপস্থিত শিক্ষার্থীদের তালিকা</p>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="p-6 border-b border-slate-100 bg-rose-50/30">

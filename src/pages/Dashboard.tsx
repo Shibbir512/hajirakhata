@@ -161,11 +161,11 @@ const Dashboard: React.FC = () => {
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">ড্যাশবোর্ড ওভারভিউ</h2>
+        
         <StudentSearch />
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-4">
         <StatCard
           title="হাজিরা সম্পন্ন (শ্রেণি)"
           value={stats.classesWithAttendanceToday}

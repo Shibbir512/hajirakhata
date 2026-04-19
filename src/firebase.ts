@@ -11,6 +11,8 @@ let storage: FirebaseStorage | null = null;
 let messaging: Messaging | null = null;
 let googleProvider: GoogleAuthProvider | null = null;
 
+export { firebaseConfig };
+
 try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);

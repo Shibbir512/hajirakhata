@@ -14,6 +14,7 @@ import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import clsx from "clsx";
+import { SUPER_ADMIN_EMAILS } from "../constants";
 
 const DashboardLayout: React.FC = () => {
   const { orgId, loading, role, user, status, logout, notificationPreferences } = useAuth();
@@ -47,7 +48,7 @@ const DashboardLayout: React.FC = () => {
 
   // Listen for pending sign-up requests (Super Admin only)
   useEffect(() => {
-    if (!user || user.email !== "shibbir.ahma.2025@gmail.com" || !db || notificationPreferences?.signupRequests === false) return;
+    if (!user || user.email && !SUPER_ADMIN_EMAILS.includes(user.email) || !db || notificationPreferences?.signupRequests === false) return;
 
     const q = query(collection(db, "users"), where("status", "==", "pending"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -185,7 +186,7 @@ const DashboardLayout: React.FC = () => {
     );
   }
 
-  const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+  const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
   if (status === "pending" && !isSuperAdmin) {
     return (

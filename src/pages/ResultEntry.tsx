@@ -180,10 +180,7 @@ const ResultEntry: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3">
-          <ClipboardEdit className="w-8 h-8 text-[#0F5C7A]" />
-          ফলাফল এন্ট্রি
-        </h2>
+        
         {academicYearId && examId && classId && results.length > 0 && (
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <span className={`px-4 h-[42px] flex items-center rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'} whitespace-nowrap`}>

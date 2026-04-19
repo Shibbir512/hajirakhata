@@ -31,45 +31,95 @@ export default async function handler(req, res) {
       .where('attendanceReminderEnabled', '==', true)
       .get();
 
-    let sentCount = 0;
+    // Filter target users matching the current hour
+    const targetUsers = usersSnapshot.docs
+      .map(doc => ({ id: doc.id, ...doc.data() }))
+      .filter(u => u.fcmToken && u.orgId && u.attendanceReminderTime && u.attendanceReminderTime.split(':')[0] === currentHours);
 
-    for (const doc of usersSnapshot.docs) {
-      const user = doc.data();
-      
-      // Skip if no token, orgId, or reminder time
-      if (!user.fcmToken || !user.orgId || !user.attendanceReminderTime) continue;
+    if (targetUsers.length === 0) {
+      return res.status(200).json({ success: true, message: 'No reminders to send for this hour.' });
+    }
 
-      // Check if the current hour matches the user's reminder hour
-      const reminderHour = user.attendanceReminderTime.split(':')[0];
-      if (reminderHour !== currentHours) continue;
-
-      // Check if attendance is taken for this org today
-      const attendanceSnapshot = await db.collection('attendance')
-        .where('orgId', '==', user.orgId)
+    const uniqueOrgIds = [...new Set(targetUsers.map(u => u.orgId))];
+    
+    // Batch fetch attendance for these unique organizations
+    const orgsWithAttendance = new Set();
+    
+    // Execute all queries in parallel for efficiency
+    await Promise.all(uniqueOrgIds.map(async (currOrgId) => {
+      const attSnapshot = await db.collection('organizations').doc(currOrgId).collection('attendance_sessions')
         .where('date', '==', todayFormatted)
         .limit(1)
         .get();
+        
+      if (!attSnapshot.empty) {
+        orgsWithAttendance.add(currOrgId);
+      }
+    }));
 
-      // If attendance is not taken, send the notification
-      if (attendanceSnapshot.empty) {
+    const tokensToSend = [];
+    const tokensToUserIds = {};
+
+    for (const user of targetUsers) {
+      if (!orgsWithAttendance.has(user.orgId)) {
+        tokensToSend.push(user.fcmToken);
+        tokensToUserIds[user.fcmToken] = user.id;
+      }
+    }
+
+    let sentCount = 0;
+
+    if (tokensToSend.length > 0) {
+      // Chunk tokensToSend due to Firebase 500 tokens limit for sendEachForMulticast
+      const tokenChunks = [];
+      for (let i = 0; i < tokensToSend.length; i += 500) {
+        tokenChunks.push(tokensToSend.slice(i, i + 500));
+      }
+
+      for (const chunk of tokenChunks) {
         const message = {
           notification: {
             title: 'হাজিরা নেওয়ার সময় হয়েছে!',
             body: 'আজ কি হাজিরা নিয়েছেন? শিক্ষার্থীদের দৈনিক উপস্থিতি নেওয়ার সময় হয়েছে।'
           },
-          token: user.fcmToken
+          tokens: chunk
         };
-
+        
         try {
-          await messaging.send(message);
-          sentCount++;
-        } catch (err) {
-          console.error('Error sending message to user', doc.id, err);
+          const response = await messaging.sendEachForMulticast(message);
+          sentCount += response.successCount;
+          
+          // Cleanup stale FCM tokens
+          if (response.failureCount > 0) {
+            const batch = db.batch();
+            let batchCount = 0;
+            
+            response.responses.forEach((resp, idx) => {
+              if (!resp.success) {
+                const error = resp.error;
+                if (error && (error.code === 'messaging/invalid-registration-token' ||
+                    error.code === 'messaging/registration-token-not-registered')) {
+                  const token = chunk[idx];
+                  const userId = tokensToUserIds[token];
+                  if (userId) {
+                    batch.update(db.collection('users').doc(userId), { fcmToken: admin.firestore.FieldValue.delete() });
+                    batchCount++;
+                  }
+                }
+              }
+            });
+            
+            if (batchCount > 0) {
+              await batch.commit();
+            }
+          }
+        } catch (error) {
+          console.error("Error sending multicast message:", error);
         }
       }
     }
 
-    res.status(200).json({ success: true, sentCount, message: `Sent ${sentCount} reminders.` });
+    res.status(200).json({ success: true, sentCount, message: `Sent ${sentCount} reminders via FCM.` });
   } catch (error) {
     console.error('Cron job error:', error);
     res.status(500).json({ error: error.message });

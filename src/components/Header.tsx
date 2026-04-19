@@ -19,15 +19,36 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
   const location = useLocation();
 
   const getPageTitle = () => {
+    if (location.pathname.startsWith("/attendance/history")) return "হাজিরা ইতিহাস";
+    if (location.pathname.startsWith("/attendance/leave")) return "ছুটি ব্যবস্থাপনা";
+    if (location.pathname.startsWith("/attendance/struck-off")) return "নাম কাটা শিক্ষার্থী";
+    if (location.pathname.startsWith("/attendance")) return "হাজিরা নিন";
+
+    if (location.pathname.startsWith("/result-entry")) return "ফলাফল এন্ট্রি";
+    if (location.pathname.startsWith("/result-reports")) return "ফলাফল রিপোর্ট";
+    if (location.pathname.startsWith("/marksheet")) return "মার্কশিট";
+
+    if (location.pathname.startsWith("/fees/collection")) return "ফি আদায় এন্ট্রি";
+    if (location.pathname.startsWith("/fees/reports")) return "ফি আদায় রিপোর্ট";
+    if (location.pathname.startsWith("/fees/setup")) return "শ্রেণিভিত্তিক ফি নির্ধারণ";
+    if (location.pathname.startsWith("/fees/categories")) return "ফি খাত";
+
+    if (location.pathname.startsWith("/calendar")) return "ক্যালেন্ডার";
+    if (location.pathname.startsWith("/alumni")) return "প্রাক্তন শিক্ষার্থী";
+    if (location.pathname.startsWith("/subjects")) return "বিষয় ব্যবস্থাপনা";
+    if (location.pathname.startsWith("/exams")) return "পরীক্ষা ব্যবস্থাপনা";
+    if (location.pathname.startsWith("/academic-years")) return "শিক্ষাবর্ষ ব্যবস্থাপনা";
+    if (location.pathname.startsWith("/holidays")) return "ছুটির তালিকা";
+    if (location.pathname.startsWith("/announcements")) return "ঘোষণা";
+
     switch (location.pathname) {
       case "/": return "ড্যাশবোর্ড";
-      case "/attendance": return "হাজিরা";
       case "/students": return "শিক্ষার্থী";
       case "/classes": return "শ্রেণি";
       case "/reports": return "রিপোর্ট";
       case "/settings": return "সেটিংস";
-      case "/super-admin": return "সুপার অ্যাডমিন";
-      default: return "ড্যাশবোর্ড";
+      case "/super-admin": return "সুপার অ্যাডমিন ড্যাশবোর্ড";
+      default: return "";
     }
   };
 

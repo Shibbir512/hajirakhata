@@ -240,15 +240,32 @@ const Attendance: React.FC = () => {
   };
 
   const sendWhatsAppToAbsentees = () => {
-    const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent && s.phone);
+    const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent);
+    
     if (absentees.length === 0) {
-      toast.error("কোনো অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি অথবা কারো ফোন নাম্বার নেই।");
+      toast.error("কোনো অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি।");
       return;
     }
 
-    absentees.forEach((student, index) => {
-      const message = `প্রিয় অভিভাবক, আপনার সন্তান ${student.name} (রোল: ${student.roll}) আজ অনুপস্থিত।`;
-      const url = `https://wa.me/${student.phone}?text=${encodeURIComponent(message)}`;
+    const absenteesWithPhone = absentees.filter(s => s.phone && s.phone.trim().length > 0);
+    const absenteesWithoutPhone = absentees.filter(s => !s.phone || s.phone.trim().length === 0);
+
+    if (absenteesWithoutPhone.length > 0) {
+      const names = absenteesWithoutPhone.map(s => `${s.name} (রোল: ${s.roll})`).join(", ");
+      toast.error(`এই অনুপস্থিত শিক্ষার্থীদের ফোন নাম্বার নেই: ${names}`);
+    }
+
+    if (absenteesWithPhone.length === 0) {
+      return;
+    }
+
+    absenteesWithPhone.forEach((student, index) => {
+      const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+      let phone = student.phone!.replace(/\D/g, ''); // Remove non-digits
+      if (phone.startsWith('0')) {
+          phone = '88' + phone;
+      }
+      const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
       
       // Open with delay to avoid browser blocking
       setTimeout(() => {
@@ -285,8 +302,28 @@ const Attendance: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">হাজিরা</h2>
+          
           <p className="text-slate-500 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
+        </div>
+        
+        {/* Class Selection Input Top Level */}
+        <div className="w-full sm:w-72">
+          <div className="relative w-full">
+            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
+            <select
+              value={selectedClassId}
+              onChange={(e) => setSelectedClassId(e.target.value)}
+              className="w-full pl-12 pr-10 h-[52px] bg-white border border-[#0fa2b0] rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#089191] shadow-soft text-[16px]"
+            >
+              <option value="">শ্রেণি নির্বাচন করুন</option>
+              {classes.map((cls) => (
+                <option key={cls.id} value={cls.id}>
+                  {cls.name}
+                </option>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+          </div>
         </div>
       </div>
 
@@ -328,28 +365,8 @@ const Attendance: React.FC = () => {
         </div>
       )}
 
-      <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
-        <div className="mb-6">
-          <div className="relative w-full">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[52px] bg-white border border-[#0fa2b0] rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#089191] text-center shadow-soft text-[16px]"
-            >
-              <option value="">শ্রেণি নির্বাচন করুন</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-          </div>
-        </div>
-
-        {selectedClassId ? (
-          <>
+      {selectedClassId ? (
+        <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
             {/* Bulk Action - Segmented Control */}
             <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
               <button
@@ -513,14 +530,16 @@ const Attendance: React.FC = () => {
                 </button>
               )}
             </div>
-          </>
+        </div>
         ) : (
-          <div className="text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
-            <p className="text-lg font-medium text-slate-600 mb-1">কোন শ্রেণি নির্বাচন করা হয়নি</p>
-            <p className="text-sm">হাজিরা দেখার জন্য উপরের ড্রপডাউন থেকে একটি শ্রেণি নির্বাচন করুন।</p>
+          <div className="text-center py-24 text-slate-500 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
+            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Users className="w-10 h-10 text-[#0F5C7A]/50" />
+            </div>
+            <h3 className="text-xl font-bold text-slate-700 mb-2">কোনো শ্রেণি নির্বাচন করা হয়নি</h3>
+            <p className="text-base text-slate-500 max-w-sm mx-auto">হাজিরা দেখতে বা রেকর্ড করতে পৃষ্ঠার উপরের ডানদিক থেকে প্রথমে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
         )}
-      </div>
 
       <ConfirmationDialog
         isOpen={isConfirmDialogOpen}
@@ -568,17 +587,23 @@ const Attendance: React.FC = () => {
                   .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
                   .map(student => {
                     const phone = student.phone || '';
+                    console.log("Debug Student Phone:", student.name, phone);
                     const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                    const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                    // Assume '0' needs '88' prefix based on existing logic
+                    let formattedPhone = phone.replace(/\s+/g, '');
+                    if (formattedPhone.startsWith('0')) {
+                        formattedPhone = '88' + formattedPhone;
+                    }
+                    // For debugging, let's also accept other formats if they have enough digits
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
                     
                     return (
                       <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
-                          <p className="font-bold text-slate-800 text-lg mb-1">{student.name}</p>
+                          <p className="font-bold text-slate-800 text-lg mb-1">{student.name} (Phone: {phone})</p>
                           <div className="flex items-center gap-2 text-sm text-slate-500">
                             <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">রোল: {toBengaliNumber(student.roll)}</span>
-                            {phone ? (
+                            {phone && phone.trim().length > 5 ? (
                               <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
                             ) : (
                               <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
@@ -586,7 +611,7 @@ const Attendance: React.FC = () => {
                           </div>
                         </div>
                         <a
-                          href={phone ? whatsappUrl : '#'}
+                          href={phone && phone.trim().length > 5 ? whatsappUrl : '#'}
                           target={phone ? "_blank" : "_self"}
                           rel="noopener noreferrer"
                           className={clsx(

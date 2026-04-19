@@ -145,7 +145,7 @@ const AttendanceHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">হাজিরা ইতিহাস</h2>
+      
       
       <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB]">
         <div className="relative w-full max-w-xs">

@@ -5,6 +5,7 @@ import OrgManagement from "../components/OrgManagement";
 import { collection, getDocs, doc, updateDoc, arrayUnion, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
+import { SUPER_ADMIN_EMAILS } from "../constants";
 
 const OrgManagementPage: React.FC = () => {
   const { user, createOrganization, joinOrganization, removeVisitedOrg, logout, visitedOrgs } = useAuth();
@@ -12,7 +13,7 @@ const OrgManagementPage: React.FC = () => {
   const [allOrgs, setAllOrgs] = useState<{ [key: string]: string }>({});
   const [hiddenOrgs, setHiddenOrgs] = useState<Set<string>>(new Set());
   
-  const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+  const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
   useEffect(() => {
     if (isSuperAdmin && db) {

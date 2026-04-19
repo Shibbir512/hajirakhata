@@ -16,6 +16,7 @@ import {
 } from "firebase/firestore";
 import toast from "react-hot-toast";
 import { generateMadrasaId } from "../utils/idGenerator";
+import { SUPER_ADMIN_EMAILS } from "../constants";
 
 interface AuthContextType {
   user: User | null;
@@ -139,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
-            const isSuperAdmin = currentUser.email === "shibbir.ahma.2025@gmail.com";
+            const isSuperAdmin = currentUser.email && SUPER_ADMIN_EMAILS.includes(currentUser.email);
             let userRole = isSuperAdmin ? "admin" : ((currentOrgId && data.roles && data.roles[currentOrgId]) || data.role || "teacher"); // Default role
             const history = data.visitedOrgs || {};
             const userPhone = data.phone || null;
@@ -166,39 +167,37 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setOrgName(currentOrgName);
             setOrgId(currentOrgId);
             
-            // Perform background checks
-            if (currentOrgId && userRole !== "admin") {
+            // Perform background checks logic in a single fetch
+            if (currentOrgId && (userRole !== "admin" || !currentOrgName)) {
               try {
                 const orgRef = doc(db, "organizations", currentOrgId);
                 const orgSnap = await getDoc(orgRef);
-                if (orgSnap.exists() && orgSnap.data().createdBy === currentUser.uid) {
-                  userRole = "admin";
-                  setRole(userRole);
-                  updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
-                }
-              } catch (e) {
-                console.error("Error checking org owner:", e);
-                handleFirestoreError(e, OperationType.GET, `organizations/${currentOrgId}`);
-              }
-            }
-
-            if (currentOrgId && !currentOrgName) {
-              try {
-                const orgRef = doc(db, "organizations", currentOrgId);
-                const orgSnap = await getDoc(orgRef);
+                
                 if (orgSnap.exists()) {
-                  const fetchedOrgName = orgSnap.data().name;
-                  setOrgName(fetchedOrgName);
-                  setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: fetchedOrgName }));
-                  updateDoc(
-                    userDocRef,
-                    {
-                      [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
-                    }
-                  ).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                  const orgData = orgSnap.data();
+                  
+                  // Check owner
+                  if (userRole !== "admin" && orgData.createdBy === currentUser.uid) {
+                    userRole = "admin";
+                    setRole(userRole);
+                    updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                  }
+
+                  // Check org name
+                  if (!currentOrgName) {
+                    const fetchedOrgName = orgData.name;
+                    setOrgName(fetchedOrgName);
+                    setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: fetchedOrgName }));
+                    updateDoc(
+                      userDocRef,
+                      {
+                        [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
+                      }
+                    ).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                  }
                 }
               } catch (e) {
-                console.error("Error auto-populating history:", e);
+                console.error("Error fetching org data:", e);
                 handleFirestoreError(e, OperationType.GET, `organizations/${currentOrgId}`);
               }
             }
@@ -363,41 +362,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   orgName = orgDoc.data().name;
                   toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
                 } else {
-                  // Ultimate Fallback: Client-side search for Bengali normalization issues
-                  const allOrgsSnapshot = await getDocs(collection(db, "organizations"));
-                  
-                  const normalizeBengali = (text: string) => {
-                    if (!text) return "";
-                    return text
-                      .replace(/ড়/g, "ড়")
-                      .replace(/ঢ়/g, "ঢ়")
-                      .replace(/য়/g, "য়")
-                      .replace(/\u200D/g, "") // Remove Zero Width Joiner
-                      .replace(/\u200C/g, "") // Remove Zero Width Non-Joiner
-                      .trim()
-                      .toLowerCase();
-                  };
-
-                  const normalizedSearch = normalizeBengali(cleanIdentifier);
-                  let foundOrg = null;
-
-                  for (const doc of allOrgsSnapshot.docs) {
-                    const data = doc.data();
-                    if (data.name && normalizeBengali(data.name) === normalizedSearch) {
-                      foundOrg = { id: doc.id, name: data.name };
-                      break;
-                    }
-                  }
-
-                  if (foundOrg) {
-                    targetOrgId = foundOrg.id;
-                    orgName = foundOrg.name;
-                    toast.success(`"${orgName}" প্রতিষ্ঠানটি খুঁজে পাওয়া গেছে।`);
-                  } else {
-                    throw new Error(
-                      `প্রতিষ্ঠান "${cleanIdentifier}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।`,
-                    );
-                  }
+                  throw new Error(
+                    `প্রতিষ্ঠান "${cleanIdentifier}" খুঁজে পাওয়া যায়নি। অনুগ্রহ করে সঠিক নাম বা আইডি প্রদান করুন।`,
+                  );
                 }
               }
             }

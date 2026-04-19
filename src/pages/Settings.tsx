@@ -3,9 +3,12 @@ import { useAuth } from "../hooks/useAuth";
 import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser, updateProfile } from "firebase/auth";
-import { db, auth } from "../firebase";
+import { db, auth, storage } from "../firebase";
+import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import toast from "react-hot-toast";
 import { toEnglishNumber } from "../utils/dateFormatter";
+
+import { SUPER_ADMIN_EMAILS } from "../constants";
 
 const Settings: React.FC = () => {
   const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
@@ -51,7 +54,7 @@ const Settings: React.FC = () => {
     }
   };
 
-  const isSuperAdmin = user?.email === "shibbir.ahma.2025@gmail.com";
+  const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
   const handleToggleNotificationPreference = async (key: 'signupRequests' | 'joinRequests') => {
     if (!user) return;
@@ -247,9 +250,8 @@ const Settings: React.FC = () => {
     const file = e.target.files?.[0];
     if (!file || !user) return;
 
-    // Check file size (max 1MB for base64 storage in Firestore)
-    if (file.size > 1024 * 1024) {
-      toast.error("ছবিটি ১ মেগাবাইটের চেয়ে ছোট হতে হবে।");
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("ছবিটি ২ মেগাবাইটের চেয়ে ছোট হতে হবে।");
       return;
     }
 
@@ -257,25 +259,26 @@ const Settings: React.FC = () => {
     const toastId = toast.loading("ছবি আপলোড করা হচ্ছে...");
 
     try {
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const base64String = reader.result as string;
-        
-        // 1. Update Firestore
-        const userRef = doc(db, "users", user.uid);
-        await updateDoc(userRef, { photoURL: base64String });
-        
-        // Note: We skip updateProfile(auth.currentUser, { photoURL: base64String }) 
-        // because base64 strings are too long for Firebase Auth profile attributes.
-        // The app uses the photoURL from Firestore via the useAuth hook.
-        
-        toast.success("প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!", { id: toastId });
-        setIsUploading(false);
-      };
-      reader.readAsDataURL(file);
+      if (!storage) {
+        throw new Error("Storage is not configured");
+      }
+      
+      const fileExtension = file.name.split('.').pop() || 'jpg';
+      const storageRef = ref(storage, `profile_pictures/${user.uid}.${fileExtension}`);
+      
+      await uploadBytes(storageRef, file);
+      const downloadURL = await getDownloadURL(storageRef);
+
+      const userRef = doc(db, "users", user.uid);
+      await updateDoc(userRef, { photoURL: downloadURL });
+      
+      await updateProfile(auth.currentUser!, { photoURL: downloadURL });
+      
+      toast.success("প্রোফাইল ছবি সফলভাবে আপডেট করা হয়েছে!", { id: toastId });
     } catch (error) {
       console.error("Error uploading image:", error);
       toast.error("ছবি আপলোড করতে ব্যর্থ হয়েছে।", { id: toastId });
+    } finally {
       setIsUploading(false);
     }
   };
@@ -360,7 +363,7 @@ const Settings: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-3xl font-bold gradient-text tracking-tight">সেটিংস</h2>
+      
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Profile Section */}

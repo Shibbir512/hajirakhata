@@ -401,10 +401,7 @@ const Marksheet: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight flex items-center gap-3 mb-6">
-          <FileBadge className="w-8 h-8 text-[#0F5C7A]" />
-          মার্কশিট
-        </h2>
+        
         <div className="flex flex-wrap gap-3 items-end">
             <div className="flex flex-col gap-1">
               <span className="text-[10px] text-slate-500 font-medium ml-1">সংখ্যা ফরম্যাট</span>

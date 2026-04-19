@@ -106,7 +106,7 @@ const FeeReports: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-3xl font-bold gradient-text tracking-tight mb-6">ফি আদায় রিপোর্ট</h2>
+        
         <p className="text-sm text-slate-500">মাসিক ফি আদায়ের বিস্তারিত রিপোর্ট ও সামারি</p>
       </div>
 

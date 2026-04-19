@@ -7,7 +7,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -50,6 +50,7 @@ const Students: React.FC = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [currentPage, setCurrentPage] = useState(1);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isActionMenuOpen, setIsActionMenuOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
@@ -58,6 +59,17 @@ const Students: React.FC = () => {
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const actionMenuRef = useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (actionMenuRef.current && !actionMenuRef.current.contains(event.target as Node)) {
+        setIsActionMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const toggleStudentSelection = (studentId: string) => {
     const newSelected = new Set(selectedStudents);
@@ -77,17 +89,25 @@ const Students: React.FC = () => {
     }
   };
 
-  const handleDeleteSelected = () => {
+  const handleDeleteSelected = async () => {
     if (selectedStudents.size === 0) return;
     
-    selectedStudents.forEach(studentId => {
+    // Store size before clearing
+    const count = selectedStudents.size;
+    
+    // Process sequentially or using Promise.all to ensure completion
+    const promises = Array.from(selectedStudents).map(studentId => {
       const student = allStudentsList.find(s => s.id === studentId);
       if (student) {
-        archiveStudent(student.id, student.classId);
+        return archiveStudent(student.id, student.classId);
       }
+      return Promise.resolve();
     });
+    
+    await Promise.all(promises);
+    
     setSelectedStudents(new Set());
-    toast.success(`${toBengaliNumber(selectedStudents.size)} জন শিক্ষার্থীকে আর্কাইভ করা হয়েছে।`);
+    toast.success(`${toBengaliNumber(count)} জন শিক্ষার্থীকে আর্কাইভ করা হয়েছে।`);
   };
 
   React.useEffect(() => {
@@ -393,7 +413,7 @@ const Students: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h2 className="text-3xl font-bold gradient-text tracking-tight">শিক্ষার্থী</h2>
+        
         <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
           {selectedStudents.size > 0 && canManageStudents && (
           <button
@@ -423,61 +443,146 @@ const Students: React.FC = () => {
             <Plus className="w-4 h-4" />
             শিক্ষার্থী যোগ
           </button>
-          <button
-            onClick={() => setIsPromotionModalOpen(true)}
-            disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
-            className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
+          
+          {/* Desktop version (hidden on mobile) */}
+          <div className="hidden md:flex flex-wrap gap-3">
+            <button
+              onClick={() => setIsPromotionModalOpen(true)}
+              disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
+              className={clsx(
+                "btn-primary whitespace-nowrap !h-[44px] !py-2",
+                (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <ArrowRight className="w-4 h-4" />
+              প্রমোশন
+            </button>
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={!selectedClassId || !canManageStudents}
+              className={clsx(
+                "btn-primary whitespace-nowrap !h-[44px] !py-2",
+                (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Upload className="w-4 h-4" />
+              CSV আমদানি
+            </button>
+            <button
+              onClick={() => handleExport('csv')}
+              disabled={allStudentsList.length === 0}
+              className={clsx(
+                "btn-primary whitespace-nowrap !h-[44px] !py-2",
+                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Download className="w-4 h-4" />
+              CSV এক্সপোর্ট
+            </button>
+            <button
+              onClick={() => handleExport('docx')}
+              disabled={allStudentsList.length === 0}
+              className={clsx(
+                "btn-primary whitespace-nowrap !h-[44px] !py-2",
+                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Download className="w-4 h-4" />
+              DOCX এক্সপোর্ট
+            </button>
+            <button
+              onClick={handlePrint}
+              disabled={allStudentsList.length === 0}
+              className={clsx(
+                "btn-primary whitespace-nowrap !h-[44px] !py-2",
+                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
+              )}
+            >
+              <Printer className="w-4 h-4" />
+              প্রিন্ট করুন
+            </button>
+          </div>
+
+          {/* Mobile version (dropdown) */}
+          <div className="md:hidden relative" ref={actionMenuRef}>
+            <button
+              onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
+              className="btn-primary w-full whitespace-nowrap !h-[44px] !py-2 bg-slate-100 text-slate-700 hover:bg-slate-200"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+              আরও
+            </button>
+            
+            {isActionMenuOpen && (
+              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden flex flex-col p-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
+                <button
+                  onClick={() => { setIsPromotionModalOpen(true); setIsActionMenuOpen(false); }}
+                  disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) 
+                      ? "opacity-50 cursor-not-allowed text-slate-400" 
+                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                  )}
+                >
+                  <ArrowRight className="w-4 h-4" />
+                  প্রমোশন
+                </button>
+                <button
+                  onClick={() => { fileInputRef.current?.click(); setIsActionMenuOpen(false); }}
+                  disabled={!selectedClassId || !canManageStudents}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    (!selectedClassId || !canManageStudents) 
+                      ? "opacity-50 cursor-not-allowed text-slate-400" 
+                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                  )}
+                >
+                  <Upload className="w-4 h-4" />
+                  CSV আমদানি
+                </button>
+                <button
+                  onClick={() => { handleExport('csv'); setIsActionMenuOpen(false); }}
+                  disabled={allStudentsList.length === 0}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    (allStudentsList.length === 0) 
+                      ? "opacity-50 cursor-not-allowed text-slate-400" 
+                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                  )}
+                >
+                  <Download className="w-4 h-4" />
+                  CSV এক্সপোর্ট
+                </button>
+                <button
+                  onClick={() => { handleExport('docx'); setIsActionMenuOpen(false); }}
+                  disabled={allStudentsList.length === 0}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    (allStudentsList.length === 0) 
+                      ? "opacity-50 cursor-not-allowed text-slate-400" 
+                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                  )}
+                >
+                  <Download className="w-4 h-4" />
+                  DOCX এক্সপোর্ট
+                </button>
+                <button
+                  onClick={() => { handlePrint(); setIsActionMenuOpen(false); }}
+                  disabled={allStudentsList.length === 0}
+                  className={clsx(
+                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    (allStudentsList.length === 0) 
+                      ? "opacity-50 cursor-not-allowed text-slate-400" 
+                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                  )}
+                >
+                  <Printer className="w-4 h-4" />
+                  প্রিন্ট করুন
+                </button>
+              </div>
             )}
-          >
-            <ArrowRight className="w-4 h-4" />
-            প্রমোশন
-          </button>
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            disabled={!selectedClassId || !canManageStudents}
-            className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Upload className="w-4 h-4" />
-            CSV আমদানি
-          </button>
-          <button
-            onClick={() => handleExport('csv')}
-            disabled={allStudentsList.length === 0}
-            className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Download className="w-4 h-4" />
-            CSV এক্সপোর্ট
-          </button>
-          <button
-            onClick={() => handleExport('docx')}
-            disabled={allStudentsList.length === 0}
-            className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap col-span-2 md:col-span-1 !h-[44px] !py-2",
-              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Download className="w-4 h-4" />
-            DOCX এক্সপোর্ট
-          </button>
-          <button
-            onClick={handlePrint}
-            disabled={allStudentsList.length === 0}
-            className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap col-span-2 md:col-span-1 !h-[44px] !py-2",
-              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-            )}
-          >
-            <Printer className="w-4 h-4" />
-            প্রিন্ট করুন
-          </button>
+          </div>
         </div>
       </div>
     </div>

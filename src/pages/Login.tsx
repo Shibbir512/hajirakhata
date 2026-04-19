@@ -8,6 +8,7 @@ import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
 import PublicResultSearch from '../components/PublicResultSearch';
 import { toEnglishNumber } from '../utils/dateFormatter';
+import { SUPER_ADMIN_EMAILS } from '../constants';
 
 const Login: React.FC = () => {
   const { user } = useAuth();
@@ -103,10 +104,10 @@ const Login: React.FC = () => {
       const userRef = doc(db, "users", user.uid);
       const userDoc = await getDoc(userRef);
       
-      // If user doesn't exist or phone is missing, prompt for phone number
-      // Skip phone requirement for super admins
-      const isSuperAdmin = user.email === "shibbir.ahma.2025@gmail.com";
-      if (!isSuperAdmin && (!userDoc.exists() || !userDoc.data()?.phone)) {
+        // If user doesn't exist or phone is missing, prompt for phone number
+        // Skip phone requirement for super admins
+        const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
+        if (!isSuperAdmin && (!userDoc.exists() || !userDoc.data()?.phone)) {
         if (!phoneNumber.trim()) {
           setIsNewUser(true);
           setLoading(false);

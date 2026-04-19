@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { SUPER_ADMIN_EMAILS } from "../constants";
 import { useAuth } from "../hooks/useAuth";
 import {
@@ -22,6 +22,7 @@ import {
   LogOut,
   Users,
   Calendar as CalendarIcon,
+  ChevronUp,
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
@@ -41,7 +42,15 @@ const NavLabel = ({ name }: { name: string }) => {
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL, orgId, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+    attendance: false,
+    results: false,
+    fees: false,
+    students: false,
+    config: false
+  });
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -53,6 +62,19 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/attendance')) setOpenSections(prev => ({ ...prev, attendance: true }));
+    else if (path.startsWith('/result') || path.startsWith('/mark')) setOpenSections(prev => ({ ...prev, results: true }));
+    else if (path.startsWith('/fees')) setOpenSections(prev => ({ ...prev, fees: true }));
+    else if (path.startsWith('/student') || path === '/alumni' || path === '/classes') setOpenSections(prev => ({ ...prev, students: true }));
+    else if (path === '/subjects' || path === '/exams' || path === '/academic-years' || path === '/holidays') setOpenSections(prev => ({ ...prev, config: true }));
+  }, [location.pathname]);
+
+  const toggleSection = (section: string) => {
+    setOpenSections(prev => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
@@ -147,7 +169,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
                     <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                   </div>
-                  <span className="text-white">
+                  <span className="font-semibold text-[15px] text-white">
                     {link.name}
                   </span>
                 </>
@@ -158,9 +180,14 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {/* হাজিরা খাতা Group */}
           {attendanceLinks.length > 0 && (
             <div className="pt-2">
-              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                হাজিরা খাতা
-              </div>
+              <button 
+                onClick={() => toggleSection('attendance')}
+                className="w-full flex justify-between items-center px-4 mb-2 focus:outline-none"
+              >
+                <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">হাজিরা খাতা</span>
+                <ChevronDown className={clsx("w-4 h-4 text-white/50 transition-transform", openSections.attendance ? "rotate-180" : "")} />
+              </button>
+              {openSections.attendance && (
               <div className="space-y-1">
                 {attendanceLinks.map((link) => (
                   <NavLink
@@ -181,7 +208,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
                           <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                         </div>
-                        <span className={clsx(link.name === "নাম কাটা" ? "text-red-300" : "bg-clip-text text-transparent bg-gradient-to-r from-emerald-100 to-cyan-100")}>
+                        <span className="font-semibold text-[15px] text-white">
                           {link.name}
                         </span>
                       </>
@@ -189,15 +216,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </NavLink>
                 ))}
               </div>
+              )}
             </div>
           )}
 
           {/* ফলাফল ব্যবস্থাপনা Group */}
           {resultLinks.length > 0 && (
             <div className="pt-2">
-              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                ফলাফল ব্যবস্থাপনা
-              </div>
+              <button 
+                onClick={() => toggleSection('results')}
+                className="w-full flex justify-between items-center px-4 mb-2 focus:outline-none"
+              >
+                <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">ফলাফল ব্যবস্থাপনা</span>
+                <ChevronDown className={clsx("w-4 h-4 text-white/50 transition-transform", openSections.results ? "rotate-180" : "")} />
+              </button>
+              {openSections.results && (
               <div className="space-y-1">
                 {resultLinks.map((link) => (
                   <NavLink
@@ -218,56 +251,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                         <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
                           <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
                         </div>
-                        {link.name}
+                        <span className="font-semibold text-[15px] text-white">
+                          ফলাফল এন্ট্রি
+                        </span>
                       </>
                     )}
                   </NavLink>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* ফি ব্যবস্থাপনা Group */}
-          {feeLinks.length > 0 && (
-            <div className="pt-2">
-              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                ফি ব্যবস্থাপনা
-              </div>
-              <div className="space-y-1">
-                {feeLinks.map((link) => (
-                  <NavLink
-                    key={link.name}
-                    to={link.path}
-                    onClick={() => setIsOpen(false)}
-                    className={({ isActive }) =>
-                      clsx(
-                        "flex items-center px-4 h-[48px] rounded-[14px] transition-all duration-200 font-medium text-[16px]",
-                        isActive
-                          ? "bg-[rgba(255,255,255,0.18)] text-white shadow-sm"
-                          : "hover:bg-[rgba(255,255,255,0.15)] hover:text-white hover:scale-[1.02]",
-                      )
-                    }
-                  >
-                    {({ isActive }) => (
-                      <>
-                        <div className={clsx("w-[36px] h-[36px] rounded-full flex items-center justify-center mr-3", isActive ? "bg-[rgba(255,255,255,0.15)]" : "bg-[rgba(255,255,255,0.1)]")}>
-                          <link.icon className={clsx("w-5 h-5", isActive ? "text-white" : "text-white/70")} />
-                        </div>
-                        {link.name}
-                      </>
-                    )}
-                  </NavLink>
-                ))}
-              </div>
+              )}
             </div>
           )}
 
           {/* শিক্ষার্থী Group */}
           {studentLinks.length > 0 && (
             <div className="pt-2">
-              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                শিক্ষার্থী
-              </div>
+              <button 
+                onClick={() => toggleSection('students')}
+                className="w-full flex justify-between items-center px-4 mb-2 focus:outline-none"
+              >
+                <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">শিক্ষার্থী</span>
+                <ChevronDown className={clsx("w-4 h-4 text-white/50 transition-transform", openSections.students ? "rotate-180" : "")} />
+              </button>
+              {openSections.students && (
               <div className="space-y-1">
                 {studentLinks.map((link) => (
                   <NavLink
@@ -294,15 +300,21 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </NavLink>
                 ))}
               </div>
+              )}
             </div>
           )}
 
           {/* কনফিগারেশন Group */}
           {configLinks.length > 0 && (
             <div className="pt-2">
-              <div className="px-4 mb-2 text-xs font-semibold text-white/50 uppercase tracking-wider">
-                কনফিগারেশন
-              </div>
+              <button 
+                onClick={() => toggleSection('config')}
+                className="w-full flex justify-between items-center px-4 mb-2 focus:outline-none"
+              >
+                <span className="text-xs font-semibold text-white/50 uppercase tracking-wider">কনফিগারেশন</span>
+                <ChevronDown className={clsx("w-4 h-4 text-white/50 transition-transform", openSections.config ? "rotate-180" : "")} />
+              </button>
+              {openSections.config && (
               <div className="space-y-1">
                 {configLinks.map((link) => (
                   <NavLink
@@ -329,6 +341,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
                   </NavLink>
                 ))}
               </div>
+              )}
             </div>
           )}
 

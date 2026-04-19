@@ -33,19 +33,24 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     }
 
     const fetchOrgCode = async () => {
-      const orgDoc = await getDoc(doc(db, "organizations", orgId));
-      if (orgDoc.exists()) {
-        let code = orgDoc.data().orgCode;
-        console.log("Fetched orgCode:", code);
-        if (!code) {
-          // Generate a new 6-digit code if missing
-          code = Math.floor(100000 + Math.random() * 900000).toString();
-          console.log("Generated new orgCode:", code);
-          await updateDoc(doc(db, "organizations", orgId), { orgCode: code });
+      try {
+        const orgDoc = await getDoc(doc(db, "organizations", orgId));
+        if (orgDoc.exists()) {
+          let code = orgDoc.data().orgCode;
+          console.log("Fetched orgCode:", code);
+          if (!code) {
+            // Generate a new 6-digit code if missing
+            code = Math.floor(100000 + Math.random() * 900000).toString();
+            console.log("Generated new orgCode:", code);
+            await updateDoc(doc(db, "organizations", orgId), { orgCode: code });
+          }
+          setOrgCode(typeof code === 'string' ? parseInt(code) : code);
+        } else {
+          console.log("Organization document does not exist for orgId:", orgId);
         }
-        setOrgCode(typeof code === 'string' ? parseInt(code) : code);
-      } else {
-        console.log("Organization document does not exist for orgId:", orgId);
+      } catch (error) {
+        console.error("Error fetching orgCode:", error);
+        toast.error("প্রতিষ্ঠানের তথ্য লোড করতে সমস্যা হচ্ছে। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।");
       }
     };
     fetchOrgCode();
@@ -313,6 +318,21 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
             batch.delete(doc.ref);
           });
         }
+
+        // 3.5 Remove from attendance sessions
+        const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+        const sessionsQuery = query(sessionsRef, where("classId", "==", resolvedClassId));
+        const sessionsSnapshot = await getDocs(sessionsQuery);
+        
+        sessionsSnapshot.docs.forEach(docSnap => {
+           const sessionData = docSnap.data();
+           if (sessionData.students) {
+               const updatedStudents = sessionData.students.filter((s: any) => s.studentId !== studentId);
+               if (updatedStudents.length !== sessionData.students.length) {
+                  batch.update(docSnap.ref, { students: updatedStudents });
+               }
+           }
+        });
 
         // 4. Reorder remaining active students
         const studentsRef = collection(db, `organizations/${orgId}/students`);
