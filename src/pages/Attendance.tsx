@@ -259,8 +259,10 @@ const Attendance: React.FC = () => {
       return;
     }
 
+    const todayDate = new Intl.DateTimeFormat('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+
     absenteesWithPhone.forEach((student, index) => {
-      const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+      const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ (${todayDate}) মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
       let phone = student.phone!.replace(/\D/g, ''); // Remove non-digits
       if (phone.startsWith('0')) {
           phone = '88' + phone;
@@ -277,6 +279,14 @@ const Attendance: React.FC = () => {
   const confirmSave = async () => {
     setIsConfirmDialogOpen(false);
     await takeAttendance(selectedClassId, attendanceState);
+    
+    // Check if there are any absentees - if so, auto-open the notification modal
+    const absentCount = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent).length;
+    if (absentCount > 0) {
+      setTimeout(() => {
+        setIsNotifyModalOpen(true);
+      }, 500);
+    }
   };
 
   const markAll = (status: AttendanceStatus) => {
@@ -587,43 +597,45 @@ const Attendance: React.FC = () => {
                   .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
                   .map(student => {
                     const phone = student.phone || '';
-                    console.log("Debug Student Phone:", student.name, phone);
-                    const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                    // Assume '0' needs '88' prefix based on existing logic
-                    let formattedPhone = phone.replace(/\s+/g, '');
-                    if (formattedPhone.startsWith('0')) {
-                        formattedPhone = '88' + formattedPhone;
+                    const todayDate = new Intl.DateTimeFormat('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
+                    const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ (${todayDate}) মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+                    
+                    // Sanitize phone: remove non-digits
+                    let rawPhone = phone.replace(/\D/g, ''); 
+                    if (rawPhone.startsWith('0')) {
+                        rawPhone = '88' + rawPhone;
                     }
-                    // For debugging, let's also accept other formats if they have enough digits
-                    const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+                    
+                    const isValidPhone = rawPhone.length >= 10;
+                    const whatsappUrl = isValidPhone ? `https://wa.me/${rawPhone}?text=${encodeURIComponent(message)}` : '#';
                     
                     return (
                       <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
-                          <p className="font-bold text-slate-800 text-lg mb-1">{student.name} (Phone: {phone})</p>
+                          <p className="font-bold text-slate-800 text-lg mb-1">{student.name}</p>
                           <div className="flex items-center gap-2 text-sm text-slate-500">
                             <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">রোল: {toBengaliNumber(student.roll)}</span>
-                            {phone && phone.trim().length > 5 ? (
+                            {isValidPhone ? (
                               <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
                             ) : (
-                              <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
+                              <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর সঠিক নয়</span>
                             )}
                           </div>
                         </div>
                         <a
-                          href={phone && phone.trim().length > 5 ? whatsappUrl : '#'}
-                          target={phone ? "_blank" : "_self"}
+                          href={whatsappUrl}
+                          target={isValidPhone ? "_blank" : "_self"}
                           rel="noopener noreferrer"
                           className={clsx(
                             "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
-                            phone 
+                            isValidPhone 
                               ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
                               : "bg-slate-100 text-slate-400 cursor-not-allowed"
                           )}
                           onClick={(e) => {
-                            if (!phone) {
+                            if (!isValidPhone) {
                               e.preventDefault();
-                              toast.error('এই শিক্ষার্থীর মোবাইল নম্বর দেওয়া নেই।');
+                              toast.error('এই শিক্ষার্থীর মোবাইল নম্বরটি সঠিক নয় (অন্তত ১০ ডিজিট আবশ্যক)।');
                             }
                           }}
                         >
