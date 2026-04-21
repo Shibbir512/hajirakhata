@@ -15,7 +15,7 @@ const LeaveManagement: React.FC = () => {
   const { students } = useStudents(orgId, user, role);
   const { leaves, addLeaves, updateLeave, deleteLeave } = useLeaves(orgId, user);
 
-  const [activeTab, setActiveTab] = useState<"add" | "view">("add");
+  const [activeTab, setActiveTab] = useState<"today" | "add" | "view">("today");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
   
@@ -149,6 +149,28 @@ const LeaveManagement: React.FC = () => {
     }));
   }, [leaves, viewClassId, viewSearchQuery, students]);
 
+  const todayLeavesList = useMemo(() => {
+    const todayISO = new Date().toISOString().split('T')[0];
+    const now = new Date();
+    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+    
+    return leaves.filter(leave => {
+      if (leave.status === 'approved') {
+        const sDate = leave.startDate || leave.date;
+        const eDate = leave.endDate || leave.date;
+        
+        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
+          let isActive = true;
+          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
+          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
+          
+          return isActive;
+        }
+      }
+      return false;
+    });
+  }, [leaves]);
+
   const leaveStats = useMemo(() => {
     const todayISO = new Date().toISOString().split('T')[0];
     const now = new Date();
@@ -206,11 +228,23 @@ const LeaveManagement: React.FC = () => {
       </div>
 
       {/* Tabs */}
-      <div className="flex space-x-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-fit">
+      <div className="flex space-x-2 bg-white p-2 rounded-2xl shadow-sm border border-slate-100 w-fit overflow-x-auto max-w-full">
+        <button
+          onClick={() => setActiveTab("today")}
+          className={clsx(
+            "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
+            activeTab === "today" 
+              ? "bg-[#0F5C7A] text-white shadow-md" 
+              : "text-slate-600 hover:bg-slate-50"
+          )}
+        >
+          <CalendarDays className="w-5 h-5" />
+          আজকের ছুটি
+        </button>
         <button
           onClick={() => setActiveTab("add")}
           className={clsx(
-            "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
+            "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
             activeTab === "add" 
               ? "bg-[#0F5C7A] text-white shadow-md" 
               : "text-slate-600 hover:bg-slate-50"
@@ -222,7 +256,7 @@ const LeaveManagement: React.FC = () => {
         <button
           onClick={() => setActiveTab("view")}
           className={clsx(
-            "flex items-center gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
+            "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
             activeTab === "view" 
               ? "bg-[#0F5C7A] text-white shadow-md" 
               : "text-slate-600 hover:bg-slate-50"
@@ -232,6 +266,61 @@ const LeaveManagement: React.FC = () => {
           তালিকা দেখুন
         </button>
       </div>
+
+      {activeTab === "today" && (
+        <div className="bg-white text-slate-800 rounded-3xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
+           <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+             <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
+             আজকের ছুটিতে যারা আছে
+           </h3>
+           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+             {todayLeavesList.length > 0 ? todayLeavesList.map(leave => {
+               const todayISO = new Date().toISOString().split('T')[0];
+               const isEndingToday = (leave.endDate || leave.date) === todayISO;
+               
+               return (
+                 <div key={leave.id} className="p-5 border border-slate-200 rounded-2xl bg-[#F8FAFC] relative overflow-hidden group hover:shadow-md transition-all">
+                   {isEndingToday && (
+                     <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
+                       আজই ছুটি শেষ
+                     </div>
+                   )}
+                   <div className="flex gap-4 items-center mb-4">
+                     <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0F5C7A] font-bold text-lg border border-slate-100">
+                       {toBengaliNumber(getStudentRoll(leave.studentId, leave.classId))}
+                     </div>
+                     <div>
+                       <h4 className="font-bold text-slate-800 text-lg leading-tight">{getStudentName(leave.studentId, leave.classId)}</h4>
+                       <p className="text-sm font-medium text-slate-500">{getClassName(leave.classId)}</p>
+                     </div>
+                   </div>
+                   <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5">
+                     <div className="flex gap-2 text-[13px]">
+                       <Clock className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                       <span className="text-slate-600 font-medium leading-snug">
+                         {toBengaliDate(leave.startDate || leave.date)} {leave.startTime && `(${toBengaliNumber(leave.startTime)})`} <br/> থেকে <br/> {toBengaliDate(leave.endDate || leave.date)} {leave.endTime && `(${toBengaliNumber(leave.endTime)})`}
+                       </span>
+                     </div>
+                     {leave.note && (
+                       <div className="text-[13px] bg-blue-50/50 text-[#0F5C7A] px-3 py-2 rounded-lg font-semibold border border-blue-100/50">
+                         কারণ: {leave.note}
+                       </div>
+                     )}
+                   </div>
+                 </div>
+               );
+             }) : (
+               <div className="col-span-full py-16 text-center text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                 <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                   <CheckCircle className="w-8 h-8 text-emerald-400" />
+                 </div>
+                 <p className="font-bold text-lg text-slate-700">আজ কেউ ছুটিতে নেই!</p>
+                 <p className="text-sm">সব শিক্ষার্থী ক্লাসের জন্য প্রস্তুত আছে।</p>
+               </div>
+             )}
+           </div>
+        </div>
+      )}
 
       {activeTab === "add" && (
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">

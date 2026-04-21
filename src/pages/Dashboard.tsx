@@ -7,6 +7,7 @@ import { useLeaves } from "../hooks/useLeaves";
 import { useAuth } from "../hooks/useAuth";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
+import { useNavigate } from "react-router-dom";
 import {
   BarChart,
   Bar,
@@ -22,6 +23,7 @@ import StudentSearch from "../components/StudentSearch";
 
 const Dashboard: React.FC = () => {
   const { user, orgId, role } = useAuth();
+  const navigate = useNavigate();
   const { students } = useStudents(orgId, user, role);
   const { classes } = useClasses(orgId, user, role);
   const startDate = useMemo(() => {
@@ -213,6 +215,7 @@ const Dashboard: React.FC = () => {
           color="text-[#8B5CF6]"
           gradient="bg-[#8B5CF6]/10"
           valueColor="text-[#7C3AED]"
+          onClick={() => navigate('/attendance/leave')}
         />
         <StatCard
           title="মোট শ্রেণি"
@@ -284,6 +287,7 @@ interface StatCardProps {
   color: string;
   gradient: string;
   valueColor?: string;
+  onClick?: () => void;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -293,10 +297,17 @@ const StatCard = React.memo<StatCardProps>(({
   color,
   gradient,
   valueColor,
+  onClick,
 }) => {
   return (
-    <div className="bg-white rounded-[20px] p-[18px] flex items-center gap-4 shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] group cursor-default">
-      <div className={clsx("w-[44px] h-[44px] rounded-full flex items-center justify-center", gradient)}>
+    <div 
+      onClick={onClick}
+      className={clsx(
+        "bg-white rounded-[20px] p-[18px] flex items-center gap-4 shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] group",
+        onClick ? "cursor-pointer hover:shadow-[0_8px_25px_rgba(0,0,0,0.12)] transition-shadow" : "cursor-default"
+      )}
+    >
+      <div className={clsx("w-[44px] h-[44px] rounded-full flex items-center justify-center transition-transform", onClick && "group-hover:scale-110", gradient)}>
         <Icon className={clsx("w-6 h-6", color)} strokeWidth={2} />
       </div>
       <div className="flex flex-col">
