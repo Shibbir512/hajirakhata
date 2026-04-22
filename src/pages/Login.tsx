@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { signInWithPopup } from 'firebase/auth';
+import React, { useState, useEffect } from 'react';
+import { signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, updateDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
 import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, GraduationCap } from 'lucide-react';
@@ -11,7 +11,7 @@ import { toEnglishNumber } from '../utils/dateFormatter';
 import { SUPER_ADMIN_EMAILS } from '../constants';
 
 const Login: React.FC = () => {
-  const { user } = useAuth();
+  const { user, phone, loading: authLoading } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -19,6 +19,8 @@ const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
   const [activeTab, setActiveTab] = useState<'public' | 'login'>('login');
+  
+  const [processingRedirect, setProcessingRedirect] = useState(true);
 
   const isEmbeddedBrowser = () => {
     const ua = navigator.userAgent || navigator.vendor || (window as any).opera;
@@ -27,30 +29,67 @@ const Login: React.FC = () => {
 
   const [embeddedBrowser, setEmbeddedBrowser] = useState(isEmbeddedBrowser());
 
-  if (user && !isNewUser) {
-    return <Navigate to="/" replace />;
+  useEffect(() => {
+    const checkRedirect = async () => {
+      if (!auth) return;
+      try {
+        await getRedirectResult(auth);
+      } catch (error: any) {
+        console.error("Redirect login error", error);
+        if (error.code?.includes('unauthorized-domain') || error.message?.toLowerCase().includes('unauthorized domain')) {
+          setError('unauthorized-domain');
+        } else if (error.code === 'auth/network-request-failed') {
+          setError('network-error');
+        } else if (error.code === 'auth/internal-error' && error.message?.includes('Cross-Origin-Opener-Policy')) {
+          setError('coop-error');
+        } else {
+          setError(error.message || "লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
+        }
+      } finally {
+        setProcessingRedirect(false);
+      }
+    };
+    checkRedirect();
+  }, []);
+
+  useEffect(() => {
+    const processUser = async () => {
+      if (user && !authLoading) {
+        const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
+        const storedPhone = sessionStorage.getItem('tempPhone');
+        
+        if (storedPhone && !phone) {
+          try {
+            const userRef = doc(db, "users", user.uid);
+            await updateDoc(userRef, { phone: storedPhone });
+            sessionStorage.removeItem('tempPhone');
+          } catch(e) {
+            console.error("Error setting stored phone:", e);
+          }
+        } else if (!isSuperAdmin && !phone && !storedPhone) {
+          setIsNewUser(true);
+        }
+      }
+    };
+    processUser();
+  }, [user, phone, authLoading]);
+
+  if (authLoading || processingRedirect) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-[#0F766E] animate-spin mb-4" />
+        <p className="text-slate-600 font-medium animate-pulse">লগইন চেক করা হচ্ছে...</p>
+      </div>
+    );
   }
 
-  // Check if user exists in database when they sign in with Google
-  const checkUserExists = async (email: string) => {
-    const q = query(collection(db, "users"), where("email", "==", email));
-    const querySnapshot = await getDocs(q);
-    return !querySnapshot.empty;
-  };
+  const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
+  const needsPhone = !isSuperAdmin && !phone;
+  const hasTempPhone = sessionStorage.getItem('tempPhone') !== null;
 
-  // Update isNewUser based on email input or just handle it inside handleLogin
-  // Actually, let's just make the phone input optional, and only required if it's a new user.
-  // Since we don't know if it's a new user until they click Google login,
-  // we can't easily disable the button based on phone number for existing users.
-
-  // Let's change the logic:
-  // 1. User clicks Google login.
-  // 2. If user exists, proceed.
-  // 3. If user doesn't exist, check if phone number is provided.
-  // 4. If not provided, ask for it.
-
-  // To support the user's request "once phone number is given, no need again",
-  // we can just make the phone input optional in the UI, and only validate it in handleLogin if the user is new.
+  if (user && (!needsPhone || hasTempPhone)) {
+    return <Navigate to="/" replace />;
+  }
 
   const handleFinalizeSignup = async () => {
     if (!auth.currentUser || !db || !phoneNumber.trim()) {
@@ -90,74 +129,20 @@ const Login: React.FC = () => {
   };
 
   const handleGoogleLogin = async () => {
-    if (!auth || !googleProvider || !db) {
+    if (!auth || !googleProvider) {
       setError("ফায়ারবেস কনফিগারেশন পাওয়া যায়নি।");
       return;
     }
     setError(null);
     setLoading(true);
     try {
-      // Try popup first
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-
-      const userRef = doc(db, "users", user.uid);
-      const userDoc = await getDoc(userRef);
-      
-        // If user doesn't exist or phone is missing, prompt for phone number
-        // Skip phone requirement for super admins
-        const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
-        if (!isSuperAdmin && (!userDoc.exists() || !userDoc.data()?.phone)) {
-        if (!phoneNumber.trim()) {
-          setIsNewUser(true);
-          setLoading(false);
-          return;
-        }
-      }
-
-      const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
-      const existingData = userDoc.data();
-      
-      const isNew = !userDoc.exists();
-      
-      const userData: any = {
-        displayName: user.displayName || fallbackName,
-        email: user.email || "ইমেইল নেই",
-        lastLogin: serverTimestamp()
-      };
-      
-      // Only sync photoURL from Google if Firestore doesn't have one yet
-      if (!existingData?.photoURL && user.photoURL) {
-        userData.photoURL = user.photoURL;
-      }
-      
-      // Only update phone if provided
       if (phoneNumber.trim()) {
-        userData.phone = phoneNumber.trim();
+        sessionStorage.setItem('tempPhone', phoneNumber.trim());
       }
-      
-      if (isNew) {
-        const configSnap = await getDoc(doc(db, "globalSettings", "config"));
-        const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
-        userData.status = approvalEnabled ? "pending" : "active";
-        await setDoc(userRef, userData);
-      } else {
-        await updateDoc(userRef, userData);
-      }
+      await signInWithRedirect(auth, googleProvider);
     } catch (error: any) {
-      console.error("Login failed", error);
-      if (error.code?.includes('unauthorized-domain') || error.message?.toLowerCase().includes('unauthorized domain')) {
-        setError('unauthorized-domain');
-      } else if (error.code === 'auth/network-request-failed') {
-        setError('network-error');
-      } else if (error.code === 'auth/popup-closed-by-user') {
-        setError("লগইন উইন্ডোটি বন্ধ করে দেওয়া হয়েছে। আবার চেষ্টা করুন।");
-      } else if (error.code === 'auth/internal-error' && error.message?.includes('Cross-Origin-Opener-Policy')) {
-        setError('coop-error');
-      } else {
-        setError(error.message || "লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-      }
-    } finally {
+      console.error("Redirect setup failed", error);
+      setError(error.message || "লগইন শুরু করতে সমস্যা হয়েছে।");
       setLoading(false);
     }
   };
