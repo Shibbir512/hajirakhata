@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { signInWithRedirect, getRedirectResult, signInWithPopup } from 'firebase/auth';
+import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
-import { doc, setDoc, updateDoc, serverTimestamp, getDoc, query, collection, where, getDocs } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, GraduationCap } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
@@ -19,9 +19,6 @@ const Login: React.FC = () => {
   const [phoneNumber, setPhoneNumber] = useState("");
   const [isNewUser, setIsNewUser] = useState(false);
   const [activeTab, setActiveTab] = useState<'public' | 'login'>('login');
-  
-  const [processingRedirect, setProcessingRedirect] = useState(false); // Default to false in testing
-  const [redirectTimeout, setRedirectTimeout] = useState(false);
 
   const isEmbeddedBrowser = () => {
     // Basic UserAgent checks for Messenger, Facebook
@@ -31,66 +28,19 @@ const Login: React.FC = () => {
 
   const [embeddedBrowser, setEmbeddedBrowser] = useState(isEmbeddedBrowser());
 
-  const isInIframe = () => {
-    try {
-      return window.self !== window.top;
-    } catch (e) {
-      return true;
-    }
-  };
-
-  useEffect(() => {
-    // If inside an iframe, never show "processing redirect" loader
-    // to prevent stuck UI when cross-origin prevents getRedirectResult
-    if (isInIframe()) {
-      setProcessingRedirect(false);
-      return;
-    }
-
-    setProcessingRedirect(true);
-    const timer = setTimeout(() => {
-      setRedirectTimeout(true);
-      setProcessingRedirect(false); // Force unlock UI
-    }, 5000); // Reduce timeout to 5 seconds
-
-    const checkRedirect = async () => {
-      if (!auth) return;
-      try {
-        await getRedirectResult(auth);
-      } catch (error: any) {
-        console.error("Redirect login error", error);
-        if (error.code?.includes('unauthorized-domain') || error.message?.toLowerCase().includes('unauthorized domain')) {
-          setError('unauthorized-domain');
-        } else if (error.code === 'auth/network-request-failed') {
-          setError('network-error');
-        } else if (error.code === 'auth/internal-error' && error.message?.includes('Cross-Origin-Opener-Policy')) {
-          setError('coop-error');
-        } else {
-          setError(error.message || "লগইন করতে সমস্যা হয়েছে। আবার চেষ্টা করুন।");
-        }
-      } finally {
-        setProcessingRedirect(false);
-        clearTimeout(timer);
-      }
-    };
-    checkRedirect();
-
-    return () => clearTimeout(timer);
-  }, []);
-
   useEffect(() => {
     let isMounted = true;
     const processUser = async () => {
       if (user && !authLoading) {
         const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
-        const storedPhone = sessionStorage.getItem('tempPhone');
+        const storedPhone = localStorage.getItem('tempPhone');
         
         if (storedPhone && !phone) {
           try {
             if (isMounted) setLoading(true);
             const userRef = doc(db, "users", user.uid);
             await updateDoc(userRef, { phone: storedPhone });
-            sessionStorage.removeItem('tempPhone');
+            localStorage.removeItem('tempPhone');
           } catch(e) {
             console.error("Error setting stored phone:", e);
           } finally {
@@ -111,7 +61,7 @@ const Login: React.FC = () => {
     return () => { isMounted = false; };
   }, [user, phone, authLoading]);
 
-  if (authLoading || (processingRedirect && !redirectTimeout)) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
         <Loader2 className="w-12 h-12 text-[#0F766E] animate-spin mb-4" />
@@ -161,9 +111,9 @@ const Login: React.FC = () => {
         const configSnap = await getDoc(doc(db, "globalSettings", "config"));
         const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
         userData.status = approvalEnabled ? "pending" : "active";
-        await setDoc(userRef, userData);
+        await setDoc(userRef, userData, { merge: true });
       } else {
-        await updateDoc(userRef, userData);
+        await setDoc(userRef, userData, { merge: true });
       }
       setIsNewUser(false);
     } catch (error: any) {
@@ -174,7 +124,7 @@ const Login: React.FC = () => {
     }
   };
 
-  const handleGoogleLogin = async (usePopup = false) => {
+  const handleGoogleLogin = async () => {
     if (!auth || !googleProvider) {
       setError("ফায়ারবেস কনফিগারেশন পাওয়া যায়নি।");
       return;
@@ -183,25 +133,16 @@ const Login: React.FC = () => {
     setLoading(true);
     
     if (phoneNumber.trim()) {
-      sessionStorage.setItem('tempPhone', phoneNumber.trim());
+      localStorage.setItem('tempPhone', phoneNumber.trim());
     }
     
-    // If we are inside an embedded browser or iframe, signInWithRedirect is heavily restricted
-    // and often fails due to Cross-Origin-Opener-Policy or similar. 
-    // Popup might be blocked but is sometimes the only option, so we attempt it. 
-    const forcePopup = usePopup || embeddedBrowser || isInIframe();
-    
     try {
-      if (forcePopup) {
-        await signInWithPopup(auth, googleProvider);
-        setLoading(false);
-      } else {
-        await signInWithRedirect(auth, googleProvider);
-      }
+      await signInWithPopup(auth, googleProvider);
+      setLoading(false);
     } catch (error: any) {
       console.error("Login failed", error);
       if (error.code === 'auth/popup-blocked') {
-        setError("পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার সেটিংসে পপ-আপ এলাউ করুন অথবা রিডাইরেক্ট বাটনটি ব্যবহার করুন।");
+        setError("পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার সেটিংসে পপ-আপ এলাউ করুন।");
       } else if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
         setError("পপ-আপ বন্ধ করে দেওয়া হয়েছে। পুনরায় চেষ্টা করুন।");
       } else {
@@ -425,7 +366,7 @@ const Login: React.FC = () => {
         </div>
 
         <button
-          onClick={() => isNewUser ? handleFinalizeSignup() : handleGoogleLogin(false)}
+          onClick={() => isNewUser ? handleFinalizeSignup() : handleGoogleLogin()}
           disabled={loading || !auth}
           className="w-full btn-primary py-4 text-lg flex items-center justify-center gap-3 mb-3"
         >
@@ -436,35 +377,6 @@ const Login: React.FC = () => {
           )}
           <span>{loading ? 'সাইন ইন করা হচ্ছে...' : isNewUser ? 'সাইন আপ সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}</span>
         </button>
-
-        {!isNewUser && (
-          <button
-            onClick={() => handleGoogleLogin(true)}
-            disabled={loading || !auth}
-            className="w-full py-3 text-sm flex items-center justify-center gap-2 text-[#0F766E] border-2 border-teal-50 hover:bg-teal-50 rounded-2xl transition-all font-medium"
-          >
-            <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4 grayscale" />
-            <span>পপ-আপ ব্যবহার করে চেষ্টা করুন</span>
-          </button>
-        )}
-
-        {redirectTimeout && processingRedirect && (
-          <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-left">
-            <h3 className="font-bold text-amber-800 mb-1 flex items-center gap-2">
-              <AlertCircle className="w-4 h-4" />
-              লগইন চেক করতে দেরি হচ্ছে
-            </h3>
-            <p className="text-xs text-amber-600 mb-4 leading-relaxed">
-              আপনার ব্রাউজার হয়তো লগইন রিডাইরেক্ট সম্পন্ন হতে দেরি করছে। নিচের বাটনটি ব্যবহার করে পুনরায় চেষ্টা করতে পারেন।
-            </p>
-            <button 
-              onClick={() => setProcessingRedirect(false)}
-              className="w-full py-2 bg-amber-600 text-white rounded-lg text-sm font-bold shadow-sm"
-            >
-              লগইন স্ক্রিনে ফিরে যান
-            </button>
-          </div>
-        )}
 
         <button
           onClick={() => setActiveTab('public')}

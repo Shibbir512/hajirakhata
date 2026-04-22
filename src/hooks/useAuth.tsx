@@ -123,17 +123,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             updateData.photoURL = currentUser.photoURL;
           }
 
-          if (!docSnap.exists()) {
-            const configSnap = await getDoc(doc(db, "globalSettings", "config"));
-            const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
-            updateData.status = approvalEnabled ? "pending" : "active";
-            setDoc(userDocRef, updateData).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
-          } else {
-            updateDoc(userDocRef, updateData).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
-          }
+          // Always merge to prevent overwriting existing user fields like roles, orgId, or status
+          setDoc(userDocRef, updateData, { merge: true }).catch(e => {
+            console.warn("Could not silently update user lastSeen block:", e);
+          });
         } catch (e) {
-          console.error("Error saving user info:", e);
-          handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`);
+          console.warn("Could not check/update user info silently:", e);
         }
 
         unsubUser = onSnapshot(userDocRef, async (docSnap) => {
