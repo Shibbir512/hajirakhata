@@ -79,6 +79,7 @@ const Login: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    let isMounted = true;
     const processUser = async () => {
       if (user && !authLoading) {
         const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
@@ -86,21 +87,28 @@ const Login: React.FC = () => {
         
         if (storedPhone && !phone) {
           try {
-            setLoading(true);
+            if (isMounted) setLoading(true);
             const userRef = doc(db, "users", user.uid);
             await updateDoc(userRef, { phone: storedPhone });
             sessionStorage.removeItem('tempPhone');
           } catch(e) {
             console.error("Error setting stored phone:", e);
           } finally {
-            setLoading(false);
+            if (isMounted) setLoading(false);
           }
         } else if (!isSuperAdmin && !phone && !storedPhone) {
-          setIsNewUser(true);
+          if (isMounted) {
+            setIsNewUser(true);
+            setLoading(false);
+          }
+        } else {
+          // Clear the loading spinner if they are an existing user
+          if (isMounted) setLoading(false);
         }
       }
     };
     processUser();
+    return () => { isMounted = false; };
   }, [user, phone, authLoading]);
 
   if (authLoading || (processingRedirect && !redirectTimeout)) {
@@ -114,11 +122,19 @@ const Login: React.FC = () => {
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
   const needsPhone = !isSuperAdmin && !phone;
-  // Don't navigate away if we are still processing a phone update (loading)
-  const hasTempPhone = sessionStorage.getItem('tempPhone') !== null;
 
-  if (user && !loading && (!needsPhone || hasTempPhone)) {
+  if (user && !loading && !needsPhone && !isNewUser) {
     return <Navigate to="/" replace />;
+  }
+
+  // Prevent UI flash while waiting for the newly added phone number to sync from Firestore
+  if (user && !loading && needsPhone && !isNewUser) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-4">
+        <Loader2 className="w-12 h-12 text-[#0F766E] animate-spin mb-4" />
+        <p className="text-slate-600 font-medium animate-pulse">ডাটাবেস সিঙ্ক হচ্ছে...</p>
+      </div>
+    );
   }
 
   const handleFinalizeSignup = async () => {
@@ -178,6 +194,7 @@ const Login: React.FC = () => {
     try {
       if (forcePopup) {
         await signInWithPopup(auth, googleProvider);
+        setLoading(false);
       } else {
         await signInWithRedirect(auth, googleProvider);
       }
