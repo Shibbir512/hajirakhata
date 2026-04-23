@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useAnnouncements } from "../hooks/useAnnouncements";
-import { Plus, Trash2, Edit2, Save, X } from "lucide-react";
+import { Plus, Trash2, Edit2, Save, X, Eye, EyeOff } from "lucide-react";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
@@ -49,12 +49,21 @@ const Announcements: React.FC = () => {
   const handleUpdate = async (id: string) => {
     if (!editMessage.trim()) return;
     try {
-      await updateAnnouncement(id, editMessage);
+      await updateAnnouncement(id, { message: editMessage });
       setEditingId(null);
       setEditMessage("");
       toast.success("বার্তা আপডেট করা হয়েছে");
     } catch (error) {
       toast.error("বার্তা আপডেট করতে ব্যর্থ হয়েছে");
+    }
+  };
+
+  const handleToggleVisibility = async (id: string, currentIsHidden: boolean | undefined) => {
+    try {
+      await updateAnnouncement(id, { isHidden: !currentIsHidden });
+      toast.success(currentIsHidden ? "বার্তা গ্লোবালি দেখানো হয়েছে" : "বার্তা গ্লোবালি আড়াল করা হয়েছে");
+    } catch (error) {
+      toast.error("অবস্থা পরিবর্তন করতে ব্যর্থ হয়েছে");
     }
   };
 
@@ -97,7 +106,7 @@ const Announcements: React.FC = () => {
 
       <div className="space-y-4">
         {announcements.map((ann) => (
-          <div key={ann.id} className="card-premium p-6 bg-white rounded-[20px] flex justify-between items-center">
+          <div key={ann.id} className={`card-premium p-6 bg-white rounded-[20px] flex justify-between items-center ${ann.isHidden ? "opacity-60" : ""}`}>
             {editingId === ann.id ? (
               <div className="flex-grow flex gap-2">
                 <input
@@ -111,10 +120,16 @@ const Announcements: React.FC = () => {
               </div>
             ) : (
               <>
-                <p className="text-slate-800 flex-grow">{ann.message}</p>
-                <div className="flex gap-2">
-                  <button onClick={() => { setEditingId(ann.id); setEditMessage(ann.message); }} className="text-blue-600"><Edit2 /></button>
-                  <button onClick={() => handleDelete(ann.id)} className="text-red-600"><Trash2 /></button>
+                <p className="text-slate-800 flex-grow">
+                  {ann.message}
+                  {ann.isHidden && <span className="ml-2 text-xs bg-slate-200 text-slate-600 px-2 py-1 rounded-full">লুকানো</span>}
+                </p>
+                <div className="flex gap-4">
+                  <button onClick={() => handleToggleVisibility(ann.id, ann.isHidden)} className="text-slate-500 hover:text-slate-700" title={ann.isHidden ? "দেখানো করুন" : "লুকান"}>
+                    {ann.isHidden ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                  <button onClick={() => { setEditingId(ann.id); setEditMessage(ann.message); }} className="text-blue-600"><Edit2 className="w-5 h-5" /></button>
+                  <button onClick={() => handleDelete(ann.id)} className="text-red-600"><Trash2 className="w-5 h-5" /></button>
                 </div>
               </>
             )}

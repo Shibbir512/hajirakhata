@@ -52,11 +52,9 @@ export const useAnnouncements = (orgId: string | null) => {
     });
   }, [orgId, user]);
 
-  const updateAnnouncement = useCallback(async (id: string, message: string) => {
+  const updateAnnouncement = useCallback(async (id: string, updates: Partial<Announcement>) => {
     if (!orgId) return;
-    await updateDoc(doc(db, `organizations/${orgId}/announcements`, id), {
-      message,
-    });
+    await updateDoc(doc(db, `organizations/${orgId}/announcements`, id), updates);
   }, [orgId]);
 
   const deleteAnnouncement = useCallback(async (id: string) => {

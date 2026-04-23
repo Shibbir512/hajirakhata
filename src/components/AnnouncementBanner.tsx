@@ -9,9 +9,11 @@ interface AnnouncementBannerProps {
 export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ orgId }) => {
   const { announcements, loading } = useAnnouncements(orgId);
 
-  if (loading || announcements.length === 0) return null;
+  const visibleAnnouncements = announcements.filter(a => !a.isHidden);
 
-  const latestAnnouncement = announcements[0];
+  if (loading || visibleAnnouncements.length === 0) return null;
+
+  const latestAnnouncement = visibleAnnouncements[0];
 
   return (
     <div className="mb-6 rounded-[16px] overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-gradient-to-b from-[#E6F4F1] to-[#FFFFFF] border border-[#E6F4F1]">
