@@ -43,7 +43,8 @@ const Dashboard: React.FC = () => {
   const { leaves } = useLeaves(orgId, user);
 
   const stats = useMemo(() => {
-    const totalStudents = Object.values(students).flat().length;
+    const activeStudents = Object.values(students).flat().filter(s => s.isActive !== false);
+    const totalStudents = activeStudents.length;
     const totalClasses = classes.length;
 
     const todayDateObj = new Date();
@@ -57,7 +58,9 @@ const Dashboard: React.FC = () => {
 
     todaysSessions.forEach(s => {
       s.students.forEach((st: any) => {
-        const sid = st.studentId || st.id || st.name;
+        const sid = st.studentId || st.id;
+        if (!sid) return;
+        
         if (st.status === "present") {
           studentStatusMap.set(sid, "present");
         } else if (st.status === "leave") {
@@ -72,45 +75,41 @@ const Dashboard: React.FC = () => {
       });
     });
 
-    let presentToday = 0;
-    let absentToday = 0;
-
-    studentStatusMap.forEach((status) => {
-      if (status === 'present') presentToday++;
-      if (status === 'absent') absentToday++;
-    });
-    
-    // Calculate leaves for today with exact time check
     const todayISO = getTodayISO();
-    const currentHour = String(todayDateObj.getHours()).padStart(2, '0');
-    const currentMinute = String(todayDateObj.getMinutes()).padStart(2, '0');
-    const currentTime = `${currentHour}:${currentMinute}`;
     
+    // Fallback leaves count (for students whose attendance is not yet taken today)
     const leavesOnTodaySet = new Set();
-
     leaves.forEach(leave => {
       if (leave.status === 'approved') {
         const sDate = leave.startDate || leave.date;
         const eDate = leave.endDate || leave.date;
-        
         if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
-          let isActive = true;
-          
-          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) {
-            isActive = false; // Hasn't started yet today
-          }
-          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) {
-            isActive = false; // Already finished today
-          }
-          
-          if (isActive) {
-            leavesOnTodaySet.add(leave.studentId);
-          }
+          leavesOnTodaySet.add(leave.studentId);
         }
       }
     });
-    
-    const leavesOnToday = leavesOnTodaySet.size;
+
+    let presentToday = 0;
+    let absentToday = 0;
+    let leavesOnToday = 0;
+
+    activeStudents.forEach((student) => {
+      const sid = student.id;
+      const status = studentStatusMap.get(sid);
+      
+      if (status === 'present') {
+        presentToday++;
+      } else if (status === 'absent') {
+        absentToday++;
+      } else if (status === 'leave') {
+        leavesOnToday++;
+      } else {
+        // Attendance not taken yet for this student
+        if (leavesOnTodaySet.has(sid)) {
+          leavesOnToday++;
+        }
+      }
+    });
 
     return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
