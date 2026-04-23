@@ -24,7 +24,7 @@ const StudentSearch: React.FC = () => {
 
   const fuse = useMemo(() => {
     return new Fuse(allStudents, {
-      keys: ["name", "roll", "id", "studentUid"],
+      keys: ["name", "roll", "studentUid"],
       threshold: 0.3,
     });
   }, [allStudents]);

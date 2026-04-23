@@ -3,39 +3,11 @@ import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useLeaves } from "../hooks/useLeaves";
-import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock, Zap, History, AlignJustify } from "lucide-react";
-import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
+import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock } from "lucide-react";
+import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
-
-// Helper: check if a leave is currently active based on startDate/startTime and endDate/endTime
-const isLeaveActive = (leave: { startDate?: string; date?: string; startTime?: string; endDate?: string; endTime?: string; status?: string }) => {
-  if (leave.status === 'rejected') return false;
-  const now = new Date();
-  const todayISO = now.toISOString().split('T')[0];
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const sDate = leave.startDate || leave.date || "";
-  const eDate = leave.endDate || leave.date || "";
-  if (!sDate || !eDate) return false;
-  if (todayISO < sDate) return false; // Not started yet
-  if (todayISO > eDate) return false; // Already ended
-  if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) return false;
-  if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) return false;
-  return true;
-};
-
-const isLeaveExpired = (leave: { startDate?: string; date?: string; endDate?: string; endTime?: string; status?: string }) => {
-  if (leave.status === 'rejected') return true;
-  const now = new Date();
-  const todayISO = now.toISOString().split('T')[0];
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const eDate = leave.endDate || leave.date || "";
-  if (!eDate) return true;
-  if (todayISO > eDate) return true;
-  if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) return true;
-  return false;
-};
 
 const LeaveManagement: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -45,13 +17,13 @@ const LeaveManagement: React.FC = () => {
 
   const [activeTab, setActiveTab] = useState<"today" | "add" | "view">("today");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
-  const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [startDate, setStartDate] = useState<string>(getTodayISO());
   
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const [startTime, setStartTime] = useState<string>(currentTime);
   
-  const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
+  const [endDate, setEndDate] = useState<string>(getTodayISO());
   const [endTime, setEndTime] = useState<string>("14:00");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
@@ -59,7 +31,6 @@ const LeaveManagement: React.FC = () => {
   
   // View Tab Filters
   const [viewClassId, setViewClassId] = useState<string>("");
-  const [viewStatusFilter, setViewStatusFilter] = useState<"all" | "active" | "expired">("active");
   const [viewSearchQuery, setViewSearchQuery] = useState("");
   
   // Edit/Delete Modals
@@ -67,19 +38,29 @@ const LeaveManagement: React.FC = () => {
   const [deletingLeave, setDeletingLeave] = useState<any>(null);
 
   const classStudents = useMemo(() => {
-    if (!selectedClassId) return [];
-    return (students[selectedClassId] || []).filter(s => s.isActive !== false);
+    let list: any[] = [];
+    if (selectedClassId) {
+      list = students[selectedClassId] || [];
+    } else {
+      list = Object.values(students).flat();
+    }
+    return list.filter(s => s.isActive !== false);
   }, [selectedClassId, students]);
 
   const filteredStudents = useMemo(() => {
+    if (!searchQuery && !selectedClassId) return []; // Don't show all students if no class and no search
     if (!searchQuery) return classStudents;
     const query = searchQuery.toLowerCase();
-    return classStudents.filter(s => 
-      s.name.toLowerCase().includes(query) || 
-      s.roll.toString().includes(query) ||
-      (s.id && s.id.toLowerCase().includes(query)) ||
-      (s.id && s.id.slice(5).includes(query))
-    );
+    const englishQuery = toEnglishNumber(query);
+    
+    return classStudents.filter(s => {
+      const nameMatch = s.name.toLowerCase().includes(query);
+      const rollMatch = s.roll.toString().includes(englishQuery);
+      
+      const uidMatch = s.studentUid && s.studentUid.toLowerCase().includes(englishQuery);
+      
+      return nameMatch || rollMatch || uidMatch;
+    });
   }, [classStudents, searchQuery]);
 
   const toggleStudentSelection = (studentId: string) => {
@@ -106,20 +87,32 @@ const LeaveManagement: React.FC = () => {
       return;
     }
     if (!startDate || !startTime || !endDate || !endTime) {
-      toast.error("তারিখ ও সময় নির্বাচন করুন");
+      toast.error("তারিখ ও সময় নির্বাচন করুন");
       return;
     }
 
-    const leaveData = Array.from(selectedStudents).map(studentId => ({
-      studentId,
-      classId: selectedClassId,
-      startDate,
-      startTime,
-      endDate,
-      endTime,
-      note: studentNotes[studentId] || "",
-      status: 'approved' as const,
-    }));
+    const leaveData = Array.from(selectedStudents).map(studentId => {
+      let studentClassId = selectedClassId;
+      if (!studentClassId) {
+        for (const cId in students) {
+          if (students[cId].some(s => s.id === studentId)) {
+            studentClassId = cId;
+            break;
+          }
+        }
+      }
+
+      return {
+        studentId,
+        classId: studentClassId,
+        startDate,
+        startTime,
+        endDate,
+        endTime,
+        note: studentNotes[studentId] || "",
+        status: 'approved' as const,
+      };
+    });
 
     addLeaves(leaveData);
     setSelectedStudents(new Set());
@@ -143,27 +136,33 @@ const LeaveManagement: React.FC = () => {
     return cls ? cls.name : "অজানা শ্রেণি";
   };
 
-  // Group leaves by date, filtered by class, search and status
+  // Group leaves by date
   const groupedLeaves = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
     
+    // Filter leaves based on viewClassId and viewSearchQuery
     const filteredViewLeaves = leaves.filter(leave => {
       if (viewClassId && leave.classId !== viewClassId) return false;
       
       if (viewSearchQuery) {
         const studentName = getStudentName(leave.studentId, leave.classId).toLowerCase();
         const studentRoll = getStudentRoll(leave.studentId, leave.classId).toString();
+        
+        // Find student to get studentUid
+        const studentList = students[leave.classId] || [];
+        const student = studentList.find(s => s.id === leave.studentId);
+        const studentUid = student?.studentUid?.toLowerCase() || "";
+
         const query = viewSearchQuery.toLowerCase();
-        if (!studentName.includes(query) && !studentRoll.includes(query)) {
+        const englishQuery = toEnglishNumber(query);
+        
+        const matchesName = studentName.includes(query);
+        const matchesRoll = studentRoll.includes(englishQuery);
+        const matchesUid = studentUid && studentUid.includes(englishQuery);
+
+        if (!matchesName && !matchesRoll && !matchesUid) {
           return false;
         }
-      }
-
-      if (viewStatusFilter === "active") {
-        return isLeaveActive(leave);
-      }
-      if (viewStatusFilter === "expired") {
-        return isLeaveExpired(leave);
       }
       
       return true;
@@ -177,14 +176,15 @@ const LeaveManagement: React.FC = () => {
       groups[dateKey].push(leave);
     });
     
+    // Sort dates descending
     return Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map(date => ({
       date,
       leaves: groups[date]
     }));
-  }, [leaves, viewClassId, viewSearchQuery, viewStatusFilter, students]);
+  }, [leaves, viewClassId, viewSearchQuery, students]);
 
   const todayLeavesList = useMemo(() => {
-    const todayISO = new Date().toISOString().split('T')[0];
+    const todayISO = getTodayISO();
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
@@ -206,7 +206,7 @@ const LeaveManagement: React.FC = () => {
   }, [leaves]);
 
   const leaveStats = useMemo(() => {
-    const todayISO = new Date().toISOString().split('T')[0];
+    const todayISO = getTodayISO();
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
@@ -231,8 +231,6 @@ const LeaveManagement: React.FC = () => {
     
     return { activeNow, endingToday };
   }, [leaves]);
-
-  const activeLeaveCount = useMemo(() => leaves.filter(l => isLeaveActive(l)).length, [leaves]);
 
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
@@ -287,7 +285,7 @@ const LeaveManagement: React.FC = () => {
           )}
         >
           <Plus className="w-5 h-5" />
-          ছুটির তালিকায় যুক্ত করুন
+          ছুটির তালিকায় যুক্ত করুন
         </button>
         <button
           onClick={() => setActiveTab("view")}
@@ -300,14 +298,6 @@ const LeaveManagement: React.FC = () => {
         >
           <List className="w-5 h-5" />
           তালিকা দেখুন
-          {activeLeaveCount > 0 && (
-            <span className={clsx(
-              "px-2 py-0.5 rounded-full text-[11px] font-bold",
-              activeTab === "view" ? "bg-white/20 text-white" : "bg-emerald-100 text-emerald-700"
-            )}>
-              {toBengaliNumber(activeLeaveCount)}
-            </span>
-          )}
         </button>
       </div>
 
@@ -319,7 +309,7 @@ const LeaveManagement: React.FC = () => {
            </h3>
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              {todayLeavesList.length > 0 ? todayLeavesList.map(leave => {
-               const todayISO = new Date().toISOString().split('T')[0];
+               const todayISO = getTodayISO();
                const isEndingToday = (leave.endDate || leave.date) === todayISO;
                
                return (
@@ -370,7 +360,7 @@ const LeaveManagement: React.FC = () => {
         <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">শ্রেণি নির্বাচন করুন</label>
+              <label className="text-sm font-bold text-slate-700">শ্রেণি</label>
               <div className="relative">
                 <select
                   value={selectedClassId}
@@ -400,7 +390,7 @@ const LeaveManagement: React.FC = () => {
             </div>
             
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">শুরুর সময়</label>
+              <label className="text-sm font-bold text-slate-700">শুরুর সময়</label>
               <input
                 type="time"
                 value={startTime}
@@ -420,7 +410,7 @@ const LeaveManagement: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <label className="text-sm font-bold text-slate-700">শেষ সময়</label>
+              <label className="text-sm font-bold text-slate-700">শেষ সময়</label>
               <input
                 type="time"
                 value={endTime}
@@ -430,182 +420,164 @@ const LeaveManagement: React.FC = () => {
             </div>
           </div>
 
-          {selectedClassId && (
-            <>
-              <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-                <div className="relative w-full sm:w-96">
-                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-                  <input
-                    type="text"
-                    placeholder="নাম বা রোল দিয়ে খুঁজুন..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full text-base font-medium text-slate-700 bg-slate-50 border border-slate-200 pl-12 rounded-xl py-3 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                  />
-                </div>
-                <div className="flex items-center gap-4 w-full sm:w-auto">
-                  <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
-                    নির্বাচিত: {toBengaliNumber(selectedStudents.size)} জন
-                  </span>
-                  <button
-                    onClick={handleAddLeaves}
-                    disabled={selectedStudents.size === 0}
-                    className={clsx(
-                      "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300",
-                      selectedStudents.size > 0
-                        ? "bg-[#0F5C7A] text-white hover:bg-[#0C4A62] shadow-md"
-                        : "bg-slate-100 text-slate-400 cursor-not-allowed"
-                    )}
-                  >
-                    <CheckCircle className="w-5 h-5" />
-                    সংরক্ষণ করুন
-                  </button>
-                </div>
-              </div>
+          <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
+            <div className="relative w-full sm:w-96">
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+              <input
+                type="text"
+                placeholder="নাম, রোল বা আইডি দিয়ে খুঁজুন..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full text-base font-medium text-slate-700 bg-slate-50 border border-slate-200 pl-12 rounded-xl py-3 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+              />
+            </div>
+            <div className="flex items-center gap-4 w-full sm:w-auto">
+              <span className="text-sm font-medium text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg">
+                নির্বাচিত: {toBengaliNumber(selectedStudents.size)} জন
+              </span>
+              <button
+                onClick={handleAddLeaves}
+                disabled={selectedStudents.size === 0}
+                className={clsx(
+                  "flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-3 rounded-xl font-bold transition-all duration-300",
+                  selectedStudents.size > 0
+                    ? "bg-[#0F5C7A] text-white hover:bg-[#0C4A62] shadow-md"
+                    : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                )}
+              >
+                <CheckCircle className="w-5 h-5" />
+                সংরক্ষণ করুন
+              </button>
+            </div>
+          </div>
 
-              <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left border-collapse">
-                    <thead>
-                      <tr className="bg-slate-50 border-b border-slate-200">
-                        <th className="py-3 px-4 w-12">
-                          <input
-                            type="checkbox"
-                            checked={filteredStudents.length > 0 && selectedStudents.size === filteredStudents.length}
-                            onChange={toggleAllSelection}
-                            className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
-                          />
-                        </th>
-                        <th className="py-3 px-4 text-xs font-bold text-slate-700">রোল</th>
-                        <th className="py-3 px-4 text-xs font-bold text-slate-700">শিক্ষার্থীর নাম</th>
-                        <th className="py-3 px-4 text-xs font-bold text-slate-700">নোট</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                      {filteredStudents.length > 0 ? (
-                        filteredStudents.map((student) => (
-                          <tr 
-                            key={student.id} 
-                            className={clsx(
-                              "hover:bg-slate-50 transition-colors cursor-pointer",
-                              selectedStudents.has(student.id) && "bg-blue-50/50"
+          <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-slate-50 border-b border-slate-200">
+                    <th className="py-3 px-4 w-12">
+                      <input
+                        type="checkbox"
+                        checked={filteredStudents.length > 0 && selectedStudents.size === filteredStudents.length}
+                        onChange={toggleAllSelection}
+                        className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
+                      />
+                    </th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-700">রোল</th>
+                    <th className="py-3 px-4 text-xs font-bold text-slate-700">শিক্ষার্থীর নাম</th>
+                    {!selectedClassId && (
+                      <th className="py-3 px-4 text-xs font-bold text-slate-700">শ্রেণি</th>
+                    )}
+                    <th className="py-3 px-4 text-xs font-bold text-slate-700">নোট</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {filteredStudents.length > 0 ? (
+                    filteredStudents.map((student) => {
+                      let className = "";
+                      if (!selectedClassId) {
+                        for (const cId in students) {
+                          if (students[cId].some(s => s.id === student.id)) {
+                            const cls = classes.find(c => c.id === cId);
+                            if (cls) className = cls.name;
+                            break;
+                          }
+                        }
+                      }
+                      
+                      return (
+                        <tr 
+                          key={student.id} 
+                          className={clsx(
+                            "hover:bg-slate-50 transition-colors cursor-pointer",
+                            selectedStudents.has(student.id) && "bg-blue-50/50"
+                          )}
+                          onClick={() => toggleStudentSelection(student.id)}
+                        >
+                          <td className="py-3 px-4">
+                            <input
+                              type="checkbox"
+                              checked={selectedStudents.has(student.id)}
+                              onChange={() => {}} // Handled by tr click
+                              className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
+                            />
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 font-medium text-sm">{toBengaliNumber(student.roll)}</td>
+                          <td className="py-3 px-4 font-bold text-[#0F5C7A]">
+                            {student.name}
+                            {student.studentUid && (
+                              <div className="text-xs text-slate-400 font-normal font-mono">{student.studentUid}</div>
                             )}
-                            onClick={() => toggleStudentSelection(student.id)}
-                          >
-                            <td className="py-3 px-4">
-                              <input
-                                type="checkbox"
-                                checked={selectedStudents.has(student.id)}
-                                onChange={() => {}} // Handled by tr click
-                                className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
-                              />
-                            </td>
-                            <td className="py-3 px-4 text-slate-700 font-medium text-sm">{toBengaliNumber(student.roll)}</td>
-                            <td className="py-3 px-4 text-slate-800 font-bold text-sm">{student.name}</td>
-                            <td className="py-3 px-4">
-                              <input
-                                type="text"
-                                placeholder="..."
-                                value={studentNotes[student.id] || ""}
-                                onChange={(e) => setStudentNotes(prev => ({ ...prev, [student.id]: e.target.value }))}
-                                onClick={(e) => e.stopPropagation()}
-                                className="w-full text-xs bg-white border border-slate-200 rounded-lg py-1.5 px-2 focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A]/20 outline-none"
-                              />
-                            </td>
-                          </tr>
-                        ))
-                      ) : (
-                        <tr>
-                          <td colSpan={4} className="py-12 text-center text-slate-500">
-                            কোনো শিক্ষার্থী পাওয়া যায়নি
+                          </td>
+                          {!selectedClassId && (
+                            <td className="py-3 px-4 text-slate-600 text-sm whitespace-nowrap">{className}</td>
+                          )}
+                          <td className="py-3 px-4">
+                            <input
+                              type="text"
+                              placeholder="..."
+                              value={studentNotes[student.id] || ""}
+                              onChange={(e) => setStudentNotes(prev => ({ ...prev, [student.id]: e.target.value }))}
+                              onClick={(e) => e.stopPropagation()}
+                              className="w-full text-xs bg-white border border-slate-200 rounded-lg py-1.5 px-2 focus:border-[#0F5C7A] focus:ring-1 focus:ring-[#0F5C7A]/20 outline-none"
+                            />
                           </td>
                         </tr>
-                      )}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </>
-          )}
+                      );
+                    })
+                  ) : (
+                    <tr>
+                      <td colSpan={!selectedClassId ? 5 : 4} className="py-12 text-center text-slate-500">
+                        {!selectedClassId && !searchQuery
+                          ? "অনুগ্রহ করে একটি শ্রেণি নির্বাচন করুন অথবা শিক্ষার্থীর নাম, রোল বা আইডি দিয়ে খুঁজুন।"
+                          : "কোনো শিক্ষার্থী পাওয়া যায়নি"}
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
       {activeTab === "view" && (
         <div className="space-y-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-          {/* Status Filter Tabs */}
-          <div className="flex items-center gap-2 flex-wrap">
-            <button
-              onClick={() => setViewStatusFilter("active")}
-              className={clsx(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
-                viewStatusFilter === "active"
-                  ? "bg-emerald-500 text-white shadow-md shadow-emerald-200"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200"
-              )}
-            >
-              <Zap className="w-4 h-4" />
-              সক্রিয় ছুটি
-              {viewStatusFilter !== "active" && activeLeaveCount > 0 && (
-                <span className="ml-1 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-md text-[11px] font-bold">
-                  {toBengaliNumber(activeLeaveCount)}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setViewStatusFilter("expired")}
-              className={clsx(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
-                viewStatusFilter === "expired"
-                  ? "bg-slate-600 text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              )}
-            >
-              <History className="w-4 h-4" />
-              শেষ হয়েছে
-            </button>
-            <button
-              onClick={() => setViewStatusFilter("all")}
-              className={clsx(
-                "flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all duration-200",
-                viewStatusFilter === "all"
-                  ? "bg-[#0F5C7A] text-white shadow-md"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-50"
-              )}
-            >
-              <AlignJustify className="w-4 h-4" />
-              সবগুলো
-            </button>
-          </div>
+          <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mb-6">
+            <div className="flex flex-col sm:flex-row justify-between items-end gap-6">
+              
+              <div className="flex-1 w-full space-y-2">
+                <label className="text-sm font-bold text-slate-700">শ্রেণি ফিল্টার (ঐচ্ছিক)</label>
+                <div className="relative">
+                  <select
+                    value={viewClassId}
+                    onChange={(e) => setViewClassId(e.target.value)}
+                    className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 appearance-none pr-10 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  >
+                    <option value="">সকল শ্রেণি</option>
+                    {classes.map((cls) => (
+                      <option key={cls.id} value={cls.id}>{cls.name}</option>
+                    ))}
+                  </select>
+                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+                </div>
+              </div>
 
-          <div className="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col sm:flex-row gap-4">
-            <div className="w-full sm:w-1/3">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">শ্রেণি ফিল্টার</label>
-              <div className="relative">
-                <select
-                  value={viewClassId}
-                  onChange={(e) => setViewClassId(e.target.value)}
-                  className="w-full text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 appearance-none pr-10 rounded-xl py-2.5 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                >
-                  <option value="">সকল শ্রেণি</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 pointer-events-none" />
+              <div className="flex-[2] w-full space-y-2">
+                <label className="text-sm font-bold text-slate-700">শিক্ষার্থী খুঁজুন</label>
+                <div className="relative">
+                  <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+                  <input
+                    type="text"
+                    placeholder="নাম, রোল বা আইডি দিয়ে খুঁজুন..."
+                    value={viewSearchQuery}
+                    onChange={(e) => setViewSearchQuery(e.target.value)}
+                    className="w-full text-base font-medium text-slate-700 bg-slate-50 border border-slate-200 pl-12 rounded-xl py-3 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
+                  />
+                </div>
               </div>
-            </div>
-            <div className="w-full sm:w-2/3">
-              <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">শিক্ষার্থী খুঁজুন</label>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="নাম বা রোল দিয়ে খুঁজুন..."
-                  value={viewSearchQuery}
-                  onChange={(e) => setViewSearchQuery(e.target.value)}
-                  className="w-full text-sm font-medium text-slate-700 bg-slate-50 border border-slate-200 pl-10 rounded-xl py-2.5 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                />
-              </div>
+
             </div>
           </div>
 
@@ -634,7 +606,7 @@ const LeaveManagement: React.FC = () => {
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">শ্রেণি</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">রোল</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">শিক্ষার্থীর নাম</th>
-                          <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">সময়কাল</th>
+                          <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">সময়কাল</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider">স্ট্যাটাস</th>
                           <th className="py-3 px-6 text-xs font-semibold text-slate-500 uppercase tracking-wider text-right">অ্যাকশন</th>
                         </tr>
@@ -645,19 +617,9 @@ const LeaveManagement: React.FC = () => {
                             <td className="py-4 px-6 text-sm text-slate-600">{getClassName(leave.classId)}</td>
                             <td className="py-4 px-6 text-sm font-medium text-slate-700">{toBengaliNumber(getStudentRoll(leave.studentId, leave.classId))}</td>
                             <td className="py-4 px-6">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <span className="text-sm font-bold text-slate-800">{getStudentName(leave.studentId, leave.classId)}</span>
-                                {isLeaveActive(leave) ? (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[11px] font-bold whitespace-nowrap">
-                                    <Zap className="w-2.5 h-2.5" />
-                                    সক্রিয়
-                                  </span>
-                                ) : (
-                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-500 rounded-full text-[11px] font-bold whitespace-nowrap">
-                                    <History className="w-2.5 h-2.5" />
-                                    শেষ হয়েছে
-                                  </span>
-                                )}
+                              <div className="text-sm font-bold text-slate-800">{getStudentName(leave.studentId, leave.classId)}</div>
+                              <div className="text-xs text-slate-400 font-mono mt-0.5">
+                                {students[leave.classId]?.find(s => s.id === leave.studentId)?.studentUid || ''}
                               </div>
                               {leave.note && (
                                 <div className="inline-flex items-center mt-1.5 px-2.5 py-1 bg-[#0F5C7A]/5 border border-[#0F5C7A]/10 rounded-md">
@@ -721,14 +683,10 @@ const LeaveManagement: React.FC = () => {
           ) : (
             <div className="bg-white rounded-3xl shadow-sm border border-slate-100 p-12 text-center">
               <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-4">
-                {viewStatusFilter === "active" ? <Zap className="w-10 h-10 text-emerald-300" /> : <CalendarDays className="w-10 h-10 text-slate-300" />}
+                <CalendarDays className="w-10 h-10 text-slate-300" />
               </div>
-              <h3 className="text-xl font-bold text-slate-700 mb-2">
-                {viewStatusFilter === "active" ? "বর্তমানে কেউ ছুটিতে নেই" : viewStatusFilter === "expired" ? "শেষ হয়ে যাওয়া কোনো ছুটি নেই" : "কোনো ছুটির রেকর্ড নেই"}
-              </h3>
-              <p className="text-slate-500">
-                {viewStatusFilter === "active" ? "এই মুহূর্তে কোনো শিক্ষার্থী সক্রিয় ছুটিতে নেই।" : "এখন পর্যন্ত কোনো শিক্ষার্থীর ছুটির রেকর্ড যুক্ত করা হয়নি।"}
-              </p>
+              <h3 className="text-xl font-bold text-slate-700 mb-2">কোনো ছুটির রেকর্ড নেই</h3>
+              <p className="text-slate-500">এখন পর্যন্ত কোনো শিক্ষার্থীর ছুটির রেকর্ড যুক্ত করা হয়নি।</p>
             </div>
           )}
         </div>
@@ -765,7 +723,7 @@ const LeaveManagement: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">শুরুর সময়</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শুরুর সময়</label>
                   <input
                     type="time"
                     value={editingLeave.startTime || "08:00"}
@@ -783,7 +741,7 @@ const LeaveManagement: React.FC = () => {
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-slate-700 mb-2">শেষ সময়</label>
+                  <label className="block text-sm font-bold text-slate-700 mb-2">শেষ সময়</label>
                   <input
                     type="time"
                     value={editingLeave.endTime || "14:00"}

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -137,18 +138,29 @@ const Attendance: React.FC = () => {
       const queryStr = searchQuery.trim();
       const englishQuery = toEnglishNumber(queryStr);
       
-      exactMatches = classStudents.filter(s => 
-        s.roll.toString().includes(englishQuery) || 
-        (s.studentUid && s.studentUid.includes(englishQuery))
-      );
+      exactMatches = classStudents.filter(s => {
+        const rollStr = s.roll.toString();
+        const uidStr = (s.studentUid || "").toLowerCase();
+        const idStr = s.id.toLowerCase();
+        
+        return rollStr === englishQuery || 
+               uidStr === englishQuery || 
+               idStr === englishQuery ||
+               (uidStr.length >= 3 && uidStr.endsWith(englishQuery)) ||
+               (idStr.length >= 3 && idStr.endsWith(englishQuery));
+      });
       
       const exactMatchIds = new Set(exactMatches.map(s => s.id));
       
-      fuzzyMatches = classStudents.filter(s => 
-        !exactMatchIds.has(s.id) &&
-        (s.name.toLowerCase().includes(queryStr.toLowerCase()) ||
-         (s.roll?.toString() || "").includes(englishQuery))
-      );
+      fuzzyMatches = classStudents.filter(s => {
+        if (exactMatchIds.has(s.id)) return false;
+        
+        const nameMatch = s.name.toLowerCase().includes(queryStr.toLowerCase());
+        const rollMatch = s.roll.toString().includes(englishQuery);
+        const uidMatch = (s.studentUid || "").toLowerCase().includes(englishQuery);
+        
+        return nameMatch || rollMatch || uidMatch;
+      });
     } else {
       fuzzyMatches = classStudents;
     }
@@ -379,30 +391,32 @@ const Attendance: React.FC = () => {
         <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
             {/* Bulk Action - Segmented Control */}
             <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 onClick={() => markAll(AttendanceStatus.Present)}
                 className={clsx(
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
                   attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Present)
-                    ? "bg-[#22C55E] text-white shadow-md"
+                    ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/20"
                     : "text-[#22C55E] hover:bg-emerald-50"
                 )}
               >
                 <CheckCircle className="w-4 h-4" />
                 সবাই উপস্থিত
-              </button>
-              <button
+              </motion.button>
+              <motion.button
+                whileTap={{ scale: 0.98 }}
                 onClick={() => markAll(AttendanceStatus.Absent)}
                 className={clsx(
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
                   attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Absent)
-                    ? "bg-[#EF4444] text-white shadow-md"
+                    ? "bg-[#EF4444] text-white shadow-md shadow-[#EF4444]/20"
                     : "text-[#EF4444] hover:bg-rose-50"
                 )}
               >
                 <XCircle className="w-4 h-4" />
                 সবাই অনুপস্থিত
-              </button>
+              </motion.button>
             </div>
 
             {/* Search */}
@@ -456,30 +470,41 @@ const Attendance: React.FC = () => {
                       </div>
                       <div className="flex gap-2 items-center">
                         {isLeave ? (
-                          <div className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm flex items-center gap-1.5">
+                          <motion.div 
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                            className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm flex items-center gap-1.5"
+                          >
                             <Clock className="w-4 h-4" />
                             ছুটি
-                          </div>
+                          </motion.div>
                         ) : (
                           <>
-                            <button
+                            <motion.button
+                              whileTap={{ scale: 0.8 }}
+                              animate={isPresent ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                              transition={{ duration: 0.3 }}
                               onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
                               className={clsx(
-                                "w-9 h-9 rounded-full flex items-center justify-center transition-all",
-                                isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-colors outline-none",
+                                isPresent ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/30" : "bg-slate-100 text-slate-400 hover:bg-emerald-50 hover:text-emerald-500"
                               )}
                             >
                               <CheckCircle className="w-5 h-5" />
-                            </button>
-                            <button
+                            </motion.button>
+                            <motion.button
+                              whileTap={{ scale: 0.8 }}
+                              animate={isAbsent ? { scale: [1, 1.2, 1] } : { scale: 1 }}
+                              transition={{ duration: 0.3 }}
                               onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
                               className={clsx(
-                                "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
-                                isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
+                                "w-9 h-9 rounded-full flex items-center justify-center transition-colors border outline-none",
+                                isAbsent ? "bg-[#EF4444] text-white border-[#EF4444] shadow-md shadow-[#EF4444]/30" : "bg-white text-slate-400 border-slate-200 hover:bg-rose-50 hover:text-rose-500 hover:border-rose-200"
                               )}
                             >
                               <XCircle className="w-5 h-5" />
-                            </button>
+                            </motion.button>
                           </>
                         )}
                       </div>

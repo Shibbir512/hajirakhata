@@ -5,7 +5,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
 import { useLeaves } from "../hooks/useLeaves";
 import { useAuth } from "../hooks/useAuth";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, getTodayISO } from "../utils/dateFormatter";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import {
@@ -81,7 +81,7 @@ const Dashboard: React.FC = () => {
     });
     
     // Calculate leaves for today with exact time check
-    const todayISO = todayDateObj.toISOString().split('T')[0];
+    const todayISO = getTodayISO();
     const currentHour = String(todayDateObj.getHours()).padStart(2, '0');
     const currentMinute = String(todayDateObj.getMinutes()).padStart(2, '0');
     const currentTime = `${currentHour}:${currentMinute}`;
