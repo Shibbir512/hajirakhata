@@ -6,7 +6,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle, Printer } from "lucide-react";
 import { toBengaliDate, toBengaliTime, toBengaliNumber, getDayNameInBengali } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -142,6 +142,74 @@ const AttendanceHistory: React.FC = () => {
       toast.success('রিপোর্ট কপি করা হয়েছে!');
     }
   };
+
+  const handlePrintAbsentees = useCallback((session: any) => {
+    if (!session) return;
+    const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent).map((s:any) => {
+       const classStudents = students[session.classId] || [];
+       const student = classStudents.find(st => st.id === s.studentId);
+       return {
+          roll: student ? student.roll : "",
+          name: student ? student.name : s.studentName,
+          phone: student ? student.phone : ""
+       };
+    }).sort((a: any, b: any) => parseFloat(a.roll) - parseFloat(b.roll));
+
+    if (absentStudents.length === 0) {
+      toast.error("এই সেশনে কেউ অনুপস্থিত নেই।");
+      return;
+    }
+
+    const className = classes.find(c => c.id === session.classId)?.name || "";
+    const dateFormatted = toBengaliDate(session.date);
+
+    let printContents = `
+      <div style="font-family: Arial, sans-serif; padding: 20px;">
+        <h2 style="text-align: center; color: #000; margin-bottom: 5px;">অনুপস্থিত শিক্ষার্থীদের তালিকা</h2>
+        <p style="text-align: center; font-size: 14px; margin-top: 0; margin-bottom: 20px;">শ্রেণি: ${className} | তারিখ: ${dateFormatted}</p>
+        <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+          <thead>
+            <tr style="background-color: #f1f5f9;">
+              <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">রোল</th>
+              <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">নাম</th>
+              <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">মোবাইল নম্বর</th>
+              <th style="border: 1px solid #cbd5e1; padding: 8px; text-align: left;">মন্তব্য</th>
+            </tr>
+          </thead>
+          <tbody>
+    `;
+
+    absentStudents.forEach((student: any) => {
+      printContents += `
+        <tr>
+          <td style="border: 1px solid #cbd5e1; padding: 8px;">${toBengaliNumber(student.roll)}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px;">${student.name}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px;">${toBengaliNumber(student.phone) || '-'}</td>
+          <td style="border: 1px solid #cbd5e1; padding: 8px;"></td>
+        </tr>
+      `;
+    });
+
+    printContents += `
+          </tbody>
+        </table>
+        <div style="margin-top: 60px; display: flex; justify-content: space-between;">
+           <p style="border-top: 1px solid #000; padding-top: 5px;">স্বাক্ষর</p>
+           <p style="border-top: 1px solid #000; padding-top: 5px;">তারিখ</p>
+        </div>
+      </div>
+    `;
+
+    const printWindow = window.open('', '_blank');
+    if (printWindow) {
+      printWindow.document.write('<html><head><title>অনুপস্থিত শিক্ষার্থীদের তালিকা</title></head><body onload="window.print();window.close()">');
+      printWindow.document.write(printContents);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+    } else {
+       toast.error("পপ-আপ ব্লক করা আছে। দয়া করে পপ-আপ আনব্লক করুন।");
+    }
+  }, [students, classes]);
 
   return (
     <div className="space-y-6">
@@ -423,6 +491,13 @@ const AttendanceHistory: React.FC = () => {
                 </div>
               </div>
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => handlePrintAbsentees(viewingSession)}
+                  className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"
+                  title="অনুপস্থিতদের তালিকা প্রিন্ট করুন"
+                >
+                  <Printer className="w-5 h-5 text-white" />
+                </button>
                 <button
                   onClick={() => handleShare(viewingSession)}
                   className="w-[36px] h-[36px] rounded-full bg-white/20 flex items-center justify-center hover:bg-white/30 transition-colors"

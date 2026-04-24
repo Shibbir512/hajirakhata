@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useLeaves } from "../hooks/useLeaves";
 import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock } from "lucide-react";
-import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber, normalizeDateToISO, isLeaveActiveNow } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
@@ -184,48 +184,20 @@ const LeaveManagement: React.FC = () => {
   }, [leaves, viewClassId, viewSearchQuery, students]);
 
   const todayLeavesList = useMemo(() => {
-    const todayISO = getTodayISO();
-    const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
-    return leaves.filter(leave => {
-      if (leave.status === 'approved') {
-        const sDate = leave.startDate || leave.date;
-        const eDate = leave.endDate || leave.date;
-        
-        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
-          let isActive = true;
-          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
-          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
-          
-          return isActive;
-        }
-      }
-      return false;
-    });
+    return leaves.filter(leave => isLeaveActiveNow(leave));
   }, [leaves]);
 
   const leaveStats = useMemo(() => {
     const todayISO = getTodayISO();
-    const now = new Date();
-    const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
     
     let activeNow = 0;
     let endingToday = 0;
     
     leaves.forEach(leave => {
-      if (leave.status === 'approved') {
-        const sDate = leave.startDate || leave.date;
-        const eDate = leave.endDate || leave.date;
-        
-        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
-          let isActive = true;
-          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
-          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
-          
-          if (isActive) activeNow++;
-          if (eDate === todayISO) endingToday++;
-        }
+      if (isLeaveActiveNow(leave)) {
+        activeNow++;
+        const eDate = normalizeDateToISO(leave.endDate || leave.date);
+        if (eDate === todayISO) endingToday++;
       }
     });
     
@@ -310,7 +282,7 @@ const LeaveManagement: React.FC = () => {
            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
              {todayLeavesList.length > 0 ? todayLeavesList.map(leave => {
                const todayISO = getTodayISO();
-               const isEndingToday = (leave.endDate || leave.date) === todayISO;
+               const isEndingToday = normalizeDateToISO(leave.endDate || leave.date) === todayISO;
                
                return (
                  <div key={leave.id} className="p-5 border border-slate-200 rounded-2xl bg-[#F8FAFC] relative overflow-hidden group hover:shadow-md transition-all">

@@ -5,7 +5,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
 import { useLeaves } from "../hooks/useLeaves";
 import { useAuth } from "../hooks/useAuth";
-import { toBengaliNumber, getTodayISO } from "../utils/dateFormatter";
+import { toBengaliNumber, getTodayISO, normalizeDateToISO, isLeaveActiveNow } from "../utils/dateFormatter";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import {
@@ -80,12 +80,8 @@ const Dashboard: React.FC = () => {
     // Fallback leaves count (for students whose attendance is not yet taken today)
     const leavesOnTodaySet = new Set();
     leaves.forEach(leave => {
-      if (leave.status === 'approved') {
-        const sDate = leave.startDate || leave.date;
-        const eDate = leave.endDate || leave.date;
-        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
-          leavesOnTodaySet.add(leave.studentId);
-        }
+      if (isLeaveActiveNow(leave)) {
+        leavesOnTodaySet.add(leave.studentId);
       }
     });
 

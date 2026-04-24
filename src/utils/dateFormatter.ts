@@ -116,3 +116,47 @@ export const getTodayISO = () => {
   const day = String(d.getDate()).padStart(2, '0');
   return `${year}-${month}-${day}`;
 };
+
+export const normalizeDateToISO = (dateStr: string | undefined): string => {
+  if (!dateStr) return "";
+  // If already YYYY-MM-DD
+  if (dateStr.length === 10 && dateStr.charAt(4) === '-') return dateStr;
+  
+  // Format DD MM YYYY or DD-MM-YYYY or DD/MM/YYYY
+  const separator = dateStr.includes("-") ? "-" : dateStr.includes("/") ? "/" : " ";
+  const parts = dateStr.split(separator);
+  if (parts.length === 3) {
+    if (parts[0].length === 4) {
+       // YYYY MM DD
+       return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(2, '0')}`;
+    } else {
+       // DD MM YYYY
+       return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
+    }
+  }
+  return dateStr;
+};
+
+export const isLeaveActiveNow = (leave: any): boolean => {
+  if (leave.status !== 'approved') return false;
+  
+  const todayISO = getTodayISO();
+  const now = new Date();
+  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+  
+  const sDate = normalizeDateToISO(leave.startDate || leave.date);
+  const eDate = normalizeDateToISO(leave.endDate || leave.date);
+  
+  if (!sDate || !eDate || todayISO < sDate || todayISO > eDate) return false;
+  
+  // It's on a valid day. Now check time constraints for today.
+  if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) {
+    return false; // Leave hasn't started yet today
+  }
+  
+  if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) {
+    return false; // Leave has already ended today
+  }
+  
+  return true;
+};
