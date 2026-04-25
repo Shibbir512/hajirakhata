@@ -157,8 +157,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <StudentSearch />
       </div>
 
