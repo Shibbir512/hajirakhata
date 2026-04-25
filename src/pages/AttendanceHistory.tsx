@@ -751,7 +751,9 @@ const AttendanceHistory: React.FC = () => {
                   onClick={() => {
                     const absentStudents = (notifySession.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
                     absentStudents.forEach((student: any) => {
-                      const phone = student.phone || '';
+                      const classStudents = students[notifySession.classId] || [];
+                      const fullStudent = classStudents.find((s: any) => s.id === student.studentId);
+                      const phone = fullStudent?.phone || student.phone || '';
                       if (phone) {
                         const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
                         const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
@@ -768,7 +770,9 @@ const AttendanceHistory: React.FC = () => {
                 {(notifySession.students || [])
                   .filter((student: any) => student.status === AttendanceStatus.Absent)
                   .map((student: any) => {
-                    const phone = student.phone || '';
+                    const classStudents = students[notifySession.classId] || [];
+                    const fullStudent = classStudents.find((s: any) => s.id === student.studentId);
+                    const phone = fullStudent?.phone || student.phone || '';
                     const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
                     const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
