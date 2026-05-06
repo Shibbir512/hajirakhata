@@ -215,7 +215,7 @@ const AttendanceHistory: React.FC = () => {
     <div className="space-y-6">
       
       
-      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB]">
+      <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB] relative z-50">
         <div className="relative w-full max-w-xs">
           <label className="block text-sm font-medium text-slate-500 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
           <div className="relative">
@@ -235,7 +235,7 @@ const AttendanceHistory: React.FC = () => {
           </div>
         </div>
 
-        <div className="relative w-full max-w-xs">
+        <div className="relative w-full max-w-xs z-50">
           <label className="block text-sm font-medium text-slate-500 mb-2 text-center">তারিখ নির্বাচন করুন</label>
           <div className="relative flex items-center">
             <Calendar className="absolute left-4 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
