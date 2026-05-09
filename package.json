@@ -13,6 +13,7 @@
     "@google/genai": "^1.44.0",
     "@types/file-saver": "^2.0.7",
     "browser-image-compression": "^2.0.2",
+    "canvg": "^4.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "docx": "^9.6.0",

@@ -145,6 +145,12 @@ const Login: React.FC = () => {
         setError("পপ-আপ ব্লক করা হয়েছে। অনুগ্রহ করে ব্রাউজার সেটিংসে পপ-আপ এলাউ করুন।");
       } else if (error.code === 'auth/cancelled-popup-request' || error.code === 'auth/popup-closed-by-user') {
         setError("পপ-আপ বন্ধ করে দেওয়া হয়েছে। পুনরায় চেষ্টা করুন।");
+      } else if (error.code === 'auth/unauthorized-domain') {
+        setError('unauthorized-domain');
+      } else if (error.message && (error.message.includes('Cross-Origin-Opener-Policy') || error.message.includes('COOP'))) {
+        setError('coop-error');
+      } else if (error.code === 'auth/network-request-failed') {
+        setError('network-error');
       } else {
         setError(error.message || "লগইন শুরু করতে সমস্যা হয়েছে।");
       }
