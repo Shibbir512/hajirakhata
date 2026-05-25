@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, getDocs, Timestamp, updateDoc, doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Student, AttendanceStatus } from '../types';
@@ -111,9 +111,15 @@ export const useStruckOffStudents = (orgId: string | null, students: { [key: str
     }
   };
 
+  // Stable key to avoid unnecessary refetches when students object reference changes
+  const studentsKey = useMemo(() => {
+    return Object.keys(students).sort().join(',') + ':' + 
+      Object.values(students).flat().length;
+  }, [students]);
+
   useEffect(() => {
     fetchStruckOff();
-  }, [orgId, students]);
+  }, [orgId, studentsKey]);
 
   const markAsActionTaken = async (studentId: string) => {
     if (!orgId || !db) return;

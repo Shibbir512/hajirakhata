@@ -53,7 +53,7 @@ const AttendanceHistory: React.FC = () => {
 
   const classSessions = useMemo(() => {
     let filtered = [...attendanceSessions];
-    
+
     if (mainSearchQuery) {
       const searchLower = mainSearchQuery.toLowerCase();
       filtered = filtered.filter(session => {
@@ -66,7 +66,7 @@ const AttendanceHistory: React.FC = () => {
         });
       });
     }
-    
+
     return filtered;
   }, [attendanceSessions, mainSearchQuery, students]);
 
@@ -89,8 +89,8 @@ const AttendanceHistory: React.FC = () => {
   };
 
   const handleStatusToggle = (studentId: string, status: AttendanceStatus) => {
-    setEditedStudents(prev => prev.map(s => 
-      s.studentId === studentId 
+    setEditedStudents(prev => prev.map(s =>
+      s.studentId === studentId
         ? { ...s, status }
         : s
     ));
@@ -119,12 +119,12 @@ const AttendanceHistory: React.FC = () => {
     const absentCount = absentStudents.length;
 
     let text = `হাজিরা রিপোর্ট\nশ্রেণি: ${className}\nসময়: ${formattedTime} তারিখঃ ${formattedDate}\nউপস্থিত: ${toBengaliNumber(presentCount)} জন\nঅনুপস্থিত: ${toBengaliNumber(absentCount)} জন`;
-    
+
     if (absentCount > 0) {
       const absentNames = absentStudents.map((s: any, index: number) => `${toBengaliNumber(index + 1)}. ${s.studentName}`).join("\n");
       text += `\n\nঅনুপস্থিতদের তালিকা:\n${absentNames}`;
     }
-    
+
     if (navigator.share) {
       try {
         await navigator.share({
@@ -145,8 +145,8 @@ const AttendanceHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-      
+
+
       <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB]">
         <div className="relative w-full max-w-xs">
           <label className="block text-sm font-medium text-slate-500 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
@@ -236,7 +236,7 @@ const AttendanceHistory: React.FC = () => {
                   সিঙ্ক হচ্ছে...
                 </div>
               )}
-              
+
               {/* Header */}
               <div className="flex justify-between items-center mb-4">
                 <h3 className="text-2xl font-bold text-slate-800">{className}</h3>
@@ -249,12 +249,12 @@ const AttendanceHistory: React.FC = () => {
                       <Trash2 className="w-4 h-4" />
                     </button>
                   )}
-                  <button 
+                  <button
                     onClick={(e) => {
                       e.stopPropagation();
                       setNotifySession(session);
                       setIsNotifyModalOpen(true);
-                    }} 
+                    }}
                     className="bg-[#F1F5F9] text-slate-500 hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors"
                     title="অনুপস্থিতদের জানান"
                   >
@@ -262,7 +262,7 @@ const AttendanceHistory: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               {/* Date & Time */}
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-4">
@@ -284,10 +284,10 @@ const AttendanceHistory: React.FC = () => {
                   </div>
                 </div>
               </div>
-              
+
               {/* Divider */}
               <div className="border-t border-slate-200 mb-4"></div>
-              
+
               {/* Absent Section */}
               <div className="mt-auto">
                 <div className="flex items-center justify-between mb-3">
@@ -314,7 +314,7 @@ const AttendanceHistory: React.FC = () => {
                           "bg-[#E0F2FE] text-[#0284C7]", // Blue
                         ];
                         const colorClass = colors[index % colors.length];
-                        
+
                         return (
                           <li key={s.studentId} className="flex items-center gap-3">
                             <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
@@ -474,11 +474,11 @@ const AttendanceHistory: React.FC = () => {
                 }).map((student: any) => (
                   <div key={student.studentId} className={clsx(
                     "flex justify-between items-center p-4 border rounded-[16px] transition-all duration-300",
-                    student.status === AttendanceStatus.Absent 
-                      ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm" 
+                    student.status === AttendanceStatus.Absent
+                      ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm"
                       : student.status === AttendanceStatus.Leave
-                      ? "bg-orange-50 border-orange-200 shadow-sm"
-                      : "bg-white border-slate-100"
+                        ? "bg-orange-50 border-orange-200 shadow-sm"
+                        : "bg-white border-slate-100"
                   )}>
                     <div className="flex items-center gap-3">
                       {student.status === AttendanceStatus.Absent && (
@@ -501,11 +501,11 @@ const AttendanceHistory: React.FC = () => {
                     </div>
                     <span className={clsx(
                       "px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm",
-                      student.status === AttendanceStatus.Present 
-                        ? "bg-[#DCFCE7] text-[#166534] border border-[#DCFCE7]" 
+                      student.status === AttendanceStatus.Present
+                        ? "bg-[#DCFCE7] text-[#166534] border border-[#DCFCE7]"
                         : student.status === AttendanceStatus.Leave
-                        ? "bg-orange-100 text-orange-700 border border-orange-200"
-                        : "bg-[#FEE2E2] text-[#991B1B] border border-[#FEE2E2]"
+                          ? "bg-orange-100 text-orange-700 border border-orange-200"
+                          : "bg-[#FEE2E2] text-[#991B1B] border border-[#FEE2E2]"
                     )}>
                       {student.status === AttendanceStatus.Present ? "উপস্থিত" : student.status === AttendanceStatus.Leave ? "ছুটি" : "অনুপস্থিত"}
                     </span>
@@ -583,34 +583,34 @@ const AttendanceHistory: React.FC = () => {
                       </span>
                     </div>
                     <div className="flex gap-1">
-                      <button 
+                      <button
                         onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Present)}
                         className={clsx(
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                          student.status === AttendanceStatus.Present 
-                            ? "bg-[#22C55E] text-white border-[#22C55E]/90" 
+                          student.status === AttendanceStatus.Present
+                            ? "bg-[#22C55E] text-white border-[#22C55E]/90"
                             : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
                         )}
                       >
                         উপস্থিত
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Absent)}
                         className={clsx(
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                          student.status === AttendanceStatus.Absent 
-                            ? "bg-[#EF4444] text-white border-[#EF4444]/90" 
+                          student.status === AttendanceStatus.Absent
+                            ? "bg-[#EF4444] text-white border-[#EF4444]/90"
                             : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
                         )}
                       >
                         অনুপস্থিত
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleStatusToggle(student.studentId, AttendanceStatus.Leave)}
                         className={clsx(
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
-                          student.status === AttendanceStatus.Leave 
-                            ? "bg-orange-500 text-white border-orange-500/90" 
+                          student.status === AttendanceStatus.Leave
+                            ? "bg-orange-500 text-white border-orange-500/90"
                             : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
                         )}
                       >
@@ -676,10 +676,13 @@ const AttendanceHistory: React.FC = () => {
                   onClick={() => {
                     const absentStudents = (notifySession.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
                     absentStudents.forEach((student: any) => {
-                      const phone = student.phone || '';
+                      // Get phone from students cache since notifySession.students doesn't have phone field
+                      const studentData = students[notifySession.classId]?.find((s: any) => s.id === student.studentId);
+                      const phone = studentData?.phone || '';
                       if (phone) {
                         const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                        const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                        const cleanPhone = phone.replace(/\D/g, '');
+                        const formattedPhone = cleanPhone.startsWith('0') ? '88' + cleanPhone : cleanPhone;
                         window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
                       }
                     });
@@ -693,11 +696,14 @@ const AttendanceHistory: React.FC = () => {
                 {(notifySession.students || [])
                   .filter((student: any) => student.status === AttendanceStatus.Absent)
                   .map((student: any) => {
-                    const phone = student.phone || '';
+                    // Get phone from students cache since notifySession.students doesn't have phone field
+                    const studentData = students[notifySession.classId]?.find((s: any) => s.id === student.studentId);
+                    const phone = studentData?.phone || '';
                     const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                    const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                    const cleanPhone = phone.replace(/\D/g, '');
+                    const formattedPhone = cleanPhone.startsWith('0') ? '88' + cleanPhone : cleanPhone;
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
-                    
+
                     return (
                       <div key={student.studentId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
@@ -717,8 +723,8 @@ const AttendanceHistory: React.FC = () => {
                           rel="noopener noreferrer"
                           className={clsx(
                             "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
-                            phone 
-                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
+                            phone
+                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft"
                               : "bg-slate-100 text-slate-400 cursor-not-allowed"
                           )}
                           onClick={(e) => {

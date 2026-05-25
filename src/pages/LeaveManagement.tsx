@@ -4,7 +4,7 @@ import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useLeaves } from "../hooks/useLeaves";
 import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock, Zap, History, AlignJustify } from "lucide-react";
-import { toBengaliNumber, toBengaliDate } from "../utils/dateFormatter";
+import { toBengaliNumber, toBengaliDate, toBengaliTime } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
@@ -46,22 +46,22 @@ const LeaveManagement: React.FC = () => {
   const [activeTab, setActiveTab] = useState<"today" | "add" | "view">("today");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(new Date().toISOString().split('T')[0]);
-  
+
   const now = new Date();
   const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
   const [startTime, setStartTime] = useState<string>(currentTime);
-  
+
   const [endDate, setEndDate] = useState<string>(new Date().toISOString().split('T')[0]);
   const [endTime, setEndTime] = useState<string>("14:00");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // View Tab Filters
   const [viewClassId, setViewClassId] = useState<string>("");
   const [viewStatusFilter, setViewStatusFilter] = useState<"all" | "active" | "expired">("active");
   const [viewSearchQuery, setViewSearchQuery] = useState("");
-  
+
   // Edit/Delete Modals
   const [editingLeave, setEditingLeave] = useState<any>(null);
   const [deletingLeave, setDeletingLeave] = useState<any>(null);
@@ -74,8 +74,8 @@ const LeaveManagement: React.FC = () => {
   const filteredStudents = useMemo(() => {
     if (!searchQuery) return classStudents;
     const query = searchQuery.toLowerCase();
-    return classStudents.filter(s => 
-      s.name.toLowerCase().includes(query) || 
+    return classStudents.filter(s =>
+      s.name.toLowerCase().includes(query) ||
       s.roll.toString().includes(query) ||
       (s.id && s.id.toLowerCase().includes(query)) ||
       (s.id && s.id.slice(5).includes(query))
@@ -146,10 +146,10 @@ const LeaveManagement: React.FC = () => {
   // Group leaves by date, filtered by class, search and status
   const groupedLeaves = useMemo(() => {
     const groups: { [key: string]: any[] } = {};
-    
+
     const filteredViewLeaves = leaves.filter(leave => {
       if (viewClassId && leave.classId !== viewClassId) return false;
-      
+
       if (viewSearchQuery) {
         const studentName = getStudentName(leave.studentId, leave.classId).toLowerCase();
         const studentRoll = getStudentRoll(leave.studentId, leave.classId).toString();
@@ -165,7 +165,7 @@ const LeaveManagement: React.FC = () => {
       if (viewStatusFilter === "expired") {
         return isLeaveExpired(leave);
       }
-      
+
       return true;
     });
 
@@ -176,7 +176,7 @@ const LeaveManagement: React.FC = () => {
       }
       groups[dateKey].push(leave);
     });
-    
+
     return Object.keys(groups).sort((a, b) => new Date(b).getTime() - new Date(a).getTime()).map(date => ({
       date,
       leaves: groups[date]
@@ -187,17 +187,17 @@ const LeaveManagement: React.FC = () => {
     const todayISO = new Date().toISOString().split('T')[0];
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
+
     return leaves.filter(leave => {
       if (leave.status === 'approved') {
         const sDate = leave.startDate || leave.date;
         const eDate = leave.endDate || leave.date;
-        
+
         if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
           let isActive = true;
           if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
           if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
-          
+
           return isActive;
         }
       }
@@ -209,26 +209,26 @@ const LeaveManagement: React.FC = () => {
     const todayISO = new Date().toISOString().split('T')[0];
     const now = new Date();
     const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-    
+
     let activeNow = 0;
     let endingToday = 0;
-    
+
     leaves.forEach(leave => {
       if (leave.status === 'approved') {
         const sDate = leave.startDate || leave.date;
         const eDate = leave.endDate || leave.date;
-        
+
         if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
           let isActive = true;
           if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) isActive = false;
           if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) isActive = false;
-          
+
           if (isActive) activeNow++;
           if (eDate === todayISO) endingToday++;
         }
       }
     });
-    
+
     return { activeNow, endingToday };
   }, [leaves]);
 
@@ -269,8 +269,8 @@ const LeaveManagement: React.FC = () => {
           onClick={() => setActiveTab("today")}
           className={clsx(
             "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
-            activeTab === "today" 
-              ? "bg-[#0F5C7A] text-white shadow-md" 
+            activeTab === "today"
+              ? "bg-[#0F5C7A] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-50"
           )}
         >
@@ -281,8 +281,8 @@ const LeaveManagement: React.FC = () => {
           onClick={() => setActiveTab("add")}
           className={clsx(
             "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
-            activeTab === "add" 
-              ? "bg-[#0F5C7A] text-white shadow-md" 
+            activeTab === "add"
+              ? "bg-[#0F5C7A] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-50"
           )}
         >
@@ -293,8 +293,8 @@ const LeaveManagement: React.FC = () => {
           onClick={() => setActiveTab("view")}
           className={clsx(
             "flex items-center whitespace-nowrap gap-2 px-6 py-3 rounded-xl font-medium transition-all duration-300",
-            activeTab === "view" 
-              ? "bg-[#0F5C7A] text-white shadow-md" 
+            activeTab === "view"
+              ? "bg-[#0F5C7A] text-white shadow-md"
               : "text-slate-600 hover:bg-slate-50"
           )}
         >
@@ -313,56 +313,56 @@ const LeaveManagement: React.FC = () => {
 
       {activeTab === "today" && (
         <div className="bg-white text-slate-800 rounded-3xl shadow-sm border border-slate-100 p-6 animate-in fade-in slide-in-from-bottom-4 duration-500">
-           <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
-             <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
-             আজকের ছুটিতে যারা আছে
-           </h3>
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-             {todayLeavesList.length > 0 ? todayLeavesList.map(leave => {
-               const todayISO = new Date().toISOString().split('T')[0];
-               const isEndingToday = (leave.endDate || leave.date) === todayISO;
-               
-               return (
-                 <div key={leave.id} className="p-5 border border-slate-200 rounded-2xl bg-[#F8FAFC] relative overflow-hidden group hover:shadow-md transition-all">
-                   {isEndingToday && (
-                     <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
-                       আজই ছুটি শেষ
-                     </div>
-                   )}
-                   <div className="flex gap-4 items-center mb-4">
-                     <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0F5C7A] font-bold text-lg border border-slate-100">
-                       {toBengaliNumber(getStudentRoll(leave.studentId, leave.classId))}
-                     </div>
-                     <div>
-                       <h4 className="font-bold text-slate-800 text-lg leading-tight">{getStudentName(leave.studentId, leave.classId)}</h4>
-                       <p className="text-sm font-medium text-slate-500">{getClassName(leave.classId)}</p>
-                     </div>
-                   </div>
-                   <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5">
-                     <div className="flex gap-2 text-[13px]">
-                       <Clock className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
-                       <span className="text-slate-600 font-medium leading-snug">
-                         {toBengaliDate(leave.startDate || leave.date)} {leave.startTime && `(${toBengaliNumber(leave.startTime)})`} <br/> থেকে <br/> {toBengaliDate(leave.endDate || leave.date)} {leave.endTime && `(${toBengaliNumber(leave.endTime)})`}
-                       </span>
-                     </div>
-                     {leave.note && (
-                       <div className="text-[13px] bg-blue-50/50 text-[#0F5C7A] px-3 py-2 rounded-lg font-semibold border border-blue-100/50">
-                         কারণ: {leave.note}
-                       </div>
-                     )}
-                   </div>
-                 </div>
-               );
-             }) : (
-               <div className="col-span-full py-16 text-center text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
-                 <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-emerald-100">
-                   <CheckCircle className="w-8 h-8 text-emerald-400" />
-                 </div>
-                 <p className="font-bold text-lg text-slate-700">আজ কেউ ছুটিতে নেই!</p>
-                 <p className="text-sm">সব শিক্ষার্থী ক্লাসের জন্য প্রস্তুত আছে।</p>
-               </div>
-             )}
-           </div>
+          <h3 className="text-xl font-bold text-slate-800 mb-6 flex items-center gap-2">
+            <CalendarDays className="w-6 h-6 text-[#0F5C7A]" />
+            আজকের ছুটিতে যারা আছে
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {todayLeavesList.length > 0 ? todayLeavesList.map(leave => {
+              const todayISO = new Date().toISOString().split('T')[0];
+              const isEndingToday = (leave.endDate || leave.date) === todayISO;
+
+              return (
+                <div key={leave.id} className="p-5 border border-slate-200 rounded-2xl bg-[#F8FAFC] relative overflow-hidden group hover:shadow-md transition-all">
+                  {isEndingToday && (
+                    <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-bold px-3 py-1 rounded-bl-xl shadow-sm z-10">
+                      আজই ছুটি শেষ
+                    </div>
+                  )}
+                  <div className="flex gap-4 items-center mb-4">
+                    <div className="w-12 h-12 bg-white rounded-full shadow-sm flex items-center justify-center text-[#0F5C7A] font-bold text-lg border border-slate-100">
+                      {toBengaliNumber(getStudentRoll(leave.studentId, leave.classId))}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-slate-800 text-lg leading-tight">{getStudentName(leave.studentId, leave.classId)}</h4>
+                      <p className="text-sm font-medium text-slate-500">{getClassName(leave.classId)}</p>
+                    </div>
+                  </div>
+                  <div className="bg-white rounded-xl p-3 border border-slate-100 space-y-2.5">
+                    <div className="flex gap-2 text-[13px]">
+                      <Clock className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
+                      <span className="text-slate-600 font-medium leading-snug">
+                        {toBengaliDate(leave.startDate || leave.date)} {leave.startTime && `(${toBengaliTime(leave.startTime)})`} <br /> থেকে <br /> {toBengaliDate(leave.endDate || leave.date)} {leave.endTime && `(${toBengaliTime(leave.endTime)})`}
+                      </span>
+                    </div>
+                    {leave.note && (
+                      <div className="text-[13px] bg-blue-50/50 text-[#0F5C7A] px-3 py-2 rounded-lg font-semibold border border-blue-100/50">
+                        কারণ: {leave.note}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              );
+            }) : (
+              <div className="col-span-full py-16 text-center text-slate-500 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <div className="w-16 h-16 bg-white rounded-full shadow-sm flex items-center justify-center mx-auto mb-4 border border-emerald-100">
+                  <CheckCircle className="w-8 h-8 text-emerald-400" />
+                </div>
+                <p className="font-bold text-lg text-slate-700">আজ কেউ ছুটিতে নেই!</p>
+                <p className="text-sm">সব শিক্ষার্থী ক্লাসের জন্য প্রস্তুত আছে।</p>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
@@ -398,7 +398,7 @@ const LeaveManagement: React.FC = () => {
                 className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
               />
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">শুরুর সময়</label>
               <input
@@ -484,8 +484,8 @@ const LeaveManagement: React.FC = () => {
                     <tbody className="divide-y divide-slate-100">
                       {filteredStudents.length > 0 ? (
                         filteredStudents.map((student) => (
-                          <tr 
-                            key={student.id} 
+                          <tr
+                            key={student.id}
                             className={clsx(
                               "hover:bg-slate-50 transition-colors cursor-pointer",
                               selectedStudents.has(student.id) && "bg-blue-50/50"
@@ -496,7 +496,7 @@ const LeaveManagement: React.FC = () => {
                               <input
                                 type="checkbox"
                                 checked={selectedStudents.has(student.id)}
-                                onChange={() => {}} // Handled by tr click
+                                onChange={() => { }} // Handled by tr click
                                 className="w-4 h-4 rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A] cursor-pointer"
                               />
                             </td>
@@ -626,7 +626,7 @@ const LeaveManagement: React.FC = () => {
                       <p className="text-sm text-slate-500">{formattedDate}</p>
                     </div>
                   </div>
-                  
+
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
@@ -823,8 +823,8 @@ const LeaveManagement: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  updateLeave(editingLeave.id, { 
-                    startDate: editingLeave.startDate, 
+                  updateLeave(editingLeave.id, {
+                    startDate: editingLeave.startDate,
                     startTime: editingLeave.startTime,
                     endDate: editingLeave.endDate,
                     endTime: editingLeave.endTime,

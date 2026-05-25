@@ -85,20 +85,20 @@ const Attendance: React.FC = () => {
       setAttendanceState(new Map());
       return;
     }
-    
+
     const newMap = new Map();
     const now = new Date();
-    
+
     classStudents.forEach((student) => {
       // Check if student is on leave right now
       let isOnLeave = false;
       let leaveNote = '';
-      
+
       for (const leave of leaves) {
         if (leave.studentId === student.id) {
           const start = new Date(`${leave.startDate || leave.date}T${leave.startTime || '00:00'}:00`);
           const end = new Date(`${leave.endDate || leave.date}T${leave.endTime || '23:59'}:59`);
-          
+
           if (now >= start && now <= end) {
             isOnLeave = true;
             leaveNote = leave.note || 'ছুটি';
@@ -106,7 +106,7 @@ const Attendance: React.FC = () => {
           }
         }
       }
-      
+
       if (isOnLeave) {
         newMap.set(student.id, { status: AttendanceStatus.Leave, studentName: student.name, note: leaveNote });
       } else {
@@ -128,26 +128,34 @@ const Attendance: React.FC = () => {
     return { total: attendanceState.size, present, absent, leave };
   }, [attendanceState]);
 
+  const bulkActionState = useMemo(() => {
+    const nonLeave = Array.from(attendanceState.values()).filter(s => s.status !== AttendanceStatus.Leave);
+    return {
+      allPresent: nonLeave.length > 0 && nonLeave.every(s => s.status === AttendanceStatus.Present),
+      allAbsent: nonLeave.length > 0 && nonLeave.every(s => s.status === AttendanceStatus.Absent),
+    };
+  }, [attendanceState]);
+
   const filteredAndSortedStudents = useMemo(() => {
     let result = classStudents;
     let exactMatches: typeof classStudents = [];
     let fuzzyMatches: typeof classStudents = [];
-    
+
     if (searchQuery) {
       const queryStr = searchQuery.trim();
       const englishQuery = toEnglishNumber(queryStr);
-      
-      exactMatches = classStudents.filter(s => 
-        s.roll.toString().includes(englishQuery) || 
+
+      exactMatches = classStudents.filter(s =>
+        s.roll.toString().includes(englishQuery) ||
         (s.studentUid && s.studentUid.includes(englishQuery))
       );
-      
+
       const exactMatchIds = new Set(exactMatches.map(s => s.id));
-      
-      fuzzyMatches = classStudents.filter(s => 
+
+      fuzzyMatches = classStudents.filter(s =>
         !exactMatchIds.has(s.id) &&
         (s.name.toLowerCase().includes(queryStr.toLowerCase()) ||
-         (s.roll?.toString() || "").includes(englishQuery))
+          (s.roll?.toString() || "").includes(englishQuery))
       );
     } else {
       fuzzyMatches = classStudents;
@@ -157,8 +165,8 @@ const Attendance: React.FC = () => {
       if (sortConfig.key === 'roll') {
         return sortConfig.direction === 'asc' ? a.roll - b.roll : b.roll - a.roll;
       } else {
-        return sortConfig.direction === 'asc' 
-          ? a.name.localeCompare(b.name) 
+        return sortConfig.direction === 'asc'
+          ? a.name.localeCompare(b.name)
           : b.name.localeCompare(a.name);
       }
     };
@@ -188,6 +196,7 @@ const Attendance: React.FC = () => {
   // Infinite scroll observer
   const observerTarget = useRef<HTMLDivElement>(null);
   useEffect(() => {
+    const target = observerTarget.current;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && currentPage < totalPages) {
@@ -197,16 +206,16 @@ const Attendance: React.FC = () => {
       { threshold: 0.1 }
     );
 
-    if (observerTarget.current) {
-      observer.observe(observerTarget.current);
+    if (target) {
+      observer.observe(target);
     }
 
     return () => {
-      if (observerTarget.current) {
-        observer.unobserve(observerTarget.current);
+      if (target) {
+        observer.unobserve(target);
       }
     };
-  }, [observerTarget, currentPage, totalPages]);
+  }, [currentPage, totalPages]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
@@ -241,7 +250,7 @@ const Attendance: React.FC = () => {
 
   const sendWhatsAppToAbsentees = () => {
     const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent);
-    
+
     if (absentees.length === 0) {
       toast.error("কোনো অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি।");
       return;
@@ -265,10 +274,10 @@ const Attendance: React.FC = () => {
       const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ (${todayDate}) মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
       let phone = student.phone!.replace(/\D/g, ''); // Remove non-digits
       if (phone.startsWith('0')) {
-          phone = '88' + phone;
+        phone = '88' + phone;
       }
       const url = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
-      
+
       // Open with delay to avoid browser blocking
       setTimeout(() => {
         window.open(url, '_blank');
@@ -279,7 +288,7 @@ const Attendance: React.FC = () => {
   const confirmSave = async () => {
     setIsConfirmDialogOpen(false);
     await takeAttendance(selectedClassId, attendanceState);
-    
+
     // Check if there are any absentees - if so, auto-open the notification modal
     const absentCount = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent).length;
     if (absentCount > 0) {
@@ -312,10 +321,10 @@ const Attendance: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
-          
+
           <p className="text-slate-500 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
         </div>
-        
+
         {/* Class Selection Input Top Level */}
         <div className="w-full sm:w-72">
           <div className="relative w-full">
@@ -377,179 +386,179 @@ const Attendance: React.FC = () => {
 
       {selectedClassId ? (
         <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
-            {/* Bulk Action - Segmented Control */}
-            <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
-              <button
-                onClick={() => markAll(AttendanceStatus.Present)}
-                className={clsx(
-                  "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
-                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Present)
-                    ? "bg-[#22C55E] text-white shadow-md"
-                    : "text-[#22C55E] hover:bg-emerald-50"
-                )}
-              >
-                <CheckCircle className="w-4 h-4" />
-                সবাই উপস্থিত
-              </button>
-              <button
-                onClick={() => markAll(AttendanceStatus.Absent)}
-                className={clsx(
-                  "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
-                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Absent)
-                    ? "bg-[#EF4444] text-white shadow-md"
-                    : "text-[#EF4444] hover:bg-rose-50"
-                )}
-              >
-                <XCircle className="w-4 h-4" />
-                সবাই অনুপস্থিত
-              </button>
-            </div>
+          {/* Bulk Action - Segmented Control */}
+          <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
+            <button
+              onClick={() => markAll(AttendanceStatus.Present)}
+              className={clsx(
+                "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
+                bulkActionState.allPresent
+                  ? "bg-[#22C55E] text-white shadow-md"
+                  : "text-[#22C55E] hover:bg-emerald-50"
+              )}
+            >
+              <CheckCircle className="w-4 h-4" />
+              সবাই উপস্থিত
+            </button>
+            <button
+              onClick={() => markAll(AttendanceStatus.Absent)}
+              className={clsx(
+                "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
+                bulkActionState.allAbsent
+                  ? "bg-[#EF4444] text-white shadow-md"
+                  : "text-[#EF4444] hover:bg-rose-50"
+              )}
+            >
+              <XCircle className="w-4 h-4" />
+              সবাই অনুপস্থিত
+            </button>
+          </div>
 
-            {/* Search */}
-            <div className="relative w-full mb-6">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
-              <input
-                type="text"
-                placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setCurrentPage(1);
-                }}
-                className="w-full h-[52px] text-base font-medium text-slate-700 bg-white pl-12 rounded-2xl shadow-soft border border-slate-100 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-              />
-            </div>
+          {/* Search */}
+          <div className="relative w-full mb-6">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <input
+              type="text"
+              placeholder="শিক্ষার্থীর নাম বা রোল দিয়ে খুঁজুন..."
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setCurrentPage(1);
+              }}
+              className="w-full h-[52px] text-base font-medium text-slate-700 bg-white pl-12 rounded-2xl shadow-soft border border-slate-100 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+            />
+          </div>
 
-            <div className="space-y-3">
-              {paginatedStudents.map((student) => {
-                const statusData = attendanceState.get(student.id);
-                const status = statusData?.status;
-                const isPresent = status === AttendanceStatus.Present;
-                const isAbsent = status === AttendanceStatus.Absent;
-                const isLeave = status === AttendanceStatus.Leave;
+          <div className="space-y-3">
+            {paginatedStudents.map((student) => {
+              const statusData = attendanceState.get(student.id);
+              const status = statusData?.status;
+              const isPresent = status === AttendanceStatus.Present;
+              const isAbsent = status === AttendanceStatus.Absent;
+              const isLeave = status === AttendanceStatus.Leave;
 
-                return (
-                  <div key={student.id} className={clsx("bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3", isLeave && "opacity-80 border border-orange-200")}>
-                    <div className="flex justify-between items-center mb-2">
-                      <div className="flex items-center gap-3">
-                        {student.photoUrl ? (
-                          <img 
-                            src={student.photoUrl} 
-                            alt={student.name} 
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200 cursor-pointer hover:scale-110 transition-transform" 
-                            referrerPolicy="no-referrer"
-                            onClick={() => setViewingImage({ url: student.photoUrl!, name: student.name })}
-                          />
-                        ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-sm">
-                            {student.name.charAt(0)}
-                          </div>
-                        )}
-                        <div className="flex flex-col">
-                          <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
-                          {isLeave && statusData?.note && (
-                            <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full w-fit mt-1">
-                              কারণ: {statusData.note}
-                            </span>
-                          )}
+              return (
+                <div key={student.id} className={clsx("bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3", isLeave && "opacity-80 border border-orange-200")}>
+                  <div className="flex justify-between items-center mb-2">
+                    <div className="flex items-center gap-3">
+                      {student.photoUrl ? (
+                        <img
+                          src={student.photoUrl}
+                          alt={student.name}
+                          className="w-10 h-10 rounded-full object-cover border border-slate-200 cursor-pointer hover:scale-110 transition-transform"
+                          referrerPolicy="no-referrer"
+                          onClick={() => setViewingImage({ url: student.photoUrl!, name: student.name })}
+                        />
+                      ) : (
+                        <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-sm">
+                          {student.name.charAt(0)}
                         </div>
-                      </div>
-                      <div className="flex gap-2 items-center">
-                        {isLeave ? (
-                          <div className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm flex items-center gap-1.5">
-                            <Clock className="w-4 h-4" />
-                            ছুটি
-                          </div>
-                        ) : (
-                          <>
-                            <button
-                              onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
-                              className={clsx(
-                                "w-9 h-9 rounded-full flex items-center justify-center transition-all",
-                                isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
-                              )}
-                            >
-                              <CheckCircle className="w-5 h-5" />
-                            </button>
-                            <button
-                              onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
-                              className={clsx(
-                                "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
-                                isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
-                              )}
-                            >
-                              <XCircle className="w-5 h-5" />
-                            </button>
-                          </>
+                      )}
+                      <div className="flex flex-col">
+                        <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                        {isLeave && statusData?.note && (
+                          <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                            কারণ: {statusData.note}
+                          </span>
                         )}
                       </div>
                     </div>
-                    {!isLeave && (
-                      <input
-                        type="text"
-                        placeholder="+ নোট যোগ করুন"
-                        value={statusData?.note || ''}
-                        onChange={(e) => handleNoteChange(student.id, e.target.value)}
-                        className="w-full text-sm text-slate-500 bg-slate-50 p-2 rounded-lg outline-none"
-                      />
-                    )}
+                    <div className="flex gap-2 items-center">
+                      {isLeave ? (
+                        <div className="px-3 py-1.5 bg-orange-100 text-orange-700 rounded-lg font-bold text-sm flex items-center gap-1.5">
+                          <Clock className="w-4 h-4" />
+                          ছুটি
+                        </div>
+                      ) : (
+                        <>
+                          <button
+                            onClick={() => handleStatusChange(student.id, AttendanceStatus.Present)}
+                            className={clsx(
+                              "w-9 h-9 rounded-full flex items-center justify-center transition-all",
+                              isPresent ? "bg-[#22C55E] text-white" : "bg-slate-100 text-slate-400"
+                            )}
+                          >
+                            <CheckCircle className="w-5 h-5" />
+                          </button>
+                          <button
+                            onClick={() => handleStatusChange(student.id, AttendanceStatus.Absent)}
+                            className={clsx(
+                              "w-9 h-9 rounded-full flex items-center justify-center transition-all border",
+                              isAbsent ? "bg-[#EF4444] text-white border-[#EF4444]" : "bg-white text-slate-400 border-slate-200"
+                            )}
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                );
-              })}
-              {paginatedStudents.length === 0 && (
-                <div className="text-center py-12 text-slate-500">
-                  কোন শিক্ষার্থী পাওয়া যায়নি।
+                  {!isLeave && (
+                    <input
+                      type="text"
+                      placeholder="+ নোট যোগ করুন"
+                      value={statusData?.note || ''}
+                      onChange={(e) => handleNoteChange(student.id, e.target.value)}
+                      className="w-full text-sm text-slate-500 bg-slate-50 p-2 rounded-lg outline-none"
+                    />
+                  )}
                 </div>
-              )}
-            </div>
-
-            {/* Infinite Scroll Target */}
-            {currentPage < totalPages && (
-              <div ref={observerTarget} className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-[#0F5C7A]" />
+              );
+            })}
+            {paginatedStudents.length === 0 && (
+              <div className="text-center py-12 text-slate-500">
+                কোন শিক্ষার্থী পাওয়া যায়নি।
               </div>
             )}
-            
-            {totalPages > 1 && currentPage === totalPages && (
-              <div className="text-center py-4 text-sm text-slate-500">
-                সব শিক্ষার্থী দেখানো হয়েছে (মোট {toBengaliNumber(filteredAndSortedStudents.length)} জন)
-              </div>
-            )}
-
-            <div className="mt-8 flex flex-col gap-4">
-              <button
-                onClick={handleSave}
-                disabled={isTakingAttendance}
-                className="w-full h-[52px] bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
-              >
-                {isTakingAttendance ? (
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                ) : (
-                  <Save className="w-5 h-5" />
-                )}
-                {isTakingAttendance ? 'সংরক্ষণ করা হচ্ছে...' : 'হাজিরা সংরক্ষণ করুন'}
-              </button>
-
-              {liveCounter.absent > 0 && (
-                <button
-                  onClick={() => setIsNotifyModalOpen(true)}
-                  className="w-full h-[52px] bg-[#F1F5F9] text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 border border-slate-200"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  অনুপস্থিতদের জানান
-                </button>
-              )}
-            </div>
-        </div>
-        ) : (
-          <div className="text-center py-24 text-slate-500 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
-            <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
-              <Users className="w-10 h-10 text-[#0F5C7A]/50" />
-            </div>
-            <h3 className="text-xl font-bold text-slate-700 mb-2">কোনো শ্রেণি নির্বাচন করা হয়নি</h3>
-            <p className="text-base text-slate-500 max-w-sm mx-auto">হাজিরা দেখতে বা রেকর্ড করতে পৃষ্ঠার উপরের ডানদিক থেকে প্রথমে একটি শ্রেণি নির্বাচন করুন।</p>
           </div>
-        )}
+
+          {/* Infinite Scroll Target */}
+          {currentPage < totalPages && (
+            <div ref={observerTarget} className="flex justify-center py-4">
+              <Loader2 className="w-6 h-6 animate-spin text-[#0F5C7A]" />
+            </div>
+          )}
+
+          {totalPages > 1 && currentPage === totalPages && (
+            <div className="text-center py-4 text-sm text-slate-500">
+              সব শিক্ষার্থী দেখানো হয়েছে (মোট {toBengaliNumber(filteredAndSortedStudents.length)} জন)
+            </div>
+          )}
+
+          <div className="mt-8 flex flex-col gap-4">
+            <button
+              onClick={handleSave}
+              disabled={isTakingAttendance}
+              className="w-full h-[52px] bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2"
+            >
+              {isTakingAttendance ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <Save className="w-5 h-5" />
+              )}
+              {isTakingAttendance ? 'সংরক্ষণ করা হচ্ছে...' : 'হাজিরা সংরক্ষণ করুন'}
+            </button>
+
+            {liveCounter.absent > 0 && (
+              <button
+                onClick={() => setIsNotifyModalOpen(true)}
+                className="w-full h-[52px] bg-[#F1F5F9] text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 border border-slate-200"
+              >
+                <MessageCircle className="w-5 h-5" />
+                অনুপস্থিতদের জানান
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
+        <div className="text-center py-24 text-slate-500 bg-white rounded-3xl border border-dashed border-slate-300 shadow-sm">
+          <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Users className="w-10 h-10 text-[#0F5C7A]/50" />
+          </div>
+          <h3 className="text-xl font-bold text-slate-700 mb-2">কোনো শ্রেণি নির্বাচন করা হয়নি</h3>
+          <p className="text-base text-slate-500 max-w-sm mx-auto">হাজিরা দেখতে বা রেকর্ড করতে পৃষ্ঠার উপরের ডানদিক থেকে প্রথমে একটি শ্রেণি নির্বাচন করুন।</p>
+        </div>
+      )}
 
       <ConfirmationDialog
         isOpen={isConfirmDialogOpen}
@@ -599,16 +608,16 @@ const Attendance: React.FC = () => {
                     const phone = student.phone || '';
                     const todayDate = new Intl.DateTimeFormat('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
                     const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.name} আজ (${todayDate}) মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                    
+
                     // Sanitize phone: remove non-digits
-                    let rawPhone = phone.replace(/\D/g, ''); 
+                    let rawPhone = phone.replace(/\D/g, '');
                     if (rawPhone.startsWith('0')) {
-                        rawPhone = '88' + rawPhone;
+                      rawPhone = '88' + rawPhone;
                     }
-                    
+
                     const isValidPhone = rawPhone.length >= 10;
                     const whatsappUrl = isValidPhone ? `https://wa.me/${rawPhone}?text=${encodeURIComponent(message)}` : '#';
-                    
+
                     return (
                       <div key={student.id} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
@@ -628,8 +637,8 @@ const Attendance: React.FC = () => {
                           rel="noopener noreferrer"
                           className={clsx(
                             "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
-                            isValidPhone 
-                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
+                            isValidPhone
+                              ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft"
                               : "bg-slate-100 text-slate-400 cursor-not-allowed"
                           )}
                           onClick={(e) => {
