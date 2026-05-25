@@ -29,7 +29,7 @@ import toast from "react-hot-toast";
 import Papa from "papaparse";
 
 import { startOfDay, endOfDay, startOfWeek, startOfMonth } from "date-fns";
-import { toBengaliNumber, toEnglishNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
 
 const Reports: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -309,7 +309,7 @@ const Reports: React.FC = () => {
         heightLeft -= pageHeight;
       }
       
-      pdf.save(`attendance-report-${new Date().toISOString().split('T')[0]}.pdf`);
+      pdf.save(`attendance-report-${getTodayISO()}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!", { id: toastId });
     } catch (error) {
       console.error("PDF Export Error:", error);
@@ -332,7 +332,7 @@ const Reports: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `attendance-report-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `attendance-report-${getTodayISO()}.csv`;
     a.click();
   };
 

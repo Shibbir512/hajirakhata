@@ -5,7 +5,7 @@ import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
 import { useLeaves } from "../hooks/useLeaves";
 import { useAuth } from "../hooks/useAuth";
-import { toBengaliNumber } from "../utils/dateFormatter";
+import { toBengaliNumber, getTodayISO, normalizeDateToISO, isLeaveActiveNow } from "../utils/dateFormatter";
 import clsx from "clsx";
 import { useNavigate } from "react-router-dom";
 import {
@@ -43,7 +43,8 @@ const Dashboard: React.FC = () => {
   const { leaves } = useLeaves(orgId, user);
 
   const stats = useMemo(() => {
-    const totalStudents = Object.values(students).flat().length;
+    const activeStudents = Object.values(students).flat().filter(s => s.isActive !== false);
+    const totalStudents = activeStudents.length;
     const totalClasses = classes.length;
 
     const todayDateObj = new Date();
@@ -57,7 +58,9 @@ const Dashboard: React.FC = () => {
 
     todaysSessions.forEach(s => {
       s.students.forEach((st: any) => {
-        const sid = st.studentId || st.id || st.name;
+        const sid = st.studentId || st.id;
+        if (!sid) return;
+        
         if (st.status === "present") {
           studentStatusMap.set(sid, "present");
         } else if (st.status === "leave") {
@@ -72,45 +75,37 @@ const Dashboard: React.FC = () => {
       });
     });
 
+    const todayISO = getTodayISO();
+    
+    // Fallback leaves count (for students whose attendance is not yet taken today)
+    const leavesOnTodaySet = new Set();
+    leaves.forEach(leave => {
+      if (isLeaveActiveNow(leave)) {
+        leavesOnTodaySet.add(leave.studentId);
+      }
+    });
+
     let presentToday = 0;
     let absentToday = 0;
+    let leavesOnToday = 0;
 
-    studentStatusMap.forEach((status) => {
-      if (status === 'present') presentToday++;
-      if (status === 'absent') absentToday++;
-    });
-    
-    // Calculate leaves for today with exact time check
-    const todayISO = todayDateObj.toISOString().split('T')[0];
-    const currentHour = String(todayDateObj.getHours()).padStart(2, '0');
-    const currentMinute = String(todayDateObj.getMinutes()).padStart(2, '0');
-    const currentTime = `${currentHour}:${currentMinute}`;
-    
-    const leavesOnTodaySet = new Set();
-
-    leaves.forEach(leave => {
-      if (leave.status === 'approved') {
-        const sDate = leave.startDate || leave.date;
-        const eDate = leave.endDate || leave.date;
-        
-        if (sDate && eDate && todayISO >= sDate && todayISO <= eDate) {
-          let isActive = true;
-          
-          if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) {
-            isActive = false; // Hasn't started yet today
-          }
-          if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) {
-            isActive = false; // Already finished today
-          }
-          
-          if (isActive) {
-            leavesOnTodaySet.add(leave.studentId);
-          }
+    activeStudents.forEach((student) => {
+      const sid = student.id;
+      const status = studentStatusMap.get(sid);
+      
+      if (status === 'present') {
+        presentToday++;
+      } else if (status === 'absent') {
+        absentToday++;
+      } else if (status === 'leave') {
+        leavesOnToday++;
+      } else {
+        // Attendance not taken yet for this student
+        if (leavesOnTodaySet.has(sid)) {
+          leavesOnToday++;
         }
       }
     });
-    
-    const leavesOnToday = leavesOnTodaySet.size;
 
     return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
@@ -162,8 +157,7 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <StudentSearch />
       </div>
 

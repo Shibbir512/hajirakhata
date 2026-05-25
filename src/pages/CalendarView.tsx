@@ -173,6 +173,7 @@ const CalendarView: React.FC = () => {
         
         // Find events for this day
         const dayAnnouncements = announcements.filter(a => {
+          if (a.isHidden) return false;
           const createdAt: any = a.createdAt;
           const aDate = createdAt?.toDate ? createdAt.toDate() : (typeof createdAt === 'number' ? new Date(createdAt) : new Date());
           return isSameDay(aDate, cloneDay);
@@ -255,6 +256,7 @@ const CalendarView: React.FC = () => {
     if (!selectedDate) return null;
 
     const dayAnnouncements = announcements.filter(a => {
+      if (a.isHidden) return false;
       const createdAt: any = a.createdAt;
       const aDate = createdAt?.toDate ? createdAt.toDate() : (typeof createdAt === 'number' ? new Date(createdAt) : new Date());
       return isSameDay(aDate, selectedDate);

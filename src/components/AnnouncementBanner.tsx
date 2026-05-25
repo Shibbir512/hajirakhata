@@ -9,9 +9,27 @@ interface AnnouncementBannerProps {
 export const AnnouncementBanner: React.FC<AnnouncementBannerProps> = ({ orgId }) => {
   const { announcements, loading } = useAnnouncements(orgId);
 
-  if (loading || announcements.length === 0) return null;
+  const visibleAnnouncements = announcements.filter(a => {
+    if (a.isHidden) return false;
+    
+    if (a.createdAt) {
+      const createdDate = typeof a.createdAt === 'object' && 'toDate' in (a.createdAt as any) && typeof (a.createdAt as any).toDate === 'function'
+        ? (a.createdAt as any).toDate() 
+        : new Date(a.createdAt as any);
+        
+      const now = new Date();
+      const diffInMs = now.getTime() - createdDate.getTime();
+      const diffInHours = diffInMs / (1000 * 60 * 60);
+      
+      if (diffInHours > 24) return false;
+    }
+    
+    return true;
+  });
 
-  const latestAnnouncement = announcements[0];
+  if (loading || visibleAnnouncements.length === 0) return null;
+
+  const latestAnnouncement = visibleAnnouncements[0];
 
   return (
     <div className="mb-6 rounded-[16px] overflow-hidden shadow-[0_4px_12px_rgba(0,0,0,0.08)] bg-gradient-to-b from-[#E6F4F1] to-[#FFFFFF] border border-[#E6F4F1]">

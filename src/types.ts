@@ -98,6 +98,7 @@ export interface Announcement {
   createdAt: number;
   createdBy: string;
   creatorName: string;
+  isHidden?: boolean;
 }
 
 export interface Holiday {

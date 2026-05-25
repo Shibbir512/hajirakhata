@@ -46,7 +46,10 @@ const Exams: React.FC = () => {
     setName(exam.name);
     setAcademicYearId(exam.academicYearId);
     setClassId(exam.classId);
-    setExamDate(exam.examDate ? new Date(exam.examDate).toISOString().split('T')[0] : "");
+    setExamDate(exam.examDate ? (() => {
+      const d = new Date(exam.examDate);
+      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    })() : "");
     setInstructions(exam.instructions || "");
     setEditingExam(exam);
     setIsModalOpen(true);
