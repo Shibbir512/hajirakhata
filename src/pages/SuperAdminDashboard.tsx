@@ -12,6 +12,7 @@ interface OrgStats {
   studentCount: number;
   teacherCount: number;
   isBlocked?: boolean;
+  status?: string;
   createdAt?: any;
 }
 
@@ -47,7 +48,9 @@ const SuperAdminDashboard: React.FC = () => {
           (userDoc) => userDoc.data().organizationId === orgId
         ).length;
 
-        stats.push({ id: orgId, name: orgName, orgCode, studentCount, teacherCount, isBlocked, createdAt: orgData.createdAt });
+        const status = orgData.status || "active";
+
+        stats.push({ id: orgId, name: orgName, orgCode, studentCount, teacherCount, isBlocked, status, createdAt: orgData.createdAt });
       }
       setOrgStats(stats);
     } catch (error) {
@@ -173,6 +176,20 @@ const SuperAdminDashboard: React.FC = () => {
     }
   };
 
+  const approveOrganization = async (orgId: string) => {
+    setActionLoading(true);
+    try {
+      await updateDoc(doc(db, "organizations", orgId), { status: "active" });
+      setOrgStats(prev => prev.map(o => o.id === orgId ? { ...o, status: "active" } : o));
+      toast.success("প্রতিষ্ঠানটি অনুমোদন করা হয়েছে।");
+    } catch (e) {
+      console.error(e);
+      toast.error("অনুমোদন করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-lg font-bold text-slate-600">ডেটা লোড হচ্ছে...</div>;
 
   return (
@@ -213,6 +230,16 @@ const SuperAdminDashboard: React.FC = () => {
                   <BookOpen className="w-5 h-5 text-[#F59E0B]" />
                   <span className="font-bold text-slate-700">{org.teacherCount} শিক্ষক</span>
                 </div>
+                
+                {org.status === "pending" && (
+                  <button
+                    disabled={actionLoading}
+                    onClick={() => approveOrganization(org.id)}
+                    className="px-4 py-2 bg-amber-100 text-amber-700 font-bold rounded-lg hover:bg-amber-200 transition-colors text-sm"
+                  >
+                    অনুমোদন দিন
+                  </button>
+                )}
                 
                 <button
                   disabled={actionLoading}

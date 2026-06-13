@@ -22,6 +22,7 @@ interface AuthContextType {
   user: User | null;
   orgId: string | null;
   orgName: string | null;
+  orgStatus: string | null;
   role: string | null;
   status: string | null;
   phone: string | null;
@@ -49,6 +50,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(auth?.currentUser || null);
   const [orgId, setOrgId] = useState<string | null>(null);
   const [orgName, setOrgName] = useState<string | null>(null);
+  const [orgStatus, setOrgStatus] = useState<string | null>(null);
   const [role, setRole] = useState<string | null>(null);
   const [status, setStatus] = useState<string | null>(null);
   const [phone, setPhone] = useState<string | null>(null);
@@ -106,30 +108,42 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setLoading(true);
         const userDocRef = doc(db, `users`, currentUser.uid);
         
-        // Ensure user's basic info is stored without blocking
-        try {
-          const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
-          const docSnap = await getDoc(userDocRef);
-          const existingData = docSnap.exists() ? docSnap.data() : null;
+          // Ensure user's basic info is stored without blocking
+          try {
+            const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
+            const docSnap = await getDoc(userDocRef);
+            const existingData = docSnap.exists() ? docSnap.data() : null;
 
-          const updateData: any = {
-            displayName: currentUser.displayName || fallbackName,
-            email: currentUser.email || "",
-            lastSeen: serverTimestamp()
-          };
+            const updateData: any = {
+              displayName: currentUser.displayName || fallbackName,
+              email: currentUser.email || "",
+              lastSeen: serverTimestamp()
+            };
 
-          // Only sync photoURL from Google if Firestore doesn't have one yet
-          if (!existingData?.photoURL && currentUser.photoURL) {
-            updateData.photoURL = currentUser.photoURL;
+            if (!existingData) {
+              updateData.createdAt = serverTimestamp();
+              const isSuperAdmin = currentUser.email && SUPER_ADMIN_EMAILS.includes(currentUser.email);
+              if (!isSuperAdmin) {
+                const configSnap = await getDoc(doc(db, "globalSettings", "config"));
+                const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
+                updateData.status = approvalEnabled ? "pending" : "active";
+              } else {
+                updateData.status = "active";
+              }
+            }
+
+            // Only sync photoURL from Google if Firestore doesn't have one yet
+            if (!existingData?.photoURL && currentUser.photoURL) {
+              updateData.photoURL = currentUser.photoURL;
+            }
+
+            // Always merge to prevent overwriting existing user fields like roles, orgId, or status
+            setDoc(userDocRef, updateData, { merge: true }).catch(e => {
+              console.warn("Could not silently update user lastSeen block:", e);
+            });
+          } catch (e) {
+            console.warn("Could not check/update user info silently:", e);
           }
-
-          // Always merge to prevent overwriting existing user fields like roles, orgId, or status
-          setDoc(userDocRef, updateData, { merge: true }).catch(e => {
-            console.warn("Could not silently update user lastSeen block:", e);
-          });
-        } catch (e) {
-          console.warn("Could not check/update user info silently:", e);
-        }
 
         unsubUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
@@ -224,6 +238,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     };
   }, []);
 
+  useEffect(() => {
+    if (!orgId || !db) {
+      setOrgStatus(null);
+      return;
+    }
+
+    const orgRef = doc(db, "organizations", orgId);
+    const unsubOrg = onSnapshot(orgRef, (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        setOrgStatus(data.status || "active");
+      } else {
+        setOrgStatus(null);
+      }
+    }, (error) => {
+      console.error("Error in orgDoc snapshot listener:", error);
+      handleFirestoreError(error, OperationType.GET, `organizations/${orgId}`);
+    });
+
+    return () => unsubOrg();
+  }, [orgId]);
+
   const createOrganization = useCallback(
     async (name: string): Promise<string | null> => {
       if (!user || !db) return null;
@@ -249,6 +285,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const promise = (async () => {
           const madrasaId = await generateMadrasaId();
           const orgCode = madrasaId.toString();
+
+          const configSnap = await getDoc(doc(db, "globalSettings", "config"));
+          const approvalEnabled = configSnap.exists() ? (configSnap.data().isApprovalEnabled ?? true) : true;
+
           await setDoc(doc(db, "organizations", newOrgId), {
             id: newOrgId,
             orgCode: orgCode,
@@ -258,6 +298,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             creatorName: cName,
             creatorEmail: cEmail,
             createdAt: serverTimestamp(),
+            status: approvalEnabled ? "pending" : "active",
           });
 
           const fallbackName = user.email ? user.email.split('@')[0] : "ব্যবহারকারী";
@@ -478,6 +519,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         user,
         orgId,
         orgName,
+        orgStatus,
         role,
         status,
         phone,
