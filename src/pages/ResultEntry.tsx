@@ -6,7 +6,7 @@ import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
 import { useResults } from "../hooks/useResults";
 import { useClasses } from "../hooks/useClasses";
-import { ClipboardEdit, EyeOff, Trash2 } from "lucide-react";
+import { ClipboardEdit, EyeOff, Trash2, ChevronUp, ChevronDown, UserMinus, UserPlus } from "lucide-react";
 import { Result } from "../types";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
@@ -21,13 +21,91 @@ const ResultEntry: React.FC = () => {
 
   const { academicYears } = useAcademicYears(orgId, user);
   const { exams } = useExams(orgId, user);
-  const { students: studentsMap } = useStudents(orgId, user, role);
+  const { students: studentsMap, updateStudent } = useStudents(orgId, user, role);
   const { subjects } = useSubjects(orgId, user);
   const { classes } = useClasses(orgId, user, role);
-  const { results, saveResult, publishResults, hideResults, deleteResults } = useResults(orgId, user, academicYearId, examId, classId);
+  const { results, resultsConfig, saveResultsConfig, saveResult, publishResults, hideResults, deleteResults } = useResults(orgId, user, academicYearId, examId, classId);
 
-  const filteredStudents = useMemo(() => (studentsMap[classId] || []).filter(s => s.isActive !== false), [studentsMap, classId]);
+  const rawClassStudents = useMemo(() => (studentsMap[classId] || []).filter(s => s.isActive !== false), [studentsMap, classId]);
   const filteredSubjects = useMemo(() => (subjects || []).filter(s => s.classId === classId), [subjects, classId]);
+
+  const excludedStudentIds = useMemo(() => resultsConfig?.excludedStudents || [], [resultsConfig]);
+  const studentOrderIds = useMemo(() => resultsConfig?.studentOrder || [], [resultsConfig]);
+
+  const { includedStudents, excludedStudents } = useMemo(() => {
+    const included: any[] = [];
+    const excluded: any[] = [];
+
+    rawClassStudents.forEach(student => {
+      if (excludedStudentIds.includes(student.id)) {
+        excluded.push(student);
+      } else {
+        included.push(student);
+      }
+    });
+
+    if (studentOrderIds.length > 0) {
+      included.sort((a, b) => {
+        const indexA = studentOrderIds.indexOf(a.id);
+        const indexB = studentOrderIds.indexOf(b.id);
+
+        if (indexA !== -1 && indexB !== -1) {
+          return indexA - indexB;
+        }
+        if (indexA !== -1) return -1;
+        if (indexB !== -1) return 1;
+        return a.roll - b.roll;
+      });
+    } else {
+      included.sort((a, b) => a.roll - b.roll);
+    }
+
+    return { includedStudents: included, excludedStudents: excluded };
+  }, [rawClassStudents, excludedStudentIds, studentOrderIds]);
+
+  const handleMoveUp = useCallback((index: number) => {
+    if (index === 0) return;
+    const newOrder = includedStudents.map(s => s.id);
+    const temp = newOrder[index];
+    newOrder[index] = newOrder[index - 1];
+    newOrder[index - 1] = temp;
+    saveResultsConfig(newOrder, excludedStudentIds);
+  }, [includedStudents, excludedStudentIds, saveResultsConfig]);
+
+  const handleMoveDown = useCallback((index: number) => {
+    if (index === includedStudents.length - 1) return;
+    const newOrder = includedStudents.map(s => s.id);
+    const temp = newOrder[index];
+    newOrder[index] = newOrder[index + 1];
+    newOrder[index + 1] = temp;
+    saveResultsConfig(newOrder, excludedStudentIds);
+  }, [includedStudents, excludedStudentIds, saveResultsConfig]);
+
+  const handleExclude = useCallback((studentId: string) => {
+    const newExcluded = [...excludedStudentIds, studentId];
+    const newOrder = studentOrderIds.length > 0 ? studentOrderIds.filter(id => id !== studentId) : [];
+    saveResultsConfig(newOrder, newExcluded, true);
+  }, [excludedStudentIds, studentOrderIds, saveResultsConfig]);
+
+  const handleInclude = useCallback((studentId: string) => {
+    const newExcluded = excludedStudentIds.filter(id => id !== studentId);
+    const newOrder = studentOrderIds.length > 0 ? [...includedStudents.map(s => s.id), studentId] : [];
+    saveResultsConfig(newOrder, newExcluded, true);
+  }, [excludedStudentIds, includedStudents, studentOrderIds, saveResultsConfig]);
+
+  const handleRollChange = useCallback((studentId: string, newRoll: number) => {
+    updateStudent(studentId, { roll: newRoll }).then(() => {
+      // If we change a roll number, the teacher expects native roll-based sorting.
+      // We can clear the custom order (if it exists) to allow the automatic roll sort to handle it,
+      // which gracefully prevents bugs with 'stuck' elements.
+      if (studentOrderIds.length > 0) {
+        saveResultsConfig([], excludedStudentIds, true);
+      }
+    }).catch(err => {
+      console.error(err);
+      toast.error("রোল আপডেট করতে ব্যর্থ হয়েছে!");
+    });
+  }, [updateStudent, studentOrderIds, excludedStudentIds, saveResultsConfig]);
 
   const isPublished = useMemo(() => {
     return results.length > 0 && results.every(r => r.status === 'published');
@@ -69,14 +147,13 @@ const ResultEntry: React.FC = () => {
   };
 
   const allStudentResults = useMemo(() => {
-    return filteredStudents.map(student => {
+    return includedStudents.map(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
       const totalMarks = studentResults.reduce((sum, r) => sum + r.marks, 0);
       return { studentId: student.id, totalMarks };
     });
-  }, [filteredStudents, results]);
+  }, [includedStudents, results]);
 
-// Focus management
   const [focusedCell, setFocusedCell] = useState<{ rowIndex: number; colIndex: number } | null>(null);
   const inputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
 
@@ -84,7 +161,7 @@ const ResultEntry: React.FC = () => {
 
   const moveFocus = (rowDelta: number, colDelta: number) => {
     if (!focusedCell) return;
-    const nextRow = Math.max(0, Math.min(filteredStudents.length - 1, focusedCell.rowIndex + rowDelta));
+    const nextRow = Math.max(0, Math.min(includedStudents.length - 1, focusedCell.rowIndex + rowDelta));
     const nextCol = Math.max(0, Math.min(filteredSubjects.length - 1, focusedCell.colIndex + colDelta));
     
     setFocusedCell({ rowIndex: nextRow, colIndex: nextCol });
@@ -135,14 +212,12 @@ const ResultEntry: React.FC = () => {
         moveFocus(1, 0);
         break;
       case "ArrowLeft":
-        // Only move if cursor is at start
         if ((e.target as HTMLInputElement).selectionStart === 0) {
           e.preventDefault();
           moveFocus(0, -1);
         }
         break;
       case "ArrowRight":
-        // Only move if cursor is at end
         if ((e.target as HTMLInputElement).selectionEnd === (e.target as HTMLInputElement).value.length) {
           e.preventDefault();
           moveFocus(0, 1);
@@ -158,9 +233,9 @@ const ResultEntry: React.FC = () => {
     
     rows.forEach((row, rIdx) => {
       const targetRowIndex = startRowIndex + rIdx;
-      if (targetRowIndex >= filteredStudents.length) return;
+      if (targetRowIndex >= includedStudents.length) return;
       
-      const student = filteredStudents[targetRowIndex];
+      const student = includedStudents[targetRowIndex];
       const values = row.split("\t");
       
       values.forEach((val, cIdx) => {
@@ -227,80 +302,106 @@ const ResultEntry: React.FC = () => {
           {exams.filter(e => e.academicYearId === academicYearId).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
         </select>
         <select value={classId} onChange={(e) => setClassId(e.target.value)} className="input-premium">
-          <option value="">শ্রেণি নির্বাচন করুন</option>
+          <option value="">শ্রেণী নির্বাচন করুন</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
         </select>
       </div>
 
       {classId && examId && academicYearId && (
-        <div className="card-premium p-0 overflow-hidden border border-slate-200 shadow-xl">
-          <div className="overflow-x-auto">
-            <div style={{ minWidth: `${16 + 48 + 32 + filteredSubjects.length * 24 + 20 + 20 + 20 + 32 + 20}rem` }}>
-              {/* Header */}
-              <div className="flex bg-slate-100 border-b border-slate-200 sticky top-0 z-20">
-                <div className="w-16 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sticky left-0 bg-slate-100 z-30">
-                  রোল
+        <div className="space-y-4">
+          <div className="card-premium p-0 overflow-hidden border border-slate-200 shadow-xl">
+            <div className="overflow-x-auto">
+              <div style={{ minWidth: `${16 + 64 + 32 + filteredSubjects.length * 24 + 20 + 20 + 20 + 32 + 20}rem` }}>
+                {/* Header */}
+                <div className="flex bg-slate-100 border-b border-slate-200 sticky top-0 z-20">
+                  <div className="w-16 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sticky left-0 bg-slate-100 z-30">
+                    রোল
+                  </div>
+                  <div className="w-64 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center sticky left-16 bg-slate-100 z-30">
+                    নাম ও অ্যাকশন
+                  </div>
+                  <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center bg-slate-100">
+                    আইডি
+                  </div>
+                  {filteredSubjects.map(s => (
+                    <div key={s.id} className="w-24 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center text-center">
+                      {s.name}
+                    </div>
+                  ))}
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                    মোট
+                  </div>
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                    পূর্ণমান
+                  </div>
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                    শতকরা
+                  </div>
+                  <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                    বিভাগ
+                  </div>
+                  <div className="w-20 py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                    মেধাক্রম
+                  </div>
                 </div>
-                <div className="w-48 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center sticky left-16 bg-slate-100 z-30">
-                  নাম
+
+                {/* Student List */}
+                <div className="flex flex-col">
+                  {includedStudents.map((student, index) => (
+                    <ResultRow
+                      key={student.id}
+                      index={index}
+                      student={student}
+                      results={results}
+                      filteredSubjects={filteredSubjects}
+                      allStudentResults={allStudentResults}
+                      handleMarkChange={handleMarkChange}
+                      handleKeyDown={handleKeyDown}
+                      handlePaste={handlePaste}
+                      setFocusedCell={setFocusedCell}
+                      inputRefs={inputRefs}
+                      getCellKey={getCellKey}
+                      handleMoveUp={handleMoveUp}
+                      handleMoveDown={handleMoveDown}
+                      handleExclude={handleExclude}
+                      handleRollChange={handleRollChange}
+                      isLast={index === includedStudents.length - 1}
+                    />
+                  ))}
                 </div>
-                <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center bg-slate-100">
-                  আইডি
-                </div>
-                {filteredSubjects.map(s => (
-                  <div key={s.id} className="w-24 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center text-center">
-                    {s.name}
+              </div>
+            </div>
+            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+              <div>মোট শিক্ষার্থী: {includedStudents.length}</div>
+            </div>
+          </div>
+
+          {excludedStudents.length > 0 && (
+            <div className="card-premium p-6 border-rose-100 bg-rose-50/20 mt-4 -mx-4 sm:-mx-6 lg:mx-0 lg:-mt-2">
+              <h3 className="text-sm font-bold text-rose-800 mb-3 flex items-center gap-2">
+                <UserMinus className="w-5 h-5 text-rose-600" />
+                বাদ দেওয়া বা পরীক্ষায় অনুপস্থিত শিক্ষার্থীদের তালিকা
+              </h3>
+              <div className="flex flex-wrap gap-2">
+                {excludedStudents.map(student => (
+                  <div key={student.id} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm">
+                    <span className="font-bold text-rose-700">রোল {student.roll}</span>
+                    <span className="text-slate-700">{student.name}</span>
+                    <button
+                      onClick={() => handleInclude(student.id)}
+                      className="p-1 hover:bg-rose-50 text-emerald-600 rounded-md transition-colors"
+                      title="পুনরায় রেজাল্ট শীটে যুক্ত করুন"
+                    >
+                      <UserPlus className="w-4 h-4 text-emerald-600" />
+                    </button>
                   </div>
                 ))}
-                <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  মোট
-                </div>
-                <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  পূর্ণমান
-                </div>
-                <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  শতকরা
-                </div>
-                <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  বিভাগ
-                </div>
-                <div className="w-20 py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
-                  মেধাক্রম
-                </div>
-              </div>
-
-              {/* Student List */}
-              <div className="flex flex-col">
-                {filteredStudents.map((student, index) => (
-                  <ResultRow
-                    key={student.id}
-                    index={index}
-                    student={student}
-                    results={results}
-                    filteredSubjects={filteredSubjects}
-                    allStudentResults={allStudentResults}
-                    handleMarkChange={handleMarkChange}
-                    handleKeyDown={handleKeyDown}
-                    handlePaste={handlePaste}
-                    setFocusedCell={setFocusedCell}
-                    inputRefs={inputRefs}
-                    getCellKey={getCellKey}
-                  />
-                ))}
               </div>
             </div>
-          </div>
-          <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
-            <div>মোট শিক্ষার্থী: {filteredStudents.length}</div>
-            <div className="flex gap-4">
-              <span>Enter: নিচের সেল</span>
-              <span>Tab: পরের সেল</span>
-              <span>Arrows: নেভিগেশন</span>
-              <span className="text-[#0F5C7A] font-bold">Excel থেকে কপি-পেস্ট সাপোর্ট করে</span>
-            </div>
-          </div>
+          )}
         </div>
       )}
+
       {isPublishModalOpen && (
         <ConfirmationDialog
           isOpen={isPublishModalOpen}
@@ -395,18 +496,71 @@ const ResultRow = React.memo(({
   handlePaste, 
   setFocusedCell, 
   inputRefs, 
-  getCellKey 
+  getCellKey,
+  handleMoveUp,
+  handleMoveDown,
+  handleExclude,
+  handleRollChange,
+  isLast
 }: any) => {
+  const [localRoll, setLocalRoll] = useState(String(student.roll));
+  
+  useEffect(() => {
+    setLocalRoll(String(student.roll));
+  }, [student.roll]);
+
+  const handleRollBlur = () => {
+    const newRoll = Number(toEnglishNumber(localRoll));
+    if (!isNaN(newRoll) && newRoll > 0 && newRoll !== student.roll) {
+      handleRollChange(student.id, newRoll);
+    } else {
+      setLocalRoll(String(student.roll));
+    }
+  };
+
   const studentResults = useMemo(() => results.filter((r: any) => r.student_id === student.id), [results, student.id]);
   const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
 
   return (
     <div className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-      <div className="w-16 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-600 sticky left-0 bg-white z-10 group-hover:bg-slate-50">
-        {student.roll}
+      <div className="w-16 py-3 px-1 border-r border-slate-200 flex items-center justify-center font-bold text-slate-600 sticky left-0 bg-white z-10 group-hover:bg-slate-50">
+        <input 
+          type="text"
+          inputMode="numeric"
+          value={localRoll}
+          onChange={(e) => setLocalRoll(e.target.value)}
+          onBlur={handleRollBlur}
+          className="w-full h-full text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-[#0F5C7A]/50 rounded"
+          title="রোল নাম্বার পরিবর্তন করুন"
+        />
       </div>
-      <div className="w-48 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 truncate">
-        {student.name}
+      <div className="w-64 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 gap-2">
+        <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          <button 
+            onClick={() => handleMoveUp(index)}
+            disabled={index === 0}
+            className="p-0.5 hover:bg-slate-200 rounded text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent"
+            title="উপরে নিন"
+          >
+            <ChevronUp className="w-3 h-3" />
+          </button>
+          <button 
+            onClick={() => handleMoveDown(index)}
+            disabled={isLast}
+            className="p-0.5 hover:bg-slate-200 rounded text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent"
+            title="নিচে নিন"
+          >
+            <ChevronDown className="w-3 h-3" />
+          </button>
+        </div>
+        <div className="flex-1 truncate">{student.name}</div>
+        <button 
+          onClick={() => handleExclude(student.id)}
+          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-rose-100 text-rose-500 rounded transition-all shrink-0"
+          title="রেজাল্ট শীট থেকে বাদ দিন"
+        >
+          <UserMinus className="w-4 h-4" />
+        </button>
       </div>
       <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-50/30">
         {student.studentUid || "N/A"}

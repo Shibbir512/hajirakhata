@@ -221,7 +221,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   return (
     <div
-      className="hidden lg:flex relative z-[100] w-[280px] h-full flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0"
+      id="dashboard-sidebar"
+      className="hidden lg:flex relative z-[100] w-[280px] h-full flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0 print:hidden"
       style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
     >
       <div className="flex items-center justify-between h-[70px] border-b border-white/10 px-6 shrink-0">

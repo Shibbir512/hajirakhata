@@ -124,14 +124,6 @@ const Attendance: React.FC = () => {
     return { total: attendanceState.size, present, absent, leave };
   }, [attendanceState]);
 
-  const bulkActionState = useMemo(() => {
-    const nonLeave = Array.from(attendanceState.values()).filter(s => s.status !== AttendanceStatus.Leave);
-    return {
-      allPresent: nonLeave.length > 0 && nonLeave.every(s => s.status === AttendanceStatus.Present),
-      allAbsent: nonLeave.length > 0 && nonLeave.every(s => s.status === AttendanceStatus.Absent),
-    };
-  }, [attendanceState]);
-
   const filteredAndSortedStudents = useMemo(() => {
     let result = classStudents;
     let exactMatches: typeof classStudents = [];
@@ -203,7 +195,6 @@ const Attendance: React.FC = () => {
   // Infinite scroll observer
   const observerTarget = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const target = observerTarget.current;
     const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && currentPage < totalPages) {
@@ -213,16 +204,16 @@ const Attendance: React.FC = () => {
       { threshold: 0.1 }
     );
 
-    if (target) {
-      observer.observe(target);
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
     }
 
     return () => {
-      if (target) {
-        observer.unobserve(target);
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
       }
     };
-  }, [currentPage, totalPages]);
+  }, [observerTarget, currentPage, totalPages]);
 
   const handleStatusChange = (studentId: string, status: AttendanceStatus) => {
     setAttendanceState((prev) => {
@@ -400,7 +391,7 @@ const Attendance: React.FC = () => {
                 onClick={() => markAll(AttendanceStatus.Present)}
                 className={clsx(
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
-                  bulkActionState.allPresent
+                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Present)
                     ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/20"
                     : "text-[#22C55E] hover:bg-emerald-50"
                 )}
@@ -413,7 +404,7 @@ const Attendance: React.FC = () => {
                 onClick={() => markAll(AttendanceStatus.Absent)}
                 className={clsx(
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
-                  bulkActionState.allAbsent
+                  attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Absent)
                     ? "bg-[#EF4444] text-white shadow-md shadow-[#EF4444]/20"
                     : "text-[#EF4444] hover:bg-rose-50"
                 )}

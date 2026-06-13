@@ -123,10 +123,7 @@ const PublicResultView: React.FC = () => {
   );
 
   const handlePrint = () => {
-    window.focus();
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    window.print();
   };
 
   const exportToPDF = async () => {

@@ -33,6 +33,7 @@ const Marksheet: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedExamId, setSelectedExamId] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [resultsConfig, setResultsConfig] = useState<any>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -59,10 +60,31 @@ const Marksheet: React.FC = () => {
   }, [subjects, selectedClassId]);
 
   const filteredStudents = useMemo(() => {
-    return (students[selectedClassId] || [])
-      .filter(s => s.isActive !== false)
-      .sort((a, b) => a.roll - b.roll);
-  }, [students, selectedClassId]);
+    let list = (students[selectedClassId] || []).filter(s => s.isActive !== false);
+    
+    if (resultsConfig) {
+      const excluded = resultsConfig.excludedStudents || [];
+      const order = resultsConfig.studentOrder || [];
+      
+      list = list.filter(s => !excluded.includes(s.id));
+      
+      if (order.length > 0) {
+        list.sort((a, b) => {
+          const idxA = order.indexOf(a.id);
+          const idxB = order.indexOf(b.id);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+          return a.roll - b.roll;
+        });
+      } else {
+        list.sort((a, b) => a.roll - b.roll);
+      }
+    } else {
+      list.sort((a, b) => a.roll - b.roll);
+    }
+    return list;
+  }, [students, selectedClassId, resultsConfig]);
 
   const selectedStudent = useMemo(() => {
     return filteredStudents.find(s => s.id === selectedStudentId);
@@ -86,8 +108,19 @@ const Marksheet: React.FC = () => {
       }
 
       const snapshot = await getDocs(q);
-      const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
+      const loadedResults: Result[] = [];
+      let foundConfig: any = null;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === 'config') {
+          foundConfig = data;
+        } else if (!data.isDeleted) {
+          loadedResults.push(data as Result);
+        }
+      });
       setResults(loadedResults);
+      setResultsConfig(foundConfig);
     } catch (error) {
       console.error("Error fetching results:", error);
       toast.error("মার্কশিট লোড করতে ব্যর্থ হয়েছে।");
@@ -127,10 +160,7 @@ const Marksheet: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.focus();
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    window.print();
   };
 
   const allStudentResults = useMemo(() => {

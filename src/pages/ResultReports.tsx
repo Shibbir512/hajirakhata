@@ -31,6 +31,7 @@ const ResultReports: React.FC = () => {
   const [selectedClassId, setSelectedClassId] = useState("");
   const [selectedExamId, setSelectedExamId] = useState("");
   const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [resultsConfig, setResultsConfig] = useState<any>(null);
   const [results, setResults] = useState<Result[]>([]);
   const [loading, setLoading] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -66,10 +67,31 @@ const ResultReports: React.FC = () => {
   }, [subjects, selectedClassId]);
 
   const filteredStudents = useMemo(() => {
-    return (students[selectedClassId] || [])
-      .filter(s => s.isActive !== false)
-      .sort((a, b) => a.roll - b.roll);
-  }, [students, selectedClassId]);
+    let list = (students[selectedClassId] || []).filter(s => s.isActive !== false);
+    
+    if (resultsConfig) {
+      const excluded = resultsConfig.excludedStudents || [];
+      const order = resultsConfig.studentOrder || [];
+      
+      list = list.filter(s => !excluded.includes(s.id));
+      
+      if (order.length > 0) {
+        list.sort((a, b) => {
+          const idxA = order.indexOf(a.id);
+          const idxB = order.indexOf(b.id);
+          if (idxA !== -1 && idxB !== -1) return idxA - idxB;
+          if (idxA !== -1) return -1;
+          if (idxB !== -1) return 1;
+          return a.roll - b.roll;
+        });
+      } else {
+        list.sort((a, b) => a.roll - b.roll);
+      }
+    } else {
+      list.sort((a, b) => a.roll - b.roll);
+    }
+    return list;
+  }, [students, selectedClassId, resultsConfig]);
 
   const allStudentResults = useMemo(() => {
     return filteredStudents.map(student => {
@@ -186,8 +208,20 @@ const ResultReports: React.FC = () => {
       }
 
       const snapshot = await getDocs(q);
-      const loadedResults = snapshot.docs.map(doc => doc.data() as Result);
+      const loadedResults: Result[] = [];
+      let foundConfig: any = null;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === 'config') {
+          foundConfig = data;
+        } else if (!data.isDeleted) {
+          loadedResults.push(data as Result);
+        }
+      });
+
       setResults(loadedResults);
+      setResultsConfig(foundConfig);
 
       // Fetch report header
       const headerRef = doc(db, `organizations/${orgId}/report_configs`, `${selectedAcademicYearId}_${selectedExamId}_${selectedClassId}`);
@@ -218,10 +252,7 @@ const ResultReports: React.FC = () => {
   };
 
   const handlePrint = () => {
-    window.focus();
-    setTimeout(() => {
-      window.print();
-    }, 500);
+    window.print();
   };
 
   const handleMarkChange = (studentId: string, subjectId: string, newMarks: number) => {
@@ -288,50 +319,54 @@ const ResultReports: React.FC = () => {
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      const doc = new jsPDF("l", "mm", "a4");
+      await document.fonts.ready;
       
-      // Load Bengali font
-      const fontLoaded = await addBengaliFont(doc);
-      if (fontLoaded) {
-        doc.setFont('TiroBangla');
+      const input = document.getElementById('tabulation-sheet-container');
+      if (!input) throw new Error("Tabulation sheet container not found");
+      
+      // Temporarily remove overflow and ensure full width for capture
+      const tableWrapper = input.querySelector('div.overflow-x-auto');
+      if (tableWrapper) {
+        tableWrapper.classList.remove('overflow-x-auto');
       }
+      input.style.width = 'max-content';
       
-      // Header
-      doc.setFontSize(16);
-      doc.text(reportHeader.orgName, 148, 15, { align: 'center' });
-      doc.setFontSize(10);
-      doc.text(reportHeader.examTitle, 148, 22, { align: 'center' });
+      await new Promise(resolve => setTimeout(resolve, 300)); // Layout wait
 
-      // Table Data
-      const head = [["রোল", "নাম", ...filteredSubjects.map(s => s.name), "মোট", "পূর্ণমান", "শতকরা", "বিভাগ", "মেধাক্রম"]];
-      const body = processedResults.map(({ student, metrics }) => [
-        student.roll.toString(),
-        student.name,
-        ...filteredSubjects.map(s => {
-          const result = results.find(r => r.student_id === student.id && r.subject_id === s.id);
-          return (result?.marks ?? 0).toString();
-        }),
-        metrics.totalMarks.toString(),
-        metrics.totalFullMarks.toString(),
-        `${metrics.percentage}%`,
-        `${metrics.statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য'} (${metrics.grade})`,
-        metrics.rank
-      ]);
-
-      autoTable(doc, {
-        head,
-        body,
-        startY: 30,
-        theme: 'grid',
-        styles: { fontSize: 8, font: fontLoaded ? 'TiroBangla' : 'helvetica' },
-        columnStyles: {
-          0: { cellWidth: 15 }, // Roll
-          1: { cellWidth: 30 }, // Name
-          // Subject columns will automatically adjust
-        }
+      const canvas = await toCanvas(input, { 
+        pixelRatio: 2,
+        backgroundColor: '#ffffff'
       });
+      
+      // Restore styles
+      if (tableWrapper) {
+        tableWrapper.classList.add('overflow-x-auto');
+      }
+      input.style.width = '';
 
-      doc.save("tabulation_sheet.pdf");
+      const imgData = canvas.toDataURL('image/jpeg', 1.0);
+      const pdf = new jsPDF("l", "mm", "a4");
+      
+      const pdfWidth = pdf.internal.pageSize.getWidth();
+      const pdfHeight = pdf.internal.pageSize.getHeight();
+      
+      const imgWidth = pdfWidth;
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let heightLeft = imgHeight;
+      let position = 0;
+
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+      heightLeft -= pdfHeight;
+
+      while (heightLeft >= 0) {
+        position = heightLeft - imgHeight;
+        pdf.addPage();
+        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pdfHeight;
+      }
+
+      pdf.save(`Tabulation_Sheet_${selectedClassId}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
       console.error("PDF Export Error:", error);

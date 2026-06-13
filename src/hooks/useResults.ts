@@ -16,11 +16,13 @@ import { SyncManager } from "../services/SyncManager";
 
 export const useResults = (orgId: string | null, user: any, academicYearId: string, examId: string, classId: string) => {
   const [results, setResults] = useState<Result[]>([]);
+  const [resultsConfig, setResultsConfig] = useState<{ studentOrder?: string[]; excludedStudents?: string[] } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!user || !db || !orgId || !academicYearId || !examId || !classId) {
       setResults([]);
+      setResultsConfig(null);
       setLoading(false);
       return;
     }
@@ -34,10 +36,20 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
     );
     
     const unsubResults = onSnapshot(q, (snapshot) => {
-      const loadedResults = snapshot.docs
-        .map((doc) => doc.data() as Result)
-        .filter(result => !result.isDeleted); // Filter out soft-deleted results
+      const loadedResults: Result[] = [];
+      let foundConfig: any = null;
+
+      snapshot.docs.forEach((doc) => {
+        const data = doc.data();
+        if (data.type === 'config') {
+          foundConfig = data;
+        } else if (!data.isDeleted) {
+          loadedResults.push(data as Result);
+        }
+      });
+
       setResults(loadedResults);
+      setResultsConfig(foundConfig);
       setLoading(false);
     }, (error) => {
       console.error("Error fetching results:", error);
@@ -46,6 +58,38 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
 
     return () => unsubResults();
   }, [user, orgId, academicYearId, examId, classId]);
+
+  const saveResultsConfig = useCallback(
+    async (studentOrder: string[], excludedStudents: string[], silent: boolean = false) => {
+      if (!user || !db || !orgId || !academicYearId || !examId || !classId) return;
+      try {
+        const configId = `config-${academicYearId}-${examId}-${classId}`;
+        const docPath = `organizations/${orgId}/results/${configId}`;
+        const configRef = doc(db, docPath);
+
+        const configToSave = {
+          id: configId,
+          institution_id: orgId,
+          academic_year_id: academicYearId,
+          exam_id: examId,
+          class_id: classId,
+          type: 'config',
+          studentOrder,
+          excludedStudents,
+          status: 'published', // Always published so public/results pages can read it
+          updated_by: user.uid,
+          updated_at: Date.now()
+        };
+
+        await setDoc(configRef, configToSave, { merge: true });
+        if (!silent) toast.success("ধারাবাহিকতা ও বাদ দেওয়া লিস্ট সফলভাবে সংরক্ষণ করা হয়েছে!");
+      } catch (error) {
+        console.error("Error saving results config:", error);
+        if (!silent) toast.error("কনফিগারেশন সংরক্ষণ করতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId, academicYearId, examId, classId],
+  );
 
   const saveResult = useCallback(
     async (result: Partial<Result>) => {
@@ -187,5 +231,5 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
     [user, orgId],
   );
 
-  return { results, loading, saveResult, publishResults, hideResults, deleteResults };
+  return { results, resultsConfig, saveResultsConfig, loading, saveResult, publishResults, hideResults, deleteResults };
 };

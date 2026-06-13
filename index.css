@@ -383,8 +383,10 @@
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
     width: 100% !important;
+    min-width: 100vw !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow-x: visible !important;
   }
 
   .print\:hidden {
@@ -404,15 +406,32 @@
     max-width: none !important;
     margin: 0 !important;
     padding: 0 !important;
+    overflow: visible !important;
+  }
+
+  /* Force table wrapper to be visible */
+  .overflow-x-auto {
+    overflow: visible !important;
   }
 
   /* Hide navigation, headers, and other UI elements */
-  nav, .sidebar, header, footer, button, .no-print {
+  nav, #dashboard-sidebar, .sidebar, header, footer, button, .no-print, aside, [class*="lg:flex"] > [class*="w-[280px]"] {
     display: none !important;
+  }
+
+  /* Ensure the main content takes full width */
+  main {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow: visible !important;
   }
 
   table {
     page-break-inside: auto;
+    width: 100% !important;
+    max-width: 100% !important;
   }
   
   tr {
