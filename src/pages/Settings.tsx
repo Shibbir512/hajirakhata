@@ -925,22 +925,22 @@ const Settings: React.FC = () => {
         )}
 
         {/* Support WhatsApp Configuration */}
-        <div className="col-span-1 md:col-span-2 card-premium p-8">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-[#25D366] shadow-sm shrink-0">
-                <MessageCircle className="w-8 h-8 fill-[#25D366] text-white" />
+        {isSuperAdmin && (
+          <div className="col-span-1 md:col-span-2 card-premium p-8">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+              <div className="flex items-center gap-4">
+                <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-[#25D366] shadow-sm shrink-0">
+                  <MessageCircle className="w-8 h-8 fill-[#25D366] text-white" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                    সাপোর্ট হোয়াটসঅ্যাপ নম্বর
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-1">
+                    অ্যাপের যেকোনো স্থান থেকে ব্যবহারকারীরা এই হোয়াটসঅ্যাপ নম্বরে সরাসরি যোগাযোগ করতে পারবেন
+                  </p>
+                </div>
               </div>
-              <div>
-                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
-                  সাপোর্ট হোয়াটসঅ্যাপ নম্বর
-                </h3>
-                <p className="text-sm text-slate-500 mt-1">
-                  অ্যাপের যেকোনো স্থান থেকে ব্যবহারকারীরা এই হোয়াটসঅ্যাপ নম্বরে সরাসরি যোগাযোগ করতে পারবেন
-                </p>
-              </div>
-            </div>
-            {isSuperAdmin ? (
               <div className="flex items-center gap-3">
                 <input
                   type="text"
@@ -958,20 +958,14 @@ const Settings: React.FC = () => {
                   <span>সংরক্ষণ করুন</span>
                 </button>
               </div>
-            ) : (
-              <div className="text-right">
-                <span className="font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg text-sm">
-                  +{whatsappNum}
-                </span>
-              </div>
-            )}
-          </div>
+            </div>
 
-          <div className="mt-4 pt-4 border-t border-slate-100">
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">লাইভ প্রিভিউ (যেভাবে ব্যবহারকারীরা দেখতে পাবেন)</p>
-            <WhatsAppSupportButton variant="card" />
+            <div className="mt-4 pt-4 border-t border-slate-100">
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">লাইভ প্রিভিউ (যেভাবে ব্যবহারকারীরা দেখতে পাবেন)</p>
+              <WhatsAppSupportButton variant="card" />
+            </div>
           </div>
-        </div>
+        )}
 
         {/* System Overview Section (Super Admin Only) */}
         {isSuperAdmin && (
