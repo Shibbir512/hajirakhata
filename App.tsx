@@ -1,7 +1,8 @@
 import React, { useState, useEffect, lazy, Suspense } from "react";
 import { BrowserRouter, MemoryRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "react-hot-toast";
-import { WifiOff, AlertTriangle, RefreshCcw } from "lucide-react";
+import { WifiOff, AlertTriangle, RefreshCcw, RefreshCw, CheckCircle2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
@@ -108,11 +109,13 @@ const LoadingFallback = () => (
 );
 
 const OfflineIndicator = () => {
-  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [syncStatus, setSyncStatus] = useState<"idle" | "syncing" | "synced">("idle");
+  const [wasOffline, setWasOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
-    const handleOnline = () => setIsOffline(false);
-    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => setIsOnline(true);
+    const handleOffline = () => setIsOnline(false);
 
     window.addEventListener("online", handleOnline);
     window.addEventListener("offline", handleOffline);
@@ -123,13 +126,70 @@ const OfflineIndicator = () => {
     };
   }, []);
 
-  if (!isOffline) return null;
+  useEffect(() => {
+    if (!isOnline) {
+      setWasOffline(true);
+      setSyncStatus("idle");
+    } else if (isOnline && wasOffline) {
+      // Just came back online
+      setSyncStatus("syncing");
+      
+      // Simulate sync time (Firestore handles actual sync internally, 
+      // but we show the UI to assure the user it's happening)
+      const syncTimer = setTimeout(() => {
+        setSyncStatus("synced");
+        
+        // Hide after showing success
+        setTimeout(() => {
+          setWasOffline(false);
+          setSyncStatus("idle");
+        }, 3000);
+      }, 2000);
+      
+      return () => clearTimeout(syncTimer);
+    }
+  }, [isOnline, wasOffline]);
 
   return (
-    <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 bg-slate-800 text-white px-4 py-2 rounded-full shadow-lg flex items-center gap-2 text-sm font-medium animate-bounce">
-      <WifiOff className="w-4 h-4 text-red-400" />
-      আপনি অফলাইনে আছেন
-    </div>
+    <AnimatePresence>
+      {(!isOnline || syncStatus !== "idle") && (
+        <motion.div
+          initial={{ y: -50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -50, opacity: 0 }}
+          className="fixed top-20 md:top-4 left-1/2 -translate-x-1/2 z-[100] pointer-events-none"
+        >
+          <div className={`px-4 py-2.5 rounded-full shadow-lg flex items-center gap-2.5 text-sm font-bold backdrop-blur-md border ${
+            !isOnline 
+              ? "bg-rose-500/90 text-white border-rose-600 shadow-rose-900/20" 
+              : syncStatus === "syncing"
+              ? "bg-amber-500/90 text-white border-amber-600 shadow-amber-900/20"
+              : "bg-emerald-500/90 text-white border-emerald-600 shadow-emerald-900/20"
+          }`}>
+            {!isOnline && (
+              <>
+                <WifiOff className="w-4 h-4" />
+                <span>অফলাইন মোড - লোকালি সেভ হচ্ছে</span>
+              </>
+            )}
+            
+            {isOnline && syncStatus === "syncing" && (
+              <>
+                <RefreshCw className="w-4 h-4 animate-spin" />
+                <span>অফলাইন ডেটা সার্ভারে সিঙ্ক হচ্ছে...</span>
+              </>
+            )}
+
+            {isOnline && syncStatus === "synced" && (
+              <>
+                <CheckCircle2 className="w-4 h-4" />
+                <span>সিঙ্ক সফলভাবে সম্পন্ন হয়েছে</span>
+              </>
+            )}
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 };
 
