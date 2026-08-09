@@ -30,6 +30,7 @@ const DashboardLayout: React.FC = () => {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const prevPendingCountRef = useRef<number>(0);
   const prevJoinCountRef = useRef<number>(0);
+  const prevPendingOrgCountRef = useRef<number>(0);
 
   useEffect(() => {
     audioRef.current = new Audio("https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3");
@@ -45,6 +46,66 @@ const DashboardLayout: React.FC = () => {
       });
     }
   };
+
+  // Listen for pending organization creation requests (Super Admin only)
+  useEffect(() => {
+    if (!user || (user.email && !SUPER_ADMIN_EMAILS.includes(user.email)) || !db) return;
+
+    const q = query(collection(db, "organizations"), where("status", "==", "pending"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const count = snapshot.size;
+      if (count > prevPendingOrgCountRef.current) {
+        playNotificationSound();
+        
+        const title = "নতুন প্রতিষ্ঠান তৈরির অনুরোধ!";
+        const body = `${count} টি প্রতিষ্ঠান অনুমোদনের অপেক্ষায় আছে।`;
+        
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(title, { body, icon: '/vite.svg' });
+        }
+
+        toast.custom((t) => (
+          <div
+            className={`${
+              t.visible ? 'animate-enter' : 'animate-leave'
+            } max-w-md w-full bg-white shadow-lg rounded-lg pointer-events-auto flex ring-1 ring-black ring-opacity-5`}
+          >
+            <div className="flex-1 w-0 p-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 pt-0.5">
+                  <div className="h-10 w-10 rounded-full bg-amber-100 flex items-center justify-center">
+                    <Bell className="h-6 w-6 text-amber-600" />
+                  </div>
+                </div>
+                <div className="ml-3 flex-1">
+                  <p className="text-sm font-medium text-gray-900">
+                    নতুন প্রতিষ্ঠান তৈরির অনুরোধ!
+                  </p>
+                  <p className="mt-1 text-sm text-gray-500">
+                    {count} টি প্রতিষ্ঠান অনুমোদনের অপেক্ষায় আছে।
+                  </p>
+                </div>
+              </div>
+            </div>
+            <div className="flex border-l border-gray-200">
+              <button
+                onClick={() => {
+                  toast.dismiss(t.id);
+                  navigate("/super-admin");
+                }}
+                className="w-full border border-transparent rounded-none rounded-r-lg p-4 flex items-center justify-center text-sm font-medium text-amber-600 hover:text-amber-700 focus:outline-none"
+              >
+                দেখুন
+              </button>
+            </div>
+          </div>
+        ), { duration: 6000 });
+      }
+      prevPendingOrgCountRef.current = count;
+    });
+
+    return () => unsubscribe();
+  }, [user, db, navigate]);
 
   // Listen for pending sign-up requests (Super Admin only)
   useEffect(() => {

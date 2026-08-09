@@ -28,6 +28,7 @@ interface AuthContextType {
   photoURL: string | null;
   visitedOrgs: { [key: string]: string };
   isApprovalEnabled: boolean;
+  supportWhatsApp: string;
   notificationPreferences: {
     signupRequests: boolean;
     joinRequests: boolean;
@@ -55,6 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
+  const [supportWhatsApp, setSupportWhatsApp] = useState("8801700000000");
   const [notificationPreferences, setNotificationPreferences] = useState({
     signupRequests: true,
     joinRequests: true
@@ -64,17 +66,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user || !db) return;
+    if (!db) return;
     
     try {
       const configRef = doc(db, "globalSettings", "config");
       const unsubscribe = onSnapshot(configRef, (docSnap) => {
         if (docSnap.exists()) {
-          setIsApprovalEnabled(docSnap.data().isApprovalEnabled ?? true);
+          const data = docSnap.data();
+          setIsApprovalEnabled(data.isApprovalEnabled ?? true);
+          if (data.supportWhatsApp) {
+            setSupportWhatsApp(data.supportWhatsApp);
+          }
         }
       }, (error) => {
-        // Silently handle permission errors to avoid annoying the user
-        // This usually happens if Firebase Rules are not deployed correctly
         setIsApprovalEnabled(true);
         handleFirestoreError(error, OperationType.GET, "globalSettings/config");
       });
@@ -83,7 +87,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err) {
       // Ignore errors
     }
-  }, [user]);
+  }, []);
 
   useEffect(() => {
     if (!auth) {
@@ -171,8 +175,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 if (orgSnap.exists()) {
                   const orgData = orgSnap.data();
                   
-                  // Check owner
-                  if (userRole !== "admin" && orgData.createdBy === currentUser.uid) {
+                  // Check owner - only grant admin if org is active and user role isn't pending
+                  if (userRole !== "admin" && orgData.createdBy === currentUser.uid && orgData.status !== "pending" && data.roles?.[currentOrgId] !== "pending") {
                     userRole = "admin";
                     setRole(userRole);
                     updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
@@ -231,6 +235,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const trimmedName = name.trim();
         const newOrgId = `org-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
         
+        const isSuperAdmin = user.email && SUPER_ADMIN_EMAILS.includes(user.email);
+        const requiresApproval = isApprovalEnabled && !isSuperAdmin;
+
         // Try to get the most up-to-date info from the users collection first
         let cName = user.displayName || user.email?.split('@')[0] || "অজানা";
         let cEmail = user.email || "ইমেইল নেই";
@@ -257,6 +264,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             createdBy: user.uid,
             creatorName: cName,
             creatorEmail: cEmail,
+            status: requiresApproval ? "pending" : "active",
+            isApproved: !requiresApproval,
             createdAt: serverTimestamp(),
           });
 
@@ -269,7 +278,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               photoURL: user.photoURL || "",
               organizationId: newOrgId,
               [`visitedOrgs.${newOrgId}`]: trimmedName,
-              [`roles.${newOrgId}`]: "admin",
+              [`roles.${newOrgId}`]: requiresApproval ? "pending" : "admin",
               lastSeen: serverTimestamp()
             }
           );
@@ -277,7 +286,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         await toast.promise(promise, {
           loading: 'প্রতিষ্ঠান তৈরি করা হচ্ছে...',
-          success: 'প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!',
+          success: requiresApproval
+            ? 'নতুন প্রতিষ্ঠান তৈরির অনুরোধ পাঠানো হয়েছে! সুপার অ্যাডমিন অনুমোদন দিলে আপনি পরিচালনা করতে পারবেন।'
+            : 'প্রতিষ্ঠান সফলভাবে তৈরি হয়েছে!',
           error: 'প্রতিষ্ঠান তৈরি করতে ব্যর্থ হয়েছে।',
         });
 
@@ -288,7 +299,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return null;
       }
     },
-    [user],
+    [user, isApprovalEnabled],
   );
 
   const joinOrganization = useCallback(
@@ -484,6 +495,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         photoURL,
         visitedOrgs,
         isApprovalEnabled,
+        supportWhatsApp,
         notificationPreferences,
         attendanceReminderEnabled,
         attendanceReminderTime,

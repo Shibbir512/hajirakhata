@@ -10,6 +10,7 @@ import {
   Building,
 } from "lucide-react";
 import toast from "react-hot-toast";
+import WhatsAppSupportButton from "./WhatsAppSupportButton";
 
 interface OrgManagementProps {
   onCreateOrg: (name: string) => Promise<string | null>;
@@ -230,6 +231,10 @@ const OrgManagement: React.FC<OrgManagementProps> = ({
             </div>
           </form>
         )}
+
+        <div className="mt-8 pt-6 border-t border-slate-100">
+          <WhatsAppSupportButton variant="button" label="সহায়তার জন্য হোয়াটসঅ্যাপে যোগাযোগ করুন" className="w-full" />
+        </div>
       </div>
     </div>
   );

@@ -26,6 +26,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import logo from '../assets/logo.svg';
+import WhatsAppSupportButton from "./WhatsAppSupportButton";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -246,6 +247,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {renderSection('সেটিংস', 'settings', Settings, settingsLinks)}
         </nav>
       </div>
+
+      <div className="px-4 py-3 border-t border-white/10">
+        <WhatsAppSupportButton variant="button" label="হোয়াটসঅ্যাপ সাপোর্ট" className="w-full text-xs" />
+      </div>
+
       <div className="p-4 border-t border-white/10 w-full shrink-0 relative" ref={profileMenuRef}>
         {isProfileMenuOpen && (
           <div className="absolute bottom-[calc(100%-10px)] left-4 right-4 mb-2 bg-white rounded-xl shadow-[0_10px_25px_rgba(0,0,0,0.15)] border border-slate-100 overflow-hidden z-[110] animate-in fade-in slide-in-from-bottom-2 duration-200">

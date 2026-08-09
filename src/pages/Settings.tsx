@@ -1,20 +1,46 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock } from "lucide-react";
+import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock, MessageCircle } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser, updateProfile } from "firebase/auth";
 import { db, auth, storage } from "../firebase";
 import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import toast from "react-hot-toast";
 import { toEnglishNumber } from "../utils/dateFormatter";
+import WhatsAppSupportButton from "../components/WhatsAppSupportButton";
 
 import { SUPER_ADMIN_EMAILS } from "../constants";
 
 const Settings: React.FC = () => {
-  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
+  const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, supportWhatsApp, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
+  const [whatsappNum, setWhatsappNum] = useState(supportWhatsApp || "8801700000000");
+  const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (supportWhatsApp) {
+      setWhatsappNum(supportWhatsApp);
+    }
+  }, [supportWhatsApp]);
+
+  const handleSaveWhatsApp = async () => {
+    if (!whatsappNum.trim()) {
+      toast.error("হোয়াটসঅ্যাপ নম্বর প্রদান করুন");
+      return;
+    }
+    setIsSavingWhatsApp(true);
+    try {
+      await setDoc(doc(db, "globalSettings", "config"), { supportWhatsApp: whatsappNum.trim() }, { merge: true });
+      toast.success("সাপোর্ট হোয়াটসঅ্যাপ নম্বর সফলভাবে আপডেট করা হয়েছে!");
+    } catch (e) {
+      console.error("Error saving WhatsApp number:", e);
+      toast.error("হোয়াটসঅ্যাপ নম্বর আপডেট করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setIsSavingWhatsApp(false);
+    }
+  };
   const [isSavingPhone, setIsSavingPhone] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [staff, setStaff] = useState<any[]>([]);
@@ -100,7 +126,7 @@ const Settings: React.FC = () => {
     setIsTogglingApproval(true);
     try {
       await setDoc(doc(db, "globalSettings", "config"), { isApprovalEnabled: !isApprovalEnabled }, { merge: true });
-      toast.success(isApprovalEnabled ? "নতুন ব্যবহারকারী অনুমোদন সিস্টেম বন্ধ করা হয়েছে।" : "নতুন ব্যবহারকারী অনুমোদন সিস্টেম চালু করা হয়েছে।");
+      toast.success(isApprovalEnabled ? "নতুন ব্যবহারকারী ও প্রতিষ্ঠান অনুমোদন সিস্টেম বন্ধ করা হয়েছে।" : "নতুন ব্যবহারকারী ও প্রতিষ্ঠান অনুমোদন সিস্টেম চালু করা হয়েছে।");
     } catch (e) {
       console.error("Error toggling approval:", e);
       toast.error("সিস্টেম আপডেট করতে ব্যর্থ হয়েছে।");
@@ -897,6 +923,55 @@ const Settings: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Support WhatsApp Configuration */}
+        <div className="col-span-1 md:col-span-2 card-premium p-8">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-6">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 bg-emerald-100 rounded-2xl flex items-center justify-center text-[#25D366] shadow-sm shrink-0">
+                <MessageCircle className="w-8 h-8 fill-[#25D366] text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                  সাপোর্ট হোয়াটসঅ্যাপ নম্বর
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  অ্যাপের যেকোনো স্থান থেকে ব্যবহারকারীরা এই হোয়াটসঅ্যাপ নম্বরে সরাসরি যোগাযোগ করতে পারবেন
+                </p>
+              </div>
+            </div>
+            {isSuperAdmin ? (
+              <div className="flex items-center gap-3">
+                <input
+                  type="text"
+                  value={whatsappNum}
+                  onChange={(e) => setWhatsappNum(toEnglishNumber(e.target.value))}
+                  placeholder="8801700000000"
+                  className="input-premium px-4 py-2.5 text-base font-mono w-48"
+                />
+                <button
+                  onClick={handleSaveWhatsApp}
+                  disabled={isSavingWhatsApp}
+                  className="btn-primary py-2.5 px-5 text-sm font-bold flex items-center gap-2 shrink-0"
+                >
+                  {isSavingWhatsApp ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                  <span>সংরক্ষণ করুন</span>
+                </button>
+              </div>
+            ) : (
+              <div className="text-right">
+                <span className="font-mono font-bold text-slate-700 bg-slate-100 px-3 py-1.5 rounded-lg text-sm">
+                  +{whatsappNum}
+                </span>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-4 pt-4 border-t border-slate-100">
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3">লাইভ প্রিভিউ (যেভাবে ব্যবহারকারীরা দেখতে পাবেন)</p>
+            <WhatsAppSupportButton variant="card" />
+          </div>
+        </div>
 
         {/* System Overview Section (Super Admin Only) */}
         {isSuperAdmin && (

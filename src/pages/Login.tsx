@@ -7,6 +7,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
 import PublicResultSearch from '../components/PublicResultSearch';
+import WhatsAppSupportButton from '../components/WhatsAppSupportButton';
 import { toEnglishNumber } from '../utils/dateFormatter';
 import { SUPER_ADMIN_EMAILS } from '../constants';
 
@@ -391,10 +392,16 @@ const Login: React.FC = () => {
               <Search className="w-5 h-5" />
               <span>ফলাফল অনুসন্ধান করুন</span>
             </button>
+
+            <div className="mt-6 pt-4 border-t border-slate-100">
+              <WhatsAppSupportButton variant="card" />
+            </div>
           </div>
         )}
       </main>
       
+      <WhatsAppSupportButton variant="floating" />
+
       <footer className="py-6 text-center">
         <p className="text-xs text-slate-400">
           &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
