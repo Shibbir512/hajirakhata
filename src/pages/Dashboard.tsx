@@ -1,5 +1,6 @@
-import React, { useMemo } from "react";
-import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock, CalendarOff } from "lucide-react";
+import React, { useMemo, useState } from "react";
+import { createPortal } from "react-dom";
+import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock, CalendarOff, X } from "lucide-react";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
@@ -26,6 +27,8 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const { students } = useStudents(orgId, user, role);
   const { classes } = useClasses(orgId, user, role);
+  const [isPendingClassesModalOpen, setIsPendingClassesModalOpen] = useState(false);
+
   const startDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 6);
@@ -51,8 +54,10 @@ const Dashboard: React.FC = () => {
     const today = todayDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
     const todaysSessions = attendanceSessions.filter((s) => s.date === today);
 
-    const classesWithAttendanceToday = new Set(todaysSessions.map(s => s.classId)).size;
-    const classesPendingAttendanceToday = Math.max(0, totalClasses - classesWithAttendanceToday);
+    const classesWithAttendanceTodayIds = new Set(todaysSessions.map(s => s.classId));
+    const classesWithAttendanceToday = classesWithAttendanceTodayIds.size;
+    const pendingClassesList = classes.filter(c => !classesWithAttendanceTodayIds.has(c.id));
+    const classesPendingAttendanceToday = pendingClassesList.length;
 
     const studentStatusMap = new Map();
 
@@ -107,7 +112,7 @@ const Dashboard: React.FC = () => {
       }
     });
 
-    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, leavesOnToday };
+    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, pendingClassesList, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
 
   const chartData = useMemo(() => {
@@ -177,6 +182,7 @@ const Dashboard: React.FC = () => {
           color="text-[#F59E0B]"
           gradient="bg-[#F59E0B]/10"
           valueColor="text-[#debf0b] border-[#edb30e]"
+          onClick={() => setIsPendingClassesModalOpen(true)}
         />
         <StatCard
           title="মোট শিক্ষার্থী"
@@ -270,6 +276,62 @@ const Dashboard: React.FC = () => {
           </ResponsiveContainer>
         </div>
       </div>
+
+      {isPendingClassesModalOpen && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-8 sm:my-0">
+            <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shadow-inner">
+                  <Clock className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#1E293B]">হাজিরা বাকি থাকা শ্রেণি</h2>
+                  <p className="text-sm text-slate-500 font-medium">আজকের হাজিরা বাকি আছে</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsPendingClassesModalOpen(false)}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              {stats.pendingClassesList.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {stats.pendingClassesList.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 transition-colors">
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-lg">{c.name}</h3>
+                        <p className="text-sm text-slate-500">
+                          মোট শিক্ষার্থী: {toBengaliNumber(Object.values(students).flat().filter(s => s.classId === c.id && s.isActive !== false).length)} জন
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsPendingClassesModalOpen(false);
+                          navigate(`/attendance?classId=${c.id}`);
+                        }}
+                        className="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors"
+                      >
+                        হাজিরা নিন
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
+                  <p className="text-slate-600 font-medium">সব শ্রেণির হাজিরা সম্পন্ন হয়েছে!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
     </div>
   );
 };
