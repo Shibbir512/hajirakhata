@@ -15,7 +15,7 @@ const Settings: React.FC = () => {
   const { user, orgId, role, phone, photoURL, logout, visitedOrgs, isApprovalEnabled, supportWhatsApp, notificationPreferences, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
   const [orgName, setOrgName] = useState("");
   const [userPhone, setUserPhone] = useState("");
-  const [whatsappNum, setWhatsappNum] = useState(supportWhatsApp || "8801700000000");
+  const [whatsappNum, setWhatsappNum] = useState(supportWhatsApp || "8801911963117");
   const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -946,7 +946,7 @@ const Settings: React.FC = () => {
                   type="text"
                   value={whatsappNum}
                   onChange={(e) => setWhatsappNum(toEnglishNumber(e.target.value))}
-                  placeholder="8801700000000"
+                  placeholder="8801911963117"
                   className="input-premium px-4 py-2.5 text-base font-mono w-48"
                 />
                 <button

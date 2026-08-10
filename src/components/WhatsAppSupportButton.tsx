@@ -18,7 +18,7 @@ export const WhatsAppSupportButton: React.FC<WhatsAppSupportButtonProps> = ({
   const { supportWhatsApp } = useAuth();
 
   // Format phone number cleanly (remove + or spaces)
-  const formattedNumber = (supportWhatsApp || "8801700000000").replace(/[^\d]/g, "");
+  const formattedNumber = (supportWhatsApp || "8801911963117").replace(/[^\d]/g, "");
   const whatsappUrl = `https://wa.me/${formattedNumber}?text=${encodeURIComponent(message)}`;
 
   if (variant === "floating") {

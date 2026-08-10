@@ -8,6 +8,7 @@ import {
   BookOpen,
   BarChart3,
   Settings,
+  HelpCircle,
   Building2,
   X,
   ShieldAlert,
@@ -117,6 +118,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
+    { name: "হেল্প", path: "/help", icon: HelpCircle },
     { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
     { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
@@ -244,7 +246,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {renderSection('ফি', 'fees', ClipboardEdit, feeLinks)}
           {renderSection('ফলাফল', 'results', GraduationCap, resultLinks)}
           {renderSection('শিক্ষার্থী', 'students', Users, studentLinks)}
-          {renderSection('সেটিংস', 'settings', Settings, settingsLinks)}
+          {renderSection('সেটিংস', 'settings', Settings,
+settingsLinks)}
         </nav>
       </div>
 

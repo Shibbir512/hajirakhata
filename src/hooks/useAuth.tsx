@@ -56,7 +56,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [photoURL, setPhotoURL] = useState<string | null>(null);
   const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
-  const [supportWhatsApp, setSupportWhatsApp] = useState("8801700000000");
+  const [supportWhatsApp, setSupportWhatsApp] = useState("8801911963117");
   const [notificationPreferences, setNotificationPreferences] = useState({
     signupRequests: true,
     joinRequests: true

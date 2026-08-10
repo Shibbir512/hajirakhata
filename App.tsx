@@ -79,6 +79,7 @@ const Classes = lazy(() => import("./src/pages/Classes"));
 const ClassDetails = lazy(() => import("./src/pages/ClassDetails"));
 const Reports = lazy(() => import("./src/pages/Reports"));
 const Settings = lazy(() => import("./src/pages/Settings"));
+const Help = lazy(() => import("./src/pages/Help"));
 const ResultCard = lazy(() => import("./src/pages/ResultCard"));
 const SuperAdminDashboard = lazy(() => import("./src/pages/SuperAdminDashboard"));
 const CalendarView = lazy(() => import("./src/pages/CalendarView"));
@@ -305,6 +306,7 @@ const AppRoutes = () => (
           <Route path="calendar" element={<CalendarView />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<Settings />} />
+          <Route path="help" element={<Help />} />
           <Route path="super-admin" element={<SuperAdminDashboard />} />
           
           {/* Result Management Routes */}
