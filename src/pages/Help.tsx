@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { HelpCircle, FileText, Phone, MessageSquare, AlertTriangle, ChevronDown, ChevronUp, ExternalLink, Download, Mail } from "lucide-react";
 import CsvImportInstructionsModal from "../components/CsvImportInstructionsModal";
+import WhatsAppSupportButton from "../components/WhatsAppSupportButton";
 
 const Help: React.FC = () => {
   const [openSection, setOpenSection] = useState<string | null>("guide");
@@ -256,9 +257,9 @@ const Help: React.FC = () => {
                       <Phone className="w-5 h-5" />
                     </div>
                     <div>
-                      <p className="text-sm text-slate-500 font-medium">হটলাইন / WhatsApp</p>
-                      <p className="font-bold text-slate-800 text-lg mt-0.5">01911963117</p>
-                      <p className="text-xs text-slate-400 mt-1">সকাল ৯টা থেকে রাত ৮টা</p>
+                      <p className="text-sm text-slate-500 font-medium mb-1.5">হটলাইন / WhatsApp</p>
+                      <WhatsAppSupportButton variant="badge" label="মেসেজ দিন" className="mb-1.5" />
+                      <p className="text-xs text-slate-400">সকাল ৯টা থেকে রাত ৮টা</p>
                     </div>
                   </div>
                   
