@@ -7,11 +7,14 @@ import toast from "react-hot-toast";
 import ImageCropper from "./ImageCropper";
 import { base64ToFile } from "../utils/cropImage";
 import { toEnglishNumber } from "../utils/dateFormatter";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { CustomFieldDef } from "../types";
 
 interface StudentAddModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onAdd: (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => void;
+  onAdd: (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string, gender?: string, customFields?: Record<string, string>) => void;
 }
 
 type CompressionLevel = 'high' | 'medium' | 'low';
@@ -27,6 +30,10 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   const [phone, setPhone] = useState("");
   const [address, setAddress] = useState("");
   const [bloodGroup, setBloodGroup] = useState("");
+  const [gender, setGender] = useState("পুরুষ");
+  const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, string>>({});
+  const [orgCustomFields, setOrgCustomFields] = useState<CustomFieldDef[]>([]);
+  
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -37,6 +44,22 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (isOpen && orgId) {
+      const fetchCustomFields = async () => {
+        try {
+          const orgDoc = await getDoc(doc(db, "organizations", orgId));
+          if (orgDoc.exists()) {
+            setOrgCustomFields(orgDoc.data().studentCustomFields || []);
+          }
+        } catch (e) {
+          console.error("Failed to load custom fields", e);
+        }
+      };
+      fetchCustomFields();
+    }
+  }, [isOpen, orgId]);
 
   if (!isOpen) return null;
 
@@ -84,12 +107,14 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
         photoUrl = await compressAndUploadImage(imageFile, path, compressionLevel);
       }
 
-      onAdd(name, fatherName, phone, address, photoUrl || undefined, bloodGroup);
+      onAdd(name, fatherName, phone, address, photoUrl || undefined, bloodGroup, gender, customFieldsValues);
       setName("");
       setFatherName("");
       setPhone("");
       setAddress("");
       setBloodGroup("");
+      setGender("পুরুষ");
+      setCustomFieldsValues({});
       setImageFile(null);
       setImagePreview(null);
       setError("");
@@ -268,6 +293,24 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               />
             </div>
 
+            <div className="relative">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                লিঙ্গ (Gender)
+              </label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none appearance-none"
+              >
+                <option value="পুরুষ">পুরুষ</option>
+                <option value="মহিলা">মহিলা</option>
+                <option value="অন্যান্য">অন্যান্য</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 top-[28px] flex items-center px-4 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+
             <div>
               <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 ফোন নম্বর
@@ -317,6 +360,21 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                 placeholder="ঠিকানা লিখুন"
               />
             </div>
+
+            {orgCustomFields.map((field) => (
+              <div key={field.id}>
+                <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                  {field.name}
+                </label>
+                <input
+                  type="text"
+                  value={customFieldsValues[field.id] || ""}
+                  onChange={(e) => setCustomFieldsValues({ ...customFieldsValues, [field.id]: e.target.value })}
+                  className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                  placeholder={`${field.name} লিখুন`}
+                />
+              </div>
+            ))}
 
             {error && <p className="text-sm text-[#EF4444] font-medium">{error}</p>}
           </form>

@@ -9,12 +9,20 @@ export interface Student {
   address?: string;
   bloodGroup?: string;
   photoUrl?: string;
+  gender?: string;
+  customFields?: Record<string, string>;
   version?: number;
   isActive?: boolean;
   archivedAt?: number;
   isAlumni?: boolean;
   graduationYearId?: string;
   clearedAbsenceDate?: any; // Timestamp
+}
+
+export interface CustomFieldDef {
+  id: string;
+  name: string;
+  type?: string;
 }
 
 export interface ClassData {

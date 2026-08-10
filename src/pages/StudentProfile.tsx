@@ -46,11 +46,18 @@ const StudentProfile: React.FC = () => {
   const [lastExamGrade, setLastExamGrade] = useState<string>("-");
   const [loading, setLoading] = useState(true);
   const [historyRanks, setHistoryRanks] = useState<{[key: string]: string}>({});
+  const [orgCustomFields, setOrgCustomFields] = useState<any[]>([]);
 
   useEffect(() => {
     const fetchStudentAndAttendance = async () => {
       if (!orgId || !studentId) return;
       try {
+        const orgRef = doc(db, `organizations`, orgId);
+        const orgSnap = await getDoc(orgRef);
+        if (orgSnap.exists() && orgSnap.data().studentCustomFields) {
+          setOrgCustomFields(orgSnap.data().studentCustomFields);
+        }
+
         // Fetch student info
         const studentRef = doc(db, `organizations/${orgId}/students`, studentId);
         const studentSnap = await getDoc(studentRef);
@@ -470,6 +477,11 @@ const StudentProfile: React.FC = () => {
                   <p className="text-xs text-slate-400 font-medium mb-1">পিতার নাম</p>
                   <p className="font-bold text-slate-800">{student.fatherName || "-"}</p>
                 </div>
+
+                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                  <p className="text-xs text-slate-400 font-medium mb-1">লিঙ্গ (Gender)</p>
+                  <p className="font-bold text-slate-800">{student.gender || "পুরুষ"}</p>
+                </div>
                 
                 <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
                   <p className="text-xs text-slate-400 font-medium mb-1">ফোন</p>
@@ -489,6 +501,17 @@ const StudentProfile: React.FC = () => {
                   <p className="text-xs text-slate-400 font-medium mb-1">ঠিকানা</p>
                   <p className="font-bold text-slate-800">{student.address || "-"}</p>
                 </div>
+
+                {student.customFields && Object.entries(student.customFields).map(([fieldId, value]) => {
+                  const fieldDef = orgCustomFields.find(f => f.id === fieldId);
+                  if (!fieldDef) return null;
+                  return (
+                    <div key={fieldId} className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                      <p className="text-xs text-slate-400 font-medium mb-1">{fieldDef.name}</p>
+                      <p className="font-bold text-slate-800">{value || "-"}</p>
+                    </div>
+                  );
+                })}
               </div>
             </motion.div>
           </div>

@@ -53,7 +53,7 @@ const Settings: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [orgCode, setOrgCode] = useState("");
-
+  
   const [isResettingId, setIsResettingId] = useState(false);
 
   const handleResetIdCounter = async () => {
@@ -141,17 +141,17 @@ const Settings: React.FC = () => {
     }
     
     if (orgId) {
-      const fetchOrgCode = async () => {
+      const fetchOrgData = async () => {
         try {
           const orgDoc = await getDoc(doc(db, "organizations", orgId));
           if (orgDoc.exists()) {
             setOrgCode(orgDoc.data().orgCode || "");
           }
         } catch (error) {
-          console.error("Error fetching org code:", error);
+          console.error("Error fetching org data:", error);
         }
       };
-      fetchOrgCode();
+      fetchOrgData();
     }
   }, [orgId, visitedOrgs]);
 

@@ -7,13 +7,15 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal, Info } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import StudentAddModal from "../components/StudentAddModal";
 import StudentEditModal from "../components/StudentEditModal";
+import CustomFieldsModal from "../components/CustomFieldsModal";
+import CsvImportInstructionsModal from "../components/CsvImportInstructionsModal";
 import ImageModal from "../components/ImageModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import StudentPromotionModal from "../components/StudentPromotionModal";
@@ -57,6 +59,8 @@ const Students: React.FC = () => {
   const [studentToPermanentDelete, setStudentToPermanentDelete] = useState<Student | null>(null);
   const [showDeleteAllArchivedModal, setShowDeleteAllArchivedModal] = useState(false);
   const [isPromotionModalOpen, setIsPromotionModalOpen] = useState(false);
+  const [isCustomFieldsModalOpen, setIsCustomFieldsModalOpen] = useState(false);
+  const [isCsvInstructionsModalOpen, setIsCsvInstructionsModalOpen] = useState(false);
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const fileInputRef = useRef<HTMLInputElement>(null);
   const actionMenuRef = useRef<HTMLDivElement>(null);
@@ -193,9 +197,9 @@ const Students: React.FC = () => {
     return filteredStudents.slice(start, start + itemsPerPage);
   }, [filteredStudents, currentPage, itemsPerPage]);
 
-  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string) => {
+  const handleAddStudent = (name: string, fatherName?: string, phone?: string, address?: string, photoUrl?: string, bloodGroup?: string, gender?: string, customFields?: Record<string, string>) => {
     if (selectedClassId) {
-      addStudent(selectedClassId, name, fatherName, phone, address, photoUrl, bloodGroup);
+      addStudent(selectedClassId, name, fatherName, phone, address, photoUrl, bloodGroup, gender, customFields);
       setIsAddModalOpen(false);
     }
   };
@@ -443,6 +447,15 @@ const Students: React.FC = () => {
             <Plus className="w-4 h-4" />
             শিক্ষার্থী যোগ
           </button>
+          {role === "admin" && (
+            <button
+              onClick={() => setIsCustomFieldsModalOpen(true)}
+              className="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full md:w-auto whitespace-nowrap !h-[44px] !py-2"
+            >
+              <Plus className="w-4 h-4" />
+              অতিরিক্ত ফিল্ড
+            </button>
+          )}
           
           {/* Desktop version (hidden on mobile) */}
           <div className="hidden md:flex flex-wrap gap-3">
@@ -467,6 +480,14 @@ const Students: React.FC = () => {
             >
               <Upload className="w-4 h-4" />
               CSV আমদানি
+            </button>
+            <button
+              onClick={() => setIsCsvInstructionsModalOpen(true)}
+              className="btn-primary whitespace-nowrap !h-[44px] !py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200"
+              title="CSV আমদানির নিয়মাবলী"
+            >
+              <Info className="w-4 h-4" />
+              নিয়মাবলী
             </button>
             <button
               onClick={() => handleExport('csv')}
@@ -540,6 +561,13 @@ const Students: React.FC = () => {
                 >
                   <Upload className="w-4 h-4" />
                   CSV আমদানি
+                </button>
+                <button
+                  onClick={() => { setIsCsvInstructionsModalOpen(true); setIsActionMenuOpen(false); }}
+                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors text-indigo-600 hover:bg-indigo-50"
+                >
+                  <Info className="w-4 h-4" />
+                  CSV আমদানির নিয়মাবলী
                 </button>
                 <button
                   onClick={() => { handleExport('csv'); setIsActionMenuOpen(false); }}
@@ -1071,6 +1099,21 @@ const Students: React.FC = () => {
           academicYears={academicYears}
           students={allStudentsList}
           onPromote={promoteStudents}
+        />
+      )}
+
+      {isCustomFieldsModalOpen && orgId && (
+        <CustomFieldsModal
+          isOpen={isCustomFieldsModalOpen}
+          onClose={() => setIsCustomFieldsModalOpen(false)}
+          orgId={orgId}
+        />
+      )}
+
+      {isCsvInstructionsModalOpen && (
+        <CsvImportInstructionsModal
+          isOpen={isCsvInstructionsModalOpen}
+          onClose={() => setIsCsvInstructionsModalOpen(false)}
         />
       )}
 

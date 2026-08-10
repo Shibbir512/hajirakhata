@@ -8,6 +8,9 @@ import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import ImageCropper from "./ImageCropper";
 import { base64ToFile } from "../utils/cropImage";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../firebase";
+import { CustomFieldDef } from "../types";
 
 interface StudentEditModalProps {
   student: Student;
@@ -29,6 +32,10 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   const [phone, setPhone] = useState(student.phone || "");
   const [address, setAddress] = useState(student.address || "");
   const [bloodGroup, setBloodGroup] = useState(student.bloodGroup || "");
+  const [gender, setGender] = useState(student.gender || "পুরুষ");
+  const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, string>>(student.customFields || {});
+  const [orgCustomFields, setOrgCustomFields] = useState<CustomFieldDef[]>([]);
+  
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(student.photoUrl || null);
@@ -39,6 +46,22 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
+
+  React.useEffect(() => {
+    if (orgId) {
+      const fetchCustomFields = async () => {
+        try {
+          const orgDoc = await getDoc(doc(db, "organizations", orgId));
+          if (orgDoc.exists()) {
+            setOrgCustomFields(orgDoc.data().studentCustomFields || []);
+          }
+        } catch (e) {
+          console.error("Failed to load custom fields", e);
+        }
+      };
+      fetchCustomFields();
+    }
+  }, [orgId]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -90,6 +113,8 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
         phone: phone.trim(),
         address: address.trim(),
         bloodGroup: bloodGroup,
+        gender: gender,
+        customFields: customFieldsValues,
         photoUrl: photoUrl,
       });
       onClose();
@@ -270,6 +295,24 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
               />
             </div>
 
+            <div className="relative">
+              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                লিঙ্গ (Gender)
+              </label>
+              <select
+                value={gender}
+                onChange={(e) => setGender(e.target.value)}
+                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none appearance-none"
+              >
+                <option value="পুরুষ">পুরুষ</option>
+                <option value="মহিলা">মহিলা</option>
+                <option value="অন্যান্য">অন্যান্য</option>
+              </select>
+              <div className="absolute inset-y-0 right-0 top-[28px] flex items-center px-4 pointer-events-none">
+                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+              </div>
+            </div>
+
             <div>
               <label className="block text-[14px] font-medium text-[#374151] mb-1">
                 ফোন নম্বর
@@ -319,6 +362,21 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
                 placeholder="ঠিকানা লিখুন"
               />
             </div>
+
+            {orgCustomFields.map((field) => (
+              <div key={field.id}>
+                <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                  {field.name}
+                </label>
+                <input
+                  type="text"
+                  value={customFieldsValues[field.id] || ""}
+                  onChange={(e) => setCustomFieldsValues({ ...customFieldsValues, [field.id]: e.target.value })}
+                  className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                  placeholder={`${field.name} লিখুন`}
+                />
+              </div>
+            ))}
 
             {error && <p className="text-sm text-[#EF4444] font-medium">{error}</p>}
           </form>
