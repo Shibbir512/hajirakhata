@@ -41,6 +41,17 @@ const Marksheet: React.FC = () => {
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
   const [marksheetLanguage, setMarksheetLanguage] = useState<'bn' | 'ar' | 'en'>('bn');
   const [fontStyle, setFontStyle] = useState<'modern' | 'classic'>('modern');
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
+
+  useEffect(() => {
+    if (orgId) {
+      getDoc(doc(db, "organizations", orgId)).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().gradingSystem) {
+          setGradingSystem(docSnap.data().gradingSystem);
+        }
+      });
+    }
+  }, [orgId]);
 
   const t = MARKSHEET_TRANSLATIONS[marksheetLanguage];
 
@@ -180,7 +191,7 @@ const Marksheet: React.FC = () => {
   }, [filteredStudents, results, filteredSubjects]);
 
   const { totalMarks: calculatedTotalMarks, totalFullMarks, percentage, grade, rank, statusKey } = useMemo(() => 
-    calculateResultMetrics(results.filter(r => r.student_id === selectedStudentId), filteredSubjects, allStudentResults), 
+    calculateResultMetrics(results.filter(r => r.student_id === selectedStudentId), filteredSubjects, allStudentResults, gradingSystem), 
     [results, filteredSubjects, selectedStudentId, allStudentResults]
   );
 
@@ -243,7 +254,7 @@ const Marksheet: React.FC = () => {
           }));
 
           const classSubjects = subjects.filter(s => s.classId === classId);
-          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics);
+          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics, gradingSystem);
           newRanks[key] = rank;
         } catch (error) {
           console.error("Error fetching rank for history:", error);
@@ -274,7 +285,7 @@ const Marksheet: React.FC = () => {
       
       // For rank, we'd need all results for that exam/class, which we don't have here easily.
       // For now, we'll calculate what we can.
-      const metrics = calculateResultMetrics(groupResults, classSubjects);
+      const metrics = calculateResultMetrics(groupResults, classSubjects, undefined, gradingSystem);
 
       // Fallback to ID if name not found (in case IDs are names or lists not loaded)
       const yearName = formatAcademicYear(academicYears.find(ay => ay.id === yearId));

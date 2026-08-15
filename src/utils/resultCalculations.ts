@@ -1,7 +1,8 @@
 export const calculateResultMetrics = (
   results: any[],
   subjects: any[],
-  allStudentResults?: { studentId: string; totalMarks: number; hasFailed: boolean }[]
+  allStudentResults?: { studentId: string; totalMarks: number; hasFailed: boolean }[],
+  gradingSystem: 'madrasa' | 'general' = 'madrasa'
 ) => {
   let totalMarks = 0;
   let totalFullMarks = 0;
@@ -21,14 +22,26 @@ export const calculateResultMetrics = (
 
   const percentage = totalFullMarks > 0 ? (totalMarks / totalFullMarks) * 100 : 0;
 
-  let grade = "রাসেব";
-  if (percentage >= 80) grade = "মুমতায";
-  else if (percentage >= 65) grade = "জায়্যিদ জিদ্দান";
-  else if (percentage >= 50) grade = "জায়্যিদ";
-  else if (percentage >= 35) grade = "মকবুল";
+  let grade = "";
+  let isPassed = false;
 
-  // Override failed status if percentage is >= 35
-  const isPassed = percentage >= 35;
+  if (gradingSystem === 'general') {
+    isPassed = percentage >= 33;
+    if (percentage >= 80) grade = "A+";
+    else if (percentage >= 70) grade = "A";
+    else if (percentage >= 60) grade = "A-";
+    else if (percentage >= 50) grade = "B";
+    else if (percentage >= 40) grade = "C";
+    else if (percentage >= 33) grade = "D";
+    else grade = "F";
+  } else {
+    isPassed = percentage >= 35;
+    if (percentage >= 80) grade = "মুমতায";
+    else if (percentage >= 65) grade = "জায়্যিদ জিদ্দান";
+    else if (percentage >= 50) grade = "জায়্যিদ";
+    else if (percentage >= 35) grade = "মকবুল";
+    else grade = "রাসেব";
+  }
 
   let rank = "-";
   if (allStudentResults) {

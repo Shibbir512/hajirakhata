@@ -26,6 +26,7 @@ const PublicResultView: React.FC = () => {
   const [cls, setCls] = useState<ClassData | null>(null);
   const [allStudentResults, setAllStudentResults] = useState<any[]>([]);
   const [orgName, setOrgName] = useState("মাদরাসা");
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
 
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('bn');
   const [marksheetLanguage, setMarksheetLanguage] = useState<'bn' | 'ar' | 'en'>('bn');
@@ -42,6 +43,7 @@ const PublicResultView: React.FC = () => {
         const orgSnap = await getDoc(doc(db, "organizations", orgId));
         if (orgSnap.exists()) {
           setOrgName(orgSnap.data().name || "মাদরাসা");
+          setGradingSystem(orgSnap.data().gradingSystem || "madrasa");
         }
 
         // 1. Fetch Student
@@ -118,8 +120,8 @@ const PublicResultView: React.FC = () => {
   }, [orgId, studentId, examId, navigate]);
 
   const { totalMarks: calculatedTotalMarks, percentage, grade, rank, statusKey } = useMemo(() => 
-    calculateResultMetrics(results, subjects, allStudentResults), 
-    [results, subjects, allStudentResults]
+    calculateResultMetrics(results, subjects, allStudentResults, gradingSystem), 
+    [results, subjects, allStudentResults, gradingSystem]
   );
 
   const handlePrint = () => {

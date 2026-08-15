@@ -53,6 +53,7 @@ const Settings: React.FC = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [orgCode, setOrgCode] = useState("");
+
   
   const [isResettingId, setIsResettingId] = useState(false);
 
@@ -79,6 +80,8 @@ const Settings: React.FC = () => {
       setIsResettingId(false);
     }
   };
+
+
 
   const isSuperAdmin = user?.email && SUPER_ADMIN_EMAILS.includes(user.email);
 
@@ -146,6 +149,7 @@ const Settings: React.FC = () => {
           const orgDoc = await getDoc(doc(db, "organizations", orgId));
           if (orgDoc.exists()) {
             setOrgCode(orgDoc.data().orgCode || "");
+
           }
         } catch (error) {
           console.error("Error fetching org data:", error);
@@ -584,6 +588,8 @@ const Settings: React.FC = () => {
                 </p>
               </div>
             )}
+
+
 
             {role === "admin" && (
               <div className="pt-6">

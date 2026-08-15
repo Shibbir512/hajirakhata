@@ -50,6 +50,17 @@ const ResultReports: React.FC = () => {
     classNameText: "",
     publishDate: ""
   });
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
+
+  useEffect(() => {
+    if (orgId) {
+      getDoc(doc(db, "organizations", orgId)).then(docSnap => {
+        if (docSnap.exists() && docSnap.data().gradingSystem) {
+          setGradingSystem(docSnap.data().gradingSystem);
+        }
+      });
+    }
+  }, [orgId]);
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);
@@ -121,7 +132,7 @@ const ResultReports: React.FC = () => {
 
     filteredStudents.forEach(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
-      const { grade } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+      const { grade } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults, gradingSystem);
       if (grade === "মুমতায") stats.mumtaz++;
       else if (grade === "জায়্যিদ জিদ্দান") stats.jayyidJiddan++;
       else if (grade === "জায়্যিদ") stats.jayyid++;
@@ -135,7 +146,7 @@ const ResultReports: React.FC = () => {
   const processedResults = useMemo(() => {
     const data = filteredStudents.map(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
-      const metrics = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults);
+      const metrics = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults, gradingSystem);
       return {
         student,
         metrics

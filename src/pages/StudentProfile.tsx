@@ -47,6 +47,7 @@ const StudentProfile: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [historyRanks, setHistoryRanks] = useState<{[key: string]: string}>({});
   const [orgCustomFields, setOrgCustomFields] = useState<any[]>([]);
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
 
   useEffect(() => {
     const fetchStudentAndAttendance = async () => {
@@ -54,8 +55,14 @@ const StudentProfile: React.FC = () => {
       try {
         const orgRef = doc(db, `organizations`, orgId);
         const orgSnap = await getDoc(orgRef);
-        if (orgSnap.exists() && orgSnap.data().studentCustomFields) {
-          setOrgCustomFields(orgSnap.data().studentCustomFields);
+        if (orgSnap.exists()) {
+          const orgData = orgSnap.data();
+          if (orgData.studentCustomFields) {
+            setOrgCustomFields(orgData.studentCustomFields);
+          }
+          if (orgData.gradingSystem) {
+            setGradingSystem(orgData.gradingSystem);
+          }
         }
 
         // Fetch student info
@@ -175,7 +182,7 @@ const StudentProfile: React.FC = () => {
           hasFailed: false // Simplified for rank calculation
         }));
 
-        const { grade, rank } = calculateResultMetrics(studentResults, examSubjects, allStudentMetrics);
+        const { grade, rank } = calculateResultMetrics(studentResults, examSubjects, allStudentMetrics, gradingSystem);
         setLastExamGrade(grade);
         setLastExamRank(rank);
       } catch (error) {
@@ -231,7 +238,7 @@ const StudentProfile: React.FC = () => {
           }));
 
           const classSubjects = subjects.filter(s => s.classId === classId);
-          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics);
+          const { rank } = calculateResultMetrics(groupResults, classSubjects, allStudentMetrics, gradingSystem);
           newRanks[key] = rank;
         } catch (error) {
           console.error("Error fetching rank for history:", error);
@@ -264,7 +271,7 @@ const StudentProfile: React.FC = () => {
       const examSubjects = subjects.filter(s => s.classId === examResults[0].class_id);
       
       // For rank, we'd ideally need all results for that exam, but here we just show metrics
-      const { totalMarks, percentage, grade } = calculateResultMetrics(examResults, examSubjects);
+      const { totalMarks, percentage, grade } = calculateResultMetrics(examResults, examSubjects, undefined, gradingSystem);
 
       return {
         academicYear: formatAcademicYear(ay),

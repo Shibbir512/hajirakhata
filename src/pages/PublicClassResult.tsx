@@ -20,6 +20,7 @@ const PublicClassResult: React.FC = () => {
   const [allResults, setAllResults] = useState<Result[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [subjects, setSubjects] = useState<Subject[]>([]);
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
   
   const [numeralFormat, setNumeralFormat] = useState<'bn' | 'ar' | 'en'>('en');
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,6 +45,9 @@ const PublicClassResult: React.FC = () => {
         // 1. Fetch Org Info
         const orgSnap = await getDoc(doc(db, "organizations", orgId));
         const orgName = orgSnap.exists() ? orgSnap.data().name : "";
+        if (orgSnap.exists() && orgSnap.data().gradingSystem) {
+          setGradingSystem(orgSnap.data().gradingSystem);
+        }
 
         // 2. Fetch Students in class
         const studentsRef = collection(db, `organizations/${orgId}/students`);
@@ -142,7 +146,7 @@ const PublicClassResult: React.FC = () => {
 
     students.forEach(student => {
       const studentResults = allResults.filter(r => r.student_id === student.id);
-      const { grade } = calculateResultMetrics(studentResults, subjects, allStudentMetrics);
+      const { grade } = calculateResultMetrics(studentResults, subjects, allStudentMetrics, gradingSystem);
       if (grade === "মুমতায") stats.mumtaz++;
       else if (grade === "জায়্যিদ জিদ্দান") stats.jayyidJiddan++;
       else if (grade === "জায়্যিদ") stats.jayyid++;
@@ -156,7 +160,7 @@ const PublicClassResult: React.FC = () => {
   const processedResults = useMemo(() => {
     const data = students.map(student => {
       const studentResults = allResults.filter(r => r.student_id === student.id);
-      const metrics = calculateResultMetrics(studentResults, subjects, allStudentMetrics);
+      const metrics = calculateResultMetrics(studentResults, subjects, allStudentMetrics, gradingSystem);
       return {
         student,
         metrics

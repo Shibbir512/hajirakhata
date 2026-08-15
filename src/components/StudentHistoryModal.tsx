@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { XCircle, BookOpen, Calendar, Award, Activity } from "lucide-react";
 import { db } from "../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, where, getDocs, doc, getDoc } from "firebase/firestore";
 import { Result, AttendanceStatus } from "../types";
 import { toBengaliNumber, formatAcademicYear } from "../utils/dateFormatter";
 import { useAcademicYears } from "../hooks/useAcademicYears";
@@ -22,6 +22,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
   const [history, setHistory] = useState<any[]>([]);
   const [totalAttendance, setTotalAttendance] = useState({ total: 0, present: 0, absent: 0, leave: 0 });
   const [loading, setLoading] = useState(true);
+  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
   const { user } = useAuth();
   const { academicYears } = useAcademicYears(orgId, user);
   const { exams } = useExams(orgId, user);
@@ -40,6 +41,11 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
         const resultsQuery = query(resultsRef, where("student_id", "==", studentId));
         const resultsSnap = await getDocs(resultsQuery);
         const results = resultsSnap.docs.map(doc => doc.data() as Result);
+
+        const orgSnap = await getDoc(doc(db, "organizations", orgId));
+        if (orgSnap.exists() && orgSnap.data().gradingSystem) {
+          setGradingSystem(orgSnap.data().gradingSystem);
+        }
 
         // Fetch attendance sessions
         const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
@@ -214,7 +220,7 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
                             const classId = examResults[0]?.class_id;
                             const examSubjects = subjects.filter(s => s.classId === classId);
                             
-                            const metrics = calculateResultMetrics(examResults, examSubjects);
+                            const metrics = calculateResultMetrics(examResults, examSubjects, undefined, gradingSystem);
                             
                             return (
                               <div key={examId} className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-100">
