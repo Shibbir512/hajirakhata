@@ -2,7 +2,9 @@ export const calculateResultMetrics = (
   results: any[],
   subjects: any[],
   allStudentResults?: { studentId: string; totalMarks: number; hasFailed: boolean }[],
-  gradingSystem: 'madrasa' | 'general' = 'madrasa'
+  gradingSystem: 'madrasa' | 'general' = 'madrasa',
+  strictFailing: boolean = true,
+  defaultPassMark: number = 33
 ) => {
   let totalMarks = 0;
   let totalFullMarks = 0;
@@ -14,8 +16,10 @@ export const calculateResultMetrics = (
     totalMarks += marks;
     totalFullMarks += subject.fullMarks;
 
+    const passMark = (subject.passMarks !== undefined && subject.passMarks !== null) ? subject.passMarks : defaultPassMark;
+
     // Check if failed in this subject
-    if (marks < subject.passMarks) {
+    if (marks < passMark) {
       hasFailed = true;
     }
   });
@@ -26,21 +30,33 @@ export const calculateResultMetrics = (
   let isPassed = false;
 
   if (gradingSystem === 'general') {
-    isPassed = percentage >= 33;
-    if (percentage >= 80) grade = "A+";
+    isPassed = percentage >= defaultPassMark;
+    if (strictFailing && hasFailed) {
+      grade = "F";
+      isPassed = false;
+    } else if (percentage >= 80) grade = "A+";
     else if (percentage >= 70) grade = "A";
     else if (percentage >= 60) grade = "A-";
     else if (percentage >= 50) grade = "B";
     else if (percentage >= 40) grade = "C";
-    else if (percentage >= 33) grade = "D";
-    else grade = "F";
+    else if (percentage >= defaultPassMark) grade = "D";
+    else {
+      grade = "F";
+      isPassed = false;
+    }
   } else {
-    isPassed = percentage >= 35;
-    if (percentage >= 80) grade = "মুমতায";
+    isPassed = percentage >= defaultPassMark;
+    if (strictFailing && hasFailed) {
+      grade = "রাসেব";
+      isPassed = false;
+    } else if (percentage >= 80) grade = "মুমতায";
     else if (percentage >= 65) grade = "জায়্যিদ জিদ্দান";
     else if (percentage >= 50) grade = "জায়্যিদ";
-    else if (percentage >= 35) grade = "মকবুল";
-    else grade = "রাসেব";
+    else if (percentage >= defaultPassMark) grade = "মকবুল";
+    else {
+      grade = "রাসেব";
+      isPassed = false;
+    }
   }
 
   let rank = "-";

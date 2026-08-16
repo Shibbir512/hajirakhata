@@ -8,6 +8,7 @@ import { useResults } from "../hooks/useResults";
 import { useClasses } from "../hooks/useClasses";
 import { ClipboardEdit, EyeOff, Trash2, ChevronUp, ChevronDown, UserMinus, UserPlus } from "lucide-react";
 import { Result } from "../types";
+import { useResultSettings } from "../hooks/useResultSettings";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
@@ -18,37 +19,7 @@ const ResultEntry: React.FC = () => {
   const [academicYearId, setAcademicYearId] = useState("");
   const [examId, setExamId] = useState("");
   const [classId, setClassId] = useState("");
-  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
-
-  useEffect(() => {
-    if (orgId) {
-      import("firebase/firestore").then(({ getDoc, doc }) => {
-        import("../firebase").then(({ db }) => {
-          getDoc(doc(db, "organizations", orgId)).then(docSnap => {
-            if (docSnap.exists() && docSnap.data().gradingSystem) {
-              setGradingSystem(docSnap.data().gradingSystem);
-            }
-          });
-        });
-      });
-    }
-  }, [orgId]);
-
-  const handleGradingSystemChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const system = e.target.value as 'madrasa' | 'general';
-    if (!orgId) return;
-    setGradingSystem(system);
-    try {
-      const { doc, updateDoc } = await import("firebase/firestore");
-      const { db } = await import("../firebase");
-      const orgRef = doc(db, "organizations", orgId);
-      await updateDoc(orgRef, { gradingSystem: system });
-      toast.success("গ্রেডিং সিস্টেম আপডেট করা হয়েছে!");
-    } catch (error) {
-      console.error("Error updating grading system:", error);
-      toast.error("গ্রেডিং সিস্টেম আপডেট করতে ব্যর্থ হয়েছে।");
-    }
-  };
+  const { gradingSystem, defaultPassMark, strictFailing } = useResultSettings(orgId);
 
   const { academicYears } = useAcademicYears(orgId, user);
   const { exams } = useExams(orgId, user);
@@ -323,7 +294,7 @@ const ResultEntry: React.FC = () => {
         )}
       </div>
 
-      <div className="card-premium p-6 grid grid-cols-1 md:grid-cols-4 gap-4">
+      <div className="card-premium p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
         <select value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)} className="input-premium">
           <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
           {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
@@ -335,15 +306,6 @@ const ResultEntry: React.FC = () => {
         <select value={classId} onChange={(e) => setClassId(e.target.value)} className="input-premium">
           <option value="">শ্রেণী নির্বাচন করুন</option>
           {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
-        <select
-          value={gradingSystem}
-          onChange={handleGradingSystemChange}
-          disabled={role !== "admin"}
-          className={`input-premium ${role !== "admin" ? "bg-slate-50/50 cursor-not-allowed opacity-70" : ""}`}
-        >
-          <option value="madrasa">মাদরাসা গ্রেডিং</option>
-          <option value="general">জেনারেল গ্রেডিং</option>
         </select>
       </div>
 

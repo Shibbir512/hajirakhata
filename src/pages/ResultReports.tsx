@@ -10,6 +10,7 @@ import { Result } from "../types";
 import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
+import { useResultSettings } from "../hooks/useResultSettings";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
@@ -50,17 +51,7 @@ const ResultReports: React.FC = () => {
     classNameText: "",
     publishDate: ""
   });
-  const [gradingSystem, setGradingSystem] = useState<'madrasa' | 'general'>('madrasa');
-
-  useEffect(() => {
-    if (orgId) {
-      getDoc(doc(db, "organizations", orgId)).then(docSnap => {
-        if (docSnap.exists() && docSnap.data().gradingSystem) {
-          setGradingSystem(docSnap.data().gradingSystem);
-        }
-      });
-    }
-  }, [orgId]);
+  const { gradingSystem, defaultPassMark, strictFailing } = useResultSettings(orgId);
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);

@@ -9,7 +9,7 @@ import { FileBadge, Printer, Search, Download, Share2 } from "lucide-react";
 import { MARKSHEET_TRANSLATIONS } from "../constants";
 import { Result } from "../types";
 import { MarksheetFilter } from "../components/MarksheetFilter";
-import { collection, query, where, getDocs, doc, setDoc } from "firebase/firestore";
+import { collection, query, where, getDocs, getDoc, doc, setDoc } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";

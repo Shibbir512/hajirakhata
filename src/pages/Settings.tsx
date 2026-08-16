@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
-import { User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock, MessageCircle } from "lucide-react";
+import { FileBadge, User, LogOut, Building, Mail, Shield, Users, Trash2, Ban, ShieldCheck, UserCog, UserMinus, Phone, List, X, Camera, Upload, Loader2, Bell, Clock, MessageCircle } from "lucide-react";
 import { doc, updateDoc, collection, query, where, getDocs, getDoc, deleteField, deleteDoc, onSnapshot, setDoc } from "firebase/firestore";
 import { deleteUser, updateProfile } from "firebase/auth";
 import { db, auth, storage } from "../firebase";
@@ -18,12 +18,26 @@ const Settings: React.FC = () => {
   const [whatsappNum, setWhatsappNum] = useState(supportWhatsApp || "8801911963117");
   const [isSavingWhatsApp, setIsSavingWhatsApp] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [resultSettings, setResultSettings] = useState<any>({ gradingSystem: "madrasa", strictFailing: true, defaultPassMark: 33 });
 
   useEffect(() => {
     if (supportWhatsApp) {
       setWhatsappNum(supportWhatsApp);
     }
   }, [supportWhatsApp]);
+
+  const handleResultSettingChange = async (key: string, value: any) => {
+    if (!orgId) return;
+    try {
+      setResultSettings((prev: any) => ({ ...prev, [key]: value }));
+      const orgRef = doc(db, "organizations", orgId);
+      await updateDoc(orgRef, { [key]: value });
+      toast.success("ফলাফল সেটিংস আপডেট করা হয়েছে!");
+    } catch (error) {
+      console.error("Error updating result setting:", error);
+      toast.error("সেটিংস আপডেট করতে ব্যর্থ হয়েছে।");
+    }
+  };
 
   const handleSaveWhatsApp = async () => {
     if (!whatsappNum.trim()) {
@@ -149,7 +163,11 @@ const Settings: React.FC = () => {
           const orgDoc = await getDoc(doc(db, "organizations", orgId));
           if (orgDoc.exists()) {
             setOrgCode(orgDoc.data().orgCode || "");
-
+            setResultSettings({
+              gradingSystem: orgDoc.data().gradingSystem || "madrasa",
+              strictFailing: orgDoc.data().strictFailing !== undefined ? orgDoc.data().strictFailing : true,
+              defaultPassMark: orgDoc.data().defaultPassMark !== undefined ? orgDoc.data().defaultPassMark : 33
+            });
           }
         } catch (error) {
           console.error("Error fetching org data:", error);
@@ -695,6 +713,64 @@ const Settings: React.FC = () => {
             )}
           </div>
         </div>
+
+        {/* Result Settings Section (Admin Only) */}
+        {role === "admin" && (
+          <div className="col-span-1 md:col-span-2 card-premium p-8">
+            <div className="flex items-center gap-4 mb-8">
+              <div className="w-14 h-14 bg-gradient-to-tr from-[#0F5C7A]/10 to-[#14B8A6]/10 rounded-full flex items-center justify-center text-[#0F5C7A] shadow-inner border border-white">
+                <FileBadge className="w-7 h-7" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+                  ফলাফল সেটিংস
+                </h3>
+                <p className="text-sm text-slate-500 mt-1">
+                  পরীক্ষার ফলাফল ও গ্রেডিং সম্পর্কিত সেটিংস
+                </p>
+              </div>
+            </div>
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">গ্রেডিং সিস্টেম</label>
+                  <select
+                    value={resultSettings.gradingSystem || "madrasa"}
+                    onChange={(e) => handleResultSettingChange("gradingSystem", e.target.value)}
+                    className="input-premium w-full"
+                  >
+                    <option value="madrasa">মাদরাসা গ্রেডিং</option>
+                    <option value="general">জেনারেল গ্রেডিং</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">ডিফল্ট পাস মার্ক</label>
+                  <input
+                    type="number"
+                    value={resultSettings.defaultPassMark !== undefined ? resultSettings.defaultPassMark : 33}
+                    onChange={(e) => handleResultSettingChange("defaultPassMark", Number(e.target.value))}
+                    className="input-premium w-full"
+                  />
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+                <div>
+                  <h4 className="font-medium text-slate-800">কঠোর ফেল নীতি (Strict Failing)</h4>
+                  <p className="text-sm text-slate-500 mt-1">যেকোনো এক বিষয়ে পাস মার্কের নিচে পেলে পুরো পরীক্ষায় ফেল হিসেবে গণ্য হবে</p>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    className="sr-only peer"
+                    checked={resultSettings.strictFailing ?? true}
+                    onChange={(e) => handleResultSettingChange("strictFailing", e.target.checked)}
+                  />
+                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                </label>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Staff Management Section (Admin Only) */}
         {role === "admin" && (

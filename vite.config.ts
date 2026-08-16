@@ -34,7 +34,7 @@ export default defineConfig(({ mode }) => {
           background_color: "#f8fafc"
         },
         devOptions: {
-          enabled: true
+          enabled: false
         }
       })
     ],
