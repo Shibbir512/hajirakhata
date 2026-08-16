@@ -11,6 +11,12 @@
   to { opacity: 0; transform: scale(0.9); }
 }
 
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
 :root {
   color-scheme: light;
 }
