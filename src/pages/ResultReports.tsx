@@ -5,7 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, Calendar, Users } from "lucide-react";
+import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, Calendar, Users, Settings } from "lucide-react";
 import { Result } from "../types";
 import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -51,7 +51,7 @@ const ResultReports: React.FC = () => {
     classNameText: "",
     publishDate: ""
   });
-  const { gradingSystem, defaultPassMark, strictFailing } = useResultSettings(orgId);
+  const { gradingSystem, defaultPassMark, strictFailing, updateSetting } = useResultSettings(orgId);
 
   useEffect(() => {
     const activeYear = academicYears.find(ay => ay.is_active);
@@ -466,6 +466,7 @@ const ResultReports: React.FC = () => {
             )}
           </div>
       </div>
+
 
       <div className="card-premium p-6 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">

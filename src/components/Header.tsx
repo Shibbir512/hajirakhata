@@ -26,6 +26,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
     if (location.pathname.startsWith("/result-entry")) return "ফলাফল এন্ট্রি";
     if (location.pathname.startsWith("/result-reports")) return "ফলাফল রিপোর্ট";
+    if (location.pathname.startsWith("/result-settings")) return "ফলাফল সেটিংস";
     if (location.pathname.startsWith("/marksheet")) return "মার্কশিট";
 
     if (location.pathname.startsWith("/fees/collection")) return "ফি আদায় এন্ট্রি";

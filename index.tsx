@@ -7,9 +7,9 @@ import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    // Auto update or just log it, avoiding confirm() which blocks iframe
+    // Auto update is handled by vite-plugin-pwa with registerType: 'autoUpdate'
+    // Do NOT call updateSW(true) here as it causes infinite reload loops
     console.log('New content available. Auto-updating...');
-    updateSW(true);
   },
   onOfflineReady() {
     console.log('App ready to work offline');

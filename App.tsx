@@ -89,6 +89,7 @@ const Subjects = lazy(() => import("./src/pages/Subjects"));
 const Exams = lazy(() => import("./src/pages/Exams"));
 const ResultEntry = lazy(() => import("./src/pages/ResultEntry"));
 const ResultReports = lazy(() => import("./src/pages/ResultReports"));
+const ResultSettings = lazy(() => import("./src/pages/ResultSettings"));
 const Marksheet = lazy(() => import("./src/pages/Marksheet"));
 const AcademicYears = lazy(() => import("./src/pages/AcademicYears"));
 const Announcements = lazy(() => import("./src/pages/Announcements"));
@@ -320,6 +321,7 @@ const AppRoutes = () => (
           <Route path="student-profile/:studentId" element={<StudentProfile />} />
           <Route path="result-search" element={<PublicResultSearchPage />} />
           <Route path="result-search/:orgId" element={<PublicResultSearchPage />} />
+          <Route path="result-settings" element={<ResultSettings />} />
           
           {/* Fee Management Routes */}
           <Route path="fees/categories" element={<FeeCategories />} />

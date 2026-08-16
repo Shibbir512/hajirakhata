@@ -42,7 +42,7 @@ const NavLabel = ({ name }: { name: string }) => {
 };
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
-  const { user, photoURL, orgId, logout } = useAuth();
+  const { user, photoURL, orgId, logout, role } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -103,6 +103,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "ফলাফল", path: "/result-reports", icon: FileText },
     { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
     { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
+    ...(role === "admin" ? [{ name: "ফলাফল সেটিংস", path: "/result-settings", icon: Settings }] : [])
   ] : [];
 
   const studentLinks = orgId ? [

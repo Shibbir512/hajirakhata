@@ -23,7 +23,7 @@ import {
 import clsx from "clsx";
 
 const BottomNavigation: React.FC = () => {
-  const { user, orgId, logout } = useAuth();
+  const { user, orgId, logout, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -76,6 +76,7 @@ const BottomNavigation: React.FC = () => {
       { name: "ফলাফল", path: "/result-reports", icon: FileText },
       { name: "মার্কশিট", path: "/marksheet", icon: GraduationCap },
       { name: "ফলাফল অনুসন্ধান", path: "/result-search", icon: Search },
+      ...(role === "admin" ? [{ name: "ফলাফল সেটিংস", path: "/result-settings", icon: Settings }] : [])
     ],
     students: [
       { name: "শিক্ষার্থী", path: "/students", icon: Users },
