@@ -59,24 +59,26 @@ service cloud.firestore {
       allow read, write, delete: if isSuperAdmin();
     }
 
-    function isRolesUpdateValid(callerOrgId, diff) {
-      return !('roles' in diff.affectedKeys()) || 
-             request.resource.data.get('roles', {}).diff(resource.data.get('roles', {})).affectedKeys().hasOnly([callerOrgId]);
+    function isRolesUpdateValid(callerOrgId) {
+      let oldRoles = ('roles' in resource.data) ? resource.data.roles : {};
+      let newRoles = ('roles' in request.resource.data) ? request.resource.data.roles : {};
+      return newRoles == oldRoles || newRoles.diff(oldRoles).affectedKeys().hasOnly([callerOrgId]);
     }
 
-    function isVisitedOrgsUpdateValid(callerOrgId, diff) {
-      return !('visitedOrgs' in diff.affectedKeys()) || 
-             request.resource.data.get('visitedOrgs', {}).diff(resource.data.get('visitedOrgs', {})).affectedKeys().hasOnly([callerOrgId]);
+    function isVisitedOrgsUpdateValid(callerOrgId) {
+      let oldVisited = ('visitedOrgs' in resource.data) ? resource.data.visitedOrgs : {};
+      let newVisited = ('visitedOrgs' in request.resource.data) ? request.resource.data.visitedOrgs : {};
+      return newVisited == oldVisited || newVisited.diff(oldVisited).affectedKeys().hasOnly([callerOrgId]);
     }
 
     // Secure user updates:
     function canUpdateUser(userId) {
        let isSelfUpdate = isAuthenticated() && request.auth.uid == userId;
        let callerData = getUserData();
-       let callerOrgId = callerData != null ? callerData.get('organizationId', '') : '';
+       let callerOrgId = (callerData != null && 'organizationId' in callerData) ? callerData.organizationId : '';
        
-       let callerRoles = callerData != null ? callerData.get('roles', {}) : {};
-       let callerRole = callerOrgId in callerRoles ? callerRoles[callerOrgId] : (callerData != null ? callerData.get('role', '') : '');
+       let callerRoles = (callerData != null && 'roles' in callerData) ? callerData.roles : {};
+       let callerRole = callerOrgId in callerRoles ? callerRoles[callerOrgId] : ((callerData != null && 'role' in callerData) ? callerData.role : '');
        let isCallerAdmin = callerRole == 'admin';
        
        let diff = request.resource.data.diff(resource.data);
@@ -84,7 +86,7 @@ service cloud.firestore {
        
        return isSuperAdmin() || 
               isSelfUpdate || 
-              (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && isRolesUpdateValid(callerOrgId, diff) && isVisitedOrgsUpdateValid(callerOrgId, diff));
+              (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && isRolesUpdateValid(callerOrgId) && isVisitedOrgsUpdateValid(callerOrgId));
     }
 
     match /users/{userId} {
