@@ -118,21 +118,40 @@ const ResultReports: React.FC = () => {
       jayyidJiddan: 0,
       jayyid: 0,
       maqbul: 0,
-      raseb: 0
+      raseb: 0,
+      // General grading
+      aPlus: 0,
+      a: 0,
+      aMinus: 0,
+      b: 0,
+      c: 0,
+      d: 0,
+      f: 0
     };
 
     filteredStudents.forEach(student => {
       const studentResults = results.filter(r => r.student_id === student.id);
-      const { grade } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults, gradingSystem);
-      if (grade === "মুমতায") stats.mumtaz++;
-      else if (grade === "জায়্যিদ জিদ্দান") stats.jayyidJiddan++;
-      else if (grade === "জায়্যিদ") stats.jayyid++;
-      else if (grade === "মকবুল") stats.maqbul++;
-      else if (grade === "রাসেব") stats.raseb++;
+      const { grade } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults, gradingSystem, strictFailing, defaultPassMark);
+      
+      if (gradingSystem === 'madrasa') {
+        if (grade === "মুমতায") stats.mumtaz++;
+        else if (grade === "জায়্যিদ জিদ্দান") stats.jayyidJiddan++;
+        else if (grade === "জায়্যিদ") stats.jayyid++;
+        else if (grade === "মকবুল") stats.maqbul++;
+        else if (grade === "রাসেব") stats.raseb++;
+      } else {
+        if (grade === "A+") stats.aPlus++;
+        else if (grade === "A") stats.a++;
+        else if (grade === "A-") stats.aMinus++;
+        else if (grade === "B") stats.b++;
+        else if (grade === "C") stats.c++;
+        else if (grade === "D") stats.d++;
+        else if (grade === "F") stats.f++;
+      }
     });
 
     return stats;
-  }, [filteredStudents, results, filteredSubjects, allStudentResults]);
+  }, [filteredStudents, results, filteredSubjects, allStudentResults, gradingSystem, strictFailing, defaultPassMark]);
 
   const processedResults = useMemo(() => {
     const data = filteredStudents.map(student => {
@@ -783,31 +802,67 @@ const ResultReports: React.FC = () => {
             </table>
           </div>
 
-          <div className="mt-8 grid grid-cols-2 md:grid-cols-6 gap-4 print:grid-cols-6">
+          <div className={`mt-8 grid grid-cols-2 md:grid-cols-${gradingSystem === 'madrasa' ? '6' : '8'} gap-4 print:grid-cols-${gradingSystem === 'madrasa' ? '6' : '8'}`}>
             <div className="p-4 bg-slate-50 rounded-xl text-center border border-slate-100">
               <p className="text-xs text-slate-500 mb-1">মোট শিক্ষার্থী</p>
               <p className="text-xl font-bold text-slate-800">{convertNumber(statistics.total, numeralFormat)}</p>
             </div>
-            <div className="p-4 bg-[#22C55E]/10 rounded-xl text-center border border-[#22C55E]/20">
-              <p className="text-xs text-[#22C55E] mb-1">মুমতায</p>
-              <p className="text-xl font-bold text-[#22C55E]">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
-            </div>
-            <div className="p-4 bg-[#14B8A6]/10 rounded-xl text-center border border-[#14B8A6]/20">
-              <p className="text-xs text-[#14B8A6] mb-1">জায়্যিদ জিদ্দান</p>
-              <p className="text-xl font-bold text-[#14B8A6]">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
-            </div>
-            <div className="p-4 bg-[#0F5C7A]/10 rounded-xl text-center border border-[#0F5C7A]/20">
-              <p className="text-xs text-[#0F5C7A] mb-1">জায়্যিদ</p>
-              <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(statistics.jayyid, numeralFormat)}</p>
-            </div>
-            <div className="p-4 bg-[#F59E0B]/10 rounded-xl text-center border border-[#F59E0B]/20">
-              <p className="text-xs text-[#F59E0B] mb-1">মকবুল</p>
-              <p className="text-xl font-bold text-[#F59E0B]">{convertNumber(statistics.maqbul, numeralFormat)}</p>
-            </div>
-            <div className="p-4 bg-[#EF4444]/10 rounded-xl text-center border border-[#EF4444]/20">
-              <p className="text-xs text-[#EF4444] mb-1">রাসেব</p>
-              <p className="text-xl font-bold text-[#EF4444]">{convertNumber(statistics.raseb, numeralFormat)}</p>
-            </div>
+            
+            {gradingSystem === 'madrasa' ? (
+              <>
+                <div className="p-4 bg-[#22C55E]/10 rounded-xl text-center border border-[#22C55E]/20">
+                  <p className="text-xs text-[#22C55E] mb-1">মুমতায</p>
+                  <p className="text-xl font-bold text-[#22C55E]">{convertNumber(statistics.mumtaz, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#14B8A6]/10 rounded-xl text-center border border-[#14B8A6]/20">
+                  <p className="text-xs text-[#14B8A6] mb-1">জায়্যিদ জিদ্দান</p>
+                  <p className="text-xl font-bold text-[#14B8A6]">{convertNumber(statistics.jayyidJiddan, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#0F5C7A]/10 rounded-xl text-center border border-[#0F5C7A]/20">
+                  <p className="text-xs text-[#0F5C7A] mb-1">জায়্যিদ</p>
+                  <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(statistics.jayyid, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#F59E0B]/10 rounded-xl text-center border border-[#F59E0B]/20">
+                  <p className="text-xs text-[#F59E0B] mb-1">মকবুল</p>
+                  <p className="text-xl font-bold text-[#F59E0B]">{convertNumber(statistics.maqbul, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#EF4444]/10 rounded-xl text-center border border-[#EF4444]/20">
+                  <p className="text-xs text-[#EF4444] mb-1">রাসেব</p>
+                  <p className="text-xl font-bold text-[#EF4444]">{convertNumber(statistics.raseb, numeralFormat)}</p>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="p-4 bg-[#22C55E]/10 rounded-xl text-center border border-[#22C55E]/20">
+                  <p className="text-xs text-[#22C55E] mb-1">A+</p>
+                  <p className="text-xl font-bold text-[#22C55E]">{convertNumber(statistics.aPlus, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#16A34A]/10 rounded-xl text-center border border-[#16A34A]/20">
+                  <p className="text-xs text-[#16A34A] mb-1">A</p>
+                  <p className="text-xl font-bold text-[#16A34A]">{convertNumber(statistics.a, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#14B8A6]/10 rounded-xl text-center border border-[#14B8A6]/20">
+                  <p className="text-xs text-[#14B8A6] mb-1">A-</p>
+                  <p className="text-xl font-bold text-[#14B8A6]">{convertNumber(statistics.aMinus, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#0F5C7A]/10 rounded-xl text-center border border-[#0F5C7A]/20">
+                  <p className="text-xs text-[#0F5C7A] mb-1">B</p>
+                  <p className="text-xl font-bold text-[#0F5C7A]">{convertNumber(statistics.b, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#F59E0B]/10 rounded-xl text-center border border-[#F59E0B]/20">
+                  <p className="text-xs text-[#F59E0B] mb-1">C</p>
+                  <p className="text-xl font-bold text-[#F59E0B]">{convertNumber(statistics.c, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#F97316]/10 rounded-xl text-center border border-[#F97316]/20">
+                  <p className="text-xs text-[#F97316] mb-1">D</p>
+                  <p className="text-xl font-bold text-[#F97316]">{convertNumber(statistics.d, numeralFormat)}</p>
+                </div>
+                <div className="p-4 bg-[#EF4444]/10 rounded-xl text-center border border-[#EF4444]/20">
+                  <p className="text-xs text-[#EF4444] mb-1">F</p>
+                  <p className="text-xl font-bold text-[#EF4444]">{convertNumber(statistics.f, numeralFormat)}</p>
+                </div>
+              </>
+            )}
           </div>
         </div>
       ) : (
