@@ -474,6 +474,24 @@ const ResultReports: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <style>
+        {`
+          @media print {
+            @page { size: landscape; margin: 10mm; }
+            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .print\\:overflow-visible { overflow: visible !important; }
+            .print\\:shadow-none { box-shadow: none !important; }
+            .print\\:border-none { border: none !important; }
+            .print\\:p-0 { padding: 0 !important; }
+            table { page-break-inside: auto; width: 100% !important; max-width: none !important; }
+            tr { page-break-inside: avoid; page-break-after: auto; }
+            thead { display: table-header-group; }
+            tfoot { display: table-footer-group; }
+            #tabulation-sheet-container { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
+            .overflow-x-auto { overflow-x: visible !important; }
+          }
+        `}
+      </style>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
