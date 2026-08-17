@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { db } from "../firebase";
 import { collection, getDocs, doc, updateDoc, deleteDoc, query, where, writeBatch } from "firebase/firestore";
-import { Users, BookOpen, Lock, Unlock, Trash2, CheckCircle2, XCircle, Clock, Building2 } from "lucide-react";
+import { Users, BookOpen, Lock, Unlock, Trash2, CheckCircle2, XCircle, Clock, Building2, LogIn } from "lucide-react";
 import toast from "react-hot-toast";
+import { useAuth } from "../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 
 interface OrgStats {
@@ -21,6 +23,8 @@ interface OrgStats {
 }
 
 const SuperAdminDashboard: React.FC = () => {
+  const { joinOrganization } = useAuth();
+  const navigate = useNavigate();
   const [activeOrgs, setActiveOrgs] = useState<OrgStats[]>([]);
   const [pendingOrgs, setPendingOrgs] = useState<OrgStats[]>([]);
   const [activeTab, setActiveTab] = useState<"pending" | "active">("active");
@@ -252,6 +256,20 @@ const SuperAdminDashboard: React.FC = () => {
     }
   };
 
+  const handleEnterOrg = async (orgId: string) => {
+    setActionLoading(true);
+    try {
+      const result = await joinOrganization(orgId);
+      if (result) {
+        navigate("/");
+      }
+    } catch (error: any) {
+      toast.error(error.message || "প্রতিষ্ঠানে প্রবেশ করতে সমস্যা হয়েছে।");
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
   if (loading) return <div className="p-8 text-center text-lg font-bold text-slate-600">ডেটা লোড হচ্ছে...</div>;
 
   return (
@@ -403,6 +421,15 @@ const SuperAdminDashboard: React.FC = () => {
                     <BookOpen className="w-5 h-5 text-[#F59E0B]" />
                     <span className="font-bold text-slate-700">{org.teacherCount} শিক্ষক</span>
                   </div>
+                  
+                  <button
+                    disabled={actionLoading || org.isBlocked}
+                    onClick={() => handleEnterOrg(org.id)}
+                    className="p-2 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] hover:bg-[#0F5C7A]/20 transition-colors disabled:opacity-50 cursor-pointer"
+                    title="প্রতিষ্ঠানে প্রবেশ করুন"
+                  >
+                    <LogIn className="w-5 h-5" />
+                  </button>
                   
                   <button
                     disabled={actionLoading}
