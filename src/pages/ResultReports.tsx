@@ -340,52 +340,86 @@ const ResultReports: React.FC = () => {
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      await document.fonts.ready;
-      
-      const input = document.getElementById('tabulation-sheet-container');
-      if (!input) throw new Error("Tabulation sheet container not found");
-      
-      // Temporarily remove overflow and ensure full width for capture
-      const tableWrapper = input.querySelector('div.overflow-x-auto');
-      if (tableWrapper) {
-        tableWrapper.classList.remove('overflow-x-auto');
-      }
-      input.style.width = 'max-content';
-      
-      await new Promise(resolve => setTimeout(resolve, 300)); // Layout wait
-
-      const canvas = await toCanvas(input, { 
-        pixelRatio: 2,
-        backgroundColor: '#ffffff'
-      });
-      
-      // Restore styles
-      if (tableWrapper) {
-        tableWrapper.classList.add('overflow-x-auto');
-      }
-      input.style.width = '';
-
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
       const pdf = new jsPDF("l", "mm", "a4");
+      const hasFont = await addBengaliFont(pdf);
       
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
+      if (hasFont) {
+        pdf.setFont("TiroBangla");
       }
+
+      // Add Headers
+      pdf.setFontSize(20);
+      pdf.text(reportHeader.orgName || "প্রতিষ্ঠানের নাম", pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
+      
+      pdf.setFontSize(12);
+      pdf.text(reportHeader.address || "ঠিকানা", pdf.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
+      
+      pdf.setFontSize(14);
+      pdf.text(reportHeader.examTitle || "পরীক্ষার ফলাফল", pdf.internal.pageSize.getWidth() / 2, 36, { align: 'center' });
+      
+      pdf.setFontSize(11);
+      pdf.text(`${reportHeader.academicYearText}     ${reportHeader.classNameText}`, pdf.internal.pageSize.getWidth() / 2, 44, { align: 'center' });
+      pdf.text(reportHeader.publishDate || "", pdf.internal.pageSize.getWidth() / 2, 50, { align: 'center' });
+
+      // Table columns
+      const head = [[
+        "রোল",
+        "নাম",
+        ...filteredSubjects.map(s => `${s.name}\n(${convertNumber(s.fullMarks, numeralFormat)})`),
+        "মোট",
+        "পূর্ণমান",
+        "শতকরা",
+        "বিভাগ",
+        "মেধাক্রম"
+      ]];
+
+      const body = processedResults.map(({ student, metrics }) => {
+        const row = [
+          convertNumber(student.roll, numeralFormat).toString(),
+          student.name,
+        ];
+        
+        filteredSubjects.forEach(subject => {
+          const result = results.find(r => r.student_id === student.id && r.subject_id === subject.id);
+          row.push(result ? convertNumber(result.marks, numeralFormat).toString() : "-");
+        });
+        
+        row.push(convertNumber(metrics.totalMarks, numeralFormat).toString());
+        row.push(convertNumber(metrics.totalFullMarks, numeralFormat).toString());
+        row.push(`${convertNumber(metrics.percentage, numeralFormat)}%`);
+        const statusText = metrics.statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য';
+        row.push(`${statusText}\n(${metrics.grade})`);
+        row.push(convertNumber(metrics.rank, numeralFormat).toString());
+        
+        return row;
+      });
+
+      autoTable(pdf, {
+        head: head,
+        body: body,
+        startY: 55,
+        styles: {
+          font: hasFont ? 'TiroBangla' : 'helvetica',
+          fontSize: 9,
+          cellPadding: 3,
+          halign: 'center',
+          valign: 'middle',
+          lineColor: [200, 200, 200],
+          lineWidth: 0.1,
+        },
+        headStyles: {
+          fillColor: [248, 249, 250],
+          textColor: [71, 85, 105],
+          fontStyle: 'bold',
+        },
+        alternateRowStyles: {
+          fillColor: [250, 250, 250],
+        },
+        columnStyles: {
+          1: { halign: 'left', minCellWidth: 25 }, // Name column left aligned
+        },
+        margin: { top: 55, right: 10, bottom: 15, left: 10 },
+      });
 
       pdf.save(`Tabulation_Sheet_${selectedClassId}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
