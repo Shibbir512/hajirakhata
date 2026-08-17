@@ -65,37 +65,28 @@ service cloud.firestore {
     // 2. Themselves (self-update)
     // 3. An Org Admin, BUT ONLY IF they are modifying `roles`, `visitedOrgs`, or `organizationId` for their active org.
     function canUpdateUser(userId) {
-       if (isSuperAdmin()) return true;
-       if (isAuthenticated() && request.auth.uid == userId) return true;
-       
+       let isSelfUpdate = isAuthenticated() && request.auth.uid == userId;
        let callerData = getUserData();
-       if (callerData == null) return false;
+       let callerOrgId = callerData != null ? callerData.get('organizationId', '') : '';
        
-       let callerOrgId = callerData.get('organizationId', null);
-       if (callerOrgId == null) return false;
-       
-       let callerRoles = callerData.get('roles', {});
-       let callerRole = callerOrgId in callerRoles ? callerRoles[callerOrgId] : callerData.get('role', '');
-       if (callerRole != 'admin') return false;
+       let callerRoles = callerData != null ? callerData.get('roles', {}) : {};
+       let callerRole = callerOrgId in callerRoles ? callerRoles[callerOrgId] : (callerData != null ? callerData.get('role', '') : '');
+       let isCallerAdmin = callerRole == 'admin';
        
        let diff = request.resource.data.diff(resource.data);
-       if (!diff.affectedKeys().hasOnly(['roles', 'organizationId', 'visitedOrgs'])) return false;
+       let onlyAllowedKeys = diff.affectedKeys().hasOnly(['roles', 'organizationId', 'visitedOrgs']);
        
-       if ('roles' in diff.affectedKeys()) {
-         let oldRoles = resource.data.get('roles', {});
-         let newRoles = request.resource.data.get('roles', {});
-         let rolesDiff = newRoles.diff(oldRoles);
-         if (!rolesDiff.affectedKeys().hasOnly([callerOrgId])) return false;
-       }
+       let oldRoles = resource.data.get('roles', {});
+       let newRoles = request.resource.data.get('roles', {});
+       let validRolesUpdate = !('roles' in diff.affectedKeys()) || newRoles.diff(oldRoles).affectedKeys().hasOnly([callerOrgId]);
        
-       if ('visitedOrgs' in diff.affectedKeys()) {
-         let oldVisited = resource.data.get('visitedOrgs', {});
-         let newVisited = request.resource.data.get('visitedOrgs', {});
-         let visitedDiff = newVisited.diff(oldVisited);
-         if (!visitedDiff.affectedKeys().hasOnly([callerOrgId])) return false;
-       }
+       let oldVisited = resource.data.get('visitedOrgs', {});
+       let newVisited = request.resource.data.get('visitedOrgs', {});
+       let validVisitedUpdate = !('visitedOrgs' in diff.affectedKeys()) || newVisited.diff(oldVisited).affectedKeys().hasOnly([callerOrgId]);
        
-       return true;
+       return isSuperAdmin() || 
+              isSelfUpdate || 
+              (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && validRolesUpdate && validVisitedUpdate);
     }
 
     match /users/{userId} {
