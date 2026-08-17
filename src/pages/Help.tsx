@@ -133,6 +133,38 @@ const Help: React.FC = () => {
                         <li><strong>প্রতিষ্ঠান কোড:</strong> শিক্ষার্থীদের অনলাইনে রেজাল্ট দেখার জন্য আপনার প্রতিষ্ঠানের কোডটি সেটিংসে দেওয়া আছে।</li>
                       </ul>
                     </div>
+
+                    <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 mb-3 border-b pb-2">৭. ক্যালেন্ডার (Calendar)</h3>
+                      <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600">
+                        <li><strong>ছুটির দিন ও ইভেন্ট:</strong> একাডেমিক ক্যালেন্ডারে সরকারি ছুটি, প্রতিষ্ঠানের নিজস্ব ছুটি বা যেকোনো ইভেন্ট যুক্ত করে রাখতে পারবেন।</li>
+                        <li><strong>হাজিরায় প্রভাব:</strong> ক্যালেন্ডারে কোনো দিনকে 'ছুটি' হিসেবে মার্ক করা থাকলে ওই দিন শিক্ষার্থীদের হাজিরা নেওয়ার প্রয়োজন হয় না।</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 mb-3 border-b pb-2">৮. বিষয় ও শিক্ষাবর্ষ (Subjects & Academic Years)</h3>
+                      <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600">
+                        <li><strong>শিক্ষাবর্ষ (Academic Years):</strong> নতুন শিক্ষাবর্ষ তৈরি করা এবং বর্তমান শিক্ষাবর্ষ পরিবর্তন করার জন্য এই মেনুটি ব্যবহার করুন। নতুন বছরে শিক্ষার্থীদের প্রমোশন দেওয়ার আগে নতুন শিক্ষাবর্ষ সেট করে নিতে হয়।</li>
+                        <li><strong>বিষয় (Subjects):</strong> প্রতিটি ক্লাসের জন্য আলাদা আলাদা বিষয় বা সাবজেক্ট তৈরি করতে পারবেন। এই বিষয়গুলোর উপর ভিত্তি করেই পরবর্তীতে পরীক্ষার ফলাফল তৈরি হবে।</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 mb-3 border-b pb-2">৯. পরীক্ষা ও ফলাফল সেটিং (Exams & Result Settings)</h3>
+                      <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600">
+                        <li><strong>পরীক্ষা (Exams):</strong> বছরে কয়টি পরীক্ষা হবে (যেমন: ১ম সাময়িক, ২য় সাময়িক, বার্ষিক) তা এই মেনু থেকে তৈরি করতে হবে।</li>
+                        <li><strong>ফলাফল সেটিং:</strong> পরীক্ষার পাস মার্ক, গ্রেডিং সিস্টেম (যেমন: A+, A, A-) এবং মোট মার্কসের হিসাব এখান থেকে প্রতিষ্ঠানের নিয়ম অনুযায়ী নির্ধারণ করা যাবে।</li>
+                      </ul>
+                    </div>
+
+                    <div className="bg-white rounded-xl border border-slate-100 p-5 shadow-sm">
+                      <h3 className="text-lg font-bold text-slate-800 mb-3 border-b pb-2">১০. রিপোর্ট (Reports)</h3>
+                      <ul className="space-y-2 list-disc pl-5 text-sm text-slate-600">
+                        <li><strong>উপস্থিতি রিপোর্ট:</strong> কোন ক্লাসে দৈনিক বা মাসিক উপস্থিতির হার কেমন তার বিস্তারিত রিপোর্ট দেখা ও প্রিন্ট করা যাবে।</li>
+                        <li><strong>ফি রিপোর্ট:</strong> কোন খাতে কত টাকা ফি আদায় হয়েছে, বাকি আছে কত, তার বিস্তারিত মাসিক বা বাৎসরিক রিপোর্ট তৈরি করা যাবে।</li>
+                      </ul>
+                    </div>
                   </div>
                 </div>
               </div>
