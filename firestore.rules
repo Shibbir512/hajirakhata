@@ -59,11 +59,17 @@ service cloud.firestore {
       allow read, write, delete: if isSuperAdmin();
     }
 
+    function isRolesUpdateValid(callerOrgId, diff) {
+      return !('roles' in diff.affectedKeys()) || 
+             request.resource.data.get('roles', {}).diff(resource.data.get('roles', {})).affectedKeys().hasOnly([callerOrgId]);
+    }
+
+    function isVisitedOrgsUpdateValid(callerOrgId, diff) {
+      return !('visitedOrgs' in diff.affectedKeys()) || 
+             request.resource.data.get('visitedOrgs', {}).diff(resource.data.get('visitedOrgs', {})).affectedKeys().hasOnly([callerOrgId]);
+    }
+
     // Secure user updates:
-    // A user can only be updated by:
-    // 1. A Super Admin
-    // 2. Themselves (self-update)
-    // 3. An Org Admin, BUT ONLY IF they are modifying `roles`, `visitedOrgs`, or `organizationId` for their active org.
     function canUpdateUser(userId) {
        let isSelfUpdate = isAuthenticated() && request.auth.uid == userId;
        let callerData = getUserData();
@@ -76,17 +82,9 @@ service cloud.firestore {
        let diff = request.resource.data.diff(resource.data);
        let onlyAllowedKeys = diff.affectedKeys().hasOnly(['roles', 'organizationId', 'visitedOrgs']);
        
-       let oldRoles = resource.data.get('roles', {});
-       let newRoles = request.resource.data.get('roles', {});
-       let validRolesUpdate = !('roles' in diff.affectedKeys()) || newRoles.diff(oldRoles).affectedKeys().hasOnly([callerOrgId]);
-       
-       let oldVisited = resource.data.get('visitedOrgs', {});
-       let newVisited = request.resource.data.get('visitedOrgs', {});
-       let validVisitedUpdate = !('visitedOrgs' in diff.affectedKeys()) || newVisited.diff(oldVisited).affectedKeys().hasOnly([callerOrgId]);
-       
        return isSuperAdmin() || 
               isSelfUpdate || 
-              (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && validRolesUpdate && validVisitedUpdate);
+              (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && isRolesUpdateValid(callerOrgId, diff) && isVisitedOrgsUpdateValid(callerOrgId, diff));
     }
 
     match /users/{userId} {
