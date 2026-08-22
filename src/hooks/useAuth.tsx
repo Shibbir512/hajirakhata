@@ -111,29 +111,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userDocRef = doc(db, `users`, currentUser.uid);
         
         // Ensure user's basic info is stored without blocking
-        try {
-          const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
-          const docSnap = await getDoc(userDocRef);
-          const existingData = docSnap.exists() ? docSnap.data() : null;
+        (async () => {
+          try {
+            const fallbackName = currentUser.email ? currentUser.email.split('@')[0] : "ব্যবহারকারী";
+            const docSnap = await getDoc(userDocRef);
+            const existingData = docSnap.exists() ? docSnap.data() : null;
 
-          const updateData: any = {
-            displayName: currentUser.displayName || fallbackName,
-            email: currentUser.email || "",
-            lastSeen: serverTimestamp()
-          };
+            const updateData: any = {
+              displayName: currentUser.displayName || fallbackName,
+              email: currentUser.email || "",
+              lastSeen: serverTimestamp()
+            };
 
-          // Only sync photoURL from Google if Firestore doesn't have one yet
-          if (!existingData?.photoURL && currentUser.photoURL) {
-            updateData.photoURL = currentUser.photoURL;
+            // Only sync photoURL from Google if Firestore doesn't have one yet
+            if (!existingData?.photoURL && currentUser.photoURL) {
+              updateData.photoURL = currentUser.photoURL;
+            }
+
+            // Always merge to prevent overwriting existing user fields like roles, orgId, or status
+            setDoc(userDocRef, updateData, { merge: true }).catch(e => {
+              console.warn("Could not silently update user lastSeen block:", e);
+            });
+          } catch (e) {
+            console.warn("Could not check/update user info silently:", e);
           }
-
-          // Always merge to prevent overwriting existing user fields like roles, orgId, or status
-          setDoc(userDocRef, updateData, { merge: true }).catch(e => {
-            console.warn("Could not silently update user lastSeen block:", e);
-          });
-        } catch (e) {
-          console.warn("Could not check/update user info silently:", e);
-        }
+        })();
 
         unsubUser = onSnapshot(userDocRef, async (docSnap) => {
           if (docSnap.exists()) {
@@ -155,16 +157,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             // Set initial state
             setRole(userRole);
             setStatus(userStatus);
-            setVisitedOrgs(history);
+            setVisitedOrgs(prev => JSON.stringify(prev) === JSON.stringify(history) ? prev : history);
             setPhone(userPhone);
             setPhotoURL(userPhotoURL);
-            setNotificationPreferences(userNotificationPreferences);
+            setNotificationPreferences(prev => JSON.stringify(prev) === JSON.stringify(userNotificationPreferences) ? prev : userNotificationPreferences);
             setAttendanceReminderEnabled(userAttendanceReminderEnabled);
             setAttendanceReminderTime(userAttendanceReminderTime);
             
             let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
             setOrgName(currentOrgName);
             setOrgId(currentOrgId);
+            
+            // Only set loading to false here, so the app doesn't stay on the spinner
+            setLoading(false);
             
             // Perform background checks logic in a single fetch
             if (currentOrgId && (userRole !== "admin" || !currentOrgName)) {
@@ -200,9 +205,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 handleFirestoreError(e, OperationType.GET, `organizations/${currentOrgId}`);
               }
             }
-            
-            // Only set loading to false after we have attempted to load org data
-            setLoading(false);
           } else {
             setOrgId(null);
             setOrgName(null);
