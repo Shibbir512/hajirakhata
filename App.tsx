@@ -250,6 +250,7 @@ const App: React.FC = () => {
             fontSize: '14px',
             padding: '12px 20px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
+            pointerEvents: 'none',
           },
           success: {
             duration: 3000,
