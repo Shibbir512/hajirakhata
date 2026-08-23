@@ -358,7 +358,7 @@ const Marksheet: React.FC = () => {
     // Table
     const head = [[t.subject, t.fullMarks, t.passMarks, t.obtainedMarks]];
     const body = filteredSubjects.map(subject => {
-      const result = results.find(r => r.subject_id === subject.id);
+      const result = results.find(r => r.subject_id === subject.id && r.student_id === selectedStudent?.id);
       return [
         subject.name,
         convertNumber(subject.fullMarks, numeralFormat).toString(),
@@ -479,7 +479,7 @@ const Marksheet: React.FC = () => {
           new Table({
             rows: [
               new TableRow({ children: [new TableCell({ children: [new Paragraph("Subject")] }), new TableCell({ children: [new Paragraph("Full Marks")] }), new TableCell({ children: [new Paragraph("Obtained")] })] }),
-              ...filteredSubjects.map(s => new TableRow({ children: [new TableCell({ children: [new Paragraph(s.name)] }), new TableCell({ children: [new Paragraph(s.fullMarks.toString())] }), new TableCell({ children: [new Paragraph((results.find(r => r.subject_id === s.id)?.marks || 0).toString())] })] }))
+              ...filteredSubjects.map(s => new TableRow({ children: [new TableCell({ children: [new Paragraph(s.name)] }), new TableCell({ children: [new Paragraph(s.fullMarks.toString())] }), new TableCell({ children: [new Paragraph((results.find(r => r.subject_id === s.id && r.student_id === selectedStudent?.id)?.marks || 0).toString())] })] }))
             ]
           })
         ]
@@ -632,7 +632,7 @@ const Marksheet: React.FC = () => {
               </thead>
               <tbody className="divide-y divide-slate-300">
                 {filteredSubjects.map((subject) => {
-                  const result = results.find(r => r.subject_id === subject.id);
+                  const result = results.find(r => r.subject_id === subject.id && r.student_id === selectedStudent?.id);
                   const isFail = !result || result.marks < subject.passMarks;
                   
                   return (
