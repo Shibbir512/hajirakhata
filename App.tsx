@@ -17,6 +17,16 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
 
   componentDidCatch(error: any, errorInfo: any) {
     console.error("ErrorBoundary caught an error", error, errorInfo);
+    // Handle chunk loading errors (e.g. "Failed to fetch dynamically imported module")
+    const isChunkLoadFailed = error?.message?.match(/Failed to fetch dynamically imported module/i);
+    if (isChunkLoadFailed) {
+      const chunkFailedMessage = "ChunkLoadError";
+      const hasReloaded = sessionStorage.getItem(chunkFailedMessage);
+      if (!hasReloaded) {
+        sessionStorage.setItem(chunkFailedMessage, 'true');
+        window.location.reload();
+      }
+    }
   }
 
   render() {
@@ -34,9 +44,15 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
             <div className="w-20 h-20 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
               <AlertTriangle className="w-10 h-10 text-red-500" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-800 mb-4">কিছু একটা সমস্যা হয়েছে</h1>
+            <h1 className="text-2xl font-bold text-slate-800 mb-4">
+              {this.state.error?.message?.includes("Quota limit exceeded") || this.state.error?.message?.includes("resource-exhausted") || this.state.error?.message?.includes("Unexpected state") 
+                ? "ডেটাবেস কোটা শেষ হয়ে গেছে" 
+                : "কিছু একটা সমস্যা হয়েছে"}
+            </h1>
             <p className="text-slate-600 mb-8">
-              {errorDetails ? "সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।" : "অ্যাপ্লিকেশনটি লোড করতে সমস্যা হচ্ছে।"}
+              {this.state.error?.message?.includes("Quota limit exceeded") || this.state.error?.message?.includes("resource-exhausted") || this.state.error?.message?.includes("Unexpected state")
+                ? "আজকের জন্য গুগলের ফ্রি ডেটাবেস লিমিট (৫০,০০০ রিড) শেষ হয়ে গেছে। পূর্ববর্তী ইনফিনিট রিলোড বাগটির কারণে ডেটাবেসে প্রচুর কল হয়েছিল। দয়া করে আগামীকাল পর্যন্ত অপেক্ষা করুন অথবা ফায়ারবেস (Firebase) প্রজেক্টটি ব্লেজ (Blaze) প্ল্যানে আপগ্রেড করুন।"
+                : errorDetails ? "সার্ভারের সাথে সংযোগ স্থাপন করা যাচ্ছে না। অনুগ্রহ করে আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।" : "অ্যাপ্লিকেশনটি লোড করতে সমস্যা হচ্ছে।"}
             </p>
             
             {errorDetails && (
@@ -234,6 +250,10 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
+  // Clear chunk load error flag if the app successfully loaded
+  React.useEffect(() => {
+    sessionStorage.removeItem("ChunkLoadError");
+  }, []);
   const isSrcDoc = window.location.protocol === 'about:' || window.location.href === 'about:srcdoc' || window.location.origin === 'null';
   const currentPath = window.location.pathname + window.location.search + window.location.hash;
   

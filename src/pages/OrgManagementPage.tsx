@@ -55,12 +55,6 @@ const OrgManagementPage: React.FC = () => {
 
   const handleSuccess = () => {
     navigate("/");
-    // Fallback if navigate doesn't trigger a re-render or route change properly
-    setTimeout(() => {
-      if (window.location.pathname !== "/") {
-        window.location.href = "/";
-      }
-    }, 100);
   };
 
   const handleRemoveVisitedOrg = async (id: string) => {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './index.css';
@@ -7,9 +6,8 @@ import { registerSW } from 'virtual:pwa-register';
 
 const updateSW = registerSW({
   onNeedRefresh() {
-    // Auto update is handled by vite-plugin-pwa with registerType: 'autoUpdate'
-    // Do NOT call updateSW(true) here as it causes infinite reload loops
-    console.log('New content available. Auto-updating...');
+    console.log('New content available. Please refresh to update.');
+    // Prevent infinite reload loops by not forcing an update automatically.
   },
   onOfflineReady() {
     console.log('App ready to work offline');

@@ -95,6 +95,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
     
+    let checkedOrgs = new Set<string>();
     let unsubUser: (() => void) | null = null;
 
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
