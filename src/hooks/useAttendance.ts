@@ -85,9 +85,9 @@ export const useAttendance = (
         setAttendanceSessions(sessions);
         setLoading(false);
       },
-      (error) => {
+      (error: any) => {
         console.error("Error fetching sessions:", error);
-        toast.error("হাজিরা সেশন লোড করতে ব্যর্থ হয়েছে।");
+        toast.error(`হাজিরা সেশন লোড করতে ব্যর্থ হয়েছে। এরর: ${error?.code || error?.message || 'অজানা'}`);
         setLoading(false);
       },
     );

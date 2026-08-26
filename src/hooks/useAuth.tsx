@@ -165,7 +165,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setAttendanceReminderEnabled(userAttendanceReminderEnabled);
             setAttendanceReminderTime(userAttendanceReminderTime);
             
-            let currentOrgName = currentOrgId ? (history[currentOrgId] || null) : null;
+            let currentOrgName = currentOrgId ? (history[currentOrgId] !== undefined ? history[currentOrgId] : null) : null;
             setOrgName(currentOrgName);
             setOrgId(currentOrgId);
             
@@ -185,20 +185,26 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
                   if (userRole !== "admin" && orgData.createdBy === currentUser.uid && orgData.status !== "pending" && data.roles?.[currentOrgId] !== "pending") {
                     userRole = "admin";
                     setRole(userRole);
-                    updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                    if (!checkedOrgs.has(`${currentOrgId}_role`)) {
+                      checkedOrgs.add(`${currentOrgId}_role`);
+                      updateDoc(userDocRef, { [`roles.${currentOrgId}`]: "admin" }).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                    }
                   }
 
                   // Check org name
-                  if (!currentOrgName) {
-                    const fetchedOrgName = orgData.name;
+                  if (currentOrgName === null || currentOrgName === undefined) {
+                    const fetchedOrgName = orgData.name || "অজানা প্রতিষ্ঠান";
                     setOrgName(fetchedOrgName);
                     setVisitedOrgs(prev => ({ ...prev, [currentOrgId]: fetchedOrgName }));
-                    updateDoc(
-                      userDocRef,
-                      {
-                        [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
-                      }
-                    ).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                    if (!checkedOrgs.has(`${currentOrgId}_name`)) {
+                      checkedOrgs.add(`${currentOrgId}_name`);
+                      updateDoc(
+                        userDocRef,
+                        {
+                          [`visitedOrgs.${currentOrgId}`]: fetchedOrgName,
+                        }
+                      ).catch(e => handleFirestoreError(e, OperationType.WRITE, `users/${currentUser.uid}`));
+                    }
                   }
                 }
               } catch (e) {
@@ -209,7 +215,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           } else {
             setOrgId(null);
             setOrgName(null);
-            setVisitedOrgs({});
+            setVisitedOrgs(prev => Object.keys(prev).length === 0 ? prev : {});
             setLoading(false);
           }
         }, (error) => {
@@ -220,7 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         setOrgId(null);
         setOrgName(null);
-        setVisitedOrgs({});
+        setVisitedOrgs(prev => Object.keys(prev).length === 0 ? prev : {});
         setLoading(false);
       }
     });

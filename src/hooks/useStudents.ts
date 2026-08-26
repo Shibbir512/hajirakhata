@@ -48,9 +48,9 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
         } else {
           console.log("Organization document does not exist for orgId:", orgId);
         }
-      } catch (error) {
+      } catch (error: any) {
         console.error("Error fetching orgCode:", error);
-        toast.error("প্রতিষ্ঠানের তথ্য লোড করতে সমস্যা হচ্ছে। আপনার ইন্টারনেট সংযোগ পরীক্ষা করুন।");
+        toast.error(`প্রতিষ্ঠানের তথ্য লোড করতে সমস্যা হচ্ছে। এরর: ${error?.code || error?.message || 'অজানা এরর'}`);
       }
     };
     fetchOrgCode();

@@ -20,8 +20,8 @@ service cloud.firestore {
     function getRole(orgId) {
       let data = getUserData();
       return data == null ? null : 
-             (data.roles is map && orgId in data.roles) ? data.roles[orgId] :
-             (data.get('organizationId', '') == orgId && data.get('role', '') is string) ? data.role :
+             ('roles' in data && data.roles is map && orgId in data.roles) ? data.roles[orgId] :
+             ('organizationId' in data && data.organizationId == orgId && 'role' in data) ? data.role :
              null;
     }
 
@@ -43,7 +43,7 @@ service cloud.firestore {
     function isAssignedTeacher(orgId, classId) {
       let classDoc = get(/databases/$(database)/documents/organizations/$(orgId)/classes/$(classId));
       return classDoc != null && classDoc.data != null && 
-             classDoc.data.teacherIds != null && 
+             'teacherIds' in classDoc.data && 
              request.auth.uid in classDoc.data.teacherIds;
     }
 
@@ -53,7 +53,7 @@ service cloud.firestore {
 
     function isVersionCorrect() {
       return !('version' in resource.data) || 
-             (request.resource.data.version == resource.data.version + 1);
+             ('version' in request.resource.data && request.resource.data.version == resource.data.version + 1);
     }
 
     match /{document=**} {
@@ -129,7 +129,7 @@ service cloud.firestore {
         allow delete: if isAdmin(orgId) || isAssignedTeacher(orgId, resource.data.classId);
       }
       match /results/{resultId} {
-        allow read: if isTeacher(orgId) || resource.data.status == 'published';
+        allow read: if isTeacher(orgId) || ('status' in resource.data && resource.data.status == 'published');
         allow create: if isTeacher(orgId);
         allow update: if isTeacher(orgId) && isVersionCorrect();
         allow delete: if isAdmin(orgId);
@@ -162,21 +162,21 @@ service cloud.firestore {
     }
 
     match /feeCategories/{categoryId} {
-      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
-      allow create: if isSuperAdmin() || (request.resource != null && isAdmin(request.resource.data.orgId));
-      allow update, delete: if isSuperAdmin() || (resource != null && isAdmin(resource.data.orgId));
+      allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isAdmin(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isAdmin(resource.data.orgId));
     }
 
     match /feeSetups/{setupId} {
-      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
-      allow create: if isSuperAdmin() || (request.resource != null && isAdmin(request.resource.data.orgId));
-      allow update, delete: if isSuperAdmin() || (resource != null && isAdmin(resource.data.orgId));
+      allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isAdmin(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isAdmin(resource.data.orgId));
     }
 
     match /feeCollections/{collectionId} {
-      allow read: if isSuperAdmin() || (resource != null && isMember(resource.data.orgId));
-      allow create: if isSuperAdmin() || (request.resource != null && isTeacher(request.resource.data.orgId));
-      allow update, delete: if isSuperAdmin() || (resource != null && isTeacher(resource.data.orgId));
+      allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
+      allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isTeacher(request.resource.data.orgId));
+      allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isTeacher(resource.data.orgId));
     }
 
     match /counters/{document=**} {

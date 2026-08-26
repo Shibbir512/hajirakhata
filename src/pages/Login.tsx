@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { signInWithPopup } from 'firebase/auth';
 import { auth, googleProvider, db } from '../firebase';
 import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firestore';
-import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, ShieldCheck, Activity, Users, Star } from 'lucide-react';
+import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, Users, Star, GraduationCap, BookOpen, PieChart, CheckCircle2 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import logo from '../assets/logo.svg';
@@ -178,129 +178,135 @@ const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row overflow-hidden relative selection:bg-[#0F5C7A]/20">
+    <div className="min-h-screen bg-gradient-to-br from-[#0B3A4C] via-[#0F5C7A] to-[#062430] flex flex-col md:flex-row overflow-hidden relative selection:bg-white/20">
       
-      {/* Decorative Blur Backgrounds for Mobile */}
-      <div className="absolute top-[-20%] left-[-10%] w-[50%] h-[50%] bg-[#0F5C7A]/20 blur-[120px] rounded-full pointer-events-none md:hidden" />
-      <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-[#14B8A6]/20 blur-[120px] rounded-full pointer-events-none md:hidden" />
+      {/* Background Decorative Elements */}
+      <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
+      <div className="absolute top-[-20%] left-[-10%] w-[60%] h-[60%] bg-[#14B8A6]/20 blur-[150px] rounded-full pointer-events-none z-0" />
+      <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#14B8A6]/10 blur-[150px] rounded-full pointer-events-none z-0" />
 
-      {/* LEFT PANEL - VISUAL (Hidden on very small screens) */}
-      <div className="hidden md:flex md:w-[45%] lg:w-[50%] bg-gradient-to-br from-[#0F5C7A] via-[#0C6C8A] to-[#14B8A6] relative flex-col justify-between p-12 lg:p-20 text-white overflow-hidden shadow-2xl z-10">
+      {/* LEFT PANEL - VISUAL */}
+      <div className="hidden md:flex flex-col w-[50%] lg:w-[55%] relative z-10 p-12 lg:p-16 xl:p-20 justify-between">
         
-        {/* Subtle Background Pattern */}
-        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
-        <div className="absolute top-[-10%] right-[-20%] w-[70%] h-[70%] rounded-full bg-white/5 blur-3xl" />
-        <div className="absolute bottom-[-20%] left-[-10%] w-[80%] h-[80%] rounded-full bg-[#14B8A6]/20 blur-3xl" />
-
-        {/* Floating Elements (Visible on larger screens) */}
-        <motion.div 
-          animate={{ y: [0, -20, 0] }}
-          transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-          className="hidden xl:flex absolute top-[25%] right-[10%] bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-2xl items-center gap-3 z-0"
-        >
-          <div className="bg-teal-400/20 p-2.5 rounded-full">
-            <Users className="w-6 h-6 text-teal-200" />
-          </div>
-          <div>
-            <div className="text-[17px] font-bold text-white tracking-wide">আপনিও যুক্ত হোন</div>
-          </div>
-        </motion.div>
-
-        <motion.div 
-          animate={{ y: [0, 20, 0] }}
-          transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
-          className="hidden xl:flex absolute bottom-[30%] right-[15%] bg-white/10 backdrop-blur-md border border-white/20 p-4 rounded-2xl shadow-2xl items-center gap-3 z-0"
-        >
-          <div className="bg-amber-400/20 p-2.5 rounded-full">
-            <Star className="w-6 h-6 text-amber-200 fill-amber-200" />
-          </div>
-          <div>
-            <div className="text-2xl font-black">১০০%</div>
-            <div className="text-sm text-teal-100 font-medium">নির্ভরযোগ্য</div>
-          </div>
-        </motion.div>
-
         {/* Logo Section */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.2 }}
-          className="relative z-10 flex items-center gap-4"
+          transition={{ duration: 0.8 }}
+          className="flex items-center gap-3"
         >
-          <div className="bg-white p-2.5 rounded-2xl shadow-lg border border-teal-500/20">
-            <img src={logo} alt="হাজিরা খাতা" className="w-9 h-9 object-contain" />
+          <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20">
+            <BookOpen className="w-6 h-6 text-white" />
           </div>
-          <span className="font-extrabold text-3xl tracking-tight">হাজিরা খাতা</span>
+          <span className="font-extrabold text-2xl text-white tracking-tight">হাজিরা খাতা</span>
         </motion.div>
 
-        {/* Glow behind text */}
-        <div className="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-teal-400/20 rounded-full blur-[120px] pointer-events-none z-0" />
-
-        {/* Main Typography */}
+        {/* Central Graphic */}
         <motion.div 
-          initial={{ opacity: 0, x: -30 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.8, delay: 0.4 }}
-          className="relative z-10 my-auto"
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 1, delay: 0.2 }}
+          className="relative w-full max-w-[400px] mx-auto flex items-center justify-center my-12"
         >
-          <h1 className="text-4xl lg:text-5xl xl:text-6xl font-bold leading-tight mb-6 drop-shadow-xl">
-            আধুনিক শিক্ষা<br />
-            ব্যবস্থাপনার<br />
-            <span className="text-teal-200">স্মার্ট সমাধান</span>
-          </h1>
-          <p className="text-lg lg:text-xl text-teal-50/80 leading-relaxed max-w-md font-medium">
-            উপস্থিতি, শিক্ষার্থী পরিচালনা এবং ফলাফল প্রস্তুতির একটি সম্পূর্ণ স্বয়ংক্রিয় ডিজিটাল প্ল্যাটফর্ম।
-          </p>
+          {/* Glowing Background Circle */}
+          <div className="absolute w-[280px] h-[280px] bg-gradient-to-tr from-teal-400/20 to-teal-200/10 rounded-full blur-2xl" />
+          <div className="absolute w-[240px] h-[240px] border border-white/20 rounded-full" />
+          <div className="absolute w-[280px] h-[280px] border border-white/10 rounded-full border-dashed" />
           
-          <div className="mt-12 space-y-4">
-            <motion.div whileHover={{ scale: 1.02, x: 5 }} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 transition-colors border border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-lg w-fit group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-500/10 flex items-center justify-center border border-white/10 shrink-0 group-hover:scale-110 transition-transform">
-                <ShieldCheck className="w-6 h-6 text-teal-200" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white">নিরাপদ ক্লাউড স্টোরেজ</h3>
-                <p className="text-[13px] text-teal-50/70 mt-0.5">আপনার সকল তথ্য ১০০% সুরক্ষিত</p>
-              </div>
-            </motion.div>
-            
-            <motion.div whileHover={{ scale: 1.02, x: 5 }} className="flex items-center gap-4 bg-white/5 hover:bg-white/10 transition-colors border border-white/10 rounded-2xl p-4 backdrop-blur-md shadow-lg w-fit group">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-teal-400/20 to-teal-500/10 flex items-center justify-center border border-white/10 shrink-0 group-hover:scale-110 transition-transform">
-                <Activity className="w-6 h-6 text-teal-200" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg text-white">রিয়েল-টাইম আপডেট</h3>
-                <p className="text-[13px] text-teal-50/70 mt-0.5">উপস্থিতি ও ফলাফলের তাৎক্ষণিক নোটিফিকেশন</p>
-              </div>
-            </motion.div>
+          {/* Floating Bubbles */}
+          <motion.div 
+            animate={{ y: [-15, 15, -15], x: [-5, 5, -5], rotate: [0, 10, 0] }}
+            transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
+            className="absolute top-[10%] right-[15%] w-12 h-12 border-2 border-white/30 rounded-full backdrop-blur-sm"
+          />
+          <motion.div 
+            animate={{ y: [15, -15, 15], x: [5, -5, 5], rotate: [0, -10, 0] }}
+            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+            className="absolute bottom-[20%] left-[10%] w-16 h-16 border-2 border-white/20 rounded-full backdrop-blur-sm"
+          />
+          <motion.div 
+            animate={{ y: [-10, 10, -10], opacity: [0.3, 0.6, 0.3] }}
+            transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+            className="absolute top-[40%] left-[5%] w-6 h-6 bg-white/20 rounded-full"
+          />
+          <motion.div 
+            animate={{ y: [10, -10, 10], opacity: [0.2, 0.5, 0.2] }}
+            transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1.5 }}
+            className="absolute bottom-[10%] right-[20%] w-8 h-8 bg-teal-400/30 rounded-full"
+          />
+
+          {/* Main Icons Overlay */}
+          <div className="relative z-10 flex flex-col items-center">
+            <GraduationCap className="w-32 h-32 text-white drop-shadow-2xl absolute -top-12 z-20" strokeWidth={1.5} />
+            <BookOpen className="w-40 h-40 text-teal-100/90 drop-shadow-2xl mt-8" strokeWidth={1.5} />
           </div>
         </motion.div>
 
-        {/* Footer */}
+        {/* Bottom Text & Badges */}
         <motion.div 
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.8, delay: 0.6 }}
-          className="relative z-10 text-sm text-teal-100/60 font-medium"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, delay: 0.4 }}
+          className="w-full"
         >
-          &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
+          <h1 className="text-5xl lg:text-6xl font-extrabold text-white mb-2 drop-shadow-lg tracking-tight">স্বাগতম</h1>
+          <p className="text-lg text-teal-100/80 font-medium mb-10">আপনার শিক্ষা প্রতিষ্ঠান পরিচালনা সহজ করুন</p>
+          
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg">
+              <div className="bg-teal-400/20 p-1.5 rounded-full"><Users className="w-4 h-4 text-teal-200" /></div>
+              <span className="text-white text-sm font-semibold">ছাত্র-ছাত্রী ব্যবস্থাপনা</span>
+            </div>
+            <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg">
+              <div className="bg-teal-400/20 p-1.5 rounded-full"><CheckCircle2 className="w-4 h-4 text-teal-200" /></div>
+              <span className="text-white text-sm font-semibold">উপস্থিতি ট্র্যাকিং</span>
+            </div>
+            <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg">
+              <div className="bg-teal-400/20 p-1.5 rounded-full"><PieChart className="w-4 h-4 text-teal-200" /></div>
+              <span className="text-white text-sm font-semibold">ফলাফল প্রকাশ</span>
+            </div>
+          </div>
         </motion.div>
       </div>
 
       {/* RIGHT PANEL - LOGIN AREA */}
-      <div className="w-full md:w-[55%] lg:w-[50%] flex flex-col items-center justify-center p-4 sm:p-6 md:p-12 relative z-20 min-h-[100dvh] overflow-y-auto">
+      <div className="w-full md:w-[50%] lg:w-[45%] flex flex-col items-center justify-center p-4 sm:p-6 md:p-12 relative z-20 min-h-[100dvh] md:min-h-screen overflow-y-auto overflow-x-hidden pb-20 md:pb-12">
         
-        {/* Mobile Header (Hidden on Desktop) */}
+        {/* Mobile Top Visuals */}
         <motion.div 
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="md:hidden w-full flex items-center justify-center mb-8 mt-4 px-2"
+          className="md:hidden w-full flex flex-col items-center justify-center mb-6 mt-2 relative z-10"
         >
-          <div className="flex items-center gap-3">
-            <div className="bg-[#0F5C7A] p-2.5 rounded-xl shadow-md">
-              <img src={logo} alt="হাজিরা খাতা" className="w-7 h-7 object-contain brightness-0 invert" />
+          {/* Mobile Logo */}
+          <div className="flex items-center gap-2 mb-8">
+            <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-lg border border-white/20">
+              <BookOpen className="w-5 h-5 text-white" />
             </div>
-            <span className="font-extrabold text-2xl text-[#0F5C7A] tracking-tight">হাজিরা খাতা</span>
+            <span className="font-extrabold text-xl text-white tracking-tight">হাজিরা খাতা</span>
           </div>
+
+          {/* Mobile Illustration */}
+          <div className="relative flex items-center justify-center scale-90 mb-4">
+            <div className="absolute w-[180px] h-[180px] bg-gradient-to-tr from-teal-400/20 to-teal-200/10 rounded-full blur-xl" />
+            <motion.div 
+              animate={{ y: [-5, 5, -5] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="absolute top-0 right-0 w-8 h-8 border-2 border-white/20 rounded-full"
+            />
+            <motion.div 
+              animate={{ y: [5, -5, 5] }}
+              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              className="absolute bottom-4 left-0 w-6 h-6 bg-white/20 rounded-full"
+            />
+            <div className="relative z-10 flex flex-col items-center">
+              <GraduationCap className="w-24 h-24 text-white drop-shadow-xl absolute -top-8 z-20" strokeWidth={1.5} />
+              <BookOpen className="w-28 h-28 text-teal-100/90 drop-shadow-xl mt-6" strokeWidth={1.5} />
+            </div>
+          </div>
+          
+          <h1 className="text-3xl font-extrabold text-white tracking-tight drop-shadow-md">স্বাগতম</h1>
+          <p className="text-[13px] text-teal-100/80 font-medium mt-1">আপনার শিক্ষা প্রতিষ্ঠান পরিচালনা সহজ করুন</p>
         </motion.div>
 
         {/* Main Card */}
@@ -308,14 +314,17 @@ const Login: React.FC = () => {
           initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           transition={{ duration: 0.5, type: 'spring', bounce: 0.4 }}
-          className="w-full max-w-[480px] bg-white rounded-3xl shadow-[0_8px_40px_-12px_rgba(0,0,0,0.1)] border border-slate-100 overflow-hidden relative my-auto"
+          className="w-full max-w-[480px] bg-white rounded-[32px] shadow-[0_20px_60px_-15px_rgba(0,0,0,0.3)] border border-white/10 overflow-hidden relative my-auto flex flex-col z-20"
         >
+          {/* Decorative Top Accent for Mobile */}
+          <div className="h-2 w-full bg-gradient-to-r from-[#0F5C7A] to-[#14B8A6] md:hidden" />
+          
           {/* Tab Navigation */}
-          <div className="flex p-1.5 mx-8 mt-8 bg-slate-100/80 backdrop-blur-sm rounded-2xl relative">
+          <div className="flex p-2 mx-6 sm:mx-8 mt-8 bg-slate-50 border border-slate-100 rounded-2xl relative">
             <button
               onClick={() => setActiveTab('login')}
               className={`flex-1 py-3 text-[14px] font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 relative z-10 ${
-                activeTab === 'login' ? 'text-[#0F5C7A] shadow-sm bg-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                activeTab === 'login' ? 'text-[#0F5C7A] shadow-md bg-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
               }`}
             >
               <LogIn className="w-[18px] h-[18px]" />
@@ -324,7 +333,7 @@ const Login: React.FC = () => {
             <button
               onClick={() => setActiveTab('public')}
               className={`flex-1 py-3 text-[14px] font-bold rounded-xl transition-all duration-300 flex items-center justify-center gap-2 relative z-10 ${
-                activeTab === 'public' ? 'text-[#14B8A6] shadow-sm bg-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                activeTab === 'public' ? 'text-[#0F5C7A] shadow-md bg-white' : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
               }`}
             >
               <Search className="w-[18px] h-[18px]" />
@@ -332,7 +341,7 @@ const Login: React.FC = () => {
             </button>
           </div>
 
-          <div className="p-6 sm:p-10 min-h-[400px]">
+          <div className="p-6 sm:p-10 flex-1 flex flex-col">
             <AnimatePresence mode="wait">
               {activeTab === 'public' ? (
                 <motion.div 
@@ -351,11 +360,17 @@ const Login: React.FC = () => {
                   animate={{ opacity: 1, x: 0 }}
                   exit={{ opacity: 0, x: 20 }}
                   transition={{ duration: 0.3 }}
-                  className="space-y-6"
+                  className="space-y-6 flex-1 flex flex-col justify-center"
                 >
-                  <div className="text-center mb-10">
-                    <h2 className="text-3xl sm:text-4xl font-black bg-clip-text text-transparent bg-gradient-to-r from-[#0F5C7A] to-[#14B8A6] mb-3 tracking-tight drop-shadow-sm">স্বাগতম!</h2>
-                    <p className="text-slate-500 text-sm sm:text-[15px] font-medium">অ্যাডমিন প্যানেলে নিরাপদ সাইন ইন করুন</p>
+                  <div className="text-center mb-6">
+                    {/* Circle Icon Badge */}
+                    <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 relative">
+                      <div className="absolute inset-0 bg-[#0F5C7A] rounded-full scale-[0.8]" />
+                      <BookOpen className="w-8 h-8 text-white relative z-10 top-2" strokeWidth={1.5} />
+                      <GraduationCap className="w-10 h-10 text-white absolute top-4 z-20" strokeWidth={1.5} />
+                    </div>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">অ্যাডমিন প্যানেল</h2>
+                    <p className="text-slate-500 text-sm font-medium">আপনার শিক্ষা প্রতিষ্ঠান পরিচালনা সহজতর করুন</p>
                   </div>
 
                   {/* Error & Warning Messages */}
@@ -458,33 +473,43 @@ const Login: React.FC = () => {
                     <button
                       onClick={() => isNewUser ? handleFinalizeSignup() : handleGoogleLogin()}
                       disabled={loading || !auth}
-                      className="w-full group relative flex items-center justify-center gap-3 bg-gradient-to-r from-[#0F5C7A] to-[#14B8A6] text-white px-4 py-4 rounded-2xl font-bold text-[16px] transition-all duration-300 shadow-[0_8px_20px_rgba(20,184,166,0.25)] hover:shadow-[0_12px_28px_rgba(20,184,166,0.35)] hover:-translate-y-[2px] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden mt-6"
+                      className="w-full group relative flex items-center justify-center gap-3 bg-gradient-to-r from-[#0F5C7A] to-[#138883] text-white px-4 py-3.5 rounded-xl font-bold text-[15px] transition-all duration-300 shadow-md hover:shadow-lg hover:-translate-y-[1px] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden mt-6"
                     >
                       <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent group-hover:animate-[shimmer_1.5s_infinite]" />
                       
                       {loading ? (
-                        <Loader2 className="w-5 h-5 animate-spin text-white" />
+                         <Loader2 className="w-5 h-5 animate-spin text-white" />
                       ) : (
-                        <div className="bg-white p-1 rounded-full flex items-center justify-center shadow-sm">
-                          <img src="https://www.google.com/favicon.ico" alt="Google" className="w-[18px] h-[18px]" />
-                        </div>
+                         <div className="bg-white p-1 rounded-full flex items-center justify-center shadow-sm">
+                           <img src="https://www.google.com/favicon.ico" alt="Google" className="w-4 h-4" />
+                         </div>
                       )}
                       <span className="tracking-wide">
                         {loading ? 'অপেক্ষা করুন...' : isNewUser ? 'রেজিস্ট্রেশন সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}
                       </span>
                     </button>
+                    
+                    {/* Secondary button just like in the mockup image for visual matching */}
+                    {!isNewUser && (
+                      <button
+                        onClick={() => setActiveTab('public')}
+                        className="w-full flex items-center justify-center gap-2 bg-white text-slate-700 border border-slate-200 px-4 py-3.5 rounded-xl font-bold text-[15px] hover:bg-slate-50 transition-colors duration-300 mt-3"
+                      >
+                        ফলাফল অনুসন্ধান করুন
+                      </button>
+                    )}
                   </div>
                 </motion.div>
               )}
-            </AnimatePresence>
+            <div className="mt-8 text-center border-t border-slate-100 pt-6">
+              <p className="text-[12px] text-slate-400 font-medium">
+                Copyright &copy; Hajira Khata. All rights reserved.
+              </p>
+            </div>
           </div>
         </motion.div>
 
-        <div className="mt-8 relative z-20 md:hidden pb-6 text-center">
-          <p className="text-[13px] text-slate-400">
-            &copy; {new Date().getFullYear()} হাজিরা খাতা অ্যাপ। সর্বস্বত্ব সংরক্ষিত।
-          </p>
-        </div>
+        {/* Mobile footer is removed as it's inside the card now */}
         
         {/* Helper Box for desktop if they want support */}
         <div className="absolute bottom-6 right-6 hidden lg:block z-20">

@@ -20,10 +20,12 @@ class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { has
     // Handle chunk loading errors (e.g. "Failed to fetch dynamically imported module")
     const isChunkLoadFailed = error?.message?.match(/Failed to fetch dynamically imported module/i);
     if (isChunkLoadFailed) {
-      const chunkFailedMessage = "ChunkLoadError";
-      const hasReloaded = sessionStorage.getItem(chunkFailedMessage);
-      if (!hasReloaded) {
-        sessionStorage.setItem(chunkFailedMessage, 'true');
+      const chunkFailedMessage = "ChunkLoadTimestamp";
+      const lastReload = sessionStorage.getItem(chunkFailedMessage);
+      const now = Date.now();
+      // Only reload if we haven't reloaded for this error in the last 10 seconds
+      if (!lastReload || now - parseInt(lastReload) > 10000) {
+        sessionStorage.setItem(chunkFailedMessage, now.toString());
         window.location.reload();
       }
     }
@@ -250,10 +252,6 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
-  // Clear chunk load error flag if the app successfully loaded
-  React.useEffect(() => {
-    sessionStorage.removeItem("ChunkLoadError");
-  }, []);
   const isSrcDoc = window.location.protocol === 'about:' || window.location.href === 'about:srcdoc' || window.location.origin === 'null';
   const currentPath = window.location.pathname + window.location.search + window.location.hash;
   

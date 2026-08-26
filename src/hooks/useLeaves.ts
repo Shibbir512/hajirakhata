@@ -39,9 +39,9 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
       })) as LeaveRecord[];
       setLeaves(loadedLeaves);
       setLoading(false);
-    }, (error) => {
+    }, (error: any) => {
       console.error("Error fetching leaves:", error);
-      toast.error("ছুটির তালিকা লোড করতে সমস্যা হয়েছে।");
+      toast.error(`ছুটির তালিকা লোড করতে সমস্যা হয়েছে। এরর: ${error?.code || error?.message || 'অজানা'}`);
       setLoading(false);
     });
 
