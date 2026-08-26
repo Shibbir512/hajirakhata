@@ -501,6 +501,7 @@ const Login: React.FC = () => {
                   </div>
                 </motion.div>
               )}
+            </AnimatePresence>
             <div className="mt-8 text-center border-t border-slate-100 pt-6">
               <p className="text-[12px] text-slate-400 font-medium">
                 Copyright &copy; Hajira Khata. All rights reserved.
