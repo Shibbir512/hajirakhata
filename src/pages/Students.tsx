@@ -36,7 +36,7 @@ const Students: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { academicYears } = useAcademicYears(orgId, user);
-  const { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents } =
+  const { students, addStudent, updateStudent, archiveStudent, restoreStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents } =
     useStudents(orgId, user, role);
 
   const [viewingStudent, setViewingStudent] = useState<Student | null>(null);
@@ -807,8 +807,7 @@ const Students: React.FC = () => {
                             <div className="flex items-center gap-2">
                               <button
                                 onClick={() => {
-                                  updateStudent(student.id, { isActive: true }, student.version);
-                                  toast.success(`${student.name}-কে পুনরায় সক্রিয় করা হয়েছে।`);
+                                  restoreStudent(student.id, student.classId);
                                 }}
                                 className="p-2 text-emerald-600 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition-colors"
                                 title="পুনরায় সক্রিয় করুন"

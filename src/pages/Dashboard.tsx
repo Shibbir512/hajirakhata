@@ -28,6 +28,7 @@ const Dashboard: React.FC = () => {
   const { students } = useStudents(orgId, user, role);
   const { classes } = useClasses(orgId, user, role);
   const [isPendingClassesModalOpen, setIsPendingClassesModalOpen] = useState(false);
+  const [isCompletedClassesModalOpen, setIsCompletedClassesModalOpen] = useState(false);
 
   const startDate = useMemo(() => {
     const d = new Date();
@@ -56,6 +57,7 @@ const Dashboard: React.FC = () => {
 
     const classesWithAttendanceTodayIds = new Set(todaysSessions.map(s => s.classId));
     const classesWithAttendanceToday = classesWithAttendanceTodayIds.size;
+    const completedClassesList = classes.filter(c => classesWithAttendanceTodayIds.has(c.id));
     const pendingClassesList = classes.filter(c => !classesWithAttendanceTodayIds.has(c.id));
     const classesPendingAttendanceToday = pendingClassesList.length;
 
@@ -112,7 +114,7 @@ const Dashboard: React.FC = () => {
       }
     });
 
-    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, pendingClassesList, leavesOnToday };
+    return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, pendingClassesList, completedClassesList, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
 
   const chartData = useMemo(() => {
@@ -174,6 +176,7 @@ const Dashboard: React.FC = () => {
           color="text-[#22C55E]"
           gradient="bg-[#22C55E]/10"
           valueColor="text-[#0fb063]"
+          onClick={() => setIsCompletedClassesModalOpen(true)}
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
@@ -325,6 +328,61 @@ const Dashboard: React.FC = () => {
                 <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
                   <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
                   <p className="text-slate-600 font-medium">সব শ্রেণির হাজিরা সম্পন্ন হয়েছে!</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      , document.body)}
+
+      {isCompletedClassesModalOpen && createPortal(
+        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
+          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-8 sm:my-0">
+            <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-inner">
+                  <CheckCircle className="w-5 h-5" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-[#1E293B]">হাজিরা সম্পন্ন হওয়া শ্রেণি</h2>
+                  <p className="text-sm text-slate-500 font-medium">আজকের হাজিরা সম্পন্ন হয়েছে</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsCompletedClassesModalOpen(false)}
+                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
+              >
+                <X className="w-5 h-5 text-slate-500" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto">
+              {stats.completedClassesList.length > 0 ? (
+                <div className="grid grid-cols-1 gap-3">
+                  {stats.completedClassesList.map((c) => (
+                    <div key={c.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors">
+                      <div>
+                        <h3 className="font-bold text-slate-800 text-lg">{c.name}</h3>
+                        <p className="text-sm text-slate-500">
+                          মোট শিক্ষার্থী: {toBengaliNumber(Object.values(students).flat().filter(s => s.classId === c.id && s.isActive !== false).length)} জন
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setIsCompletedClassesModalOpen(false);
+                          navigate(`/attendance?classId=${c.id}`);
+                        }}
+                        className="px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-bold transition-colors"
+                      >
+                        বিস্তারিত দেখুন
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                  <Clock className="w-12 h-12 text-amber-400 mx-auto mb-3" />
+                  <p className="text-slate-600 font-medium">কোনো শ্রেণির হাজিরা সম্পন্ন হয়নি!</p>
                 </div>
               )}
             </div>

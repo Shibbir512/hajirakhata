@@ -201,6 +201,52 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     [user, orgId, role],
   );
 
+  const restoreStudent = useCallback(
+    async (studentId: string, classId?: string) => {
+      if (!user || !db || !orgId) {
+        toast.error("সেশন শেষ হয়ে গেছে। অনুগ্রহ করে আবার লগইন করুন।");
+        return;
+      }
+      
+      const resolvedClassId = classId || studentId.split("-student-")[0];
+
+      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
+        toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
+        return;
+      }
+
+      try {
+        const studentsRef = collection(db, `organizations/${orgId}/students`);
+        const q = query(studentsRef, where("classId", "==", resolvedClassId));
+        const allStudents = await getDocs(q);
+        
+        let maxRoll = 0;
+        allStudents.docs.forEach(doc => {
+          const data = doc.data();
+          if (data.isActive !== false && data.roll !== 9999) {
+            const roll = data.roll || 0;
+            if (roll > maxRoll) maxRoll = roll;
+          }
+        });
+        
+        const newRoll = maxRoll + 1;
+        const studentRef = doc(db, `organizations/${orgId}/students`, studentId);
+        
+        await updateDoc(studentRef, { 
+          isActive: true, 
+          roll: newRoll,
+          archivedAt: null
+        });
+
+        toast.success("শিক্ষার্থীকে পুনরায় সক্রিয় করা হয়েছে এবং নতুন রোল অ্যাসাইন করা হয়েছে!");
+      } catch (error) {
+        console.error("Error restoring student:", error);
+        toast.error("শিক্ষার্থী পুনরায় সক্রিয় করতে ব্যর্থ হয়েছে।");
+      }
+    },
+    [user, orgId, role],
+  );
+
   const updateStudent = useCallback(
     async (studentId: string, data: Partial<Student>, currentVersion: number = 1) => {
       if (!user || !db || !orgId) return;
@@ -471,5 +517,5 @@ export const useStudents = (orgId: string | null, user: any, role: string | null
     [user, orgId, role]
   );
 
-  return { students, addStudent, updateStudent, archiveStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents };
+  return { students, addStudent, updateStudent, archiveStudent, restoreStudent, permanentDeleteStudent, bulkAddStudents, deleteAllArchivedStudents, promoteStudents };
 };

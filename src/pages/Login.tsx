@@ -237,8 +237,8 @@ const Login: React.FC = () => {
 
           {/* Main Icons Overlay */}
           <div className="relative z-10 flex flex-col items-center">
-            <GraduationCap className="w-32 h-32 text-white drop-shadow-2xl absolute -top-12 z-20" strokeWidth={1.5} />
-            <BookOpen className="w-40 h-40 text-teal-100/90 drop-shadow-2xl mt-8" strokeWidth={1.5} />
+            <GraduationCap className="w-40 h-40 text-white drop-shadow-2xl absolute -top-16 z-20" strokeWidth={1.5} />
+            <BookOpen className="w-52 h-52 text-teal-100/90 drop-shadow-2xl mt-8" strokeWidth={1.5} />
           </div>
         </motion.div>
 
@@ -300,8 +300,8 @@ const Login: React.FC = () => {
               className="absolute bottom-4 left-0 w-6 h-6 bg-white/20 rounded-full"
             />
             <div className="relative z-10 flex flex-col items-center">
-              <GraduationCap className="w-24 h-24 text-white drop-shadow-xl absolute -top-8 z-20" strokeWidth={1.5} />
-              <BookOpen className="w-28 h-28 text-teal-100/90 drop-shadow-xl mt-6" strokeWidth={1.5} />
+              <GraduationCap className="w-32 h-32 text-white drop-shadow-xl absolute -top-10 z-20" strokeWidth={1.5} />
+              <BookOpen className="w-36 h-36 text-teal-100/90 drop-shadow-xl mt-6" strokeWidth={1.5} />
             </div>
           </div>
           
@@ -488,16 +488,6 @@ const Login: React.FC = () => {
                         {loading ? 'অপেক্ষা করুন...' : isNewUser ? 'রেজিস্ট্রেশন সম্পন্ন করুন' : 'গুগল দিয়ে চালিয়ে যান'}
                       </span>
                     </button>
-                    
-                    {/* Secondary button just like in the mockup image for visual matching */}
-                    {!isNewUser && (
-                      <button
-                        onClick={() => setActiveTab('public')}
-                        className="w-full flex items-center justify-center gap-2 bg-white text-slate-700 border border-slate-200 px-4 py-3.5 rounded-xl font-bold text-[15px] hover:bg-slate-50 transition-colors duration-300 mt-3"
-                      >
-                        ফলাফল অনুসন্ধান করুন
-                      </button>
-                    )}
                   </div>
                 </motion.div>
               )}
