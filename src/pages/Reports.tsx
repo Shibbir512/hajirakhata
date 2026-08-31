@@ -19,7 +19,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Download, Calendar, ChevronDown, Users } from "lucide-react";
+import { Download, Calendar, ChevronDown, Users, Printer } from "lucide-react";
 import clsx from "clsx";
 import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
@@ -28,11 +28,11 @@ import toast from "react-hot-toast";
 
 import Papa from "papaparse";
 
-import { startOfDay, endOfDay, startOfWeek, startOfMonth } from "date-fns";
+import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
 
 const Reports: React.FC = () => {
-  const { user, orgId, role } = useAuth();
+  const { user, orgId, role, orgName } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
 
@@ -437,11 +437,26 @@ const Reports: React.FC = () => {
 
   const COLORS = ["#22c55e", "#ef4444", "#f97316"];
 
+  const selectedClassName = classes.find(c => c.id === selectedClassId)?.name || 'সকল শ্রেণি (সম্মিলিত)';
+  const formattedStartDate = format(startDate, "dd/MM/yyyy");
+  const formattedEndDate = format(endDate, "dd/MM/yyyy");
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        
-        <div className="flex flex-row gap-3">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">হাজিরা রিপোর্ট</h1>
+          <p className="text-sm text-slate-500">উপস্থিতি ও অনুপস্থিতির সার্বিক পরিসংখ্যান</p>
+        </div>
+        <div className="flex flex-row gap-3 print:hidden">
+          <button 
+            onClick={() => window.print()}
+            className="h-[52px] px-4 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0c4b63] transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
+            title="প্রিন্ট করুন"
+          >
+            <Printer className="w-4 h-4" />
+            প্রিন্ট
+          </button>
           <button 
             onClick={handleExportCSV}
             className="flex-1 h-[52px] px-4 bg-[#F1F5F9] text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-200 transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
@@ -461,7 +476,18 @@ const Reports: React.FC = () => {
       </div>
 
       <div id="report-container" className="p-4 sm:p-8">
-        <div className="flex flex-col gap-4 mb-8">
+        {/* Official Printable Header (Appears only on print) */}
+        <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
+          <h1 className="text-2xl font-bold text-black">{orgName || "মাদরাসা / প্রতিষ্ঠান"}</h1>
+          <h2 className="text-lg font-bold text-black mt-1">শিক্ষার্থী হাজিরা বিবরণী ও পারফরম্যান্স রিপোর্ট</h2>
+          <div className="flex justify-center gap-6 mt-2 text-sm text-black">
+            <span><strong>শ্রেণি:</strong> {selectedClassName}</span>
+            <span><strong>সময়কাল:</strong> {formattedStartDate} থেকে {formattedEndDate}</span>
+            <span><strong>প্রিন্টের তারিখ:</strong> {new Date().toLocaleDateString('bn-BD')}</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-4 mb-8 print:hidden">
           <div className="relative w-full">
             <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <select
@@ -523,7 +549,7 @@ const Reports: React.FC = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:hidden">
           <div className="h-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-soft overflow-hidden">
             <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
               হাজিরা ওভারভিউ

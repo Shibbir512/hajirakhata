@@ -7,9 +7,11 @@ import { useFeeCollections } from '../../hooks/useFeeCollections';
 import { useStudents } from '../../hooks/useStudents';
 import { HIJRI_MONTHS, getCurrentHijriYear } from '../../constants/hijri';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { Printer } from 'lucide-react';
+import { toBengaliNumber } from '../../utils/dateFormatter';
 
 const FeeReports: React.FC = () => {
-  const { orgId, user, role } = useAuth();
+  const { orgId, orgName, user, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { categories } = useFeeCategories(orgId);
   
@@ -103,15 +105,40 @@ const FeeReports: React.FC = () => {
     'আদায়কৃত': cat.collected
   }));
 
+  const selectedMonthName = HIJRI_MONTHS.find(m => m.id === selectedMonth)?.name || '';
+  const selectedClassName = classes.find(c => c.id === selectedClass)?.name || 'সকল শ্রেণি';
+
   return (
-    <div className="space-y-6">
-      <div>
-        
-        <p className="text-sm text-slate-500">মাসিক ফি আদায়ের বিস্তারিত রিপোর্ট ও সামারি</p>
+    <div id="fee-report-container" className="space-y-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800">ফি রিপোর্ট</h1>
+          <p className="text-sm text-slate-500">মাসিক ফি আদায়ের বিস্তারিত রিপোর্ট ও সামারি</p>
+        </div>
+        <button
+          onClick={() => window.print()}
+          className="btn-primary print:hidden h-[42px] px-4 flex items-center gap-2"
+          title="প্রিন্ট করুন"
+        >
+          <Printer className="w-4 h-4" />
+          <span>প্রিন্ট রিপোর্ট</span>
+        </button>
+      </div>
+
+      {/* Print-Only Official Header */}
+      <div className="hidden print:block text-center border-b-2 border-black pb-4 mb-6">
+        <h1 className="text-2xl font-bold text-black">{orgName || "মাদরাসা / প্রতিষ্ঠান"}</h1>
+        <h2 className="text-lg font-bold text-black mt-1">মাসিক ফি আদায় বিবরণী</h2>
+        <div className="flex justify-center gap-6 mt-2 text-sm text-black">
+          <span><strong>হিজরি সন:</strong> {toBengaliNumber(selectedYear)}</span>
+          <span><strong>মাস:</strong> {selectedMonthName}</span>
+          <span><strong>শ্রেণি:</strong> {selectedClassName}</span>
+          <span><strong>তারিখ:</strong> {new Date().toLocaleDateString('bn-BD')}</span>
+        </div>
       </div>
 
       <div className="card-premium p-6 bg-white rounded-[20px]">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 print:hidden">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">হিজরি সন</label>
             <input
@@ -161,24 +188,24 @@ const FeeReports: React.FC = () => {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100">
-            <p className="text-blue-600 text-sm font-medium mb-1">মোট প্রত্যাশিত</p>
-            <h3 className="text-3xl font-bold text-blue-900">৳{expectedTotal}</h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 print:grid-cols-3">
+          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 print:border-slate-400 print:bg-white">
+            <p className="text-blue-600 print:text-black text-sm font-medium mb-1">মোট প্রত্যাশিত</p>
+            <h3 className="text-3xl font-bold text-blue-900 print:text-black">৳{expectedTotal}</h3>
           </div>
-          <div className="bg-green-50 p-6 rounded-2xl border border-green-100">
-            <p className="text-green-600 text-sm font-medium mb-1">মোট আদায়কৃত</p>
-            <h3 className="text-3xl font-bold text-green-900">৳{collectedTotal}</h3>
+          <div className="bg-green-50 p-6 rounded-2xl border border-green-100 print:border-slate-400 print:bg-white">
+            <p className="text-green-600 print:text-black text-sm font-medium mb-1">মোট আদায়কৃত</p>
+            <h3 className="text-3xl font-bold text-green-900 print:text-black">৳{collectedTotal}</h3>
           </div>
-          <div className="bg-red-50 p-6 rounded-2xl border border-red-100">
-            <p className="text-red-600 text-sm font-medium mb-1">মোট বকেয়া</p>
-            <h3 className="text-3xl font-bold text-red-900">৳{dueTotal > 0 ? dueTotal : 0}</h3>
+          <div className="bg-red-50 p-6 rounded-2xl border border-red-100 print:border-slate-400 print:bg-white">
+            <p className="text-red-600 print:text-black text-sm font-medium mb-1">মোট বকেয়া</p>
+            <h3 className="text-3xl font-bold text-red-900 print:text-black">৳{dueTotal > 0 ? dueTotal : 0}</h3>
           </div>
         </div>
 
         {/* Chart */}
         {chartData.length > 0 && expectedTotal > 0 && (
-          <div className="mb-8">
+          <div className="mb-8 print:hidden">
             <h3 className="font-bold text-slate-800 mb-4">খাতভিত্তিক তুলনা</h3>
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
