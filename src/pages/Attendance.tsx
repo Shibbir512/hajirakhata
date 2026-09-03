@@ -9,7 +9,7 @@ import { useLeaves } from "../hooks/useLeaves";
 import { AttendanceStatus } from "../types";
 import { useStruckOffStudents } from "../hooks/useStruckOffStudents";
 import { Search, Save, CheckCircle, XCircle, Clock, ChevronLeft, ChevronRight, ArrowUpDown, ChevronDown, Loader2, Users, MessageCircle, X, AlertTriangle, Check } from "lucide-react";
-import { toBengaliNumber, toEnglishNumber, normalizeDateToISO, isLeaveActiveNow } from "../utils/dateFormatter";
+import { toBengaliNumber, toEnglishNumber, normalizeDateToISO, isLeaveActiveNow, isLeaveOnDate } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
@@ -96,7 +96,7 @@ const Attendance: React.FC = () => {
       let leaveNote = '';
       
       for (const leave of leaves) {
-        if (leave.studentId === student.id && isLeaveActiveNow(leave)) {
+        if (leave.studentId === student.id && (isLeaveActiveNow(leave) || isLeaveOnDate(leave))) {
           isOnLeave = true;
           leaveNote = leave.note || 'ছুটি';
           break;

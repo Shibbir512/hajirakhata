@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
-import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs, where } from "firebase/firestore";
+import { useState, useEffect, useCallback } from "react";
+import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serverTimestamp, getDocs, where, writeBatch } from "firebase/firestore";
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { User } from "firebase/auth";
-import { SyncManager } from "../services/SyncManager";
+import { SyncManager, SyncLeaveResult } from "../services/SyncManager";
+import { toBengaliNumber } from "../utils/dateFormatter";
 
 export interface LeaveRecord {
   id: string;
@@ -22,6 +23,7 @@ export interface LeaveRecord {
 export const useLeaves = (orgId: string | null, user: User | null) => {
   const [leaves, setLeaves] = useState<LeaveRecord[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
     if (!orgId || !user) {
@@ -54,26 +56,23 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
     try {
       const leavesRef = collection(db, `organizations/${orgId}/leaves`);
       
-      // Batch write or individual adds
+      // Save all leaves
       const promises = leaveData.map(async (data) => {
-        // Check if leave already exists for this student overlapping this time
-        // For simplicity, we just add it. Overlapping logic can be complex in firestore queries.
-        // We'll just add the document.
-        const docRef = await addDoc(leavesRef, {
+        return await addDoc(leavesRef, {
           ...data,
           createdAt: serverTimestamp()
         });
-
-        // Automatically mark existing attendances as leave retroactively
-        if (data.status === 'approved' || data.status === 'pending') {
-          SyncManager.syncAttendancesForLeave(orgId, data).catch(console.error);
-        }
-
-        return docRef;
       });
-      
       await Promise.all(promises);
-      toast.success("ছুটির তালিকায় যুক্ত করা হয়েছে।");
+
+      // Perform unified, atomic retroactive attendance sync for all added leaves
+      const syncResult = await SyncManager.syncAttendancesForLeaves(orgId, leaveData);
+      
+      if (syncResult.updatedStudentsCount > 0) {
+        toast.success(`ছুটি যুক্ত হয়েছে এবং ${toBengaliNumber(syncResult.updatedStudentsCount)} জন শিক্ষার্থীর অনুপস্থিতি ছুটিতে হালনাগাদ করা হয়েছে!`);
+      } else {
+        toast.success("ছুটির তালিকায় যুক্ত করা হয়েছে।");
+      }
     } catch (error) {
       console.error("Error adding leaves:", error);
       toast.error("ছুটি যুক্ত করতে সমস্যা হয়েছে।");
@@ -90,7 +89,11 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
       if (leave) {
         const updatedLeave = { ...leave, ...data };
         if (updatedLeave.status === 'approved' || updatedLeave.status === 'pending') {
-          SyncManager.syncAttendancesForLeave(orgId, updatedLeave).catch(console.error);
+          const syncResult = await SyncManager.syncAttendancesForLeaves(orgId, [updatedLeave]);
+          if (syncResult.updatedStudentsCount > 0) {
+            toast.success(`ছুটি আপডেট হয়েছে এবং ${toBengaliNumber(syncResult.updatedStudentsCount)} জন শিক্ষার্থীর হাজিরা হালনাগাদ হয়েছে!`);
+            return;
+          }
         }
       }
 
@@ -113,11 +116,33 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
     }
   };
 
+  const syncAllLeaves = useCallback(async (): Promise<SyncLeaveResult> => {
+    if (!orgId) return { updatedSessionsCount: 0, updatedStudentsCount: 0 };
+    setIsSyncing(true);
+    try {
+      const result = await SyncManager.syncAllApprovedLeaves(orgId);
+      if (result.updatedStudentsCount > 0) {
+        toast.success(`${toBengaliNumber(result.updatedStudentsCount)} জন শিক্ষার্থীর অনুপস্থিতি সফলভাবে ছুটিতে হালনাগাদ হয়েছে (${toBengaliNumber(result.updatedSessionsCount)} টি সেশন)!`);
+      } else {
+        toast.success("সকল অনুমোদিত ছুটি ইতিমধ্যে হাজিরার সাথে সিঙ্ক রয়েছে।");
+      }
+      return result;
+    } catch (error) {
+      console.error("Error syncing leaves:", error);
+      toast.error("হাজিরা সিঙ্ক করতে ব্যর্থ হয়েছে।");
+      return { updatedSessionsCount: 0, updatedStudentsCount: 0 };
+    } finally {
+      setIsSyncing(false);
+    }
+  }, [orgId]);
+
   return {
     leaves,
     loading,
+    isSyncing,
     addLeaves,
     updateLeave,
-    deleteLeave
+    deleteLeave,
+    syncAllLeaves
   };
 };

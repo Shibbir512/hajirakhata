@@ -1,10 +1,10 @@
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
 import { useLeaves } from "../hooks/useLeaves";
-import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock } from "lucide-react";
-import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber, normalizeDateToISO, isLeaveActiveNow } from "../utils/dateFormatter";
+import { CalendarDays, Plus, List, Trash2, Edit, CheckCircle, X, Search, ChevronDown, Clock, RefreshCw } from "lucide-react";
+import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber, normalizeDateToISO, isLeaveActiveNow, isLeaveOnDate } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
@@ -13,25 +13,28 @@ const LeaveManagement: React.FC = () => {
   const { user, orgId, role } = useAuth();
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
-  const { leaves, addLeaves, updateLeave, deleteLeave } = useLeaves(orgId, user);
+  const { leaves, addLeaves, updateLeave, deleteLeave, syncAllLeaves, isSyncing } = useLeaves(orgId, user);
 
   const [activeTab, setActiveTab] = useState<"today" | "add" | "view">("today");
   const [selectedClassId, setSelectedClassId] = useState<string>("");
   const [startDate, setStartDate] = useState<string>(getTodayISO());
-  
-  const now = new Date();
-  const currentTime = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
-  const [startTime, setStartTime] = useState<string>(currentTime);
-  
+  const [startTime, setStartTime] = useState<string>("06:00");
   const [endDate, setEndDate] = useState<string>(getTodayISO());
-  const [endTime, setEndTime] = useState<string>("14:00");
+  const [endTime, setEndTime] = useState<string>("23:59");
   const [selectedStudents, setSelectedStudents] = useState<Set<string>>(new Set());
   const [studentNotes, setStudentNotes] = useState<Record<string, string>>({});
   const [searchQuery, setSearchQuery] = useState("");
-  
+
   // View Tab Filters
   const [viewClassId, setViewClassId] = useState<string>("");
   const [viewSearchQuery, setViewSearchQuery] = useState("");
+
+  // Auto-sync on mount to repair any missed attendance updates
+  useEffect(() => {
+    if (orgId && leaves.length > 0) {
+      syncAllLeaves().catch(console.error);
+    }
+  }, [orgId, leaves.length > 0]);
   
   // Edit/Delete Modals
   const [editingLeave, setEditingLeave] = useState<any>(null);
@@ -211,7 +214,17 @@ const LeaveManagement: React.FC = () => {
           ছুটি ব্যবস্থাপনা
         </h2>
 
-        <div className="flex gap-4">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            onClick={() => syncAllLeaves()}
+            disabled={isSyncing}
+            className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-2xl hover:bg-emerald-100 transition-all text-sm font-semibold shadow-sm active:scale-95 disabled:opacity-50"
+            title="হাজিরা রেকর্ডের সাথে ছুটির তথ্য মিলিয়ে অনুপস্থিতিগুলোকে ছুটিতে রূপান্তর করুন"
+          >
+            <RefreshCw className={clsx("w-4 h-4 text-emerald-600", isSyncing && "animate-spin")} />
+            {isSyncing ? "সিঙ্ক হচ্ছে..." : "হাজিরা সিঙ্ক করুন"}
+          </button>
+
           <div className="bg-white px-4 py-2 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
               <CalendarDays className="w-4 h-4 text-blue-600" />
