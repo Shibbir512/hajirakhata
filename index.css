@@ -420,9 +420,6 @@
   body,
   #root,
   #root > div,
-  .flex,
-  .flex-col,
-  .flex-1,
   main,
   .overflow-hidden,
   .overflow-y-auto,
@@ -439,12 +436,21 @@
     position: static !important;
     float: none !important;
     transform: none !important;
-    display: block !important;
     width: 100% !important;
     max-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
     box-sizing: border-box !important;
+  }
+
+  /* Reset layout constraints without globally overriding display:flex */
+  #root, #root > div {
+    display: block !important;
+  }
+
+  /* Fix for sticky elements breaking page layout */
+  .sticky, [class*="sticky"] {
+    position: static !important;
   }
 
   /* 4. Complete Removal of Non-Essential App UI Elements */
@@ -577,10 +583,13 @@
     page-break-inside: avoid !important;
     break-inside: avoid !important;
     page-break-after: auto !important;
+    display: table-row !important;
   }
 
   th,
   td {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
     padding: 6px 8px !important;
     border: 1px solid #475569 !important;
     color: #000000 !important;

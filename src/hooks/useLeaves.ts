@@ -3,6 +3,7 @@ import { collection, query, onSnapshot, addDoc, updateDoc, deleteDoc, doc, serve
 import { db } from "../firebase";
 import toast from "react-hot-toast";
 import { User } from "firebase/auth";
+import { SyncManager } from "../services/SyncManager";
 
 export interface LeaveRecord {
   id: string;
@@ -58,10 +59,17 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
         // Check if leave already exists for this student overlapping this time
         // For simplicity, we just add it. Overlapping logic can be complex in firestore queries.
         // We'll just add the document.
-        return addDoc(leavesRef, {
+        const docRef = await addDoc(leavesRef, {
           ...data,
           createdAt: serverTimestamp()
         });
+
+        // Automatically mark existing attendances as leave retroactively
+        if (data.status === 'approved' || data.status === 'pending') {
+          SyncManager.syncAttendancesForLeave(orgId, data).catch(console.error);
+        }
+
+        return docRef;
       });
       
       await Promise.all(promises);
@@ -77,6 +85,15 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
     try {
       const leaveRef = doc(db, `organizations/${orgId}/leaves`, id);
       await updateDoc(leaveRef, data);
+      
+      const leave = leaves.find(l => l.id === id);
+      if (leave) {
+        const updatedLeave = { ...leave, ...data };
+        if (updatedLeave.status === 'approved' || updatedLeave.status === 'pending') {
+          SyncManager.syncAttendancesForLeave(orgId, updatedLeave).catch(console.error);
+        }
+      }
+
       toast.success("ছুটির তথ্য আপডেট করা হয়েছে।");
     } catch (error) {
       console.error("Error updating leave:", error);

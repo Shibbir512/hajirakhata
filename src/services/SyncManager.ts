@@ -1,3 +1,4 @@
+import { normalizeDateToISO } from "../utils/dateFormatter";
 import { 
   db, 
   auth 
@@ -10,7 +11,8 @@ import {
   setDoc,
   collection,
   serverTimestamp,
-  Firestore
+  Firestore, getDocs, query, where,
+
 } from "firebase/firestore";
 import { AttendanceStatus } from "../types";
 
@@ -39,7 +41,9 @@ export class SyncManager {
     time: string,
     studentRecords: { studentId: string; studentName: string; status: AttendanceStatus; note?: string }[]
   ) {
-    if (!db) throw new Error("Firestore not initialized");
+    if (!db) throw new Error("Firestore, getDocs, query, where not initialized");
+
+
 
     const batch = writeBatch(db);
     const sessionRef = doc(collection(db, `organizations/${orgId}/attendance_sessions`));
@@ -76,7 +80,8 @@ export class SyncManager {
     currentVersion: number,
     options: { merge?: boolean } = {}
   ) {
-    if (!db) throw new Error("Firestore not initialized");
+
+
     
     const docRef = doc(db, docPath);
     const updateData = {
@@ -90,6 +95,66 @@ export class SyncManager {
       return await setDoc(docRef, updateData, { merge: true });
     } else {
       return await updateDoc(docRef, updateData);
+    }
+  }
+
+  /**
+   * Retroactively updates existing attendance sessions when a leave is added or approved.
+   */
+  static async syncAttendancesForLeave(orgId: string, leave: any) {
+    if (!db) throw new Error("Firestore, getDocs, query, where not initialized");
+    if (leave.status !== 'approved' && leave.status !== 'pending') return; // Depending on whether you want pending leaves to also mark as leave
+
+    const sDate = normalizeDateToISO(leave.startDate || leave.date);
+    const eDate = normalizeDateToISO(leave.endDate || leave.date);
+    if (!sDate || !eDate) return;
+
+    // We consider the entire day if time is not provided
+    const startDateObj = new Date(`${sDate}T${leave.startTime || '00:00'}:00`);
+    const endDateObj = new Date(`${eDate}T${leave.endTime || '23:59'}:59`);
+
+    const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
+    const q = query(sessionsRef, where("classId", "==", leave.classId));
+    const snapshot = await getDocs(q);
+
+    const batch = writeBatch(db);
+    let updateCount = 0;
+
+    snapshot.docs.forEach(docSnap => {
+      const session = docSnap.data();
+      let sessionDateObj: Date | null = null;
+      
+      if (session.createdAt && session.createdAt.toDate) {
+        sessionDateObj = session.createdAt.toDate();
+      } else if (session.date) {
+        try {
+           const parts = session.date.split(" ");
+           if (parts.length === 3) {
+             const isoDate = `${parts[2]}-${parts[1]}-${parts[0]}`;
+             sessionDateObj = new Date(isoDate);
+           }
+        } catch (e) {}
+      }
+
+      if (sessionDateObj && sessionDateObj >= startDateObj && sessionDateObj <= endDateObj) {
+         let hasChanges = false;
+         const updatedStudents = (session.students || []).map((st: any) => {
+            if (st.studentId === leave.studentId && st.status !== AttendanceStatus.Leave) {
+               hasChanges = true;
+               return { ...st, status: AttendanceStatus.Leave, note: leave.note || 'ছুটি' };
+            }
+            return st;
+         });
+
+         if (hasChanges) {
+            batch.update(docSnap.ref, { students: updatedStudents });
+            updateCount++;
+         }
+      }
+    });
+
+    if (updateCount > 0) {
+      await batch.commit();
     }
   }
 }

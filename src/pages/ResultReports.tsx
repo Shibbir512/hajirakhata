@@ -43,6 +43,8 @@ const ResultReports: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'fail'>('all');
   const [isEditing, setIsEditing] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
+  const [printSize, setPrintSize] = useState<'A4 landscape' | 'A4 portrait' | 'legal landscape'>('A4 landscape');
+  const [printMargin, setPrintMargin] = useState('10mm');
   const [reportHeader, setReportHeader] = useState({
     orgName: "",
     address: "",
@@ -477,24 +479,23 @@ const ResultReports: React.FC = () => {
       <style>
         {`
           @media print {
-            @page { size: landscape; margin: 10mm; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .print\\:overflow-visible { overflow: visible !important; }
-            .print\\:shadow-none { box-shadow: none !important; }
-            .print\\:border-none { border: none !important; }
-            .print\\:p-0 { padding: 0 !important; }
-            table { page-break-inside: auto; width: 100% !important; max-width: none !important; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-            #tabulation-sheet-container { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
-            .overflow-x-auto { overflow-x: visible !important; }
+            @page { size: ${printSize}; margin: ${printMargin}; }
           }
         `}
       </style>
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
         
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
+            <select value={printSize} onChange={(e) => setPrintSize(e.target.value as any)} className="input-premium h-9 py-1 text-sm bg-[#F1F5F9] border-slate-200" title="প্রিন্ট সাইজ">
+              <option value="A4 landscape">A4 Landscape</option>
+              <option value="A4 portrait">A4 Portrait</option>
+              <option value="legal landscape">Legal Landscape</option>
+            </select>
+            <select value={printMargin} onChange={(e) => setPrintMargin(e.target.value)} className="input-premium h-9 py-1 text-sm bg-[#F1F5F9] border-slate-200" title="প্রিন্ট মার্জিন">
+              <option value="10mm">সাধারন মার্জিন (10mm)</option>
+              <option value="5mm">চিকন মার্জিন (5mm)</option>
+              <option value="15mm">চওড়া মার্জিন (15mm)</option>
+            </select>
             <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
               <option value="en">English (0-9)</option>
               <option value="bn">Bengali (০-৯)</option>
