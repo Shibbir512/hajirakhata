@@ -17,25 +17,39 @@ export default defineConfig(({ mode }) => {
       react(),
       tailwindcss(),
       VitePWA({
-        registerType: 'prompt',
-        includeAssets: ['icon.svg'],
+        registerType: 'autoUpdate',
+        includeAssets: ['icon.svg', 'icon.png', 'icon.jpg', 'apple-touch-icon.png'],
         manifest: {
-          short_name: "হাজিরা খাতা",
+          short_name: "হাজিরা",
           name: "ছাত্র হাজিরা খাতা (Student Attendance)",
           icons: [
             {
-              src: "/icon.svg",
-              type: "image/svg+xml",
-              sizes: "192x192 512x512"
+              src: "/icon.png",
+              type: "image/png",
+              sizes: "192x192",
+              purpose: "any"
+            },
+            {
+              src: "/icon.png",
+              type: "image/png",
+              sizes: "512x512",
+              purpose: "any"
+            },
+            {
+              src: "/icon.png",
+              type: "image/png",
+              sizes: "512x512",
+              purpose: "maskable"
             }
           ],
-          start_url: ".",
+          start_url: "/",
+          scope: "/",
           display: "standalone",
-          theme_color: "#1e293b",
+          theme_color: "#0F5C7A",
           background_color: "#f8fafc"
         },
         devOptions: {
-          enabled: false
+          enabled: true
         }
       })
     ],
