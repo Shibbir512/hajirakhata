@@ -11,30 +11,45 @@ export default defineConfig(({ mode }) => {
     server: {
       port: 3000,
       host: "0.0.0.0",
+      strictPort: true,
     },
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
-        registerType: 'prompt',
+        registerType: 'autoUpdate',
         includeAssets: ['icon.png'],
         manifest: {
-          short_name: "হাজিরা খাতা",
+          short_name: "হাজিরা",
           name: "ছাত্র হাজিরা খাতা (Student Attendance)",
           icons: [
             {
               src: "/icon.png",
               type: "image/png",
-              sizes: "192x192 512x512"
+              sizes: "192x192",
+              purpose: "any"
+            },
+            {
+              src: "/icon.png",
+              type: "image/png",
+              sizes: "512x512",
+              purpose: "any"
+            },
+            {
+              src: "/icon.png",
+              type: "image/png",
+              sizes: "512x512",
+              purpose: "maskable"
             }
           ],
-          start_url: ".",
+          start_url: "/",
+          scope: "/",
           display: "standalone",
-          theme_color: "#1e293b",
+          theme_color: "#0F5C7A",
           background_color: "#f8fafc"
         },
         devOptions: {
-          enabled: false
+          enabled: true
         }
       })
     ],

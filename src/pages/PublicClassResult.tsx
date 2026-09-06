@@ -27,6 +27,8 @@ const PublicClassResult: React.FC = () => {
   const [sortBy, setSortBy] = useState<'roll' | 'rank' | 'percentage' | 'totalMarks'>('roll');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pass' | 'fail'>('all');
+  const [printSize, setPrintSize] = useState<'A4 landscape' | 'A4 portrait' | 'legal landscape'>('A4 landscape');
+  const [printMargin, setPrintMargin] = useState('10mm');
 
   const [reportHeader, setReportHeader] = useState({
     orgName: "",
@@ -347,6 +349,13 @@ const PublicClassResult: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4">
+      <style>
+        {`
+          @media print {
+            @page { size: ${printSize}; margin: ${printMargin}; }
+          }
+        `}
+      </style>
       <div className="max-w-7xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <div className="flex items-center gap-4">
@@ -363,6 +372,16 @@ const PublicClassResult: React.FC = () => {
             </h2>
           </div>
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
+            <select value={printSize} onChange={(e) => setPrintSize(e.target.value as any)} className="input-premium h-9 py-1 text-sm bg-white border-slate-200" title="প্রিন্ট সাইজ">
+              <option value="A4 landscape">A4 Landscape</option>
+              <option value="A4 portrait">A4 Portrait</option>
+              <option value="legal landscape">Legal Landscape</option>
+            </select>
+            <select value={printMargin} onChange={(e) => setPrintMargin(e.target.value)} className="input-premium h-9 py-1 text-sm bg-white border-slate-200" title="প্রিন্ট মার্জিন">
+              <option value="10mm">সাধারন মার্জিন (10mm)</option>
+              <option value="5mm">চিকন মার্জিন (5mm)</option>
+              <option value="15mm">চওড়া মার্জিন (15mm)</option>
+            </select>
             <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
               <option value="en">English (0-9)</option>
               <option value="bn">Bengali (০-৯)</option>

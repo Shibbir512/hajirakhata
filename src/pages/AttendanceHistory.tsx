@@ -6,12 +6,13 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle, Printer } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle, Printer, RefreshCw } from "lucide-react";
 import { toBengaliDate, toBengaliTime, toBengaliNumber, getDayNameInBengali } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import { SyncManager } from "../services/SyncManager";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -40,6 +41,25 @@ const AttendanceHistory: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState("");
 
   const [mainSearchQuery, setMainSearchQuery] = useState("");
+  const [isSyncingLeaves, setIsSyncingLeaves] = useState(false);
+
+  const handleSyncWithLeaves = async () => {
+    if (!orgId) return;
+    setIsSyncingLeaves(true);
+    try {
+      const result = await SyncManager.syncAllApprovedLeaves(orgId);
+      if (result.updatedStudentsCount > 0) {
+        toast.success(`${toBengaliNumber(result.updatedStudentsCount)} জন শিক্ষার্থীর অনুপস্থিতি সফলভাবে ছুটিতে রূপান্তরিত হয়েছে (${toBengaliNumber(result.updatedSessionsCount)} টি সেশন)!`);
+      } else {
+        toast.success("সকল অনুমোদিত ছুটির তথ্য ইতিমধ্যে হাজিরার সাথে সিঙ্ক রয়েছে।");
+      }
+    } catch (err) {
+      console.error("Error syncing leaves:", err);
+      toast.error("ছুটি সিঙ্ক করতে সমস্যা হয়েছে।");
+    } finally {
+      setIsSyncingLeaves(false);
+    }
+  };
 
   const getStudentRoll = useCallback((classId: string, studentId: string) => {
     const classStudents = students[classId] || [];
@@ -262,6 +282,18 @@ const AttendanceHistory: React.FC = () => {
               className="input-premium w-full text-[16px] font-medium text-slate-700 border border-[#D1D5DB] bg-white text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all placeholder-slate-400"
             />
           </div>
+        </div>
+
+        <div className="flex items-end">
+          <button
+            onClick={handleSyncWithLeaves}
+            disabled={isSyncingLeaves}
+            className="flex items-center gap-2 px-5 h-[50px] bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-[16px] hover:bg-emerald-100 transition-all text-sm font-semibold shadow-sm active:scale-95 disabled:opacity-50"
+            title="অনুমোদিত ছুটির তথ্যের সাথে হাজিরা রেকর্ড সিঙ্ক করুন"
+          >
+            <RefreshCw className={clsx("w-4 h-4 text-emerald-600", isSyncingLeaves && "animate-spin")} />
+            {isSyncingLeaves ? "সিঙ্ক হচ্ছে..." : "ছুটি সিঙ্ক"}
+          </button>
         </div>
       </div>
 

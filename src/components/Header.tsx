@@ -2,6 +2,7 @@ import React from "react";
 import { Bell } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
+import { PWAInstallButton } from "./PWAInstallButton";
 
 const MosqueIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -77,8 +78,9 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
           </p>
         </div>
         
-        {/* Notification Bell */}
-        <div className="shrink-0 ml-3">
+        {/* Notification Bell & Install */}
+        <div className="shrink-0 ml-3 flex items-center gap-2">
+          <PWAInstallButton />
           <button className="relative w-8 h-8 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
             <Bell className="w-[18px] h-[18px] text-white" />
           </button>

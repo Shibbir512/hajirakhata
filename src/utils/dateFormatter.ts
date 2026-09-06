@@ -119,12 +119,13 @@ export const getTodayISO = () => {
 
 export const normalizeDateToISO = (dateStr: string | undefined): string => {
   if (!dateStr) return "";
+  const engStr = toEnglishNumber(dateStr).trim();
   // If already YYYY-MM-DD
-  if (dateStr.length === 10 && dateStr.charAt(4) === '-') return dateStr;
+  if (engStr.length === 10 && engStr.charAt(4) === '-') return engStr;
   
   // Format DD MM YYYY or DD-MM-YYYY or DD/MM/YYYY
-  const separator = dateStr.includes("-") ? "-" : dateStr.includes("/") ? "/" : " ";
-  const parts = dateStr.split(separator);
+  const separator = engStr.includes("-") ? "-" : engStr.includes("/") ? "/" : " ";
+  const parts = engStr.split(separator);
   if (parts.length === 3) {
     if (parts[0].length === 4) {
        // YYYY MM DD
@@ -134,7 +135,16 @@ export const normalizeDateToISO = (dateStr: string | undefined): string => {
        return `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`;
     }
   }
-  return dateStr;
+  return engStr;
+};
+
+export const isLeaveOnDate = (leave: any, dateISO?: string): boolean => {
+  if (leave.status !== 'approved') return false;
+  const targetDate = dateISO || getTodayISO();
+  const sDate = normalizeDateToISO(leave.startDate || leave.date);
+  const eDate = normalizeDateToISO(leave.endDate || leave.date);
+  if (!sDate || !eDate) return false;
+  return targetDate >= sDate && targetDate <= eDate;
 };
 
 export const isLeaveActiveNow = (leave: any): boolean => {
@@ -149,12 +159,12 @@ export const isLeaveActiveNow = (leave: any): boolean => {
   
   if (!sDate || !eDate || todayISO < sDate || todayISO > eDate) return false;
   
-  // It's on a valid day. Now check time constraints for today.
-  if (todayISO === sDate && leave.startTime && leave.startTime > currentTime) {
+  // Only restrict by time if specifically non-full-day times were chosen
+  if (todayISO === sDate && leave.startTime && leave.startTime !== "00:00" && leave.startTime !== "06:00" && leave.startTime > currentTime) {
     return false; // Leave hasn't started yet today
   }
   
-  if (todayISO === eDate && leave.endTime && leave.endTime < currentTime) {
+  if (todayISO === eDate && leave.endTime && leave.endTime !== "23:59" && leave.endTime < currentTime) {
     return false; // Leave has already ended today
   }
   

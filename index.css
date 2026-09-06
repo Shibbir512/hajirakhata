@@ -372,88 +372,291 @@
 }
 
 #marksheet-container {
-  width: 800px !important;
+  width: 800px;
   background: white;
   padding: 40px;
   margin: 0 auto;
 }
 
+/* ==========================================================================
+   DEDICATED A4 PRINT STYLESHEET (হাজিরা খাতা / হাজিরা, ফলাফল ও ফি রিপোর্ট)
+   ========================================================================== */
 @media print {
+  /* 1. Standard A4 Page Setup */
   @page {
-    size: A4 landscape;
-    margin: 10mm;
+    size: A4 portrait;
+    margin: 10mm 8mm 12mm 8mm;
   }
-  
+
+  /* Wide Tabulation Sheet Landscape Support */
+  @page landscape-sheet {
+    size: A4 landscape;
+    margin: 8mm 6mm 8mm 6mm;
+  }
+
+  .print-landscape,
+  #tabulation-sheet-container,
+  .landscape-report {
+    page: landscape-sheet !important;
+  }
+
+  /* 2. Color Accuracy & Contrast */
+  html,
   body {
-    background-color: white !important;
+    background-color: #ffffff !important;
+    color: #000000 !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
+    font-size: 11pt !important;
+    line-height: 1.4 !important;
     width: 100% !important;
-    min-width: 100vw !important;
+    min-width: 100% !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow-x: visible !important;
   }
 
-  .print\:hidden {
-    display: none !important;
+  /* 3. Unlock Multi-page Printing across React / Tailwind Ancestors */
+  html,
+  body,
+  #root,
+  #root > div,
+  main,
+  .overflow-hidden,
+  .overflow-y-auto,
+  .overflow-x-auto,
+  .h-screen,
+  .min-h-screen,
+  .max-h-screen,
+  [class*="h-screen"],
+  [class*="min-h-screen"] {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: static !important;
+    float: none !important;
+    transform: none !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-sizing: border-box !important;
   }
 
-  .card-premium {
+  /* Reset layout constraints without globally overriding display:flex */
+  #root, #root > div {
+    display: block !important;
+  }
+
+  /* Fix for sticky elements breaking page layout */
+  .sticky, [class*="sticky"] {
+    position: static !important;
+  }
+
+  /* 4. Complete Removal of Non-Essential App UI Elements */
+  nav,
+  aside,
+  header,
+  footer,
+  #dashboard-sidebar,
+  .sidebar,
+  #bottom-nav,
+  [aria-label*="navigation" i],
+  .react-hot-toast,
+  div[role="status"],
+  div[aria-live],
+  .toaster,
+  .toast,
+  #attendance-reminder,
+  .announcement-banner,
+  #offline-indicator,
+  .no-print,
+  .print\:hidden,
+  [data-print="hidden"],
+  button:not(.print-keep),
+  select:not(.print-keep),
+  input:not(.print-keep),
+  .react-datepicker-wrapper,
+  .react-datepicker__tab-loop,
+  .recharts-tooltip-wrapper,
+  .recharts-responsive-container,
+  .modal-backdrop,
+  .fixed,
+  .sticky,
+  .shadow-soft,
+  .shadow-lg,
+  .shadow-md,
+  .shadow-sm,
+  .shadow-xl,
+  .backdrop-blur-lg,
+  .backdrop-blur-md {
     box-shadow: none !important;
-    border: none !important;
-    padding: 0 !important;
-    margin: 0 !important;
+    text-shadow: none !important;
   }
 
-  /* Ensure the tabulation sheet takes full width */
-  #tabulation-sheet-container, #marksheet-container {
-    width: 100% !important;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: visible !important;
-  }
-
-  /* Force table wrapper to be visible */
-  .overflow-x-auto {
-    overflow: visible !important;
-  }
-
-  /* Hide navigation, headers, and other UI elements */
-  nav, #dashboard-sidebar, .sidebar, header, footer, button, .no-print, aside, [class*="lg:flex"] > [class*="w-[280px]"] {
+  /* Hard hide interactive and navigation elements */
+  nav,
+  aside,
+  header,
+  footer,
+  #dashboard-sidebar,
+  .sidebar,
+  #bottom-nav,
+  [aria-label*="navigation" i],
+  .react-hot-toast,
+  div[role="status"],
+  div[aria-live],
+  .toaster,
+  .toast,
+  #attendance-reminder,
+  .announcement-banner,
+  #offline-indicator,
+  .no-print,
+  .print\:hidden,
+  [data-print="hidden"],
+  button:not(.print-keep),
+  .react-datepicker-wrapper,
+  .react-datepicker__tab-loop,
+  .recharts-tooltip-wrapper {
     display: none !important;
+    visibility: hidden !important;
   }
 
-  /* Ensure the main content takes full width */
-  main {
+  /* 5. Printable Display Overrides */
+  .print\:block {
+    display: block !important;
+    visibility: visible !important;
+  }
+  .print\:flex {
+    display: flex !important;
+    visibility: visible !important;
+  }
+  .print\:inline-block {
+    display: inline-block !important;
+    visibility: visible !important;
+  }
+  .print\:grid {
+    display: grid !important;
+    visibility: visible !important;
+  }
+  .print\:text-black {
+    color: #000000 !important;
+  }
+
+  /* 6. Clean Card & Container Formatting for Paper */
+  .card-premium,
+  .bg-white,
+  .rounded-\[20px\],
+  .rounded-2xl,
+  .rounded-xl,
+  .rounded-lg {
+    box-shadow: none !important;
+    border-radius: 0 !important;
+    border: none !important;
+    background: transparent !important;
     padding: 0 !important;
     margin: 0 !important;
+  }
+
+  /* 7. Tables & Multi-Page Pagination Rules */
+  table {
     width: 100% !important;
     max-width: 100% !important;
+    border-collapse: collapse !important;
+    page-break-inside: auto !important;
+    break-inside: auto !important;
+    font-size: 10pt !important;
+    margin-top: 10px !important;
+    margin-bottom: 15px !important;
+    background-color: #ffffff !important;
+  }
+
+  thead {
+    display: table-header-group !important; /* Repeats table header across all printed pages */
+  }
+
+  tfoot {
+    display: table-footer-group !important;
+  }
+
+  tr {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    page-break-after: auto !important;
+    display: table-row !important;
+  }
+
+  th,
+  td {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+    padding: 6px 8px !important;
+    border: 1px solid #475569 !important;
+    color: #000000 !important;
+    font-size: 9.5pt !important;
+    line-height: 1.25 !important;
+    vertical-align: middle !important;
+  }
+
+  th {
+    background-color: #f1f5f9 !important;
+    font-weight: 700 !important;
+    text-align: center !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* 8. Page Break Control Classes */
+  .page-break,
+  .print-page-break,
+  .break-after-page {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .page-break-before,
+  .break-before-page {
+    page-break-before: always !important;
+    break-before: page !important;
+  }
+
+  .avoid-page-break,
+  .print-avoid-break,
+  .break-inside-avoid,
+  .report-card,
+  .fee-card,
+  .signature-section,
+  .marksheet-page {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  /* 9. Specialized Containers (Reports, Results, Marksheets, Fees) */
+  #tabulation-sheet-container,
+  #marksheet-container,
+  #report-container,
+  #fee-report-container {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
     overflow: visible !important;
   }
 
-  table {
-    page-break-inside: auto;
+  #marksheet-container {
     width: 100% !important;
     max-width: 100% !important;
-  }
-  
-  tr {
-    page-break-inside: avoid;
-    page-break-after: auto;
-  }
-  
-  thead {
-    display: table-header-group;
-  }
-  
-  tfoot {
-    display: table-footer-group;
+    padding: 12px !important;
+    margin: 0 auto !important;
+    border: 2px solid #000000 !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
   }
 
-  .page-break {
-    page-break-before: always;
+  /* Ensure all text elements are sharp and high-contrast */
+  h1, h2, h3, h4, h5, h6, p, span, div, strong, b, td, th {
+    color: #000000 !important;
   }
 }
