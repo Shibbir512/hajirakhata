@@ -36,32 +36,6 @@ try {
   if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
     messaging = getMessaging(app);
   }
-
-  // Connection test
-  const testConnection = async () => {
-    if (!db) return;
-    try {
-      // Attempt to fetch a non-existent doc from server to test connectivity
-      await getDocFromServer(doc(db, '_connection_test_', 'ping'));
-      console.log("Firestore connection successful");
-    } catch (error) {
-      if (error instanceof Error) {
-        if (error.message.includes('the client is offline') || (error as any).code === 'unavailable') {
-          console.error("Firestore is offline or unavailable. Please check your Firebase configuration or internet connection.");
-          // We don't throw here to avoid crashing the whole app during init, 
-          // but we log it for the AIS Agent to see.
-          const errInfo = {
-            error: error.message,
-            code: (error as any).code,
-            operation: 'connection_test'
-          };
-          console.error('FIRESTORE_CONNECTIVITY_ERROR:', JSON.stringify(errInfo));
-        }
-      }
-    }
-  };
-  testConnection();
-
 } catch (error) {
   console.error("Firebase initialization failed:", error);
 }

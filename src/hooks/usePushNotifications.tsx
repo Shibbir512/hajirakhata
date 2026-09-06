@@ -17,7 +17,9 @@ export const usePushNotifications = () => {
       try {
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
-          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+          const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js', {
+            scope: '/firebase-cloud-messaging-push-scope'
+          });
           
           const token = await getToken(messaging, { 
             vapidKey: VAPID_KEY,
