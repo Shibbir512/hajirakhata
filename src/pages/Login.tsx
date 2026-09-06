@@ -5,7 +5,6 @@ import { doc, setDoc, updateDoc, serverTimestamp, getDoc } from 'firebase/firest
 import { AlertCircle, Loader2, Copy, Check, Phone, Search, LogIn, Users, Star, GraduationCap, BookOpen, PieChart, CheckCircle2 } from 'lucide-react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import logo from '../assets/logo.svg';
 import PublicResultSearch from '../components/PublicResultSearch';
 import WhatsAppSupportButton from '../components/WhatsAppSupportButton';
 import { toEnglishNumber } from '../utils/dateFormatter';
@@ -195,8 +194,8 @@ const Login: React.FC = () => {
           transition={{ duration: 0.8 }}
           className="flex items-center gap-3"
         >
-          <div className="bg-white/10 backdrop-blur-md p-2 rounded-xl border border-white/20">
-            <BookOpen className="w-6 h-6 text-white" />
+          <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-xl border border-white/20">
+            <img src="/icon.png" alt="Logo" className="w-8 h-8 object-contain" />
           </div>
           <span className="font-extrabold text-2xl text-white tracking-tight">হাজিরা খাতা</span>
         </motion.div>
@@ -281,7 +280,7 @@ const Login: React.FC = () => {
           {/* Mobile Logo */}
           <div className="flex items-center gap-2 mb-8">
             <div className="bg-white/10 backdrop-blur-md p-1.5 rounded-lg border border-white/20">
-              <BookOpen className="w-5 h-5 text-white" />
+              <img src="/icon.png" alt="Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="font-extrabold text-xl text-white tracking-tight">হাজিরা খাতা</span>
           </div>
@@ -363,12 +362,8 @@ const Login: React.FC = () => {
                   className="space-y-6 flex-1 flex flex-col justify-center"
                 >
                   <div className="text-center mb-6">
-                    {/* Circle Icon Badge */}
-                    <div className="w-20 h-20 bg-teal-50 rounded-full flex items-center justify-center mx-auto mb-6 relative">
-                      <div className="absolute inset-0 bg-[#0F5C7A] rounded-full scale-[0.8]" />
-                      <BookOpen className="w-8 h-8 text-white relative z-10 top-2" strokeWidth={1.5} />
-                      <GraduationCap className="w-10 h-10 text-white absolute top-4 z-20" strokeWidth={1.5} />
-                    </div>
+                    {/* Logo Image */}
+                    <img src="/icon.png" alt="Logo" className="w-24 h-24 object-contain mx-auto mb-6 drop-shadow-md" />
                     <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 mb-2">অ্যাডমিন প্যানেল</h2>
                     <p className="text-slate-500 text-sm font-medium">আপনার শিক্ষা প্রতিষ্ঠান পরিচালনা সহজতর করুন</p>
                   </div>

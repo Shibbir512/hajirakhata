@@ -26,7 +26,6 @@ import {
   ChevronUp,
 } from "lucide-react";
 import clsx from "clsx";
-import logo from '../assets/logo.svg';
 import WhatsAppSupportButton from "./WhatsAppSupportButton";
 
 interface SidebarProps {
@@ -231,7 +230,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     >
       <div className="flex items-center justify-between h-[70px] border-b border-white/10 px-6 shrink-0">
         <div className="flex items-center gap-3">
-          <img src={logo} alt="হাজিরা খাতা" className="h-10 w-auto bg-white/10 p-1.5 rounded-xl shadow-sm" />
+          <img src="/icon.png" alt="হাজিরা খাতা" className="h-10 w-10 object-contain bg-white/10 p-1.5 rounded-xl shadow-sm" />
           <span className="text-[22px] font-bold text-white tracking-tight drop-shadow-sm">হাজিরা খাতা</span>
         </div>
       </div>

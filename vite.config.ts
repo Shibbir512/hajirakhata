@@ -17,14 +17,14 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'prompt',
-        includeAssets: ['icon.svg'],
+        includeAssets: ['icon.png'],
         manifest: {
           short_name: "হাজিরা খাতা",
           name: "ছাত্র হাজিরা খাতা (Student Attendance)",
           icons: [
             {
-              src: "/icon.svg",
-              type: "image/svg+xml",
+              src: "/icon.png",
+              type: "image/png",
               sizes: "192x192 512x512"
             }
           ],
