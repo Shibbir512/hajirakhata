@@ -47,45 +47,23 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Instant local cache restoration so page loads without spinner
-  const getCachedAuth = () => {
-    try {
-      const cached = localStorage.getItem("hajira_auth_cache");
-      if (cached) {
-        return JSON.parse(cached);
-      }
-    } catch (e) {
-      // Ignore parse error
-    }
-    return null;
-  };
-
-  const cachedAuth = getCachedAuth();
-
   const [user, setUser] = useState<User | null>(auth?.currentUser || null);
-  const [orgId, setOrgId] = useState<string | null>(cachedAuth?.orgId || null);
-  const [orgName, setOrgName] = useState<string | null>(cachedAuth?.orgName || null);
-  const [role, setRole] = useState<string | null>(cachedAuth?.role || null);
-  const [status, setStatus] = useState<string | null>(cachedAuth?.status || null);
-  const [phone, setPhone] = useState<string | null>(cachedAuth?.phone || null);
-  const [photoURL, setPhotoURL] = useState<string | null>(cachedAuth?.photoURL || null);
-  const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>(cachedAuth?.visitedOrgs || {});
+  const [orgId, setOrgId] = useState<string | null>(null);
+  const [orgName, setOrgName] = useState<string | null>(null);
+  const [role, setRole] = useState<string | null>(null);
+  const [status, setStatus] = useState<string | null>(null);
+  const [phone, setPhone] = useState<string | null>(null);
+  const [photoURL, setPhotoURL] = useState<string | null>(null);
+  const [visitedOrgs, setVisitedOrgs] = useState<{ [key: string]: string }>({});
   const [isApprovalEnabled, setIsApprovalEnabled] = useState(true);
   const [supportWhatsApp, setSupportWhatsApp] = useState("8801911963117");
-  const [notificationPreferences, setNotificationPreferences] = useState(
-    cachedAuth?.notificationPreferences || {
-      signupRequests: true,
-      joinRequests: true
-    }
-  );
-  const [attendanceReminderEnabled, setAttendanceReminderEnabled] = useState(
-    cachedAuth?.attendanceReminderEnabled ?? false
-  );
-  const [attendanceReminderTime, setAttendanceReminderTime] = useState(
-    cachedAuth?.attendanceReminderTime || "09:00"
-  );
-  // If we have cached auth, do not show full-screen spinner
-  const [loading, setLoading] = useState(!cachedAuth);
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    signupRequests: true,
+    joinRequests: true
+  });
+  const [attendanceReminderEnabled, setAttendanceReminderEnabled] = useState(false);
+  const [attendanceReminderTime, setAttendanceReminderTime] = useState("09:00");
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!db) return;
@@ -130,16 +108,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(currentUser);
       
       if (currentUser && db) {
-        // If we don't have cached data, show loading, otherwise render immediately
-        if (!cachedAuth) {
-          setLoading(true);
-        }
-
-        // Safety fallback: Never let the full-screen spinner block for more than 2 seconds
-        const safetyTimer = setTimeout(() => {
-          setLoading(false);
-        }, 2000);
-
+        setLoading(true);
         const userDocRef = doc(db, `users`, currentUser.uid);
         
         // Ensure user's basic info is stored without blocking
@@ -170,7 +139,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         })();
 
         unsubUser = onSnapshot(userDocRef, async (docSnap) => {
-          clearTimeout(safetyTimer);
           if (docSnap.exists()) {
             const data = docSnap.data();
             const currentOrgId = data.organizationId || null;
@@ -201,23 +169,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             setOrgName(currentOrgName);
             setOrgId(currentOrgId);
             
-            // Persist to local cache for instant future loads
-            try {
-              localStorage.setItem("hajira_auth_cache", JSON.stringify({
-                orgId: currentOrgId,
-                orgName: currentOrgName,
-                role: userRole,
-                status: userStatus,
-                phone: userPhone,
-                photoURL: userPhotoURL,
-                visitedOrgs: history,
-                notificationPreferences: userNotificationPreferences,
-                attendanceReminderEnabled: userAttendanceReminderEnabled,
-                attendanceReminderTime: userAttendanceReminderTime,
-              }));
-            } catch (e) {}
-
-            // Set loading to false immediately
+            // Only set loading to false here, so the app doesn't stay on the spinner
             setLoading(false);
             
             // Perform background checks logic in a single fetch
@@ -261,24 +213,17 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
               }
             }
           } else {
-            try {
-              localStorage.removeItem("hajira_auth_cache");
-            } catch (e) {}
             setOrgId(null);
             setOrgName(null);
             setVisitedOrgs(prev => Object.keys(prev).length === 0 ? prev : {});
             setLoading(false);
           }
         }, (error) => {
-          clearTimeout(safetyTimer);
           console.error("Error in userDoc snapshot listener:", error);
           handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
           setLoading(false);
         });
       } else {
-        try {
-          localStorage.removeItem("hajira_auth_cache");
-        } catch (e) {}
         setOrgId(null);
         setOrgName(null);
         setVisitedOrgs(prev => Object.keys(prev).length === 0 ? prev : {});
@@ -549,9 +494,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [user, orgId]);
 
   const logout = useCallback(async () => {
-    try {
-      localStorage.removeItem("hajira_auth_cache");
-    } catch (e) {}
     if (auth) {
       try {
         await signOut(auth);

@@ -18,10 +18,9 @@ export default defineConfig(({ mode }) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        injectRegister: null,
         includeAssets: ['icon.png'],
         manifest: {
-          short_name: "হাজিরা",
+          short_name: "হাজিরা খাতা",
           name: "ছাত্র হাজিরা খাতা (Student Attendance)",
           icons: [
             {
@@ -50,51 +49,7 @@ export default defineConfig(({ mode }) => {
           background_color: "#f8fafc"
         },
         devOptions: {
-          enabled: false
-        },
-        workbox: {
-          globPatterns: ['**/*.{html,css}', 'assets/index*.js', 'manifest.json'],
-          maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
-          navigateFallbackDenylist: [/^\/api\//, /firebase-messaging-sw\.js/, /__\/auth/],
-          cleanupOutdatedCaches: true,
-          runtimeCaching: [
-            {
-              urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-              handler: 'CacheFirst',
-              options: {
-                cacheName: 'google-fonts',
-                expiration: {
-                  maxEntries: 30,
-                  maxAgeSeconds: 60 * 60 * 24 * 365
-                },
-                cacheableResponse: {
-                  statuses: [0, 200]
-                }
-              }
-            },
-            {
-              urlPattern: /\/assets\/.*\.js$/i,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'app-dynamic-chunks',
-                expiration: {
-                  maxEntries: 100,
-                  maxAgeSeconds: 60 * 60 * 24 * 30
-                }
-              }
-            },
-            {
-              urlPattern: /\.(?:png|jpg|jpeg|svg|gif|webp|ico)$/i,
-              handler: 'StaleWhileRevalidate',
-              options: {
-                cacheName: 'app-images',
-                expiration: {
-                  maxEntries: 60,
-                  maxAgeSeconds: 60 * 60 * 24 * 30
-                }
-              }
-            }
-          ]
+          enabled: true
         }
       })
     ],
