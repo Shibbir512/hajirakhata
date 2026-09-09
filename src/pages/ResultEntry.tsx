@@ -256,9 +256,9 @@ const ResultEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-40 bg-slate-100 py-3 px-4 -mx-4 rounded-xl border border-slate-200 shadow-sm mt-0 mb-6">
         
-        {academicYearId && examId && classId && results.length > 0 && (
+        {academicYearId && examId && classId && (
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
             <span className={`px-4 h-[42px] flex items-center rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'} whitespace-nowrap`}>
               {isPublished ? 'প্রকাশিত' : isHidden ? 'গোপন' : 'খসড়া (Draft)'}

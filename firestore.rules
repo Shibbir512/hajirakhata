@@ -5,73 +5,60 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-
     function isSuperAdmin() {
       return isAuthenticated() && 
         ('email' in request.auth.token) &&
         (request.auth.token.email == "shibbir.ahma.2025@gmail.com");
     }
-
     function getUserData() {
       let userDoc = get(/databases/$(database)/documents/users/$(request.auth.uid));
       return (userDoc != null && userDoc.data != null) ? userDoc.data : null;
     }
-
     function getRole(orgId) {
       let data = getUserData();
-      return data == null ? null : 
-             ('roles' in data && data.roles is map && orgId in data.roles) ? data.roles[orgId] :
-             ('organizationId' in data && data.organizationId == orgId && 'role' in data) ? data.role :
-             null;
+      return data == null ? null :  
+            ('roles' in data && data.roles is map && orgId in data.roles) ? data.roles[orgId] :
+            ('organizationId' in data && data.organizationId == orgId && 'role' in data) ? data.role :
+            null;
     }
-
     function isAdmin(orgId) {
       let role = getRole(orgId);
       return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin'));
     }
-
     function isTeacher(orgId) {
       let role = getRole(orgId);
       return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin' || role == 'teacher'));
     }
-
     function isViewer(orgId) {
       let role = getRole(orgId);
       return isSuperAdmin() || (isAuthenticated() && (role == 'admin' || role == 'super_admin' || role == 'teacher' || role == 'viewer'));
     }
-
     function isAssignedTeacher(orgId, classId) {
       let classDoc = get(/databases/$(database)/documents/organizations/$(orgId)/classes/$(classId));
-      return classDoc != null && classDoc.data != null && 
-             'teacherIds' in classDoc.data && 
-             request.auth.uid in classDoc.data.teacherIds;
+      return classDoc != null && classDoc.data != null &&  
+            'teacherIds' in classDoc.data && 
+            request.auth.uid in classDoc.data.teacherIds;
     }
-
     function isMember(orgId) {
       return isSuperAdmin() || (isAuthenticated() && (getRole(orgId) != null || (getUserData() != null && getUserData().organizationId == orgId)));
     }
-
     function isVersionCorrect() {
-      return !('version' in resource.data) || 
-             ('version' in request.resource.data && request.resource.data.version == resource.data.version + 1);
+      return !('version' in resource.data) ||  
+            ('version' in request.resource.data && request.resource.data.version == resource.data.version + 1);
     }
-
     match /{document=**} {
       allow read, write, delete: if isSuperAdmin();
     }
-
     function isRolesUpdateValid(callerOrgId) {
       let oldRoles = ('roles' in resource.data) ? resource.data.roles : {};
       let newRoles = ('roles' in request.resource.data) ? request.resource.data.roles : {};
       return newRoles == oldRoles || newRoles.diff(oldRoles).affectedKeys().hasOnly([callerOrgId]);
     }
-
     function isVisitedOrgsUpdateValid(callerOrgId) {
       let oldVisited = ('visitedOrgs' in resource.data) ? resource.data.visitedOrgs : {};
       let newVisited = ('visitedOrgs' in request.resource.data) ? request.resource.data.visitedOrgs : {};
       return newVisited == oldVisited || newVisited.diff(oldVisited).affectedKeys().hasOnly([callerOrgId]);
     }
-
     // Secure user updates:
     function canUpdateUser(userId) {
        let isSelfUpdate = isAuthenticated() && request.auth.uid == userId;
@@ -89,7 +76,6 @@ service cloud.firestore {
               isSelfUpdate || 
               (callerData != null && callerOrgId != '' && isCallerAdmin && onlyAllowedKeys && isRolesUpdateValid(callerOrgId) && isVisitedOrgsUpdateValid(callerOrgId));
     }
-
     match /users/{userId} {
       // Org admins need to read users associated with their orgs to approve them
       allow read: if isSuperAdmin() || isAuthenticated();
@@ -98,14 +84,12 @@ service cloud.firestore {
       allow delete: if isSuperAdmin();
       allow list: if isSuperAdmin() || isAuthenticated();
     }
-
     match /organizations/{orgId} {
       allow get: if true;
       allow list: if true;
       allow create: if isAuthenticated();
       allow update: if isAdmin(orgId);
       allow delete: if isSuperAdmin();
-
       match /academic_years/{yearId} {
         allow read: if true;
         allow write: if isAdmin(orgId);
@@ -160,25 +144,21 @@ service cloud.firestore {
       allow read: if true;
       allow write: if isSuperAdmin();
     }
-
     match /feeCategories/{categoryId} {
       allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
       allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isAdmin(request.resource.data.orgId));
       allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isAdmin(resource.data.orgId));
     }
-
     match /feeSetups/{setupId} {
       allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
       allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isAdmin(request.resource.data.orgId));
       allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isAdmin(resource.data.orgId));
     }
-
     match /feeCollections/{collectionId} {
       allow read: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isMember(resource.data.orgId));
       allow create: if isSuperAdmin() || (request.resource != null && 'orgId' in request.resource.data && isTeacher(request.resource.data.orgId));
       allow update, delete: if isSuperAdmin() || (resource != null && 'orgId' in resource.data && isTeacher(resource.data.orgId));
     }
-
     match /counters/{document=**} {
       allow read, write: if isAuthenticated();
     }

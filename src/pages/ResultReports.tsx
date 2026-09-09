@@ -234,12 +234,16 @@ const ResultReports: React.FC = () => {
       const loadedResults: Result[] = [];
       let foundConfig: any = null;
 
+      const needsStatusFilter = role !== 'admin' && role !== 'teacher';
+
       snapshot.docs.forEach((doc) => {
         const data = doc.data();
         if (data.type === 'config') {
           foundConfig = data;
-        } else if (!data.isDeleted) {
-          loadedResults.push(data as Result);
+        } else if (!data.isDeleted || data.status === 'published') {
+          if (!needsStatusFilter || data.status === 'published') {
+            loadedResults.push(data as Result);
+          }
         }
       });
 
@@ -317,6 +321,7 @@ const ResultReports: React.FC = () => {
         const resultRef = doc(db, `organizations/${orgId}/results`, result.id);
         batch.set(resultRef, {
           ...result,
+          isDeleted: false,
           updated_by: user.uid,
           updated_at: Date.now(),
           version: (result.version || 1) + 1

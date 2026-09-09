@@ -126,7 +126,7 @@ const Marksheet: React.FC = () => {
         const data = doc.data();
         if (data.type === 'config') {
           foundConfig = data;
-        } else if (!data.isDeleted) {
+        } else if (!data.isDeleted || data.status === 'published') {
           loadedResults.push(data as Result);
         }
       });
@@ -148,6 +148,8 @@ const Marksheet: React.FC = () => {
         const resultRef = doc(db, `organizations/${orgId}/results`, result.id);
         return setDoc(resultRef, {
           ...result,
+          isDeleted: false,
+          version: (result.version || 0) + 1,
           updated_at: Date.now(),
           updated_by: user.uid
         }, { merge: true });

@@ -48,11 +48,15 @@ const PublicResultView: React.FC = () => {
 
         // 1. Fetch Student
         const studentSnap = await getDoc(doc(db, `organizations/${orgId}/students`, studentId));
-        if (!studentSnap.exists()) throw new Error("Student not found");
+        if (!studentSnap.exists()) {
+          toast.error("শিক্ষার্থীর তথ্য পাওয়া যায়নি।");
+          navigate(-1);
+          return;
+        }
         const studentData = studentSnap.data() as Student;
         setStudent(studentData);
 
-        // 2. Fetch Results (only published)
+        // 2. Fetch Results
         const resultsRef = collection(db, `organizations/${orgId}/results`);
         const resultQuery = query(
           resultsRef,
@@ -61,10 +65,16 @@ const PublicResultView: React.FC = () => {
           where("status", "==", "published")
         );
         const resultSnap = await getDocs(resultQuery);
-        const loadedResults = resultSnap.docs.map(doc => doc.data() as Result);
+        const loadedResults = resultSnap.docs
+          .map(doc => doc.data() as Result)
+          .filter(r => !r.isDeleted || r.status === 'published');
         setResults(loadedResults);
 
-        if (loadedResults.length === 0) throw new Error("Results not found or not published");
+        if (loadedResults.length === 0) {
+          toast.error("এই পরীক্ষার কোনো ফলাফল এখনো প্রকাশিত হয়নি।");
+          navigate(-1);
+          return;
+        }
 
         const classId = loadedResults[0].class_id;
         const yearId = loadedResults[0].academic_year_id;
@@ -94,7 +104,9 @@ const PublicResultView: React.FC = () => {
           where("status", "==", "published")
         );
         const allResultsSnap = await getDocs(allResultsQuery);
-        const allResults = allResultsSnap.docs.map(doc => doc.data() as Result);
+        const allResults = allResultsSnap.docs
+          .map(doc => doc.data() as Result)
+          .filter(r => !r.isDeleted || r.status === 'published');
 
         // Group by student for rank
         const studentsInClassSnap = await getDocs(query(collection(db, `organizations/${orgId}/students`), where("classId", "==", classId)));

@@ -67,7 +67,9 @@ const PublicClassResult: React.FC = () => {
           where("status", "==", "published")
         );
         const resultSnap = await getDocs(resultQuery);
-        const loadedResults = resultSnap.docs.map(doc => doc.data() as Result);
+        const loadedResults = resultSnap.docs
+          .map(doc => doc.data() as Result)
+          .filter(r => !r.isDeleted || r.status === 'published');
         setAllResults(loadedResults);
 
         if (loadedResults.length === 0) {

@@ -43,7 +43,7 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
         const data = doc.data();
         if (data.type === 'config') {
           foundConfig = data;
-        } else if (!data.isDeleted) {
+        } else if (!data.isDeleted || data.status === 'published') {
           loadedResults.push(data as Result);
         }
       });
@@ -106,7 +106,8 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
         const resultToSave: any = {
           ...result,
           institution_id: orgId,
-          status: result.status || existingData?.status || 'draft'
+          status: result.status || (existingData?.isDeleted ? 'draft' : existingData?.status) || 'draft',
+          isDeleted: false
         };
 
         // Remove undefined values
@@ -145,16 +146,18 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
           resultsRef,
           where("academic_year_id", "==", academicYearId),
           where("exam_id", "==", examId),
-          where("class_id", "==", classId),
-          where("status", "in", ["draft", "hidden"])
+          where("class_id", "==", classId)
         );
         const snapshot = await getDocs(q);
         
         const batch = snapshot.docs.map(d => {
+          const existingData = d.data();
           return setDoc(d.ref, { 
             status: 'published',
+            isDeleted: false,
             updated_by: user.uid,
-            updated_at: Date.now()
+            updated_at: Date.now(),
+            version: (existingData.version || 0) + 1
           }, { merge: true });
         });
 
@@ -177,16 +180,17 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
           resultsRef,
           where("academic_year_id", "==", academicYearId),
           where("exam_id", "==", examId),
-          where("class_id", "==", classId),
-          where("status", "==", "published")
+          where("class_id", "==", classId)
         );
         const snapshot = await getDocs(q);
         
         const batch = snapshot.docs.map(d => {
+          const existingData = d.data();
           return setDoc(d.ref, { 
             status: 'hidden',
             updated_by: user.uid,
-            updated_at: Date.now()
+            updated_at: Date.now(),
+            version: (existingData.version || 0) + 1
           }, { merge: true });
         });
 
@@ -214,10 +218,13 @@ export const useResults = (orgId: string | null, user: any, academicYearId: stri
         const snapshot = await getDocs(q);
         
         const batch = snapshot.docs.map(d => {
+          const existingData = d.data();
           return setDoc(d.ref, { 
             isDeleted: true,
+            status: 'draft',
             updated_by: user.uid,
-            updated_at: Date.now()
+            updated_at: Date.now(),
+            version: (existingData.version || 0) + 1
           }, { merge: true });
         });
 
