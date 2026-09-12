@@ -77,21 +77,47 @@ const StudentProfile: React.FC = () => {
           const attendanceQuery = query(sessionsRef, where("classId", "==", studentData.classId));
           const attendanceSnapshot = await getDocs(attendanceQuery);
           
-          let presentCount = 0;
-          let absentCount = 0;
-          let leaveCount = 0;
           const sessions: any[] = [];
           
           attendanceSnapshot.docs.forEach(doc => {
             const session = doc.data();
             sessions.push({ id: doc.id, ...session });
-            const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
-            if (studentRecord) {
-              if (studentRecord.status === AttendanceStatus.Present) presentCount++;
-              else if (studentRecord.status === AttendanceStatus.Absent) absentCount++;
-              else if (studentRecord.status === AttendanceStatus.Leave) leaveCount++;
-            }
           });
+
+          // Group sessions by date (same as Reports.tsx logic) to avoid
+          // counting the same day multiple times when multiple sessions exist.
+          const sessionsByDate = new Map<string, any[]>();
+          sessions.forEach(session => {
+            const date = session.date;
+            if (!sessionsByDate.has(date)) sessionsByDate.set(date, []);
+            sessionsByDate.get(date)!.push(session);
+          });
+
+          let presentCount = 0;
+          let absentCount = 0;
+          let leaveCount = 0;
+
+          sessionsByDate.forEach((sessionsOnDate) => {
+            // Resolve the best status for this student on this date
+            // Priority: Present > Leave > Absent
+            let dayStatus: string | null = null;
+            sessionsOnDate.forEach(session => {
+              const studentRecord = session.students?.find((s: any) => s.studentId === studentId);
+              if (studentRecord) {
+                if (studentRecord.status === AttendanceStatus.Present || studentRecord.status === 'late') {
+                  dayStatus = 'present';
+                } else if (studentRecord.status === AttendanceStatus.Leave) {
+                  if (dayStatus !== 'present') dayStatus = 'leave';
+                } else if (studentRecord.status === AttendanceStatus.Absent) {
+                  if (dayStatus === null) dayStatus = 'absent';
+                }
+              }
+            });
+            if (dayStatus === 'present') presentCount++;
+            else if (dayStatus === 'absent') absentCount++;
+            else if (dayStatus === 'leave') leaveCount++;
+          });
+
           setAttendanceStats({ present: presentCount, absent: absentCount, leave: leaveCount });
           setAllAttendanceSessions(sessions);
         } else {

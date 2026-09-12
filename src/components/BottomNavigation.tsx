@@ -18,12 +18,14 @@ import {
   CalendarDays,
   Search,
   Megaphone,
-  Building2
+  Building2,
+  LogOut,
+  UserCircle,
 } from "lucide-react";
 import clsx from "clsx";
 
 const BottomNavigation: React.FC = () => {
-  const { user, orgId, logout, role } = useAuth();
+  const { user, photoURL, orgId, logout, role } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<string | null>(null);
@@ -56,6 +58,8 @@ const BottomNavigation: React.FC = () => {
     { id: "results", name: "ফলাফল", icon: GraduationCap },
     { id: "students", name: "শিক্ষার্থী", icon: Users },
     { id: "settings", name: "সেটিংস", icon: Settings },
+    { id: "help", name: "হেল্প", icon: HelpCircle, path: "/help" },
+    { id: "profile", name: "প্রোফাইল", icon: UserCircle },
   ];
 
   const subMenus: Record<string, any[]> = {
@@ -86,12 +90,11 @@ const BottomNavigation: React.FC = () => {
     settings: [
       { name: "সেটিংস", path: "/settings", icon: Settings },
       { name: "ক্যালেন্ডার", path: "/calendar", icon: CalendarDays },
-      { name: "বিষয়", path: "/subjects", icon: Book },
+      { name: "বিষয়", path: "/subjects", icon: Book },
       { name: "পরীক্ষা", path: "/exams", icon: FileText },
       { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
       { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
       { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
-      { name: "হেল্প", path: "/help", icon: HelpCircle },
       ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
       { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
     ],
@@ -108,7 +111,7 @@ const BottomNavigation: React.FC = () => {
 
   return (
     <div ref={navRef} className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
-      {/* Sub-navigation */}
+      {/* Sub-navigation — regular menus */}
       {activeTab && subMenus[activeTab] && (
         <div 
           className="absolute bottom-full left-0 right-0 p-4 rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
@@ -139,6 +142,42 @@ const BottomNavigation: React.FC = () => {
               </NavLink>
             ))}
           </div>
+        </div>
+      )}
+
+      {/* Profile sub-menu */}
+      {activeTab === "profile" && (
+        <div
+          className="absolute bottom-full left-0 right-0 p-4 rounded-t-3xl shadow-[0_-8px_30px_rgba(0,0,0,0.12)]"
+          style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
+        >
+          {/* User info */}
+          <div className="flex items-center gap-3 px-4 py-3 mb-3 bg-white/10 rounded-2xl">
+            <div className="w-12 h-12 rounded-full bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+              {photoURL ? (
+                <img src={photoURL} alt="প্রোফাইল" className="w-full h-full object-cover" />
+              ) : (
+                <span className="text-white font-bold text-lg">
+                  {user?.displayName?.[0] || user?.email?.[0]?.toUpperCase() || "U"}
+                </span>
+              )}
+            </div>
+            <div className="min-w-0">
+              <p className="text-white font-semibold text-[15px] truncate">{user?.displayName || "ব্যবহারকারী"}</p>
+              <p className="text-white/60 text-[12px] truncate">{user?.email}</p>
+            </div>
+          </div>
+
+          {/* Sign out */}
+          <button
+            onClick={() => { logout(); setActiveTab(null); }}
+            className="w-full flex items-center gap-3 px-4 h-[48px] rounded-[14px] bg-red-500/20 hover:bg-red-500/30 text-white font-medium text-[16px] transition-colors"
+          >
+            <div className="w-[36px] h-[36px] rounded-full bg-red-500/20 flex items-center justify-center shrink-0">
+              <LogOut className="w-5 h-5 text-red-200" />
+            </div>
+            সাইন আউট
+          </button>
         </div>
       )}
 

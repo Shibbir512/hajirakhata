@@ -118,7 +118,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
     { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
-    { name: "হেল্প", path: "/help", icon: HelpCircle },
     { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
     { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
@@ -126,6 +125,8 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
     { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },
   ];
+
+  const helpLink = { name: "হেল্প", path: "/help", icon: HelpCircle };
 
   const renderTopLinks = (links: any[]) => {
     return links.map((link) => (
@@ -242,6 +243,29 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
             </div>
           )}
           
+          {/* হেল্প — standalone top-level link */}
+          <NavLink
+            to={helpLink.path}
+            onClick={() => setIsOpen(false)}
+            className={({ isActive }) =>
+              clsx(
+                "flex items-center px-4 py-3 mb-2 rounded-xl transition-all duration-200 font-semibold text-[15.5px] tracking-wide",
+                isActive
+                  ? "bg-white/15 text-white shadow-sm"
+                  : "text-white/80 hover:bg-white/10 hover:text-white"
+              )
+            }
+          >
+            {({ isActive }) => (
+              <>
+                <div className={clsx("w-9 h-9 rounded-lg flex items-center justify-center mr-4 shadow-sm", isActive ? "bg-white/20 text-white" : "bg-white/5 text-white/70")}>
+                  <HelpCircle className="w-5 h-5" />
+                </div>
+                <span className={clsx(isActive ? "text-white" : "text-white/90")}>হেল্প</span>
+              </>
+            )}
+          </NavLink>
+
           {renderSection('হাজিরা খাতা', 'attendance', CalendarCheck, attendanceLinks)}
           {renderSection('ফি', 'fees', ClipboardEdit, feeLinks)}
           {renderSection('ফলাফল', 'results', GraduationCap, resultLinks)}

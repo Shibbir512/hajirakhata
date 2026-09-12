@@ -83,17 +83,16 @@ const OrgManagementPage: React.FC = () => {
     : visitedOrgs;
 
   return (
-    <div className="min-h-screen bg-[var(--color-bg-main)] flex flex-col items-center justify-center p-4">
-      <OrgManagement
-        onCreateOrg={createOrganization}
-        onJoinOrg={joinOrganization}
-        onRemoveVisitedOrg={handleRemoveVisitedOrg}
-        onLogout={logout}
-        visitedOrgs={displayOrgs}
-        onSuccess={handleSuccess}
-      />
-    </div>
+    <OrgManagement
+      onCreateOrg={createOrganization}
+      onJoinOrg={joinOrganization}
+      onRemoveVisitedOrg={handleRemoveVisitedOrg}
+      onLogout={logout}
+      visitedOrgs={displayOrgs}
+      onSuccess={handleSuccess}
+    />
   );
+
 };
 
 export default OrgManagementPage;
