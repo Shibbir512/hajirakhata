@@ -22,8 +22,8 @@
 }
 
 @theme {
-  --font-sans: "Hind Siliguri", "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --font-bengali: "Noto Sans Bengali", sans-serif;
+  --font-sans: "Google Sans", "Hind Siliguri", "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: "Google Sans", "Noto Sans Bengali", sans-serif;
   --font-arabic: "Noto Sans Arabic", serif;
   
   --color-bg-main: #F4F7FB;
@@ -310,6 +310,8 @@
     font-family: var(--font-sans), var(--font-bengali), var(--font-arabic), sans-serif;
     background-color: var(--color-bg-main);
     color: #334155;
+    font-optical-sizing: auto;
+    font-variation-settings: "GRAD" 0;
   }
 }
 
@@ -358,10 +360,10 @@
     @apply bg-[rgba(255,255,255,0.18)] text-white font-medium border-l-4 border-[#1EC8A5];
   }
   .font-modern {
-    font-family: "Poppins", "Inter", sans-serif;
+    font-family: "Google Sans", "Poppins", "Inter", sans-serif;
   }
   .font-classic {
-    font-family: "Inter", "Poppins", sans-serif;
+    font-family: "Google Sans", "Inter", "Poppins", sans-serif;
   }
   .animate-enter {
     animation: enter 0.2s ease-out;

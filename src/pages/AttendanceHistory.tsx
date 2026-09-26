@@ -325,120 +325,138 @@ const AttendanceHistory: React.FC = () => {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {paginatedSessions.map(session => {
+        {paginatedSessions.map((session, index) => {
           const absentStudents = (session.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
           const className = classes.find(c => c.id === session.classId)?.name || "N/A";
+          
+          const currentDate = session.date || "";
+          const prevDate = index > 0 ? paginatedSessions[index - 1].date || "" : "";
+          const showDateHeader = currentDate !== prevDate;
+          const displayDate = session.date ? `${getDayNameInBengali(session.date)}, ${toBengaliDate(session.date)}` : "অজানা তারিখ";
+
           return (
-            <div key={session.id} className="bg-white rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-l-[8px] border-l-[#4A9D9C] flex flex-col relative" onClick={() => handleView(session)}>
-              {session._syncStatus === "pending" && (
-                <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
-                  <Clock className="w-3 h-3" />
-                  সিঙ্ক হচ্ছে...
+            <React.Fragment key={session.id}>
+              {showDateHeader && (
+                <div className="col-span-1 md:col-span-2 lg:col-span-3 flex items-center py-2 mt-4 mb-2">
+                  <div className="flex-grow h-[1px] bg-slate-200"></div>
+                  <div className="px-5 py-2 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] font-bold text-[16px] flex items-center gap-2.5 border border-[#0F5C7A]/20 shadow-sm">
+                    <Calendar className="w-5 h-5 text-[#0F5C7A]" />
+                    {displayDate}
+                  </div>
+                  <div className="flex-grow h-[1px] bg-slate-200"></div>
                 </div>
               )}
-              
-              {/* Header */}
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="text-2xl font-bold text-slate-800">{className}</h3>
-                <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                  <button onClick={() => handleEdit(session)} className="bg-[#F1F5F9] text-[#4A9D9C] hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors">
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  {(role === 'admin' || role === 'super_admin') && (
-                    <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] p-2.5 rounded-full transition-colors">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  )}
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setNotifySession(session);
-                      setIsNotifyModalOpen(true);
-                    }} 
-                    className="bg-[#F1F5F9] text-slate-500 hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors"
-                    title="অনুপস্থিতদের জানান"
-                  >
-                    <MessageCircle className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              
-              {/* Date & Time */}
-              <div className="space-y-2 mb-4">
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-800 font-medium w-14">তারিখ:</span>
-                  <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
-                    <Calendar className="w-4 h-4 text-[#4A9D9C]" />
-                    <span className="text-slate-800 font-medium text-[15px]">
-                      {session.date ? `${getDayNameInBengali(session.date)}, ${toBengaliDate(session.date)}` : ""}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <span className="text-slate-800 font-medium w-14">সময়:</span>
-                  <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
-                    <Clock className="w-4 h-4 text-[#4A9D9C]" />
-                    <span className="text-slate-800 font-medium text-[15px]">
-                      {session.time ? toBengaliTime(session.time) : ""}
-                    </span>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Divider */}
-              <div className="border-t border-slate-200 mb-4"></div>
-              
-              {/* Absent Section */}
-              <div className="mt-auto">
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    <span className={clsx("w-3 h-3 rounded-full", absentStudents.length > 0 ? "bg-[#EF4444]" : "bg-[#22C55E]")}></span>
-                    <h4 className="text-xl font-bold text-slate-800">
-                      {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
-                    </h4>
-                  </div>
-                  <div className="bg-[#F1F5F9] text-slate-600 px-3 py-1 rounded-full text-sm font-medium">
-                    মোট ছাত্র: {toBengaliNumber(session.students?.length || 0)}
-                  </div>
-                </div>
-
-                {absentStudents.length > 0 ? (
-                  <div className="bg-[#FEF2F2] rounded-2xl p-4">
-                    <ul className="space-y-2.5">
-                      {absentStudents.slice(0, 3).map((s: any, index: number) => {
-                        const initials = s.studentName ? s.studentName.substring(0, 2) : "অজ্ঞাত";
-                        const colors = [
-                          "bg-[#DCFCE7] text-[#16A34A]", // Green
-                          "bg-[#FCE7F3] text-[#DB2777]", // Pink
-                          "bg-[#FFEDD5] text-[#EA580C]", // Orange
-                          "bg-[#E0F2FE] text-[#0284C7]", // Blue
-                        ];
-                        const colorClass = colors[index % colors.length];
-                        
-                        return (
-                          <li key={s.studentId} className="flex items-center gap-3">
-                            <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
-                            <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", colorClass)}>
-                              {initials}
-                            </div>
-                            <span className="text-slate-800 font-medium text-lg">: {s.studentName}</span>
-                          </li>
-                        );
-                      })}
-                      {absentStudents.length > 3 && (
-                        <li className="text-slate-500 font-medium mt-2 ml-6">
-                          + আরও {toBengaliNumber(absentStudents.length - 3)} জন...
-                        </li>
-                      )}
-                    </ul>
-                  </div>
-                ) : (
-                  <div className="bg-[#F0FDF4] rounded-2xl p-5 flex items-center justify-center">
-                    <p className="text-lg font-medium text-[#16A34A]">চমৎকার! সবাই উপস্থিত আছে।</p>
+              <div className="bg-white rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-l-[8px] border-l-[#4A9D9C] flex flex-col relative" onClick={() => handleView(session)}>
+                {session._syncStatus === "pending" && (
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
+                    <Clock className="w-3 h-3" />
+                    সিঙ্ক হচ্ছে...
                   </div>
                 )}
+                
+                {/* Header */}
+                <div className="flex justify-between items-center mb-4">
+                  <h3 className="text-2xl font-bold text-slate-800">{className}</h3>
+                  <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
+                    <button onClick={() => handleEdit(session)} className="bg-[#F1F5F9] text-[#4A9D9C] hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors">
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    {(role === 'admin' || role === 'super_admin') && (
+                      <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] p-2.5 rounded-full transition-colors">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    )}
+                    <button 
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setNotifySession(session);
+                        setIsNotifyModalOpen(true);
+                      }} 
+                      className="bg-[#F1F5F9] text-slate-500 hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors"
+                      title="অনুপস্থিতদের জানান"
+                    >
+                      <MessageCircle className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Date & Time */}
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-4">
+                    <span className="text-slate-800 font-medium w-14">তারিখ:</span>
+                    <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
+                      <Calendar className="w-4 h-4 text-[#4A9D9C]" />
+                      <span className="text-slate-800 font-medium text-[15px]">
+                        {session.date ? `${getDayNameInBengali(session.date)}, ${toBengaliDate(session.date)}` : ""}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-slate-800 font-medium w-14">সময়:</span>
+                    <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
+                      <Clock className="w-4 h-4 text-[#4A9D9C]" />
+                      <span className="text-slate-800 font-medium text-[15px]">
+                        {session.time ? toBengaliTime(session.time) : ""}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Divider */}
+                <div className="border-t border-slate-200 mb-4"></div>
+                
+                {/* Absent Section */}
+                <div className="mt-auto">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <span className={clsx("w-3 h-3 rounded-full", absentStudents.length > 0 ? "bg-[#EF4444]" : "bg-[#22C55E]")}></span>
+                      <h4 className="text-xl font-bold text-slate-800">
+                        {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
+                      </h4>
+                    </div>
+                    <div className="bg-[#F1F5F9] text-slate-600 px-3 py-1 rounded-full text-sm font-medium">
+                      মোট ছাত্র: {toBengaliNumber(session.students?.length || 0)}
+                    </div>
+                  </div>
+
+                  {absentStudents.length > 0 ? (
+                    <div className="bg-[#FEF2F2] rounded-2xl p-4">
+                      <ul className="space-y-2.5">
+                        {absentStudents.slice(0, 3).map((s: any, index: number) => {
+                          const initials = s.studentName ? s.studentName.substring(0, 2) : "অজ্ঞাত";
+                          const colors = [
+                            "bg-[#DCFCE7] text-[#16A34A]", // Green
+                            "bg-[#FCE7F3] text-[#DB2777]", // Pink
+                            "bg-[#FFEDD5] text-[#EA580C]", // Orange
+                            "bg-[#E0F2FE] text-[#0284C7]", // Blue
+                          ];
+                          const colorClass = colors[index % colors.length];
+                          
+                          return (
+                            <li key={s.studentId} className="flex items-center gap-3">
+                              <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
+                              <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", colorClass)}>
+                                {initials}
+                              </div>
+                              <span className="text-slate-800 font-medium text-lg">: {s.studentName}</span>
+                            </li>
+                          );
+                        })}
+                        {absentStudents.length > 3 && (
+                          <li className="text-slate-500 font-medium mt-2 ml-6">
+                            + আরও {toBengaliNumber(absentStudents.length - 3)} জন...
+                          </li>
+                        )}
+                      </ul>
+                    </div>
+                  ) : (
+                    <div className="bg-[#F0FDF4] rounded-2xl p-5 flex items-center justify-center">
+                      <p className="text-lg font-medium text-[#16A34A]">চমৎকার! সবাই উপস্থিত আছে।</p>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
+            </React.Fragment>
           );
         })}
         {classSessions.length === 0 && selectedClassId && (

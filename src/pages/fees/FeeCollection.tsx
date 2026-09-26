@@ -6,9 +6,24 @@ import { useFeeCategories } from '../../hooks/useFeeCategories';
 import { useFeeSetup } from '../../hooks/useFeeSetup';
 import { useFeeCollections, FeePayment } from '../../hooks/useFeeCollections';
 import { HIJRI_MONTHS, getCurrentHijriYear } from '../../constants/hijri';
-import { CheckCircle, Search, Save, Trash2 } from 'lucide-react';
+import { CheckCircle, Search, Save, Trash2, CalendarDays } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
+
+const ENGLISH_MONTHS = [
+  { id: 1, name: "জানুয়ারি" },
+  { id: 2, name: "ফেব্রুয়ারি" },
+  { id: 3, name: "মার্চ" },
+  { id: 4, name: "এপ্রিল" },
+  { id: 5, name: "মে" },
+  { id: 6, name: "জুন" },
+  { id: 7, name: "জুলাই" },
+  { id: 8, name: "আগস্ট" },
+  { id: 9, name: "সেপ্টেম্বর" },
+  { id: 10, name: "অক্টোবর" },
+  { id: 11, name: "নভেম্বর" },
+  { id: 12, name: "ডিসেম্বর" }
+];
 
 const FeeCollection: React.FC = () => {
   const { orgId, user, role } = useAuth();
@@ -16,8 +31,18 @@ const FeeCollection: React.FC = () => {
   const { categories } = useFeeCategories(orgId);
   
   const [selectedClass, setSelectedClass] = useState<string>('');
+  const [calendarType, setCalendarType] = useState<'hijri' | 'english'>('hijri');
   const [selectedYear, setSelectedYear] = useState<number>(getCurrentHijriYear());
   const [selectedMonth, setSelectedMonth] = useState<number>(1);
+  
+  const handleCalendarTypeChange = (type: 'hijri' | 'english') => {
+    setCalendarType(type);
+    if (type === 'hijri') {
+      setSelectedYear(getCurrentHijriYear());
+    } else {
+      setSelectedYear(new Date().getFullYear());
+    }
+  };
   
   const { students } = useStudents(orgId, user, role);
   const { feeSetups } = useFeeSetup(orgId, selectedClass);
@@ -167,9 +192,38 @@ const FeeCollection: React.FC = () => {
       </div>
 
       <div className="card-premium p-6 bg-white rounded-[20px]">
+        <div className="flex justify-center mb-6">
+          <div className="bg-slate-100 p-1 rounded-xl flex shadow-inner">
+            <button
+              onClick={() => handleCalendarTypeChange('hijri')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
+                calendarType === 'hijri'
+                  ? 'bg-white text-[#0F5C7A] shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              হিজরী ক্যালেন্ডার
+            </button>
+            <button
+              onClick={() => handleCalendarTypeChange('english')}
+              className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
+                calendarType === 'english'
+                  ? 'bg-white text-[#0F5C7A] shadow-sm'
+                  : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              <CalendarDays className="w-4 h-4" />
+              ইংরেজি ক্যালেন্ডার
+            </button>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">হিজরি সন</label>
+            <label className="block text-sm font-medium text-slate-700 mb-1">
+              {calendarType === 'hijri' ? 'হিজরি সন' : 'ইংরেজি সন'}
+            </label>
             <input
               type="number"
               value={selectedYear}
@@ -184,7 +238,7 @@ const FeeCollection: React.FC = () => {
               onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
               className="input-premium"
             >
-              {HIJRI_MONTHS.map(m => (
+              {(calendarType === 'hijri' ? HIJRI_MONTHS : ENGLISH_MONTHS).map(m => (
                 <option key={m.id} value={m.id}>{m.name}</option>
               ))}
             </select>

@@ -71,6 +71,7 @@ const Attendance: React.FC = () => {
   const [viewingImage, setViewingImage] = useState<{ url: string; name: string } | null>(null);
   const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
   const [isNotifyModalOpen, setIsNotifyModalOpen] = useState(false);
+  const [notifyAbsenteesList, setNotifyAbsenteesList] = useState<any[]>([]);
   const [attendanceState, setAttendanceState] = useState<
     Map<string, { status: AttendanceStatus; studentName: string; note?: string }>
   >(new Map());
@@ -247,7 +248,7 @@ const Attendance: React.FC = () => {
   };
 
   const sendWhatsAppToAbsentees = () => {
-    const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent);
+    const absentees = notifyAbsenteesList.length > 0 ? notifyAbsenteesList : classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent);
     
     if (absentees.length === 0) {
       toast.error("কোনো অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি।");
@@ -285,14 +286,21 @@ const Attendance: React.FC = () => {
 
   const confirmSave = async () => {
     setIsConfirmDialogOpen(false);
-    await takeAttendance(selectedClassId, attendanceState);
     
-    // Check if there are any absentees - if so, auto-open the notification modal
-    const absentCount = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent).length;
-    if (absentCount > 0) {
-      setTimeout(() => {
-        setIsNotifyModalOpen(true);
-      }, 500);
+    const absentees = classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent);
+    setNotifyAbsenteesList(absentees);
+
+    const success = await takeAttendance(selectedClassId, attendanceState);
+    
+    if (success) {
+      if (absentees.length > 0) {
+        setTimeout(() => {
+          setIsNotifyModalOpen(true);
+          setSelectedClassId(""); // Reset the page
+        }, 500);
+      } else {
+        setSelectedClassId(""); // Reset the page
+      }
     }
   };
 
@@ -552,7 +560,10 @@ const Attendance: React.FC = () => {
 
               {liveCounter.absent > 0 && (
                 <button
-                  onClick={() => setIsNotifyModalOpen(true)}
+                  onClick={() => {
+                    setNotifyAbsenteesList(classStudents.filter(s => attendanceState.get(s.id)?.status === AttendanceStatus.Absent));
+                    setIsNotifyModalOpen(true);
+                  }}
                   className="w-full h-[52px] bg-[#F1F5F9] text-slate-700 font-bold rounded-xl flex items-center justify-center gap-2 border border-slate-200"
                 >
                   <MessageCircle className="w-5 h-5" />
@@ -613,8 +624,7 @@ const Attendance: React.FC = () => {
                 </button>
               </div>
               <div className="space-y-4">
-                {classStudents
-                  .filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)
+                {(notifyAbsenteesList.length > 0 ? notifyAbsenteesList : classStudents.filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent))
                   .map(student => {
                     const phone = student.phone || '';
                     const todayDate = new Intl.DateTimeFormat('bn-BD', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date());
@@ -665,7 +675,7 @@ const Attendance: React.FC = () => {
                       </div>
                     );
                   })}
-                {classStudents.filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent).length === 0 && (
+                {(notifyAbsenteesList.length > 0 ? notifyAbsenteesList : classStudents.filter(student => attendanceState.get(student.id)?.status === AttendanceStatus.Absent)).length === 0 && (
                   <div className="text-center py-10 bg-white rounded-2xl border border-slate-100 shadow-sm">
                     <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
                     <p className="text-slate-600 font-medium">আজ কেউ অনুপস্থিত নেই!</p>
