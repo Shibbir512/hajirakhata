@@ -220,8 +220,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           }
         }, (error) => {
           console.error("Error in userDoc snapshot listener:", error);
-          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
           setLoading(false);
+          handleFirestoreError(error, OperationType.GET, `users/${currentUser.uid}`);
         });
       } else {
         setOrgId(null);

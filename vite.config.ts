@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
         includeAssets: ['icon.png'],
         manifest: {
           short_name: "হাজিরা খাতা",
-          name: "ছাত্র হাজিরা খাতা (Student Attendance)",
+          name: "হাজিরা খাতা",
           icons: [
             {
               src: "/icon.png",
