@@ -56,7 +56,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
   return (
     <header 
-      className="sticky top-0 left-0 right-0 flex items-center justify-between px-4 z-[90] shrink-0 bg-[#0F5C7A] shadow-sm"
+      className="sticky top-0 left-0 right-0 flex items-center justify-between px-4 z-[90] shrink-0 bg-[#0F5C7A] shadow-sm print:hidden"
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top), 16px)',
         paddingBottom: '16px',

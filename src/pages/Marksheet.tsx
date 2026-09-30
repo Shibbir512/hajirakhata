@@ -20,6 +20,8 @@ import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from "docx";
 import { saveAs } from "file-saver";
+import { StudentMarksheetDocument } from "../components/pdf/StudentMarksheetDocument";
+import { generatePdfFromDom } from "../utils/pdfGenerator";
 
 const Marksheet: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
@@ -197,6 +199,15 @@ const Marksheet: React.FC = () => {
     [results, filteredSubjects, selectedStudentId, allStudentResults]
   );
 
+  const studentMetrics = useMemo(() => ({
+    totalMarks: calculatedTotalMarks,
+    totalFullMarks,
+    percentage,
+    grade,
+    rank,
+    statusKey
+  }), [calculatedTotalMarks, totalFullMarks, percentage, grade, rank, statusKey]);
+
   const [academicHistory, setAcademicHistory] = useState<any[]>([]);
   const [historyRanks, setHistoryRanks] = useState<{[key: string]: string}>({});
 
@@ -305,134 +316,15 @@ const Marksheet: React.FC = () => {
     }).sort((a, b) => b.year.localeCompare(a.year));
   }, [academicHistory, academicYears, exams, classes, subjects, historyRanks, t, numeralFormat]);
 
-  const generatePDF = async (): Promise<jsPDF> => {
-    const pdf = new jsPDF("p", "mm", "a4");
-    const { addBengaliFont } = await import("../utils/pdfFont");
-    const hasFont = await addBengaliFont(pdf);
-    
-    if (hasFont) {
-      pdf.setFont("TiroBangla");
-    }
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-    let currentY = 20;
-
-    // Header
-    pdf.setFontSize(22);
-    pdf.text(orgName || "দারুল উলুম দত্তপাড়া মাদরাসা, নরসিংদী", pageWidth / 2, currentY, { align: 'center' });
-    currentY += 10;
-    
-    pdf.setFontSize(16);
-    const examName = exams.find(e => e.id === selectedExamId)?.name || "";
-    pdf.text(`${examName} পরীক্ষার ফলাফল`, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 8;
-    
-    pdf.setFontSize(12);
-    const academicYear = academicYears.find(ay => ay.id === selectedAcademicYearId);
-    pdf.text(`${t.academicYear}: ${formatAcademicYear(academicYear)}`, pageWidth / 2, currentY, { align: 'center' });
-    currentY += 15;
-
-    // Student Info
-    pdf.setFontSize(12);
-    const startX = 14;
-    const col2StartX = pageWidth / 2 + 10;
-    
-    const studentName = selectedStudent?.name || "";
-    const className = classes.find(c => c.id === selectedClassId)?.name || "";
-    const rollNum = convertNumber(selectedStudent?.roll || 0, numeralFormat).toString();
-    const fatherName = selectedStudent?.fatherName || "N/A";
-    const rankStr = convertNumber(rank, numeralFormat).toString();
-    const statusText = t[statusKey as keyof typeof t];
-    const resultStr = `${statusText} (${grade})`;
-
-    // Left Column
-    pdf.text(`${t.studentName}: ${studentName}`, startX, currentY);
-    pdf.text(`${t.class}: ${className}`, startX, currentY + 7);
-    pdf.text(`${t.roll}: ${rollNum}`, startX, currentY + 14);
-
-    // Right Column
-    pdf.text(`${t.fatherName}: ${fatherName}`, col2StartX, currentY);
-    pdf.text(`${t.rank}: ${rankStr}`, col2StartX, currentY + 7);
-    pdf.text(`${t.result}: ${resultStr}`, col2StartX, currentY + 14);
-    
-    currentY += 25;
-
-    // Table
-    const head = [[t.subject, t.fullMarks, t.passMarks, t.obtainedMarks]];
-    const body = filteredSubjects.map(subject => {
-      const result = results.find(r => r.subject_id === subject.id && r.student_id === selectedStudent?.id);
-      return [
-        subject.name,
-        convertNumber(subject.fullMarks, numeralFormat).toString(),
-        convertNumber(subject.passMarks, numeralFormat).toString(),
-        result ? convertNumber(result.marks, numeralFormat).toString() : "-"
-      ];
-    });
-
-    const foot = [
-      [t.total + ":", convertNumber(calculatedTotalMarks, numeralFormat).toString(), t.rank + ":", rankStr],
-      [t.percentage + ":", convertNumber(percentage, numeralFormat).toString() + "%", t.grade + ":", grade]
-    ];
-
-    autoTable(pdf, {
-      head: head,
-      body: body,
-      foot: foot,
-      startY: currentY,
-      styles: {
-        font: hasFont ? 'TiroBangla' : 'helvetica',
-        fontSize: 11,
-        cellPadding: 4,
-        valign: 'middle',
-        lineColor: [200, 200, 200],
-        lineWidth: 0.1,
-      },
-      headStyles: {
-        fillColor: [241, 245, 249],
-        textColor: [30, 41, 59],
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      footStyles: {
-        fillColor: [241, 245, 249],
-        textColor: [30, 41, 59],
-        fontStyle: 'bold',
-        halign: 'center'
-      },
-      columnStyles: {
-        0: { halign: marksheetLanguage === 'ar' ? 'right' : 'left' },
-        1: { halign: 'center' },
-        2: { halign: 'center' },
-        3: { halign: 'center' },
-      },
-      margin: { left: 14, right: 14 },
-    });
-
-    // Signatures
-    // @ts-ignore
-    const finalY = pdf.lastAutoTable.finalY + 40;
-    
-    if (finalY > pdf.internal.pageSize.getHeight() - 20) {
-      pdf.addPage();
-      currentY = 30;
-    } else {
-      currentY = finalY;
-    }
-
-    pdf.line(20, currentY, 70, currentY);
-    pdf.text(t.teacherSignature, 45, currentY + 6, { align: 'center' });
-
-    pdf.line(pageWidth - 70, currentY, pageWidth - 20, currentY);
-    pdf.text(t.principalSignature, pageWidth - 45, currentY + 6, { align: 'center' });
-
-    return pdf;
+  const generatePDFBlob = async (): Promise<Blob> => {
+    return await generatePdfFromDom("pdf-student-marksheet", "p");
   };
 
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      const pdf = await generatePDF();
-      pdf.save(`Result_${selectedStudent?.name}.pdf`);
+      const pdfBlob = await generatePDFBlob();
+      saveAs(pdfBlob, `Result_Roll_${selectedStudent?.roll}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
       console.error("PDF Error:", error);
@@ -445,9 +337,8 @@ const Marksheet: React.FC = () => {
   const handleShare = async () => {
     setIsExporting(true);
     try {
-      const pdf = await generatePDF();
-      const pdfBlob = pdf.output('blob');
-      const fileName = `Result_${selectedStudent?.name}.pdf`;
+      const pdfBlob = await generatePDFBlob();
+      const fileName = `Result_Roll_${selectedStudent?.roll}.pdf`;
       const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -488,7 +379,7 @@ const Marksheet: React.FC = () => {
       }]
     });
     const blob = await Packer.toBlob(doc);
-    saveAs(blob, `marksheet_${selectedStudent?.name}.docx`);
+    saveAs(blob, `marksheet_roll_${selectedStudent?.roll}.docx`);
   };
 
   return (
@@ -496,18 +387,59 @@ const Marksheet: React.FC = () => {
       <style>
         {`
           @media print {
-            @page { size: portrait; margin: 15mm; }
-            body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
-            .print\\:overflow-visible { overflow: visible !important; }
-            .print\\:shadow-none { box-shadow: none !important; }
-            .print\\:border-none { border: none !important; }
-            .print\\:p-0 { padding: 0 !important; }
-            table { page-break-inside: auto; width: 100% !important; }
-            tr { page-break-inside: avoid; page-break-after: auto; }
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-            #marksheet-container { width: 100% !important; max-width: 100% !important; overflow: visible !important; }
-            .overflow-x-auto { overflow-x: visible !important; }
+            @page { 
+              size: A4 portrait; 
+              margin: 0 !important; /* Removes default browser headers/footers */
+            }
+            
+            html, body, #root {
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: white !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              height: auto !important;
+              min-height: auto !important;
+              overflow: visible !important;
+            }
+            
+            /* Hide the main wrapper of the interactive UI */
+            .space-y-6 > *:not(#pdf-marksheet-wrapper) {
+              display: none !important;
+            }
+            
+            /* Bring the off-screen PDF document into normal flow for print */
+            #pdf-marksheet-wrapper {
+              position: static !important;
+              width: 100% !important;
+              height: auto !important;
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              transform: none !important;
+              overflow: visible !important;
+            }
+
+            /* Ensure A4 pages print perfectly without internal breaks */
+            .a4-marksheet {
+              width: 100vw !important;
+              height: 100vh !important;
+              max-height: 100vh !important;
+              min-height: 100vh !important;
+              page-break-after: always !important;
+              page-break-inside: avoid !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+              overflow: hidden !important;
+              display: flex !important;
+              flex-direction: column !important;
+              box-sizing: border-box !important;
+            }
+            
+            /* Prevent extra blank page at the end of print */
+            .a4-marksheet:last-child {
+              page-break-after: auto !important;
+            }
           }
         `}
       </style>
@@ -719,6 +651,26 @@ const Marksheet: React.FC = () => {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Hidden PDF Renderer */}
+      {selectedStudent && results.length > 0 && (
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+          <div id="pdf-student-marksheet">
+            <StudentMarksheetDocument
+              student={selectedStudent}
+              orgName={orgName || "দারুল উলুম দত্তপাড়া মাদরাসা, নরসিংদী"}
+              examName={exams.find(e => e.id === selectedExamId)?.name || ""}
+              academicYearText={`${t.academicYear}: ${formatAcademicYear(academicYears.find(ay => ay.id === selectedAcademicYearId))}`}
+              classNameText={`${t.class}: ${classes.find(c => c.id === selectedClassId)?.name}`}
+              subjects={filteredSubjects}
+              results={results.filter(r => r.student_id === selectedStudentId)}
+              metrics={studentMetrics}
+              numeralFormat={numeralFormat}
+              t={t}
+            />
+          </div>
         </div>
       )}
     </div>

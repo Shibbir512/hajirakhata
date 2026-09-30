@@ -110,7 +110,7 @@ const BottomNavigation: React.FC = () => {
   };
 
   return (
-    <div ref={navRef} className="lg:hidden fixed bottom-0 left-0 right-0 z-50">
+    <div ref={navRef} className="lg:hidden fixed bottom-0 left-0 right-0 z-50 print:hidden">
       {/* Sub-navigation — regular menus */}
       {activeTab && subMenus[activeTab] && (
         <div 

@@ -5,7 +5,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useSubjects } from "../hooks/useSubjects";
 import { useExams } from "../hooks/useExams";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, Calendar, Users, Settings } from "lucide-react";
+import { FileText, Printer, Download, Edit2, Save, Check, X, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, Calendar, Users, Settings, Share2 } from "lucide-react";
 import { Result } from "../types";
 import { collection, query, where, getDocs, writeBatch, doc, setDoc, getDoc } from "firebase/firestore";
 import { db } from "../firebase";
@@ -19,6 +19,9 @@ import jsPDF from "jspdf";
 import { toCanvas } from "html-to-image";
 import autoTable from "jspdf-autotable";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
+import { saveAs } from "file-saver";
+import { TabulationSheetDocument } from "../components/pdf/TabulationSheetDocument";
+import { generatePdfFromDom } from "../utils/pdfGenerator";
 
 const ResultReports: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
@@ -344,95 +347,47 @@ const ResultReports: React.FC = () => {
     }
   };
 
+  const generatePDFBlob = async (): Promise<Blob> => {
+    return await generatePdfFromDom("pdf-tabulation-sheet", "l");
+  };
+
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      const pdf = new jsPDF("l", "mm", "a4");
-      const hasFont = await addBengaliFont(pdf);
-      
-      if (hasFont) {
-        pdf.setFont("TiroBangla");
-      }
-
-      // Add Headers
-      pdf.setFontSize(20);
-      pdf.text(reportHeader.orgName || "প্রতিষ্ঠানের নাম", pdf.internal.pageSize.getWidth() / 2, 20, { align: 'center' });
-      
-      pdf.setFontSize(12);
-      pdf.text(reportHeader.address || "ঠিকানা", pdf.internal.pageSize.getWidth() / 2, 28, { align: 'center' });
-      
-      pdf.setFontSize(14);
-      pdf.text(reportHeader.examTitle || "পরীক্ষার ফলাফল", pdf.internal.pageSize.getWidth() / 2, 36, { align: 'center' });
-      
-      pdf.setFontSize(11);
-      pdf.text(`${reportHeader.academicYearText}     ${reportHeader.classNameText}`, pdf.internal.pageSize.getWidth() / 2, 44, { align: 'center' });
-      pdf.text(reportHeader.publishDate || "", pdf.internal.pageSize.getWidth() / 2, 50, { align: 'center' });
-
-      // Table columns
-      const head = [[
-        "রোল",
-        "নাম",
-        ...filteredSubjects.map(s => `${s.name}\n(${convertNumber(s.fullMarks, numeralFormat)})`),
-        "মোট",
-        "পূর্ণমান",
-        "শতকরা",
-        "বিভাগ",
-        "মেধাক্রম"
-      ]];
-
-      const body = processedResults.map(({ student, metrics }) => {
-        const row = [
-          convertNumber(student.roll, numeralFormat).toString(),
-          student.name,
-        ];
-        
-        filteredSubjects.forEach(subject => {
-          const result = results.find(r => r.student_id === student.id && r.subject_id === subject.id);
-          row.push(result ? convertNumber(result.marks, numeralFormat).toString() : "-");
-        });
-        
-        row.push(convertNumber(metrics.totalMarks, numeralFormat).toString());
-        row.push(convertNumber(metrics.totalFullMarks, numeralFormat).toString());
-        row.push(`${convertNumber(metrics.percentage, numeralFormat)}%`);
-        const statusText = metrics.statusKey === 'pass' ? 'কৃতকার্য' : 'অকৃতকার্য';
-        row.push(`${statusText}\n(${metrics.grade})`);
-        row.push(convertNumber(metrics.rank, numeralFormat).toString());
-        
-        return row;
-      });
-
-      autoTable(pdf, {
-        head: head,
-        body: body,
-        startY: 55,
-        styles: {
-          font: hasFont ? 'TiroBangla' : 'helvetica',
-          fontSize: 9,
-          cellPadding: 3,
-          halign: 'center',
-          valign: 'middle',
-          lineColor: [200, 200, 200],
-          lineWidth: 0.1,
-        },
-        headStyles: {
-          fillColor: [248, 249, 250],
-          textColor: [71, 85, 105],
-          fontStyle: 'bold',
-        },
-        alternateRowStyles: {
-          fillColor: [250, 250, 250],
-        },
-        columnStyles: {
-          1: { halign: 'left', minCellWidth: 25 }, // Name column left aligned
-        },
-        margin: { top: 55, right: 10, bottom: 15, left: 10 },
-      });
-
-      pdf.save(`Tabulation_Sheet_${selectedClassId}.pdf`);
+      const pdfBlob = await generatePDFBlob();
+      saveAs(pdfBlob, `Tabulation_Sheet_${selectedClassId}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
       console.error("PDF Export Error:", error);
       toast.error("PDF ডাউনলোড করতে ব্যর্থ হয়েছে।");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const handleSharePDF = async () => {
+    setIsExporting(true);
+    try {
+      const pdfBlob = await generatePDFBlob();
+      const fileName = `Tabulation_Sheet_${selectedClassId}.pdf`;
+      const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
+
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: reportHeader.examTitle || 'ফলাফল',
+          text: `${reportHeader.orgName} - ${reportHeader.examTitle}`,
+        });
+      } else {
+        // Fallback: download
+        saveAs(pdfBlob, fileName);
+        toast.success("PDF ডাউনলোড হচ্ছে (শেয়ার সমর্থিত নয়)।");
+      }
+    } catch (error) {
+      if (error instanceof Error && error.name !== 'AbortError') {
+        console.error("Share Error:", error);
+        toast.error("শেয়ার করতে ব্যর্থ হয়েছে।");
+      }
     } finally {
       setIsExporting(false);
     }
@@ -484,7 +439,58 @@ const ResultReports: React.FC = () => {
       <style>
         {`
           @media print {
-            @page { size: ${printSize}; margin: ${printMargin}; }
+            @page {
+              size: A4 landscape;
+              margin: 0 !important; /* Removes default browser headers/footers */
+            }
+            
+            html, body, #root {
+              margin: 0 !important;
+              padding: 0 !important;
+              background-color: white !important;
+              -webkit-print-color-adjust: exact;
+              print-color-adjust: exact;
+              height: auto !important;
+              min-height: auto !important;
+              overflow: visible !important;
+            }
+            
+            /* Hide the main wrapper of the interactive UI */
+            .space-y-6 > *:not(#pdf-tabulation-sheet-wrapper) {
+              display: none !important;
+            }
+
+            /* Bring the off-screen PDF document into normal flow for print */
+            #pdf-tabulation-sheet-wrapper {
+              position: static !important;
+              width: 100% !important;
+              height: auto !important;
+              display: block !important;
+              visibility: visible !important;
+              opacity: 1 !important;
+              transform: none !important;
+              overflow: visible !important;
+            }
+
+            /* Ensure A4 pages print perfectly without internal breaks */
+            .a4-page {
+              width: 100vw !important;
+              height: 100vh !important;
+              max-height: 100vh !important;
+              page-break-after: always !important;
+              page-break-inside: avoid !important;
+              margin: 0 !important;
+              box-shadow: none !important;
+              overflow: hidden !important; /* Safe now because we fit to vh */
+              display: flex !important;
+              flex-direction: column !important;
+              box-sizing: border-box !important;
+            }
+            
+            /* Prevent extra blank page at the end of print */
+            .a4-page:last-child {
+              page-break-after: auto !important;
+            }
           }
         `}
       </style>
@@ -538,6 +544,10 @@ const ResultReports: React.FC = () => {
                 <button onClick={exportToPDF} disabled={isExporting} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
                   <Download className="w-4 h-4" />
                   PDF
+                </button>
+                <button onClick={handleSharePDF} disabled={isExporting} className="btn-secondary h-9 px-3 text-sm w-full sm:w-auto whitespace-nowrap">
+                  <Share2 className="w-4 h-4" />
+                  শেয়ার
                 </button>
               </>
             )}
@@ -929,6 +939,30 @@ const ResultReports: React.FC = () => {
             {role === 'viewer' ? 'ফলাফল এখনও প্রকাশিত হয়নি।' : 'কোন ফলাফল পাওয়া যায়নি।'}
           </div>
         )
+      )}
+
+      {/* Hidden PDF Renderer — off-screen, NOT display:none (Rule #11) */}
+      {results.length > 0 && (
+        <div
+          id="pdf-tabulation-sheet-wrapper"
+          style={{
+            position: "fixed",
+            left: "-100000px",
+            top: "0px",
+            zIndex: -9999,
+            pointerEvents: "none",
+          }}
+        >
+          <div id="pdf-tabulation-sheet">
+            <TabulationSheetDocument
+              processedResults={processedResults}
+              subjects={filteredSubjects}
+              results={results}
+              reportHeader={reportHeader}
+              numeralFormat={numeralFormat}
+            />
+          </div>
+        </div>
       )}
     </div>
   );

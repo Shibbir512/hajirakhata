@@ -9,8 +9,9 @@ import { formatAcademicYear } from "../utils/dateFormatter";
 import { Printer, Download, Share2, ArrowLeft, FileBadge } from "lucide-react";
 import { MARKSHEET_TRANSLATIONS } from "../constants";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
-import { toCanvas } from "html-to-image";
+import { saveAs } from "file-saver";
+import { StudentMarksheetDocument } from "../components/pdf/StudentMarksheetDocument";
+import { generatePdfFromDom } from "../utils/pdfGenerator";
 
 const PublicResultView: React.FC = () => {
   const { orgId, studentId, examId } = useParams<{ orgId: string; studentId: string; examId: string }>();
@@ -140,43 +141,28 @@ const PublicResultView: React.FC = () => {
     window.print();
   };
 
+  const studentMetrics = useMemo(() => {
+    // calculateResultMetrics returns totalMarks, but we need totalFullMarks as well
+    const totalFullMarks = subjects.reduce((sum, s) => sum + s.fullMarks, 0);
+    return {
+      totalMarks: calculatedTotalMarks,
+      totalFullMarks,
+      percentage,
+      grade,
+      rank,
+      statusKey
+    };
+  }, [calculatedTotalMarks, subjects, percentage, grade, rank, statusKey]);
+
+  const generatePDFBlob = async (): Promise<Blob> => {
+    return await generatePdfFromDom("pdf-public-student-marksheet", "p");
+  };
+
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
-      
-      const input = document.getElementById('marksheet-container');
-      if (!input) throw new Error("Marksheet container not found");
-      
-      const canvas = await toCanvas(input, { 
-        pixelRatio: 2,
-        backgroundColor: '#ffffff'
-      });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 1.0);
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
-
-      pdf.save(`Result_${student?.name}.pdf`);
+      const pdfBlob = await generatePDFBlob();
+      saveAs(pdfBlob, `Result_Roll_${student?.roll}.pdf`);
       toast.success("PDF ডাউনলোড সফল হয়েছে!");
     } catch (error) {
       console.error("PDF Error:", error);
@@ -189,41 +175,8 @@ const PublicResultView: React.FC = () => {
   const handleShare = async () => {
     setIsExporting(true);
     try {
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
-      
-      const input = document.getElementById('marksheet-container');
-      if (!input) throw new Error("Marksheet container not found");
-      
-      const canvas = await toCanvas(input, { 
-        pixelRatio: 2,
-        backgroundColor: '#ffffff'
-      });
-      
-      const imgData = canvas.toDataURL('image/jpeg', 0.8);
-      const pdf = new jsPDF("p", "mm", "a4");
-      
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = pdf.internal.pageSize.getHeight();
-      
-      const imgWidth = pdfWidth;
-      const imgHeight = (canvas.height * imgWidth) / canvas.width;
-      
-      let heightLeft = imgHeight;
-      let position = 0;
-
-      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-      heightLeft -= pdfHeight;
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
-        heightLeft -= pdfHeight;
-      }
-      
-      const pdfBlob = pdf.output('blob');
-      const fileName = `Result_${student?.name}.pdf`;
+      const pdfBlob = await generatePDFBlob();
+      const fileName = `Result_Roll_${student?.roll}.pdf`;
       const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
 
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -398,6 +351,26 @@ const PublicResultView: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Hidden PDF Renderer */}
+      {results.length > 0 && student && (
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+          <div id="pdf-public-student-marksheet">
+            <StudentMarksheetDocument
+              student={student}
+              orgName={orgName}
+              examName={exam?.name || ""}
+              academicYearText={`${t.academicYear}: ${formatAcademicYear(academicYear)}`}
+              classNameText={`${t.class}: ${cls?.name || ""}`}
+              subjects={subjects}
+              results={results}
+              metrics={studentMetrics}
+              numeralFormat={numeralFormat}
+              t={t}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };

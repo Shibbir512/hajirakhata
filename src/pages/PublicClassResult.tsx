@@ -8,9 +8,10 @@ import { convertNumber } from "../utils/numeralConverter";
 import { formatAcademicYear } from "../utils/dateFormatter";
 import { Printer, Download, ArrowLeft, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, FileText } from "lucide-react";
 import toast from "react-hot-toast";
-import jsPDF from "jspdf";
-import { toCanvas } from "html-to-image";
 import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
+import { saveAs } from "file-saver";
+import { TabulationSheetDocument } from "../components/pdf/TabulationSheetDocument";
+import { generatePdfFromDom } from "../utils/pdfGenerator";
 
 const PublicClassResult: React.FC = () => {
   const { orgId, yearId, classId, examId } = useParams<{ orgId: string; yearId: string; classId: string; examId: string }>();
@@ -219,80 +220,15 @@ const PublicClassResult: React.FC = () => {
     window.print();
   };
 
+  const generatePDFBlob = async (): Promise<Blob> => {
+    return await generatePdfFromDom("pdf-public-tabulation-sheet", "l");
+  };
+
   const exportToPDF = async () => {
     const toastId = toast.loading("PDF তৈরি হচ্ছে...");
     try {
-      await document.fonts.ready;
-      await new Promise(resolve => setTimeout(resolve, 100)); // Wait for React to render loading state
-
-      const input = document.getElementById('tabulation-sheet-container');
-      if (!input) throw new Error("Tabulation sheet container not found");
-
-      const originalWidth = input.style.width;
-      const originalMaxWidth = input.style.maxWidth;
-      const originalPosition = input.style.position;
-      
-      const overflowDiv = input.querySelector('.overflow-x-auto') as HTMLElement;
-      let originalOverflowChild = '';
-      if (overflowDiv) {
-        originalOverflowChild = overflowDiv.style.overflow;
-        overflowDiv.style.overflow = 'visible';
-      }
-
-      input.style.width = 'max-content';
-      input.style.maxWidth = 'none';
-      input.style.position = 'absolute';
-      
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
-      const width = input.scrollWidth;
-      const height = input.scrollHeight;
-
-      const canvas = await toCanvas(input, { 
-        pixelRatio: 2,
-        backgroundColor: '#ffffff',
-        width: width,
-        height: height,
-        style: {
-          height: 'auto',
-          maxHeight: 'none',
-          overflow: 'visible',
-          position: 'absolute',
-          top: '0',
-          left: '0',
-          width: width + 'px',
-        }
-      });
-      
-      input.style.width = originalWidth;
-      input.style.maxWidth = originalMaxWidth;
-      input.style.position = originalPosition;
-      if (overflowDiv) {
-        overflowDiv.style.overflow = originalOverflowChild;
-      }
-
-      const imgData = canvas.toDataURL('image/png');
-      const pdf = new jsPDF("l", "mm", "a4");
-      
-      const imgProps = pdf.getImageProperties(imgData);
-      const pdfWidth = pdf.internal.pageSize.getWidth();
-      const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
-
-      let heightLeft = pdfHeight;
-      let position = 0;
-      const pageHeight = pdf.internal.pageSize.getHeight();
-
-      pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-      heightLeft -= pageHeight;
-
-      while (heightLeft > 0) {
-        position = heightLeft - pdfHeight;
-        pdf.addPage();
-        pdf.addImage(imgData, 'PNG', 0, position, pdfWidth, pdfHeight);
-        heightLeft -= pageHeight;
-      }
-      
-      pdf.save("tabulation_sheet.pdf");
+      const pdfBlob = await generatePDFBlob();
+      saveAs(pdfBlob, "tabulation_sheet.pdf");
       toast.success("PDF ডাউনলোড সফল হয়েছে!", { id: toastId });
     } catch (error) {
       console.error("PDF Export Error:", error);
@@ -612,6 +548,21 @@ const PublicClassResult: React.FC = () => {
           </div>
         ) : null}
       </div>
+
+      {/* Hidden PDF Renderer */}
+      {allResults.length > 0 && (
+        <div style={{ position: "absolute", left: "-9999px", top: "-9999px" }}>
+          <div id="pdf-public-tabulation-sheet">
+            <TabulationSheetDocument
+              processedResults={processedResults}
+              subjects={subjects}
+              results={allResults}
+              reportHeader={reportHeader}
+              numeralFormat={numeralFormat}
+            />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
