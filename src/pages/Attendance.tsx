@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
@@ -64,7 +65,17 @@ const Attendance: React.FC = () => {
 
   const { struckOffStudents, loading: struckOffLoading, markAsActionTaken } = useStruckOffStudents(orgId, students);
 
-  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [searchParams] = useSearchParams();
+  const urlClassId = searchParams.get("classId");
+
+  const [selectedClassId, setSelectedClassId] = useState<string>(urlClassId || "");
+
+  useEffect(() => {
+    if (urlClassId && classes.some(c => c.id === urlClassId)) {
+      setSelectedClassId(urlClassId);
+    }
+  }, [urlClassId, classes]);
+
   const [searchQuery, setSearchQuery] = useState("");
   const [sortConfig, setSortConfig] = useState<{ key: 'roll' | 'name', direction: 'asc' | 'desc' }>({ key: 'roll', direction: 'asc' });
   const [currentPage, setCurrentPage] = useState(1);

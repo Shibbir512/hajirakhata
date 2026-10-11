@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useCallback } from "react";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
+import { useSearchParams } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
 import { useClasses } from "../hooks/useClasses";
 import { useStudents } from "../hooks/useStudents";
@@ -21,8 +22,16 @@ const AttendanceHistory: React.FC = () => {
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
 
-  const [selectedClassId, setSelectedClassId] = useState<string>("");
+  const [searchParams] = useSearchParams();
+  const urlClassId = searchParams.get("classId");
+  const [selectedClassId, setSelectedClassId] = useState<string>(urlClassId || "");
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+
+  useEffect(() => {
+    if (urlClassId && classes.some(c => c.id === urlClassId)) {
+      setSelectedClassId(urlClassId);
+    }
+  }, [urlClassId, classes]);
 
   const { attendanceSessions, updateAttendanceSession, deleteAttendanceSession } = useAttendance(orgId, user, classes, students, role, {
     classId: selectedClassId || undefined,

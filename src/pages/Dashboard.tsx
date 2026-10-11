@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { createPortal } from "react-dom";
-import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock, CalendarOff, X } from "lucide-react";
+import { Users, UserCheck, UserX, BookOpen, CheckCircle, Clock, CalendarOff, X, ChevronRight, Search, ArrowRight } from "lucide-react";
 import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useClasses } from "../hooks/useClasses";
@@ -29,6 +29,21 @@ const Dashboard: React.FC = () => {
   const { classes } = useClasses(orgId, user, role);
   const [isPendingClassesModalOpen, setIsPendingClassesModalOpen] = useState(false);
   const [isCompletedClassesModalOpen, setIsCompletedClassesModalOpen] = useState(false);
+  const [pendingSearchQuery, setPendingSearchQuery] = useState("");
+  const [completedSearchQuery, setCompletedSearchQuery] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        setIsPendingClassesModalOpen(false);
+        setIsCompletedClassesModalOpen(false);
+      }
+    };
+    if (isPendingClassesModalOpen || isCompletedClassesModalOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isPendingClassesModalOpen, isCompletedClassesModalOpen]);
 
   const startDate = useMemo(() => {
     const d = new Date();
@@ -53,12 +68,17 @@ const Dashboard: React.FC = () => {
 
     const todayDateObj = new Date();
     const today = todayDateObj.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' '); // dd mm yyyy
-    const todaysSessions = attendanceSessions.filter((s) => s.date === today);
+    const todayISO = getTodayISO();
+    const todaysSessions = attendanceSessions.filter((s) => {
+      if (!s.date) return false;
+      return s.date === today || normalizeDateToISO(s.date) === todayISO;
+    });
 
     const classesWithAttendanceTodayIds = new Set(todaysSessions.map(s => s.classId));
-    const classesWithAttendanceToday = classesWithAttendanceTodayIds.size;
+    // আজকের হাজিরা সম্পন্ন এবং বাকি থাকা শ্রেণির তালিকা
     const completedClassesList = classes.filter(c => classesWithAttendanceTodayIds.has(c.id));
     const pendingClassesList = classes.filter(c => !classesWithAttendanceTodayIds.has(c.id));
+    const classesWithAttendanceToday = completedClassesList.length;
     const classesPendingAttendanceToday = pendingClassesList.length;
 
     const studentStatusMap = new Map();
@@ -82,8 +102,6 @@ const Dashboard: React.FC = () => {
       });
     });
 
-    const todayISO = getTodayISO();
-    
     // Fallback leaves count (for students whose attendance is not yet taken today)
     const leavesOnTodaySet = new Set();
     leaves.forEach(leave => {
@@ -116,6 +134,20 @@ const Dashboard: React.FC = () => {
 
     return { totalStudents, totalClasses, presentToday, absentToday, classesWithAttendanceToday, classesPendingAttendanceToday, pendingClassesList, completedClassesList, leavesOnToday };
   }, [students, classes, attendanceSessions, leaves]);
+
+  const filteredPendingClasses = useMemo(() => {
+    if (!pendingSearchQuery.trim()) return stats.pendingClassesList;
+    return stats.pendingClassesList.filter(c => 
+      c.name.toLowerCase().includes(pendingSearchQuery.toLowerCase())
+    );
+  }, [stats.pendingClassesList, pendingSearchQuery]);
+
+  const filteredCompletedClasses = useMemo(() => {
+    if (!completedSearchQuery.trim()) return stats.completedClassesList;
+    return stats.completedClassesList.filter(c => 
+      c.name.toLowerCase().includes(completedSearchQuery.toLowerCase())
+    );
+  }, [stats.completedClassesList, completedSearchQuery]);
 
   const chartData = useMemo(() => {
     const data = [];
@@ -176,7 +208,12 @@ const Dashboard: React.FC = () => {
           color="text-[#22C55E]"
           gradient="bg-[#22C55E]/10"
           valueColor="text-[#0fb063]"
-          onClick={() => setIsCompletedClassesModalOpen(true)}
+          onClick={() => {
+            setCompletedSearchQuery("");
+            setIsCompletedClassesModalOpen(true);
+          }}
+          actionText="তালিকা দেখতে ক্লিক করুন"
+          hoverBorderColor="hover:border-emerald-400"
         />
         <StatCard
           title="হাজিরা বাকি (শ্রেণি)"
@@ -185,7 +222,12 @@ const Dashboard: React.FC = () => {
           color="text-[#F59E0B]"
           gradient="bg-[#F59E0B]/10"
           valueColor="text-[#debf0b] border-[#edb30e]"
-          onClick={() => setIsPendingClassesModalOpen(true)}
+          onClick={() => {
+            setPendingSearchQuery("");
+            setIsPendingClassesModalOpen(true);
+          }}
+          actionText="শ্রেণি দেখতে ক্লিক করুন"
+          hoverBorderColor="hover:border-amber-400"
         />
         <StatCard
           title="মোট শিক্ষার্থী"
@@ -219,6 +261,8 @@ const Dashboard: React.FC = () => {
           gradient="bg-[#8B5CF6]/10"
           valueColor="text-[#7C3AED]"
           onClick={() => navigate('/attendance/leave')}
+          actionText="ছুটির তালিকা দেখুন"
+          hoverBorderColor="hover:border-purple-400"
         />
         <StatCard
           title="মোট শ্রেণি"
@@ -281,110 +325,245 @@ const Dashboard: React.FC = () => {
       </div>
 
       {isPendingClassesModalOpen && createPortal(
-        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-8 sm:my-0">
-            <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsPendingClassesModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100">
+            {/* Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-amber-50/70 to-orange-50/30">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-amber-100 text-amber-600 rounded-xl flex items-center justify-center shadow-inner">
-                  <Clock className="w-5 h-5" />
+                <div className="w-11 h-11 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                  <Clock className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#1E293B]">হাজিরা বাকি থাকা শ্রেণি</h2>
-                  <p className="text-sm text-slate-500 font-medium">আজকের হাজিরা বাকি আছে</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">হাজিরা বাকি থাকা শ্রেণি</h2>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                      {toBengaliNumber(stats.classesPendingAttendanceToday)}টি
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium">আজকের হাজিরা এখনও নেওয়া হয়নি</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsPendingClassesModalOpen(false)}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors"
+                title="বন্ধ করুন"
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto">
-              {stats.pendingClassesList.length > 0 ? (
-                <div className="grid grid-cols-1 gap-3">
-                  {stats.pendingClassesList.map((c) => (
-                    <div key={c.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-amber-200 hover:bg-amber-50/50 transition-colors">
-                      <div>
-                        <h3 className="font-bold text-slate-800 text-lg">{c.name}</h3>
-                        <p className="text-sm text-slate-500">
-                          মোট শিক্ষার্থী: {toBengaliNumber(Object.values(students).flat().filter(s => s.classId === c.id && s.isActive !== false).length)} জন
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setIsPendingClassesModalOpen(false);
-                          navigate(`/attendance?classId=${c.id}`);
-                        }}
-                        className="px-4 py-2 bg-amber-100 text-amber-700 hover:bg-amber-200 rounded-lg text-sm font-bold transition-colors"
-                      >
-                        হাজিরা নিন
-                      </button>
-                    </div>
-                  ))}
+            {/* Search if more than 3 classes */}
+            {stats.pendingClassesList.length > 3 && (
+              <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={pendingSearchQuery}
+                    onChange={(e) => setPendingSearchQuery(e.target.value)}
+                    placeholder="শ্রেণির নাম দিয়ে খুঁজুন..."
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all"
+                  />
+                  {pendingSearchQuery && (
+                    <button
+                      onClick={() => setPendingSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
+              </div>
+            )}
+
+            {/* Content List */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-3">
+              {stats.pendingClassesList.length > 0 ? (
+                filteredPendingClasses.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {filteredPendingClasses.map((c) => {
+                      const studentCount = (students[c.id] || []).filter(s => s.isActive !== false).length;
+                      return (
+                        <div 
+                          key={c.id} 
+                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 hover:bg-amber-50/40 rounded-2xl border border-slate-200/80 hover:border-amber-300 transition-all duration-200 group"
+                        >
+                          <div className="min-w-0 pr-3">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-amber-900 transition-colors truncate">
+                                {c.name}
+                              </h3>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100/80 text-amber-700 shrink-0">
+                                বাকি
+                              </span>
+                            </div>
+                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700">{toBengaliNumber(studentCount)}</span> জন
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setIsPendingClassesModalOpen(false);
+                              navigate(`/attendance?classId=${c.id}`);
+                            }}
+                            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-[#0F5C7A] hover:bg-[#0c4a63] text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:shadow transition-all flex items-center gap-1.5 shrink-0 active:scale-95"
+                          >
+                            <span>হাজিরা নিন</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500 text-sm">
+                    "{pendingSearchQuery}" নামে কোনো শ্রেণি পাওয়া যায়নি।
+                  </div>
+                )
               ) : (
-                <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
-                  <CheckCircle className="w-12 h-12 text-emerald-400 mx-auto mb-3" />
-                  <p className="text-slate-600 font-medium">সব শ্রেণির হাজিরা সম্পন্ন হয়েছে!</p>
+                <div className="text-center py-10 px-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+                  <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                    <CheckCircle className="w-8 h-8" />
+                  </div>
+                  <h3 className="text-base font-bold text-emerald-900 mb-1">আলহামদুলিল্লাহ! সব শ্রেণির হাজিরা সম্পন্ন হয়েছে</h3>
+                  <p className="text-xs sm:text-sm text-emerald-700">আজকের জন্য আর কোনো শ্রেণির হাজিরা বাকি নেই।</p>
                 </div>
               )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+              <span>মোট বাকি শ্রেণি: {toBengaliNumber(stats.classesPendingAttendanceToday)} টি</span>
+              <button
+                onClick={() => setIsPendingClassesModalOpen(false)}
+                className="px-4 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>
       , document.body)}
 
       {isCompletedClassesModalOpen && createPortal(
-        <div className="fixed inset-0 z-[1000] flex items-start sm:items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm overflow-y-auto">
-          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-8 sm:my-0">
-            <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
+        <div 
+          onClick={(e) => { if (e.target === e.currentTarget) setIsCompletedClassesModalOpen(false); }}
+          className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
+        >
+          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100">
+            {/* Header */}
+            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/70 to-teal-50/30">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-100 text-emerald-600 rounded-xl flex items-center justify-center shadow-inner">
-                  <CheckCircle className="w-5 h-5" />
+                <div className="w-11 h-11 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
+                  <CheckCircle className="w-6 h-6" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-[#1E293B]">হাজিরা সম্পন্ন হওয়া শ্রেণি</h2>
-                  <p className="text-sm text-slate-500 font-medium">আজকের হাজিরা সম্পন্ন হয়েছে</p>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">হাজিরা সম্পন্ন হওয়া শ্রেণি</h2>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                      {toBengaliNumber(stats.classesWithAttendanceToday)}টি
+                    </span>
+                  </div>
+                  <p className="text-xs sm:text-sm text-slate-500 font-medium">আজকের হাজিরা সম্পন্ন হয়েছে</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsCompletedClassesModalOpen(false)}
-                className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors"
+                title="বন্ধ করুন"
               >
-                <X className="w-5 h-5 text-slate-500" />
+                <X className="w-5 h-5" />
               </button>
             </div>
 
-            <div className="p-6 overflow-y-auto">
-              {stats.completedClassesList.length > 0 ? (
-                <div className="grid grid-cols-1 gap-3">
-                  {stats.completedClassesList.map((c) => (
-                    <div key={c.id} className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100 hover:border-emerald-200 hover:bg-emerald-50/50 transition-colors">
-                      <div>
-                        <h3 className="font-bold text-slate-800 text-lg">{c.name}</h3>
-                        <p className="text-sm text-slate-500">
-                          মোট শিক্ষার্থী: {toBengaliNumber(Object.values(students).flat().filter(s => s.classId === c.id && s.isActive !== false).length)} জন
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => {
-                          setIsCompletedClassesModalOpen(false);
-                          navigate(`/attendance?classId=${c.id}`);
-                        }}
-                        className="px-4 py-2 bg-emerald-100 text-emerald-700 hover:bg-emerald-200 rounded-lg text-sm font-bold transition-colors"
-                      >
-                        বিস্তারিত দেখুন
-                      </button>
-                    </div>
-                  ))}
+            {/* Search if more than 3 classes */}
+            {stats.completedClassesList.length > 3 && (
+              <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+                <div className="relative">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                  <input
+                    type="text"
+                    value={completedSearchQuery}
+                    onChange={(e) => setCompletedSearchQuery(e.target.value)}
+                    placeholder="শ্রেণির নাম দিয়ে খুঁজুন..."
+                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
+                  />
+                  {completedSearchQuery && (
+                    <button
+                      onClick={() => setCompletedSearchQuery("")}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  )}
                 </div>
+              </div>
+            )}
+
+            {/* Content List */}
+            <div className="p-4 sm:p-6 overflow-y-auto space-y-3">
+              {stats.completedClassesList.length > 0 ? (
+                filteredCompletedClasses.length > 0 ? (
+                  <div className="grid grid-cols-1 gap-2.5">
+                    {filteredCompletedClasses.map((c) => {
+                      const studentCount = (students[c.id] || []).filter(s => s.isActive !== false).length;
+                      return (
+                        <div 
+                          key={c.id} 
+                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 hover:bg-emerald-50/40 rounded-2xl border border-slate-200/80 hover:border-emerald-300 transition-all duration-200 group"
+                        >
+                          <div className="min-w-0 pr-3">
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-emerald-900 transition-colors truncate">
+                                {c.name}
+                              </h3>
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-800 shrink-0">
+                                সম্পন্ন
+                              </span>
+                            </div>
+                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
+                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700">{toBengaliNumber(studentCount)}</span> জন
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => {
+                              setIsCompletedClassesModalOpen(false);
+                              navigate(`/attendance/history?classId=${c.id}`);
+                            }}
+                            className="px-3.5 py-2 sm:px-4 sm:py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs sm:text-sm font-bold shadow-sm hover:shadow transition-all flex items-center gap-1.5 shrink-0 active:scale-95"
+                          >
+                            <span>হাজিরা দেখুন</span>
+                            <ArrowRight className="w-4 h-4" />
+                          </button>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-slate-500 text-sm">
+                    "{completedSearchQuery}" নামে কোনো শ্রেণি পাওয়া যায়নি।
+                  </div>
+                )
               ) : (
-                <div className="text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-200">
+                <div className="text-center py-10 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
                   <Clock className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-                  <p className="text-slate-600 font-medium">কোনো শ্রেণির হাজিরা সম্পন্ন হয়নি!</p>
+                  <p className="text-slate-600 font-medium">আজকের কোনো শ্রেণির হাজিরা এখনও সম্পন্ন হয়নি!</p>
                 </div>
               )}
+            </div>
+
+            {/* Footer */}
+            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+              <span>মোট সম্পন্ন শ্রেণি: {toBengaliNumber(stats.classesWithAttendanceToday)} টি</span>
+              <button
+                onClick={() => setIsCompletedClassesModalOpen(false)}
+                className="px-4 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+              >
+                বন্ধ করুন
+              </button>
             </div>
           </div>
         </div>
@@ -402,6 +581,8 @@ interface StatCardProps {
   gradient: string;
   valueColor?: string;
   onClick?: () => void;
+  actionText?: string;
+  hoverBorderColor?: string;
 }
 
 const StatCard = React.memo<StatCardProps>(({
@@ -412,22 +593,44 @@ const StatCard = React.memo<StatCardProps>(({
   gradient,
   valueColor,
   onClick,
+  actionText,
+  hoverBorderColor = "hover:border-slate-300",
 }) => {
   return (
     <div 
       onClick={onClick}
+      role={onClick ? "button" : undefined}
+      tabIndex={onClick ? 0 : undefined}
+      onKeyDown={onClick ? (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onClick(); } } : undefined}
       className={clsx(
-        "bg-white rounded-[20px] p-[18px] flex items-center gap-4 shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] group",
-        onClick ? "cursor-pointer hover:shadow-[0_8px_25px_rgba(0,0,0,0.12)] transition-shadow" : "cursor-default"
+        "bg-white rounded-[20px] p-[18px] flex items-center justify-between shadow-[0_6px_20px_rgba(0,0,0,0.08)] border transition-all duration-200 group text-left",
+        onClick 
+          ? `cursor-pointer border-[#E2E8F0] ${hoverBorderColor} hover:shadow-[0_10px_25px_rgba(0,0,0,0.12)] active:scale-[0.98]` 
+          : "cursor-default border-[#E2E8F0]"
       )}
     >
-      <div className={clsx("w-[44px] h-[44px] rounded-full flex items-center justify-center transition-transform", onClick && "group-hover:scale-110", gradient)}>
-        <Icon className={clsx("w-6 h-6", color)} strokeWidth={2} />
+      <div className="flex items-center gap-4 min-w-0 flex-1">
+        <div className={clsx("w-[46px] h-[46px] rounded-2xl flex items-center justify-center transition-transform shrink-0 shadow-sm", onClick && "group-hover:scale-105", gradient)}>
+          <Icon className={clsx("w-6 h-6", color)} strokeWidth={2} />
+        </div>
+        <div className="flex flex-col min-w-0 flex-1">
+          <p className="text-[13px] sm:text-[14px] text-[#64748B] font-medium truncate">{title}</p>
+          <div className="flex items-baseline gap-2">
+            <p className={clsx("text-[26px] sm:text-[28px] font-bold leading-tight", valueColor || "text-[#0F172A]")}>{toBengaliNumber(value)}</p>
+          </div>
+          {actionText && (
+            <p className="text-[11px] font-medium text-slate-500 group-hover:text-slate-800 flex items-center gap-1 mt-0.5 transition-colors">
+              <span>{actionText}</span>
+              <ChevronRight className="w-3 h-3 group-hover:translate-x-0.5 transition-transform" />
+            </p>
+          )}
+        </div>
       </div>
-      <div className="flex flex-col">
-        <p className="text-[14px] text-[#64748B]">{title}</p>
-        <p className={clsx("text-[28px] font-bold", valueColor || "text-[#0F172A]")}>{toBengaliNumber(value)}</p>
-      </div>
+      {onClick && (
+        <div className="w-8 h-8 rounded-full bg-slate-50 group-hover:bg-slate-100 flex items-center justify-center text-slate-400 group-hover:text-slate-700 transition-colors shrink-0 ml-2">
+          <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+        </div>
+      )}
     </div>
   );
 });
