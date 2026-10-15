@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, lazy, Suspense } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useAuth } from "../hooks/useAuth";
@@ -11,9 +11,10 @@ import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useFeeCollections } from "../hooks/useFeeCollections";
 import { useFeeCategories } from "../hooks/useFeeCategories";
 import { HIJRI_MONTHS } from "../constants/hijri";
-import StudentEditModal from "../components/StudentEditModal";
-import ImageModal from "../components/ImageModal";
 import { db } from "../firebase";
+
+const StudentEditModal = lazy(() => import("../components/StudentEditModal"));
+const ImageModal = lazy(() => import("../components/ImageModal"));
 import { doc, getDoc, collection, query, where, getDocs, onSnapshot } from "firebase/firestore";
 import { User, BookOpen, Calendar, ArrowLeft, CheckCircle, XCircle, Award, ArrowUpDown, Pencil, CreditCard } from "lucide-react";
 import { Student, Result, Subject, AttendanceStatus } from "../types";
@@ -740,22 +741,24 @@ const StudentProfile: React.FC = () => {
           </motion.div>
         </motion.div>
         
-        {editingStudent && (
-          <StudentEditModal
-            student={editingStudent}
-            onClose={() => setEditingStudent(null)}
-            onSave={handleUpdateStudent}
-          />
-        )}
+        <Suspense fallback={null}>
+          {editingStudent && (
+            <StudentEditModal
+              student={editingStudent}
+              onClose={() => setEditingStudent(null)}
+              onSave={handleUpdateStudent}
+            />
+          )}
 
-        {student.photoUrl && (
-          <ImageModal
-            isOpen={isImageModalOpen}
-            onClose={() => setIsImageModalOpen(false)}
-            imageUrl={student.photoUrl}
-            title={student.name}
-          />
-        )}
+          {student.photoUrl && (
+            <ImageModal
+              isOpen={isImageModalOpen}
+              onClose={() => setIsImageModalOpen(false)}
+              imageUrl={student.photoUrl}
+              title={student.name}
+            />
+          )}
+        </Suspense>
       </div>
     </div>
   );

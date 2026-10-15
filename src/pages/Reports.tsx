@@ -21,12 +21,8 @@ import {
 } from "recharts";
 import { Download, Calendar, ChevronDown, Users, Printer } from "lucide-react";
 import clsx from "clsx";
-import jsPDF from "jspdf";
-import { toCanvas } from "html-to-image";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
-
-import Papa from "papaparse";
 
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
@@ -278,6 +274,9 @@ const Reports: React.FC = () => {
       const input = document.getElementById('report-container');
       if (!input) throw new Error("Report container not found");
 
+      const { toCanvas } = await import("html-to-image");
+      const { default: jsPDF } = await import("jspdf");
+
       const canvas = await toCanvas(input, { 
         pixelRatio: 2,
         backgroundColor: '#ffffff',
@@ -319,7 +318,8 @@ const Reports: React.FC = () => {
     }
   };
 
-  const handleExportCSV = () => {
+  const handleExportCSV = async () => {
+    const { default: Papa } = await import("papaparse");
     const csv = Papa.unparse(reportData.map(s => ({
       Roll: s.roll,
       Name: s.name,

@@ -14,11 +14,6 @@ import { useResultSettings } from "../hooks/useResultSettings";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
-import { addBengaliFont } from "../utils/pdfFont";
-import jsPDF from "jspdf";
-import { toCanvas } from "html-to-image";
-import autoTable from "jspdf-autotable";
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun, WidthType } from "docx";
 import { saveAs } from "file-saver";
 import { TabulationSheetDocument } from "../components/pdf/TabulationSheetDocument";
 import { generatePdfFromDom } from "../utils/pdfGenerator";
@@ -394,6 +389,7 @@ const ResultReports: React.FC = () => {
   };
 
   const exportToDOCX = async () => {
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } = await import("docx");
     const tableRows = processedResults.map(({ student, metrics }) => {
       const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
       const statusText = statusKey === 'pass' ? 'Pass' : 'Fail';

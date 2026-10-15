@@ -15,10 +15,6 @@ import toast from "react-hot-toast";
 import { calculateResultMetrics } from "../utils/resultCalculations";
 import { convertNumber } from "../utils/numeralConverter";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
-import jsPDF from "jspdf";
-import { toCanvas } from "html-to-image";
-import autoTable from "jspdf-autotable";
-import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, WidthType } from "docx";
 import { saveAs } from "file-saver";
 import { StudentMarksheetDocument } from "../components/pdf/StudentMarksheetDocument";
 import { generatePdfFromDom } from "../utils/pdfGenerator";
@@ -365,6 +361,7 @@ const Marksheet: React.FC = () => {
   };
 
   const exportToDOCX = async () => {
+    const { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell } = await import("docx");
     const doc = new Document({
       sections: [{
         children: [

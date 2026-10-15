@@ -8,7 +8,6 @@ import { convertNumber } from "../utils/numeralConverter";
 import { formatAcademicYear } from "../utils/dateFormatter";
 import { Printer, Download, ArrowLeft, Search, ArrowUpDown, Filter, ChevronUp, ChevronDown, FileText } from "lucide-react";
 import toast from "react-hot-toast";
-import { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } from "docx";
 import { saveAs } from "file-saver";
 import { TabulationSheetDocument } from "../components/pdf/TabulationSheetDocument";
 import { generatePdfFromDom } from "../utils/pdfGenerator";
@@ -237,6 +236,7 @@ const PublicClassResult: React.FC = () => {
   };
 
   const exportToDOCX = async () => {
+    const { Document, Packer, Paragraph, Table, TableRow, TableCell, TextRun } = await import("docx");
     const tableRows = processedResults.map(({ student, metrics }) => {
       const { totalMarks, totalFullMarks, percentage, grade, rank, statusKey } = metrics;
       const statusText = statusKey === 'pass' ? 'Pass' : 'Fail';

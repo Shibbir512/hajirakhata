@@ -57,6 +57,34 @@ export default defineConfig(({ mode }) => {
       "process.env.API_KEY": JSON.stringify(env.API_KEY || env.GEMINI_API_KEY || ""),
       "process.env.GEMINI_API_KEY": JSON.stringify(env.GEMINI_API_KEY || ""),
     },
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks(id) {
+            if (id.includes("node_modules")) {
+              if (
+                id.includes("/react/") ||
+                id.includes("/react-dom/") ||
+                id.includes("/react-router-dom/") ||
+                id.includes("/react-router/")
+              ) {
+                return "vendor-react";
+              }
+              if (id.includes("/firebase/") || id.includes("/@firebase/")) {
+                return "vendor-firebase";
+              }
+              if (id.includes("/framer-motion/")) {
+                return "vendor-framer";
+              }
+              if (id.includes("/@capacitor/")) {
+                return "vendor-capacitor";
+              }
+            }
+          },
+        },
+      },
+      chunkSizeWarningLimit: 600,
+    },
     resolve: {
       alias: {
         "@": path.resolve(__dirname, "."),

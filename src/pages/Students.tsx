@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useRef } from "react";
+import React, { useState, useMemo, useRef, lazy, Suspense } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../hooks/useAuth";
@@ -12,16 +12,15 @@ import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
-import StudentAddModal from "../components/StudentAddModal";
-import StudentEditModal from "../components/StudentEditModal";
-import CustomFieldsModal from "../components/CustomFieldsModal";
-import CsvImportInstructionsModal from "../components/CsvImportInstructionsModal";
-import ImageModal from "../components/ImageModal";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import StudentPromotionModal from "../components/StudentPromotionModal";
-import Papa from "papaparse";
-import mammoth from "mammoth";
 import Fuse from "fuse.js";
+
+const StudentAddModal = lazy(() => import("../components/StudentAddModal"));
+const StudentEditModal = lazy(() => import("../components/StudentEditModal"));
+const CustomFieldsModal = lazy(() => import("../components/CustomFieldsModal"));
+const CsvImportInstructionsModal = lazy(() => import("../components/CsvImportInstructionsModal"));
+const ImageModal = lazy(() => import("../components/ImageModal"));
+const StudentPromotionModal = lazy(() => import("../components/StudentPromotionModal"));
 
 // Bengali character normalization
 const normalizeBengali = (text: string) => {
@@ -220,6 +219,7 @@ const Students: React.FC = () => {
     if (!file || !selectedClassId) return;
 
     if (file.type === "text/csv" || file.name.endsWith(".csv")) {
+      const { default: Papa } = await import("papaparse");
       Papa.parse(file, {
         header: true,
         skipEmptyLines: true,
@@ -272,6 +272,7 @@ const Students: React.FC = () => {
         },
       });
     } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+      const { default: mammoth } = await import("mammoth");
       const arrayBuffer = await file.arrayBuffer();
       const result = await mammoth.extractRawText({ arrayBuffer });
       const lines = result.value.split("\n");
@@ -304,6 +305,7 @@ const Students: React.FC = () => {
         'রক্তের গ্রুপ': s.bloodGroup || 'N/A'
       }));
       
+      const { default: Papa } = await import("papaparse");
       const csv = Papa.unparse(csvData);
       // Add UTF-8 BOM for Excel to correctly display Bengali characters
       const blob = new Blob(['\uFEFF', csv], { type: 'text/csv;charset=utf-8;' });
@@ -925,21 +927,23 @@ const Students: React.FC = () => {
         )}
       </div>
 
-      {isAddModalOpen && (
-        <StudentAddModal
-          isOpen={isAddModalOpen}
-          onClose={() => setIsAddModalOpen(false)}
-          onAdd={handleAddStudent}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isAddModalOpen && (
+          <StudentAddModal
+            isOpen={isAddModalOpen}
+            onClose={() => setIsAddModalOpen(false)}
+            onAdd={handleAddStudent}
+          />
+        )}
 
-      {editingStudent && (
-        <StudentEditModal
-          student={editingStudent}
-          onClose={() => setEditingStudent(null)}
-          onSave={handleUpdateStudent}
-        />
-      )}
+        {editingStudent && (
+          <StudentEditModal
+            student={editingStudent}
+            onClose={() => setEditingStudent(null)}
+            onSave={handleUpdateStudent}
+          />
+        )}
+      </Suspense>
 
       {viewingStudent && createPortal(
         <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
@@ -1089,41 +1093,43 @@ const Students: React.FC = () => {
         />
       )}
 
-      {isPromotionModalOpen && selectedClassId && (
-        <StudentPromotionModal
-          isOpen={isPromotionModalOpen}
-          onClose={() => setIsPromotionModalOpen(false)}
-          sourceClassId={selectedClassId}
-          classes={classes}
-          academicYears={academicYears}
-          students={allStudentsList}
-          onPromote={promoteStudents}
-        />
-      )}
+      <Suspense fallback={null}>
+        {isPromotionModalOpen && selectedClassId && (
+          <StudentPromotionModal
+            isOpen={isPromotionModalOpen}
+            onClose={() => setIsPromotionModalOpen(false)}
+            sourceClassId={selectedClassId}
+            classes={classes}
+            academicYears={academicYears}
+            students={allStudentsList}
+            onPromote={promoteStudents}
+          />
+        )}
 
-      {isCustomFieldsModalOpen && orgId && (
-        <CustomFieldsModal
-          isOpen={isCustomFieldsModalOpen}
-          onClose={() => setIsCustomFieldsModalOpen(false)}
-          orgId={orgId}
-        />
-      )}
+        {isCustomFieldsModalOpen && orgId && (
+          <CustomFieldsModal
+            isOpen={isCustomFieldsModalOpen}
+            onClose={() => setIsCustomFieldsModalOpen(false)}
+            orgId={orgId}
+          />
+        )}
 
-      {isCsvInstructionsModalOpen && (
-        <CsvImportInstructionsModal
-          isOpen={isCsvInstructionsModalOpen}
-          onClose={() => setIsCsvInstructionsModalOpen(false)}
-        />
-      )}
+        {isCsvInstructionsModalOpen && (
+          <CsvImportInstructionsModal
+            isOpen={isCsvInstructionsModalOpen}
+            onClose={() => setIsCsvInstructionsModalOpen(false)}
+          />
+        )}
 
-      {viewingImage && (
-        <ImageModal
-          isOpen={!!viewingImage}
-          onClose={() => setViewingImage(null)}
-          imageUrl={viewingImage.url}
-          title={viewingImage.name}
-        />
-      )}
+        {viewingImage && (
+          <ImageModal
+            isOpen={!!viewingImage}
+            onClose={() => setViewingImage(null)}
+            imageUrl={viewingImage.url}
+            title={viewingImage.name}
+          />
+        )}
+      </Suspense>
     </div>
   );
 };
