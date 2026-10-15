@@ -51,28 +51,36 @@ export const useAttendance = (
     setLoading(true);
     const sessionsRef = collection(db, `organizations/${orgId}/attendance_sessions`);
     
-    let q = query(sessionsRef, orderBy("createdAt", "desc"));
+    // Build query with correct Firestore clause order:
+    // 1. Equality filters (where ==) must come BEFORE orderBy
+    // 2. orderBy on the range-filtered field
+    // 3. Range filters (>=, <=) on the same field as orderBy
+    const constraints: any[] = [];
 
     if (classId) {
-      q = query(q, where("classId", "==", classId));
+      constraints.push(where("classId", "==", classId));
     }
+
+    constraints.push(orderBy("createdAt", "desc"));
 
     if (startDate) {
       const start = new Date(startDate);
       start.setHours(0, 0, 0, 0);
-      q = query(q, where("createdAt", ">=", Timestamp.fromDate(start)));
+      constraints.push(where("createdAt", ">=", Timestamp.fromDate(start)));
     }
 
     if (endDate) {
       const end = new Date(endDate);
       end.setHours(23, 59, 59, 999);
-      q = query(q, where("createdAt", "<=", Timestamp.fromDate(end)));
+      constraints.push(where("createdAt", "<=", Timestamp.fromDate(end)));
     }
 
     // If no specific filters, limit to 50
     if (!classId && !startDate && !endDate) {
-      q = query(q, limit(50));
+      constraints.push(limit(50));
     }
+
+    let q = query(sessionsRef, ...constraints);
 
     const unsub = onSnapshot(
       q,
@@ -165,8 +173,8 @@ export const useAttendance = (
         return;
       }
 
-      // Allow teachers to delete attendance sessions
-      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
+      // Only admins can delete attendance sessions (matches Firestore rules)
+      if (role !== "admin" && role !== "moderator" && role !== "super_admin") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }

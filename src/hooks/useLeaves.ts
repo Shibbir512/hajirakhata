@@ -26,7 +26,7 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
   const [isSyncing, setIsSyncing] = useState(false);
 
   useEffect(() => {
-    if (!orgId || !user) {
+    if (!orgId || !user || !db) {
       setLeaves([]);
       setLoading(false);
       return;
@@ -52,7 +52,7 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
   }, [orgId, user]);
 
   const addLeaves = async (leaveData: Omit<LeaveRecord, "id" | "createdAt">[]) => {
-    if (!orgId) return;
+    if (!orgId || !db) return;
     try {
       const leavesRef = collection(db, `organizations/${orgId}/leaves`);
       
@@ -80,7 +80,7 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
   };
 
   const updateLeave = async (id: string, data: Partial<LeaveRecord>) => {
-    if (!orgId) return;
+    if (!orgId || !db) return;
     try {
       const leaveRef = doc(db, `organizations/${orgId}/leaves`, id);
       await updateDoc(leaveRef, data);
@@ -105,7 +105,7 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
   };
 
   const deleteLeave = async (id: string) => {
-    if (!orgId) return;
+    if (!orgId || !db) return;
     try {
       const leaveRef = doc(db, `organizations/${orgId}/leaves`, id);
       await deleteDoc(leaveRef);

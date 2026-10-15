@@ -807,18 +807,36 @@ const AttendanceHistory: React.FC = () => {
                   নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠান।
                 </p>
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     const absentStudents = (notifySession.students || []).filter((s: any) => s.status === AttendanceStatus.Absent);
-                    absentStudents.forEach((student: any) => {
+                    const studentsWithPhone = absentStudents.filter((student: any) => {
                       const classStudents = students[notifySession.classId] || [];
                       const fullStudent = classStudents.find((s: any) => s.id === student.studentId);
                       const phone = fullStudent?.phone || student.phone || '';
-                      if (phone) {
-                        const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
-                        const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
-                        window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
-                      }
+                      return !!phone;
                     });
+
+                    if (studentsWithPhone.length === 0) {
+                      toast.error("কোনো শিক্ষার্থীর মোবাইল নম্বর পাওয়া যায়নি।");
+                      return;
+                    }
+
+                    toast.success(`${toBengaliNumber(studentsWithPhone.length)} জনকে WhatsApp মেসেজ পাঠানো হচ্ছে...`);
+
+                    // Open windows one by one with delay to avoid popup blocking
+                    for (let i = 0; i < studentsWithPhone.length; i++) {
+                      const student = studentsWithPhone[i];
+                      const classStudents = students[notifySession.classId] || [];
+                      const fullStudent = classStudents.find((s: any) => s.id === student.studentId);
+                      const phone = fullStudent?.phone || student.phone || '';
+                      const message = `আসসালামু আলাইকুম, আপনার সন্তান ${student.studentName} আজ মাদরাসায় অনুপস্থিত। অনুগ্রহ করে কারণটি জানাবেন।`;
+                      const formattedPhone = phone.startsWith('0') ? '88' + phone : phone;
+                      window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`, '_blank');
+                      // Wait between opens to avoid popup blocker
+                      if (i < studentsWithPhone.length - 1) {
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                      }
+                    }
                   }}
                   className="bg-[#0F5C7A] text-white px-4 py-2 rounded-xl text-sm font-bold hover:bg-[#0C6C8A] transition-colors shadow-soft"
                 >

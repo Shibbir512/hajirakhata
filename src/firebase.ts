@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
-import { getFirestore, Firestore, enableIndexedDbPersistence, getDocFromServer, doc } from 'firebase/firestore';
+import { initializeFirestore, Firestore, persistentLocalCache, persistentMultipleTabManager, getDocFromServer, doc } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
 import { getMessaging, Messaging } from 'firebase/messaging';
 import firebaseConfig from '../firebase-applet-config.json';
@@ -17,17 +17,10 @@ try {
   const app = initializeApp(firebaseConfig);
   auth = getAuth(app);
   
-  // Initialize Firestore with correct database ID
-  db = getFirestore(app, (firebaseConfig as any).firestoreDatabaseId);
-
-  // Enable offline persistence so that flaky mobile connections don't crash the app
-  enableIndexedDbPersistence(db).catch((err) => {
-    if (err.code == 'failed-precondition') {
-        console.warn('Persistence failed: Multiple tabs open');
-    } else if (err.code == 'unimplemented') {
-        console.warn('Persistence failed: Browser not supported');
-    }
-  });
+  // Initialize Firestore with persistent local cache (replaces deprecated enableIndexedDbPersistence)
+  db = initializeFirestore(app, {
+    localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() })
+  }, (firebaseConfig as any).firestoreDatabaseId);
 
   storage = getStorage(app);
   googleProvider = new GoogleAuthProvider();

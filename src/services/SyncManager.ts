@@ -79,6 +79,7 @@ export class SyncManager {
     currentVersion: number,
     options: { merge?: boolean } = {}
   ) {
+    if (!db) throw new Error("Firestore not initialized");
     const docRef = doc(db, docPath);
     const updateData = {
       ...newData,

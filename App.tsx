@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import { WifiOff, AlertTriangle, RefreshCcw, RefreshCw, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
+import { useCapacitorApp } from "./src/hooks/useCapacitorApp";
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
   constructor(props: any) {
@@ -253,6 +254,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 };
 
 const App: React.FC = () => {
+  useCapacitorApp();
   const isSrcDoc = window.location.protocol === 'about:' || window.location.href === 'about:srcdoc' || window.location.origin === 'null';
   const currentPath = window.location.pathname + window.location.search + window.location.hash;
   

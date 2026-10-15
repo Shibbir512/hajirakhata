@@ -45,14 +45,26 @@ const Dashboard: React.FC = () => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isPendingClassesModalOpen, isCompletedClassesModalOpen]);
 
+  // Refresh dates when the user returns to the tab / unlocks phone
+  const [dateRefreshKey, setDateRefreshKey] = useState(0);
+  useEffect(() => {
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        setDateRefreshKey(k => k + 1);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => document.removeEventListener('visibilitychange', handleVisibility);
+  }, []);
+
   const startDate = useMemo(() => {
     const d = new Date();
     d.setDate(d.getDate() - 6);
     d.setHours(0, 0, 0, 0);
     return d;
-  }, []);
+  }, [dateRefreshKey]);
 
-  const endDate = useMemo(() => new Date(), []);
+  const endDate = useMemo(() => new Date(), [dateRefreshKey]);
 
   const { attendanceSessions } = useAttendance(orgId, user, classes, students, role, {
     startDate,

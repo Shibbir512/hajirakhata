@@ -91,8 +91,8 @@ export const useClasses = (orgId: string | null, user: any, role: string | null)
         return;
       }
       
-      // Allow teachers to delete classes as well if they are in the org
-      if (role !== "admin" && role !== "moderator" && role !== "teacher") {
+      // Only admins can delete classes (matches Firestore rules)
+      if (role !== "admin" && role !== "moderator" && role !== "super_admin") {
         toast.error("আপনার এই কাজটি করার অনুমতি নেই।");
         return;
       }
