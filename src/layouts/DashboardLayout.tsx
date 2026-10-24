@@ -4,8 +4,6 @@ import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import BottomNavigation from "../components/BottomNavigation";
 import { useAuth } from "../hooks/useAuth";
-import { usePushNotifications } from "../hooks/usePushNotifications";
-
 import { motion, AnimatePresence } from "framer-motion";
 import { Bell, MonitorPlay } from "lucide-react";
 import { AnnouncementBanner } from "../components/AnnouncementBanner";
@@ -22,9 +20,6 @@ const DashboardLayout: React.FC = () => {
   const navigate = useNavigate();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isPresentationMode, setIsPresentationMode] = useState(false);
-  
-  // Initialize push notifications
-  usePushNotifications();
   
   // Notification sound
   const audioRef = useRef<HTMLAudioElement | null>(null);

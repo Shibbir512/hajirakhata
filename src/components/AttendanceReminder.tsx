@@ -8,13 +8,7 @@ export const AttendanceReminder: React.FC = () => {
   const { orgId, attendanceReminderEnabled, attendanceReminderTime } = useAuth();
   const lastNotifiedDateRef = useRef<string | null>(null);
 
-  useEffect(() => {
-    // Request notification permission if enabled and not already granted
-    if (attendanceReminderEnabled && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
-    }
-  }, [attendanceReminderEnabled]);
-
+  // Attendance reminder runs in-app via toast without browser push notifications
   useEffect(() => {
     if (!attendanceReminderEnabled || !attendanceReminderTime || !orgId || !db) return;
 
@@ -42,7 +36,6 @@ export const AttendanceReminder: React.FC = () => {
           if (querySnapshot.empty) {
             // Attendance NOT taken yet
             const title = 'হাজিরা নেওয়ার সময় হয়েছে!';
-            const body = 'আজ কি হাজিরা নিয়েছেন? শিক্ষার্থীদের দৈনিক উপস্থিতি নেওয়ার সময় হয়েছে।';
 
             // Show in-app toast
             toast(title, {
@@ -54,14 +47,6 @@ export const AttendanceReminder: React.FC = () => {
                 color: '#fff',
               },
             });
-
-            // Show system notification if permitted
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification(title, {
-                body: body,
-                icon: '/vite.svg'
-              });
-            }
           } else {
             // Attendance already taken, maybe just a soft reminder or nothing
             console.log("Attendance already taken for today. Skipping reminder.");

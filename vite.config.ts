@@ -12,12 +12,13 @@ export default defineConfig(({ mode }) => {
       port: 3000,
       host: "0.0.0.0",
       strictPort: true,
+      hmr: false,
     },
     plugins: [
       react(),
       tailwindcss(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         includeAssets: ['icon.png'],
         manifest: {
           short_name: "হাজিরা খাতা",

@@ -37,8 +37,113 @@
     
     <title>হাজিরা খাতা</title>
     <script>
-      // Ensure window.fetch has both a getter and setter to prevent "Cannot set property fetch of #<Window> which has only a getter"
+      // 1. Prevent automated page reload loops
       (function() {
+        try {
+          var RELOAD_KEY = '__app_reload_ts__';
+          var COUNT_KEY = '__app_reload_cnt__';
+          var now = Date.now();
+          var last = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0', 10);
+          var count = parseInt(sessionStorage.getItem(COUNT_KEY) || '0', 10);
+
+          if (now - last < 5000) {
+            count++;
+          } else {
+            count = 0;
+          }
+          sessionStorage.setItem(RELOAD_KEY, now.toString());
+          sessionStorage.setItem(COUNT_KEY, count.toString());
+
+          // If more than 1 reload within 5 seconds, guard window.location.reload
+          if (count >= 1) {
+            console.warn('[Safety Guard] Automated reload loop detected. Suppressing rapid reloads.');
+            var nativeReload = window.location.reload.bind(window.location);
+            var safeReload = function(force) {
+              var t = Date.now();
+              var prev = parseInt(sessionStorage.getItem(RELOAD_KEY) || '0', 10);
+              if (t - prev < 8000) {
+                console.warn('[Safety Guard] Blocked rapid window.location.reload() call.');
+                return;
+              }
+              sessionStorage.setItem(RELOAD_KEY, t.toString());
+              nativeReload(force);
+            };
+            try {
+              Object.defineProperty(window.location, 'reload', {
+                value: safeReload,
+                configurable: true,
+                writable: true
+              });
+            } catch (e) {
+              try {
+                window.location.reload = safeReload;
+              } catch (e2) {}
+            }
+          }
+        } catch (err) {}
+
+        // 2. Unregister push notification service worker and cleanup dev/preview SW
+        try {
+          if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              var host = window.location.hostname;
+              var isDev = host.indexOf('run.app') !== -1 || host === 'localhost' || window.location.port === '3000';
+              for (var i = 0; i < regs.length; i++) {
+                var url = (regs[i].active && regs[i].active.scriptURL) || '';
+                if (url.indexOf('firebase-messaging-sw.js') !== -1 || isDev) {
+                  regs[i].unregister().catch(function() {});
+                }
+              }
+            }).catch(function() {});
+          }
+        } catch (err) {}
+
+        // 3. Intercept Vite HMR WebSocket in preview iframe so disconnects never trigger page reload
+        try {
+          var RealWebSocket = window.WebSocket;
+          if (RealWebSocket) {
+            window.WebSocket = function(url, protocols) {
+              var ws;
+              try {
+                ws = protocols !== undefined ? new RealWebSocket(url, protocols) : new RealWebSocket(url);
+              } catch (e) {
+                ws = new EventTarget();
+                ws.close = function() {};
+                ws.send = function() {};
+                ws.readyState = 3;
+                return ws;
+              }
+
+              var isVite = typeof url === 'string' && (url.indexOf('vite') !== -1 || protocols === 'vite-hmr' || protocols === 'vite-ping');
+              if (isVite) {
+                var origAddEventListener = ws.addEventListener.bind(ws);
+                ws.addEventListener = function(type, listener, options) {
+                  if (type === 'close') {
+                    // Suppress close propagation to Vite HMR to prevent "server connection lost... location.reload()"
+                    return origAddEventListener(type, function(e) {
+                      console.warn('[Vite HMR] Suppressed close event to prevent reload cycle.');
+                    }, options);
+                  }
+                  return origAddEventListener(type, listener, options);
+                };
+                Object.defineProperty(ws, 'onclose', {
+                  get: function() { return null; },
+                  set: function() {
+                    console.warn('[Vite HMR] Suppressed onclose setter to prevent reload cycle.');
+                  }
+                });
+              }
+              return ws;
+            };
+            window.WebSocket.prototype = RealWebSocket.prototype;
+            window.WebSocket.CONNECTING = RealWebSocket.CONNECTING;
+            window.WebSocket.OPEN = RealWebSocket.OPEN;
+            window.WebSocket.CLOSING = RealWebSocket.CLOSING;
+            window.WebSocket.CLOSED = RealWebSocket.CLOSED;
+          }
+        } catch (err) {}
+
+        // 4. Ensure window.fetch has getter & setter
         try {
           var rawFetch = typeof window !== 'undefined' ? window.fetch : undefined;
           if (!rawFetch && typeof globalThis !== 'undefined') {
@@ -47,35 +152,22 @@
           if (typeof rawFetch === 'function') {
             var activeFetch = rawFetch.bind(window);
             var fetchProp = {
-              get: function() {
-                return activeFetch;
-              },
-              set: function(fn) {
-                activeFetch = typeof fn === 'function' ? fn : activeFetch;
-              },
+              get: function() { return activeFetch; },
+              set: function(fn) { activeFetch = typeof fn === 'function' ? fn : activeFetch; },
               configurable: true,
               enumerable: true
             };
-
-            try {
-              Object.defineProperty(window, 'fetch', fetchProp);
-            } catch (e) {}
-
+            try { Object.defineProperty(window, 'fetch', fetchProp); } catch (e) {}
             if (typeof Window !== 'undefined' && Window.prototype) {
-              try {
-                Object.defineProperty(Window.prototype, 'fetch', fetchProp);
-              } catch (e) {}
+              try { Object.defineProperty(Window.prototype, 'fetch', fetchProp); } catch (e) {}
             }
-
             if (typeof globalThis !== 'undefined' && globalThis !== window) {
-              try {
-                Object.defineProperty(globalThis, 'fetch', fetchProp);
-              } catch (e) {}
+              try { Object.defineProperty(globalThis, 'fetch', fetchProp); } catch (e) {}
             }
           }
         } catch (err) {}
 
-        // Ignore Vite HMR / WebSocket client disconnect errors in dev iframe
+        // 5. Ignore Vite HMR / WebSocket client disconnect errors in dev iframe
         window.addEventListener('error', function(e) {
           if (e && e.message && (e.message.indexOf("reading 'send'") !== -1 || e.message.indexOf('WebSocket') !== -1 || e.message.indexOf('vite') !== -1)) {
             e.stopImmediatePropagation();

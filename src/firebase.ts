@@ -2,13 +2,12 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, Auth } from 'firebase/auth';
 import { initializeFirestore, Firestore, persistentLocalCache, persistentMultipleTabManager, getDocFromServer, doc } from 'firebase/firestore';
 import { getStorage, FirebaseStorage } from 'firebase/storage';
-import { getMessaging, Messaging } from 'firebase/messaging';
 import firebaseConfig from '../firebase-applet-config.json';
 
 let auth: Auth | null = null;
 let db: Firestore | null = null;
 let storage: FirebaseStorage | null = null;
-let messaging: Messaging | null = null;
+const messaging: null = null; // Push notifications completely disabled
 let googleProvider: GoogleAuthProvider | null = null;
 
 export { firebaseConfig };
@@ -24,11 +23,6 @@ try {
 
   storage = getStorage(app);
   googleProvider = new GoogleAuthProvider();
-  
-  // Initialize Messaging only if supported in the browser
-  if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
-    messaging = getMessaging(app);
-  }
 
   // Connection test
   const testConnection = async () => {
