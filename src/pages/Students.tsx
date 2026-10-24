@@ -7,7 +7,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal, Info } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal, Info, FileSpreadsheet, FileText, SlidersHorizontal } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
@@ -418,19 +418,11 @@ const Students: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full sm:w-auto">
-          {selectedStudents.size > 0 && canManageStudents && (
-          <button
-            onClick={handleDeleteSelected}
-            className="btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2"
-          >
-            <Trash2 className="w-4 h-4" />
-            মুছে ফেলুন ({toBengaliNumber(selectedStudents.size)})
-          </button>
-          )}
-          <div className="grid grid-cols-2 md:flex md:flex-wrap gap-3 w-full md:w-auto">
+      {/* Top Action Bar */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 w-full">
+        {/* Left Section: Primary actions, Academic actions & Selection */}
+        <div className="flex flex-wrap items-center gap-2.5 w-full lg:w-auto">
+          {/* File input for CSV/DOCX import */}
           <input
             type="file"
             ref={fileInputRef}
@@ -438,175 +430,234 @@ const Students: React.FC = () => {
             accept=".csv, .docx"
             className="hidden"
           />
+
+          {/* Delete Selected (Bulk Action) */}
+          {selectedStudents.size > 0 && canManageStudents && (
+            <button
+              onClick={handleDeleteSelected}
+              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 h-[42px] bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200/90 font-semibold text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all whitespace-nowrap animate-in fade-in"
+            >
+              <Trash2 className="w-4 h-4 text-rose-600" />
+              <span>মুছে ফেলুন ({toBengaliNumber(selectedStudents.size)})</span>
+            </button>
+          )}
+
+          {/* Add Student (Primary Hero Action) */}
           <button
             onClick={() => setIsAddModalOpen(true)}
             disabled={!selectedClassId || !canManageStudents}
             className={clsx(
-              "btn-primary w-full md:w-auto whitespace-nowrap !h-[44px] !py-2",
-              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
+              "group inline-flex items-center justify-center gap-2 px-5 py-2.5 h-[42px]",
+              "bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white font-semibold text-sm rounded-xl",
+              "shadow-[0_4px_14px_rgba(15,118,110,0.25)] hover:shadow-[0_6px_20px_rgba(15,118,110,0.35)]",
+              "hover:brightness-105 active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed hover:brightness-100 hover:shadow-none active:scale-100"
             )}
           >
-            <Plus className="w-4 h-4" />
-            শিক্ষার্থী যোগ
+            <Plus className="w-4 h-4 stroke-[2.5] transition-transform duration-200 group-hover:rotate-90" />
+            <span>শিক্ষার্থী যোগ</span>
           </button>
-          
-          {/* Desktop version (hidden on mobile) */}
-          <div className="hidden md:flex flex-wrap gap-3">
-            <button
-              onClick={() => setIsPromotionModalOpen(true)}
-              disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
-              className={clsx(
-                "btn-primary whitespace-nowrap !h-[44px] !py-2",
-                (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <ArrowRight className="w-4 h-4" />
-              প্রমোশন
-            </button>
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              disabled={!selectedClassId || !canManageStudents}
-              className={clsx(
-                "btn-primary whitespace-nowrap !h-[44px] !py-2",
-                (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Upload className="w-4 h-4" />
-              CSV আমদানি
-            </button>
-            <button
-              onClick={() => setIsCsvInstructionsModalOpen(true)}
-              className="btn-primary whitespace-nowrap !h-[44px] !py-2 bg-indigo-50 text-indigo-600 hover:bg-indigo-100 border-indigo-200"
-              title="CSV আমদানির নিয়মাবলী"
-            >
-              <Info className="w-4 h-4" />
-              নিয়মাবলী
-            </button>
-            <button
-              onClick={() => handleExport('csv')}
-              disabled={allStudentsList.length === 0}
-              className={clsx(
-                "btn-primary whitespace-nowrap !h-[44px] !py-2",
-                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Download className="w-4 h-4" />
-              CSV এক্সপোর্ট
-            </button>
-            <button
-              onClick={() => handleExport('docx')}
-              disabled={allStudentsList.length === 0}
-              className={clsx(
-                "btn-primary whitespace-nowrap !h-[44px] !py-2",
-                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Download className="w-4 h-4" />
-              DOCX এক্সপোর্ট
-            </button>
-            <button
-              onClick={handlePrint}
-              disabled={allStudentsList.length === 0}
-              className={clsx(
-                "btn-primary whitespace-nowrap !h-[44px] !py-2",
-                (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed"
-              )}
-            >
-              <Printer className="w-4 h-4" />
-              প্রিন্ট করুন
-            </button>
-          </div>
+          {/* Promotion (Academic Workflow - visible on tablet/desktop) */}
+          <button
+            onClick={() => setIsPromotionModalOpen(true)}
+            disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
+            className={clsx(
+              "hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2.5 h-[42px]",
+              "bg-emerald-50/90 hover:bg-emerald-100/90 text-emerald-800 border border-emerald-200/90 hover:border-emerald-300",
+              "font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) && "opacity-50 cursor-not-allowed active:scale-100 hover:bg-emerald-50/90 hover:border-emerald-200/90"
+            )}
+          >
+            <ArrowRight className="w-4 h-4 text-emerald-600 transition-transform duration-200 group-hover:translate-x-0.5" />
+            <span>প্রমোশন</span>
+          </button>
 
-          {/* Mobile version (dropdown) */}
-          <div className="md:hidden relative" ref={actionMenuRef}>
+          {/* Custom Fields (Admin Only) */}
+          {role === "admin" && (
+            <button
+              onClick={() => setIsCustomFieldsModalOpen(true)}
+              className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-2.5 h-[42px] bg-slate-100 hover:bg-slate-200/80 text-slate-700 border border-slate-200 font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+            >
+              <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+              <span>অতিরিক্ত ফিল্ড</span>
+            </button>
+          )}
+
+          {/* Mobile Actions Dropdown Trigger (Hidden on Desktop/Tablet) */}
+          <div className="sm:hidden relative ml-auto" ref={actionMenuRef}>
             <button
               onClick={() => setIsActionMenuOpen(!isActionMenuOpen)}
-              className="btn-primary w-full whitespace-nowrap !h-[44px] !py-2 bg-slate-100 text-slate-700 hover:bg-slate-200"
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 h-[42px] bg-white hover:bg-slate-50 text-slate-700 border border-slate-200/90 rounded-xl shadow-xs font-medium text-sm transition-all"
             >
-              <MoreHorizontal className="w-5 h-5" />
-              আরও
+              <MoreHorizontal className="w-4 h-4 text-slate-600" />
+              <span>আরও</span>
             </button>
             
             {isActionMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-100 z-50 overflow-hidden flex flex-col p-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
+              <div className="absolute right-0 mt-2 w-60 bg-white rounded-2xl shadow-xl border border-slate-100 z-50 overflow-hidden flex flex-col p-2 gap-1 animate-in fade-in zoom-in-95 duration-200">
                 <button
                   onClick={() => { setIsPromotionModalOpen(true); setIsActionMenuOpen(false); }}
                   disabled={!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0}
                   className={clsx(
-                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors",
                     (!selectedClassId || !canManageStudents || allStudentsList.filter(s => s.isActive !== false).length === 0) 
                       ? "opacity-50 cursor-not-allowed text-slate-400" 
-                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                      : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
                   )}
                 >
-                  <ArrowRight className="w-4 h-4" />
-                  প্রমোশন
+                  <ArrowRight className="w-4 h-4 text-emerald-600" />
+                  <span>প্রমোশন</span>
                 </button>
+                {role === "admin" && (
+                  <button
+                    onClick={() => { setIsCustomFieldsModalOpen(true); setIsActionMenuOpen(false); }}
+                    className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors text-slate-700 hover:bg-slate-50"
+                  >
+                    <SlidersHorizontal className="w-4 h-4 text-slate-500" />
+                    <span>অতিরিক্ত ফিল্ড</span>
+                  </button>
+                )}
                 <button
                   onClick={() => { fileInputRef.current?.click(); setIsActionMenuOpen(false); }}
                   disabled={!selectedClassId || !canManageStudents}
                   className={clsx(
-                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors",
                     (!selectedClassId || !canManageStudents) 
                       ? "opacity-50 cursor-not-allowed text-slate-400" 
-                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                      : "text-slate-700 hover:bg-teal-50 hover:text-teal-800"
                   )}
                 >
-                  <Upload className="w-4 h-4" />
-                  CSV আমদানি
+                  <Upload className="w-4 h-4 text-teal-600" />
+                  <span>CSV আমদানি</span>
                 </button>
                 <button
                   onClick={() => { setIsCsvInstructionsModalOpen(true); setIsActionMenuOpen(false); }}
-                  className="flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors text-indigo-600 hover:bg-indigo-50"
+                  className="flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors text-amber-800 hover:bg-amber-50"
                 >
-                  <Info className="w-4 h-4" />
-                  CSV আমদানির নিয়মাবলী
+                  <Info className="w-4 h-4 text-amber-600" />
+                  <span>CSV আমদানির নিয়মাবলী</span>
                 </button>
+                <div className="h-px bg-slate-100 my-1" />
                 <button
                   onClick={() => { handleExport('csv'); setIsActionMenuOpen(false); }}
                   disabled={allStudentsList.length === 0}
                   className={clsx(
-                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors",
                     (allStudentsList.length === 0) 
                       ? "opacity-50 cursor-not-allowed text-slate-400" 
-                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                      : "text-slate-700 hover:bg-emerald-50 hover:text-emerald-800"
                   )}
                 >
-                  <Download className="w-4 h-4" />
-                  CSV এক্সপোর্ট
+                  <FileSpreadsheet className="w-4 h-4 text-emerald-600" />
+                  <span>CSV এক্সপোর্ট</span>
                 </button>
                 <button
                   onClick={() => { handleExport('docx'); setIsActionMenuOpen(false); }}
                   disabled={allStudentsList.length === 0}
                   className={clsx(
-                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors",
                     (allStudentsList.length === 0) 
                       ? "opacity-50 cursor-not-allowed text-slate-400" 
-                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                      : "text-slate-700 hover:bg-blue-50 hover:text-blue-800"
                   )}
                 >
-                  <Download className="w-4 h-4" />
-                  DOCX এক্সপোর্ট
+                  <FileText className="w-4 h-4 text-blue-600" />
+                  <span>DOCX এক্সপোর্ট</span>
                 </button>
                 <button
                   onClick={() => { handlePrint(); setIsActionMenuOpen(false); }}
                   disabled={allStudentsList.length === 0}
                   className={clsx(
-                    "flex items-center gap-2 px-3 py-2.5 text-sm font-medium rounded-lg text-left transition-colors",
+                    "flex items-center gap-2.5 px-3 py-2.5 text-sm font-medium rounded-xl text-left transition-colors",
                     (allStudentsList.length === 0) 
                       ? "opacity-50 cursor-not-allowed text-slate-400" 
-                      : "text-slate-700 hover:bg-slate-50 hover:text-[#0F5C7A]"
+                      : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
                   )}
                 >
-                  <Printer className="w-4 h-4" />
-                  প্রিন্ট করুন
+                  <Printer className="w-4 h-4 text-slate-600" />
+                  <span>প্রিন্ট করুন</span>
                 </button>
               </div>
             )}
           </div>
         </div>
+
+        {/* Right Section: Data Management Tools (Desktop / Tablet) */}
+        <div className="hidden sm:flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          {/* CSV Import */}
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!selectedClassId || !canManageStudents}
+            className={clsx(
+              "group inline-flex items-center justify-center gap-2 px-3.5 py-2.5 h-[42px]",
+              "bg-white hover:bg-teal-50/70 text-slate-700 hover:text-teal-800 border border-slate-200/90 hover:border-teal-300",
+              "font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (!selectedClassId || !canManageStudents) && "opacity-50 cursor-not-allowed active:scale-100 hover:bg-white hover:border-slate-200/90 hover:text-slate-700"
+            )}
+          >
+            <Upload className="w-4 h-4 text-teal-600 transition-transform duration-200 group-hover:-translate-y-0.5" />
+            <span>CSV আমদানি</span>
+          </button>
+
+          {/* Guidelines */}
+          <button
+            onClick={() => setIsCsvInstructionsModalOpen(true)}
+            className="inline-flex items-center justify-center gap-1.5 px-3 py-2.5 h-[42px] bg-amber-50 hover:bg-amber-100/90 text-amber-800 border border-amber-200/80 font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap"
+            title="CSV আমদানির নিয়মাবলী"
+          >
+            <Info className="w-4 h-4 text-amber-600" />
+            <span>নিয়মাবলী</span>
+          </button>
+
+          {/* Divider */}
+          <div className="h-5 w-px bg-slate-200/90 mx-0.5 hidden md:block" />
+
+          {/* CSV Export */}
+          <button
+            onClick={() => handleExport('csv')}
+            disabled={allStudentsList.length === 0}
+            className={clsx(
+              "group inline-flex items-center justify-center gap-2 px-3.5 py-2.5 h-[42px]",
+              "bg-white hover:bg-emerald-50/70 text-slate-700 hover:text-emerald-800 border border-slate-200/90 hover:border-emerald-200",
+              "font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed active:scale-100 hover:bg-white hover:border-slate-200/90 hover:text-slate-700"
+            )}
+          >
+            <FileSpreadsheet className="w-4 h-4 text-emerald-600 transition-transform duration-200 group-hover:scale-110" />
+            <span>CSV এক্সপোর্ট</span>
+          </button>
+
+          {/* DOCX Export */}
+          <button
+            onClick={() => handleExport('docx')}
+            disabled={allStudentsList.length === 0}
+            className={clsx(
+              "group inline-flex items-center justify-center gap-2 px-3.5 py-2.5 h-[42px]",
+              "bg-white hover:bg-blue-50/70 text-slate-700 hover:text-blue-800 border border-slate-200/90 hover:border-blue-200",
+              "font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed active:scale-100 hover:bg-white hover:border-slate-200/90 hover:text-slate-700"
+            )}
+          >
+            <FileText className="w-4 h-4 text-blue-600 transition-transform duration-200 group-hover:scale-110" />
+            <span>DOCX এক্সপোর্ট</span>
+          </button>
+
+          {/* Print */}
+          <button
+            onClick={handlePrint}
+            disabled={allStudentsList.length === 0}
+            className={clsx(
+              "group inline-flex items-center justify-center gap-2 px-3.5 py-2.5 h-[42px]",
+              "bg-white hover:bg-slate-50 text-slate-700 hover:text-slate-900 border border-slate-200/90 hover:border-slate-300",
+              "font-medium text-sm rounded-xl shadow-xs active:scale-[0.98] transition-all duration-200 whitespace-nowrap",
+              (allStudentsList.length === 0) && "opacity-50 cursor-not-allowed active:scale-100 hover:bg-white hover:border-slate-200/90 hover:text-slate-700"
+            )}
+          >
+            <Printer className="w-4 h-4 text-slate-600 transition-transform duration-200 group-hover:scale-105" />
+            <span>প্রিন্ট করুন</span>
+          </button>
+        </div>
       </div>
-    </div>
 
       <div className="card-premium p-8 border-[#0aa7a7]">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">

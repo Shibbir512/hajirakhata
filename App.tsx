@@ -262,21 +262,37 @@ const App: React.FC = () => {
       <Toaster 
         position="top-center"
         toastOptions={{
-          duration: 3000,
+          duration: 3500,
+          className: "google-sans",
           style: {
-            borderRadius: '12px',
-            background: '#333',
-            color: '#fff',
+            fontFamily: '"Google Sans", "Noto Sans Bengali", "Hind Siliguri", sans-serif',
+            fontOpticalSizing: 'auto',
+            fontStyle: 'normal',
+            fontVariationSettings: '"GRAD" 0',
+            letterSpacing: 'normal',
+            borderRadius: '16px',
+            background: '#ffffff',
+            color: '#1e293b',
             fontSize: '14px',
+            fontWeight: 500,
             padding: '12px 20px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
-            pointerEvents: 'none',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05)',
+            border: '1px solid #e2e8f0',
+            maxWidth: '520px',
           },
           success: {
-            duration: 3000,
+            duration: 3500,
+            iconTheme: {
+              primary: '#10b981',
+              secondary: '#ffffff',
+            },
           },
           error: {
             duration: 5000,
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#ffffff',
+            },
           },
         }}
       />

@@ -22,8 +22,8 @@
 }
 
 @theme {
-  --font-sans: "Google Sans", "Hind Siliguri", "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
-  --font-bengali: "Google Sans", "Noto Sans Bengali", sans-serif;
+  --font-sans: "Google Sans", "Noto Sans Bengali", "Hind Siliguri", "Inter", "Poppins", ui-sans-serif, system-ui, sans-serif;
+  --font-bengali: "Google Sans", "Noto Sans Bengali", "Hind Siliguri", sans-serif;
   --font-arabic: "Noto Sans Arabic", serif;
   
   --color-bg-main: #F4F7FB;
@@ -311,6 +311,13 @@
     background-color: var(--color-bg-main);
     color: #334155;
     font-optical-sizing: auto;
+    font-variation-settings: "GRAD" 0;
+  }
+
+  .google-sans {
+    font-family: "Google Sans", "Noto Sans Bengali", "Hind Siliguri", sans-serif;
+    font-optical-sizing: auto;
+    font-style: normal;
     font-variation-settings: "GRAD" 0;
   }
 }
