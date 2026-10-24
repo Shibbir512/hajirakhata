@@ -19,10 +19,11 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Download, Calendar, ChevronDown, Users, Printer } from "lucide-react";
+import { Download, Calendar, ChevronDown, Users, Printer, Database } from "lucide-react";
 import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
+import DataBackupModal from "../components/DataBackupModal";
 
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
@@ -37,6 +38,7 @@ const Reports: React.FC = () => {
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [isExporting, setIsExporting] = useState(false);
   const [showAllAbsent, setShowAllAbsent] = useState(false);
+  const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
 
   const setDailyReport = () => {
     const today = new Date();
@@ -448,7 +450,15 @@ const Reports: React.FC = () => {
           <h1 className="text-2xl font-bold text-slate-800">হাজিরা রিপোর্ট</h1>
           <p className="text-sm text-slate-500">উপস্থিতি ও অনুপস্থিতির সার্বিক পরিসংখ্যান</p>
         </div>
-        <div className="flex flex-row gap-3 print:hidden">
+        <div className="flex flex-wrap sm:flex-row gap-3 print:hidden">
+          <button 
+            onClick={() => setIsBackupModalOpen(true)}
+            className="h-[52px] px-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold rounded-xl border border-emerald-200 transition-all shadow-soft flex items-center justify-center gap-2 text-sm shrink-0"
+            title="সম্পূর্ণ ডাটাবেজ ব্যাকআপ (JSON)"
+          >
+            <Database className="w-4 h-4 text-emerald-600" />
+            JSON ব্যাকআপ
+          </button>
           <button 
             onClick={() => window.print()}
             className="h-[52px] px-4 bg-[#0F5C7A] text-white font-bold rounded-xl hover:bg-[#0c4b63] transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
@@ -767,6 +777,7 @@ const Reports: React.FC = () => {
           </table>
         </div>
       </div>
+      <DataBackupModal isOpen={isBackupModalOpen} onClose={() => setIsBackupModalOpen(false)} />
     </div>
   );
 };

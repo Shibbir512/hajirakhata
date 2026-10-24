@@ -1,10 +1,11 @@
 import React, { useState, useRef } from "react";
 import { createPortal } from "react-dom";
-import { X, UserPlus, Camera, Upload } from "lucide-react";
+import { X, UserPlus, Camera, Upload, Plus } from "lucide-react";
 import { compressAndUploadImage } from "../utils/imageUpload";
 import { useAuth } from "../hooks/useAuth";
 import toast from "react-hot-toast";
 import ImageCropper from "./ImageCropper";
+import CustomFieldsModal from "./CustomFieldsModal";
 import { base64ToFile } from "../utils/cropImage";
 import { toEnglishNumber } from "../utils/dateFormatter";
 import { doc, getDoc } from "firebase/firestore";
@@ -24,7 +25,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   onClose,
   onAdd,
 }) => {
-  const { orgId } = useAuth();
+  const { orgId, role } = useAuth();
   const [name, setName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [phone, setPhone] = useState("");
@@ -33,6 +34,7 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   const [gender, setGender] = useState("পুরুষ");
   const [customFieldsValues, setCustomFieldsValues] = useState<Record<string, string>>({});
   const [orgCustomFields, setOrgCustomFields] = useState<CustomFieldDef[]>([]);
+  const [isCustomFieldsModalOpen, setIsCustomFieldsModalOpen] = useState(false);
   
   const [error, setError] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -45,21 +47,23 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const cameraInputRef = useRef<HTMLInputElement>(null);
 
+  const fetchCustomFields = React.useCallback(async () => {
+    if (!orgId) return;
+    try {
+      const orgDoc = await getDoc(doc(db, "organizations", orgId));
+      if (orgDoc.exists()) {
+        setOrgCustomFields(orgDoc.data().studentCustomFields || []);
+      }
+    } catch (e) {
+      console.error("Failed to load custom fields", e);
+    }
+  }, [orgId]);
+
   React.useEffect(() => {
     if (isOpen && orgId) {
-      const fetchCustomFields = async () => {
-        try {
-          const orgDoc = await getDoc(doc(db, "organizations", orgId));
-          if (orgDoc.exists()) {
-            setOrgCustomFields(orgDoc.data().studentCustomFields || []);
-          }
-        } catch (e) {
-          console.error("Failed to load custom fields", e);
-        }
-      };
       fetchCustomFields();
     }
-  }, [isOpen, orgId]);
+  }, [isOpen, orgId, fetchCustomFields]);
 
   if (!isOpen) return null;
 
@@ -376,6 +380,19 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
               </div>
             ))}
 
+            {role === "admin" && (
+              <div className="pt-1">
+                <button
+                  type="button"
+                  onClick={() => setIsCustomFieldsModalOpen(true)}
+                  className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-dashed border-emerald-400/80 rounded-[16px] font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
+                >
+                  <Plus className="w-4 h-4 text-emerald-600" />
+                  অতিরিক্ত ফিল্ড যোগ করুন
+                </button>
+              </div>
+            )}
+
             {error && <p className="text-sm text-[#EF4444] font-medium">{error}</p>}
           </form>
         </div>
@@ -407,6 +424,17 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
           </button>
         </div>
       </div>
+
+      {isCustomFieldsModalOpen && orgId && (
+        <CustomFieldsModal
+          isOpen={isCustomFieldsModalOpen}
+          onClose={() => {
+            setIsCustomFieldsModalOpen(false);
+            fetchCustomFields();
+          }}
+          orgId={orgId}
+        />
+      )}
     </div>,
     document.body
   );

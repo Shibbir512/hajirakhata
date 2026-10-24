@@ -8,6 +8,7 @@ import { ref, uploadBytes, getDownloadURL } from "firebase/storage";
 import toast from "react-hot-toast";
 import { toEnglishNumber } from "../utils/dateFormatter";
 import WhatsAppSupportButton from "../components/WhatsAppSupportButton";
+import DataBackupCard from "../components/DataBackupCard";
 
 import { SUPER_ADMIN_EMAILS } from "../constants";
 
@@ -1058,6 +1059,11 @@ const Settings: React.FC = () => {
             )}
           </div>
         )}
+
+        {/* Data Backup & Export Section */}
+        <div className="col-span-1 md:col-span-2">
+          <DataBackupCard />
+        </div>
 
         {/* Danger Zone */}
         <div className="col-span-1 md:col-span-2 bg-white p-8 rounded-3xl shadow-sm border border-rose-100/50 relative overflow-hidden">

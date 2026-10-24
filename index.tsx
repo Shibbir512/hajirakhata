@@ -5,15 +5,20 @@ import './index.css';
 import App from './App';
 import { registerSW } from 'virtual:pwa-register';
 
-const updateSW = registerSW({
-  onNeedRefresh() {
-    console.log('New content available. Please refresh to update.');
-    // Prevent infinite reload loops by not forcing an update automatically.
-  },
-  onOfflineReady() {
-    console.log('App ready to work offline');
-  },
-});
+if (typeof window !== 'undefined' && 'serviceWorker' in navigator && import.meta.env.PROD) {
+  try {
+    registerSW({
+      onNeedRefresh() {
+        console.log('New content available. Please refresh to update.');
+      },
+      onOfflineReady() {
+        console.log('App ready to work offline');
+      },
+    });
+  } catch (err) {
+    console.warn('PWA registration warning:', err);
+  }
+}
 
 const rootElement = document.getElementById('root');
 if (!rootElement) {

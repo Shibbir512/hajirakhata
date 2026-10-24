@@ -449,15 +449,6 @@ const Students: React.FC = () => {
             <Plus className="w-4 h-4" />
             শিক্ষার্থী যোগ
           </button>
-          {role === "admin" && (
-            <button
-              onClick={() => setIsCustomFieldsModalOpen(true)}
-              className="btn-primary bg-emerald-600 hover:bg-emerald-700 w-full md:w-auto whitespace-nowrap !h-[44px] !py-2"
-            >
-              <Plus className="w-4 h-4" />
-              অতিরিক্ত ফিল্ড
-            </button>
-          )}
           
           {/* Desktop version (hidden on mobile) */}
           <div className="hidden md:flex flex-wrap gap-3">
