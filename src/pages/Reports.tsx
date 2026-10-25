@@ -19,7 +19,7 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Download, Calendar, ChevronDown, Users, Printer, Database } from "lucide-react";
+import { Download, Calendar, ChevronDown, Users, Printer, Database, Filter } from "lucide-react";
 import clsx from "clsx";
 import DatePicker from "react-datepicker";
 import toast from "react-hot-toast";
@@ -39,6 +39,9 @@ const Reports: React.FC = () => {
   const [isExporting, setIsExporting] = useState(false);
   const [showAllAbsent, setShowAllAbsent] = useState(false);
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
+  const [absentFilterClassId, setAbsentFilterClassId] = useState<string>("");
+  const [absentFilterStartDate, setAbsentFilterStartDate] = useState<string>("");
+  const [absentFilterEndDate, setAbsentFilterEndDate] = useState<string>("");
 
   const setDailyReport = () => {
     const today = new Date();
@@ -266,6 +269,54 @@ const Reports: React.FC = () => {
       return a.rawRoll - b.rawRoll;
     });
   }, [attendanceSessions, classes, students]);
+
+  // Unique class names from absent students for filter dropdown, sorted by classes page order
+  const absentFilterOptions = useMemo(() => {
+    const absentClassNames = new Set<string>();
+    absentStudentsList.forEach(s => {
+      absentClassNames.add(s.className);
+    });
+    // Keep only classes that have absent students, in the same order as the classes array
+    const classNames = classes
+      .map(c => c.name)
+      .filter(name => absentClassNames.has(name));
+    return { classNames };
+  }, [absentStudentsList, classes]);
+
+  // Helper: parse "dd mm yyyy" date string to Date object for comparison
+  const parseAbsentDate = (dateStr: string): Date => {
+    const [d, m, y] = dateStr.split(" ").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  // Helper: parse "yyyy-mm-dd" (from input[type=date]) to local Date
+  const parseInputDate = (dateStr: string): Date => {
+    const [y, m, d] = dateStr.split("-").map(Number);
+    return new Date(y, m - 1, d);
+  };
+
+  // Filtered absent students list
+  const filteredAbsentStudents = useMemo(() => {
+    // If only one date is given, use it as both start and end (single day filter)
+    const rawStart = absentFilterStartDate || absentFilterEndDate || null;
+    const rawEnd = absentFilterEndDate || absentFilterStartDate || null;
+    const startDateObj = rawStart ? parseInputDate(rawStart) : null;
+    const endDateObj = rawEnd ? parseInputDate(rawEnd) : null;
+    // Set end date to end of day for inclusive comparison
+    if (endDateObj) endDateObj.setHours(23, 59, 59, 999);
+
+    return absentStudentsList.filter(s => {
+      if (absentFilterClassId && s.className !== absentFilterClassId) return false;
+      if (startDateObj || endDateObj) {
+        const sDate = parseAbsentDate(s.date);
+        if (startDateObj && sDate < startDateObj) return false;
+        if (endDateObj && sDate > endDateObj) return false;
+      }
+      return true;
+    });
+  }, [absentStudentsList, absentFilterClassId, absentFilterStartDate, absentFilterEndDate]);
+
+  const isAbsentFilterActive = !!(absentFilterClassId || absentFilterStartDate || absentFilterEndDate);
 
   const handleExportPDF = async () => {
     setIsExporting(true);
@@ -648,11 +699,68 @@ const Reports: React.FC = () => {
 
         {!selectedClassId && absentStudentsList.length > 0 && (
           <div className="mb-8 overflow-hidden border border-rose-100 rounded-[20px] shadow-soft bg-rose-50/30">
-            <div className="bg-rose-500 px-6 py-3">
-              <h3 className="text-white font-bold flex items-center gap-2">
-                <Users className="w-5 h-5" />
-                অনুপস্থিত শিক্ষার্থীদের তালিকা (সকল শ্রেণি)
-              </h3>
+            <div className="bg-rose-500 px-4 sm:px-6 py-3">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <h3 className="text-white font-bold flex items-center gap-2 shrink-0">
+                  <Users className="w-5 h-5" />
+                  অনুপস্থিত শিক্ষার্থীদের তালিকা
+                </h3>
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="relative">
+                    <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
+                    <select
+                      value={absentFilterClassId}
+                      onChange={(e) => { setAbsentFilterClassId(e.target.value); setShowAllAbsent(false); }}
+                      className="pl-8 pr-6 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white appearance-none cursor-pointer min-w-[120px]"
+                    >
+                      <option value="">সকল শ্রেণি</option>
+                      {absentFilterOptions.classNames.map(cn => (
+                        <option key={cn} value={cn}>{cn}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <div className="relative">
+                      <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
+                      <input
+                        type="date"
+                        value={absentFilterStartDate}
+                        onChange={(e) => { setAbsentFilterStartDate(e.target.value); setShowAllAbsent(false); }}
+                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
+                        title="শুরুর তারিখ"
+                      />
+                    </div>
+                    <span className="text-white/80 text-xs font-medium">থেকে</span>
+                    <div className="relative">
+                      <Calendar className="absolute left-2 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
+                      <input
+                        type="date"
+                        value={absentFilterEndDate}
+                        onChange={(e) => { setAbsentFilterEndDate(e.target.value); setShowAllAbsent(false); }}
+                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
+                        title="শেষ তারিখ"
+                      />
+                    </div>
+                  </div>
+                  {isAbsentFilterActive && (
+                    <button
+                      onClick={() => { setAbsentFilterClassId(""); setAbsentFilterStartDate(""); setAbsentFilterEndDate(""); setShowAllAbsent(false); }}
+                      className="px-3 py-1.5 text-xs font-bold rounded-lg bg-white/20 text-white border border-white/30 hover:bg-white/30 transition-colors cursor-pointer"
+                    >
+                      রিসেট
+                    </button>
+                  )}
+                </div>
+              </div>
+              {isAbsentFilterActive && (
+                <div className="mt-2 text-rose-100 text-xs font-medium">
+                  ফলাফল: {toBengaliNumber(filteredAbsentStudents.length)} জন
+                  {absentFilterClassId && <span> | শ্রেণি: {absentFilterClassId}</span>}
+                  {absentFilterStartDate && <span> | শুরু: {absentFilterStartDate.split('-').reverse().join('.')}</span>}
+                  {absentFilterEndDate && <span> | শেষ: {absentFilterEndDate.split('-').reverse().join('.')}</span>}
+                </div>
+              )}
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
@@ -665,7 +773,7 @@ const Reports: React.FC = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {(showAllAbsent ? absentStudentsList : absentStudentsList.slice(0, 50)).map((s) => (
+                  {(showAllAbsent ? filteredAbsentStudents : filteredAbsentStudents.slice(0, 50)).map((s) => (
                     <tr key={s.id} className="border-b border-rose-50 hover:bg-rose-100/50 transition-colors">
                       <td className="py-3 px-5 text-slate-700 font-medium text-sm">{s.roll}</td>
                       <td className="py-3 px-5 text-slate-700 font-bold text-sm">{s.name}</td>
@@ -677,17 +785,24 @@ const Reports: React.FC = () => {
                       <td className="py-3 px-5 text-slate-500 text-xs">{s.date}</td>
                     </tr>
                   ))}
+                  {filteredAbsentStudents.length === 0 && (
+                    <tr>
+                      <td colSpan={4} className="text-center py-8 text-slate-400 text-sm">
+                        এই ফিল্টারে কোন অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি।
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
-              {!showAllAbsent && absentStudentsList.length > 50 && (
+              {!showAllAbsent && filteredAbsentStudents.length > 50 && (
                 <button 
                   onClick={() => setShowAllAbsent(true)}
                   className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
                 >
-                  আরও {toBengaliNumber(absentStudentsList.length - 50)} জন অনুপস্থিত আছে... (সব দেখুন)
+                  আরও {toBengaliNumber(filteredAbsentStudents.length - 50)} জন অনুপস্থিত আছে... (সব দেখুন)
                 </button>
               )}
-              {showAllAbsent && absentStudentsList.length > 50 && (
+              {showAllAbsent && filteredAbsentStudents.length > 50 && (
                 <button 
                   onClick={() => setShowAllAbsent(false)}
                   className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
