@@ -14,6 +14,7 @@ import toast from "react-hot-toast";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { SyncManager } from "../services/SyncManager";
+import AttendanceNavTabs from "../components/AttendanceNavTabs";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -242,8 +243,7 @@ const AttendanceHistory: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      
-      
+      <AttendanceNavTabs />
       <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB] relative z-50">
         <div className="relative w-full max-w-xs">
           <label className="block text-sm font-medium text-slate-500 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>

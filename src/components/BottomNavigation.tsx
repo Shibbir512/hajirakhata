@@ -66,6 +66,7 @@ const BottomNavigation: React.FC = () => {
     attendance: [
       { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
       { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
+      { name: "হাজিরা রিপোর্ট", path: "/reports", icon: BarChart3 },
       { name: "ছুটি", path: "/attendance/leave", icon: CalendarDays },
       { name: "নাম কাটা", path: "/attendance/struck-off", icon: Users },
     ],
@@ -93,7 +94,6 @@ const BottomNavigation: React.FC = () => {
       { name: "বিষয়", path: "/subjects", icon: Book },
       { name: "পরীক্ষা", path: "/exams", icon: FileText },
       { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
-      { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
       { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
       ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
       { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },

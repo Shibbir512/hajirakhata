@@ -336,6 +336,7 @@ const AppRoutes = () => (
           <Route index element={<Dashboard />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="attendance/history" element={<AttendanceHistory />} />
+          <Route path="attendance/reports" element={<Reports />} />
           <Route path="attendance/leave" element={<LeaveManagement />} />
           <Route path="attendance/struck-off" element={<StruckOffStudents />} />
           <Route path="students" element={<Students />} />

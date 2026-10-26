@@ -66,11 +66,11 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
 
   useEffect(() => {
     const path = location.pathname;
-    if (path.startsWith('/attendance')) setOpenSections(prev => ({ ...prev, attendance: true }));
+    if (path.startsWith('/attendance') || path === '/reports') setOpenSections(prev => ({ ...prev, attendance: true }));
     else if (path.startsWith('/fees')) setOpenSections(prev => ({ ...prev, fees: true }));
     else if (path.startsWith('/result') || path.startsWith('/mark')) setOpenSections(prev => ({ ...prev, results: true }));
     else if (path.startsWith('/student') || path === '/alumni' || path === '/classes') setOpenSections(prev => ({ ...prev, students: true }));
-    else if (path === '/settings' || path === '/calendar' || path === '/subjects' || path === '/exams' || path === '/academic-years' || path === '/reports' || path === '/announcements') setOpenSections(prev => ({ ...prev, settings: true }));
+    else if (path === '/settings' || path === '/calendar' || path === '/subjects' || path === '/exams' || path === '/academic-years' || path === '/announcements') setOpenSections(prev => ({ ...prev, settings: true }));
   }, [location.pathname]);
 
   const toggleSection = (section: string) => {
@@ -86,6 +86,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const attendanceLinks = orgId ? [
     { name: "হাজিরা নিন", path: "/attendance", icon: CalendarCheck },
     { name: "হাজিরা ইতিহাস", path: "/attendance/history", icon: CalendarCheck },
+    { name: "হাজিরা রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "ছুটি", path: "/attendance/leave", icon: CalendarDays },
     { name: "নাম কাটা", path: "/attendance/struck-off", icon: Users },
   ] : [];
@@ -117,7 +118,6 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "বিষয়", path: "/subjects", icon: Book },
     { name: "পরীক্ষা", path: "/exams", icon: FileText },
     { name: "শিক্ষাবর্ষ", path: "/academic-years", icon: CalendarDays },
-    { name: "রিপোর্ট", path: "/reports", icon: BarChart3 },
     { name: "ঘোষণা", path: "/announcements", icon: Megaphone },
     ...(isSuperAdmin ? [{ name: "সুপার অ্যাডমিন", path: "/super-admin", icon: ShieldAlert }] : []),
     { name: "প্রতিষ্ঠান পরিবর্তন", path: "/org-management", icon: Building2 },

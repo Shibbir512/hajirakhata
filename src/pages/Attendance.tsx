@@ -15,6 +15,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import ImageModal from "../components/ImageModal";
+import AttendanceNavTabs from "../components/AttendanceNavTabs";
 
 interface StatCardProps {
   title: string;
@@ -336,6 +337,7 @@ const Attendance: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AttendanceNavTabs />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
           

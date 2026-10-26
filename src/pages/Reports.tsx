@@ -27,6 +27,7 @@ import DataBackupModal from "../components/DataBackupModal";
 
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
+import AttendanceNavTabs from "../components/AttendanceNavTabs";
 
 const Reports: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
@@ -496,6 +497,7 @@ const Reports: React.FC = () => {
 
   return (
     <div className="space-y-6">
+      <AttendanceNavTabs />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-2xl font-bold text-slate-800">হাজিরা রিপোর্ট</h1>

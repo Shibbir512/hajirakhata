@@ -8,6 +8,7 @@ import { toBengaliNumber, toBengaliDate, getTodayISO, toEnglishNumber, normalize
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
+import AttendanceNavTabs from "../components/AttendanceNavTabs";
 
 const LeaveManagement: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -209,6 +210,7 @@ const LeaveManagement: React.FC = () => {
 
   return (
     <div className="space-y-6 bg-[#F8FAFC] min-h-screen p-6">
+      <AttendanceNavTabs />
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
         <h2 className="text-2xl font-bold text-[#0a9880] border-l-4 border-[#1d45a4] pl-3 tracking-tight" style={{ fontFamily: "Georgia" }}>
           ছুটি ব্যবস্থাপনা

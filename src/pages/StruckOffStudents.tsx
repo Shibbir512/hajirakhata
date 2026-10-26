@@ -6,6 +6,7 @@ import { useStruckOffStudents } from "../hooks/useStruckOffStudents";
 import { AlertTriangle, Check, Loader2, CheckCircle } from "lucide-react";
 import { toBengaliNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
+import AttendanceNavTabs from "../components/AttendanceNavTabs";
 
 const StruckOffStudents: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -15,6 +16,7 @@ const StruckOffStudents: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto space-y-6 animate-in fade-in duration-500 pb-20 md:pb-0">
+      <AttendanceNavTabs />
       <p className="text-slate-600 font-medium">টানা ৬ দিন অনুপস্থিত শিক্ষার্থীদের তালিকা</p>
 
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">

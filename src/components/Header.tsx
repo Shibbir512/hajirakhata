@@ -21,6 +21,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
   const getPageTitle = () => {
     if (location.pathname.startsWith("/attendance/history")) return "হাজিরা ইতিহাস";
+    if (location.pathname.startsWith("/attendance/reports") || location.pathname === "/reports") return "হাজিরা রিপোর্ট";
     if (location.pathname.startsWith("/attendance/leave")) return "ছুটি ব্যবস্থাপনা";
     if (location.pathname.startsWith("/attendance/struck-off")) return "নাম কাটা শিক্ষার্থী";
     if (location.pathname.startsWith("/attendance")) return "হাজিরা নিন";
@@ -47,7 +48,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
       case "/": return "ড্যাশবোর্ড";
       case "/students": return "শিক্ষার্থী";
       case "/classes": return "শ্রেণি";
-      case "/reports": return "রিপোর্ট";
+      case "/reports": return "হাজিরা রিপোর্ট";
       case "/settings": return "সেটিংস";
       case "/super-admin": return "সুপার অ্যাডমিন ড্যাশবোর্ড";
       default: return "";
