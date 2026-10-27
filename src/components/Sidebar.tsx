@@ -26,6 +26,7 @@ import {
   ChevronUp,
 } from "lucide-react";
 import clsx from "clsx";
+import { useTheme } from "../context/ThemeContext";
 import WhatsAppSupportButton from "./WhatsAppSupportButton";
 
 interface SidebarProps {
@@ -42,6 +43,7 @@ const NavLabel = ({ name }: { name: string }) => {
 
 const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   const { user, photoURL, orgId, logout, role } = useAuth();
+  const { resolvedTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
@@ -226,8 +228,10 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
   return (
     <div
       id="dashboard-sidebar"
-      className="hidden lg:flex relative z-[100] w-[280px] h-full flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0 print:hidden"
-      style={{ background: "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
+      className="hidden lg:flex relative z-[100] w-[280px] h-full flex-col shadow-[4px_0_24px_rgba(0,0,0,0.02)] shrink-0 print:hidden transition-colors duration-200"
+      style={{ background: resolvedTheme === "dark" 
+        ? "linear-gradient(135deg, #0B1320 0%, #0F1D2E 40%, #0A3344 100%)" 
+        : "linear-gradient(135deg, #0F5C7A 0%, #0C6C8A 40%, #14B8A6 100%)" }}
     >
       <div className="flex items-center justify-between h-[70px] border-b border-white/10 px-6 shrink-0">
         <div className="flex items-center gap-3">
