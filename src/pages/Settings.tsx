@@ -523,10 +523,10 @@ const Settings: React.FC = () => {
               <Building className="w-7 h-7" />
             </div>
             <div>
-              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 প্রতিষ্ঠান
               </h3>
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                 আপনার প্রতিষ্ঠানের তথ্য পরিচালনা করুন
               </p>
             </div>
@@ -534,7 +534,7 @@ const Settings: React.FC = () => {
 
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 প্রতিষ্ঠানের নাম
               </label>
               <input
@@ -542,20 +542,20 @@ const Settings: React.FC = () => {
                 value={orgName}
                 onChange={handleOrgNameChange}
                 disabled={role !== "admin"}
-                className={`input-premium ${role !== "admin" ? "bg-slate-50/50 cursor-not-allowed opacity-70" : ""}`}
+                className={`input-premium ${role !== "admin" ? "bg-slate-50/50 dark:bg-slate-900/50 cursor-not-allowed opacity-70" : ""}`}
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                 অর্গানাইজেশন আইডি (সিস্টেম)
               </label>
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-sm shadow-inner overflow-x-auto">
+                <code className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-700 dark:text-cyan-400 font-mono text-sm shadow-inner overflow-x-auto">
                   {orgId}
                 </code>
                 <button
                   onClick={handleCopyId}
-                  className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
+                  className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] dark:text-[#38BDF8] bg-[#0F5C7A]/10 dark:bg-[#0F5C7A]/30 hover:bg-[#0F5C7A]/20 dark:hover:bg-[#0F5C7A]/40 rounded-xl transition-colors border border-[#0F5C7A]/20 dark:border-[#0F5C7A]/40 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
                 >
                   কপি
                 </button>
@@ -567,11 +567,11 @@ const Settings: React.FC = () => {
 
             {orgCode && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                   পাবলিক প্রতিষ্ঠান আইডি
                 </label>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                  <code className="flex-1 px-4 py-3 bg-slate-50/80 border border-slate-200/60 rounded-xl text-slate-600 font-mono text-lg font-bold shadow-inner text-center tracking-widest">
+                  <code className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-700/80 rounded-xl text-slate-800 dark:text-cyan-400 font-mono text-lg font-bold shadow-inner text-center tracking-widest">
                     {orgCode}
                   </code>
                   <button
@@ -579,7 +579,7 @@ const Settings: React.FC = () => {
                       navigator.clipboard.writeText(orgCode);
                       toast.success("পাবলিক প্রতিষ্ঠান আইডি কপি করা হয়েছে!");
                     }}
-                    className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] bg-[#0F5C7A]/10 hover:bg-[#0F5C7A]/20 rounded-xl transition-colors border border-[#0F5C7A]/20 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
+                    className="px-4 h-[48px] text-sm font-bold text-[#0F5C7A] dark:text-[#38BDF8] bg-[#0F5C7A]/10 dark:bg-[#0F5C7A]/30 hover:bg-[#0F5C7A]/20 dark:hover:bg-[#0F5C7A]/40 rounded-xl transition-colors border border-[#0F5C7A]/20 dark:border-[#0F5C7A]/40 w-full sm:w-auto whitespace-nowrap flex items-center justify-center gap-2"
                   >
                     কপি
                   </button>
@@ -624,10 +624,10 @@ const Settings: React.FC = () => {
 
           <div className="space-y-6">
             {isSuperAdmin && (
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div>
-                  <h4 className="font-medium text-slate-800">নতুন সাইন-আপ রিকোয়েস্ট</h4>
-                  <p className="text-sm text-slate-500 mt-1">নতুন ব্যবহারকারী সাইন-আপ করলে নোটিফিকেশন পান</p>
+                  <h4 className="font-medium text-slate-800 dark:text-slate-100">নতুন সাইন-আপ রিকোয়েস্ট</h4>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">নতুন ব্যবহারকারী সাইন-আপ করলে নোটিফিকেশন পান</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -636,16 +636,16 @@ const Settings: React.FC = () => {
                     checked={notificationPreferences?.signupRequests ?? true}
                     onChange={() => handleToggleNotificationPreference('signupRequests')}
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                  <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
                 </label>
               </div>
             )}
 
             {role === "admin" && (
-              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-100">
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800">
                 <div>
-                  <h4 className="font-medium text-slate-800">নতুন জয়েন রিকোয়েস্ট</h4>
-                  <p className="text-sm text-slate-500 mt-1">আপনার প্রতিষ্ঠানে কেউ যুক্ত হতে চাইলে নোটিফিকেশন পান</p>
+                  <h4 className="font-medium text-slate-800 dark:text-slate-100">নতুন জয়েন রিকোয়েস্ট</h4>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">আপনার প্রতিষ্ঠানে কেউ যুক্ত হতে চাইলে নোটিফিকেশন পান</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -654,16 +654,16 @@ const Settings: React.FC = () => {
                     checked={notificationPreferences?.joinRequests ?? true}
                     onChange={() => handleToggleNotificationPreference('joinRequests')}
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                  <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
                 </label>
               </div>
             )}
 
-            <div className="flex flex-col p-4 bg-slate-50 rounded-xl border border-slate-100 gap-4">
+            <div className="flex flex-col p-4 bg-slate-50 dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 gap-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h4 className="font-medium text-slate-800">দৈনিক উপস্থিতি রিমাইন্ডার</h4>
-                  <p className="text-sm text-slate-500 mt-1">প্রতিদিন নির্দিষ্ট সময়ে উপস্থিতি নেওয়ার জন্য রিমাইন্ডার পান</p>
+                  <h4 className="font-medium text-slate-800 dark:text-slate-100">দৈনিক উপস্থিতি রিমাইন্ডার</h4>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">প্রতিদিন নির্দিষ্ট সময়ে উপস্থিতি নেওয়ার জন্য রিমাইন্ডার পান</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input
@@ -672,18 +672,18 @@ const Settings: React.FC = () => {
                     checked={attendanceReminderEnabled}
                     onChange={handleToggleAttendanceReminder}
                   />
-                  <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
+                  <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-[#0F5C7A]/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-[#0F5C7A]"></div>
                 </label>
               </div>
               
               {attendanceReminderEnabled && (
-                <div className="flex items-center gap-4 pt-4 border-t border-slate-200">
-                  <label className="text-sm font-medium text-slate-700">রিমাইন্ডারের সময়:</label>
+                <div className="flex items-center gap-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+                  <label className="text-sm font-medium text-slate-700 dark:text-slate-300">রিমাইন্ডারের সময়:</label>
                   <input
                     type="time"
                     value={attendanceReminderTime}
                     onChange={(e) => handleUpdateAttendanceReminderTime(e.target.value)}
-                    className="bg-white border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
+                    className="bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100 text-sm rounded-lg focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
                   />
                 </div>
               )}

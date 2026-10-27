@@ -5,6 +5,7 @@ import { useFeeCategories } from '../../hooks/useFeeCategories';
 import { useFeeSetup } from '../../hooks/useFeeSetup';
 import { Save } from 'lucide-react';
 import toast from 'react-hot-toast';
+import { ClassSelect } from '../../components/ClassSelect';
 
 const FeeSetup: React.FC = () => {
   const { orgId, role, user } = useAuth();
@@ -61,38 +62,34 @@ const FeeSetup: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        
-        <p className="text-sm text-slate-500">প্রতিটি শ্রেণির জন্য কোন খাতে কত টাকা ফি তা নির্ধারণ করুন</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">প্রতিটি শ্রেণির জন্য কোন খাতে কত টাকা ফি তা নির্ধারণ করুন</p>
       </div>
 
-      <div className="card-premium p-6 bg-white rounded-[20px]">
+      <div className="card-premium p-6 rounded-[20px]">
         <div className="max-w-md mb-6">
-          <label className="block text-sm font-medium text-slate-700 mb-2">শ্রেণি নির্বাচন করুন</label>
-          <select
+          <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">শ্রেণি নির্বাচন করুন</label>
+          <ClassSelect
             value={selectedClass}
-            onChange={(e) => setSelectedClass(e.target.value)}
-            className="input-premium"
-          >
-            <option value="">-- শ্রেণি নির্বাচন করুন --</option>
-            {classes.map(cls => (
-              <option key={cls.id} value={cls.id}>{cls.name}</option>
-            ))}
-          </select>
+            onChange={(val) => setSelectedClass(val)}
+            classes={classes}
+            placeholder="-- শ্রেণি নির্বাচন করুন --"
+            className="w-full"
+          />
         </div>
 
         {selectedClass && (
           <div>
             {categories.length === 0 ? (
-              <div className="p-4 bg-yellow-50 text-yellow-800 rounded-xl border border-yellow-200">
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 text-amber-800 dark:text-amber-300 rounded-xl border border-amber-200 dark:border-amber-900/50">
                 প্রথমে "ফি খাত" পেজ থেকে ফি এর ক্যাটাগরি তৈরি করুন।
               </div>
             ) : (
               <div className="space-y-4">
-                <h3 className="font-bold text-slate-800 border-b pb-2">ফি এর পরিমাণ (টাকায়)</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100 border-b border-slate-200 dark:border-slate-800 pb-2">ফি এর পরিমাণ (টাকায়)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {categories.map(cat => (
-                    <div key={cat.id} className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                      <label className="block text-sm font-medium text-slate-700 mb-2">{cat.name}</label>
+                    <div key={cat.id} className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">{cat.name}</label>
                       <div className="relative">
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 font-medium">৳</span>
                         <input

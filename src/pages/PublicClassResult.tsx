@@ -279,14 +279,14 @@ const PublicClassResult: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1320]">
         <div className="w-12 h-12 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1320] py-8 px-4">
       <style>
         {`
           @media print {
@@ -299,28 +299,28 @@ const PublicClassResult: React.FC = () => {
           <div className="flex items-center gap-4">
             <button 
               onClick={() => navigate(-1)}
-              className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
+              className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#0F5C7A] dark:hover:text-[#38BDF8] transition-colors font-medium"
             >
               <ArrowLeft className="w-5 h-5" />
               ফিরে যান
             </button>
-            <h2 className="text-2xl font-bold text-slate-800 tracking-tight flex items-center gap-2">
-              <FileText className="w-6 h-6 text-[#0F5C7A]" />
+            <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 tracking-tight flex items-center gap-2">
+              <FileText className="w-6 h-6 text-[#0F5C7A] dark:text-[#38BDF8]" />
               ফলাফল
             </h2>
           </div>
           <div className="flex flex-wrap gap-2 print:hidden w-full sm:w-auto">
-            <select value={printSize} onChange={(e) => setPrintSize(e.target.value as any)} className="input-premium h-9 py-1 text-sm bg-white border-slate-200" title="প্রিন্ট সাইজ">
+            <select value={printSize} onChange={(e) => setPrintSize(e.target.value as any)} className="input-premium h-9 py-1 text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200" title="প্রিন্ট সাইজ">
               <option value="A4 landscape">A4 Landscape</option>
               <option value="A4 portrait">A4 Portrait</option>
               <option value="legal landscape">Legal Landscape</option>
             </select>
-            <select value={printMargin} onChange={(e) => setPrintMargin(e.target.value)} className="input-premium h-9 py-1 text-sm bg-white border-slate-200" title="প্রিন্ট মার্জিন">
+            <select value={printMargin} onChange={(e) => setPrintMargin(e.target.value)} className="input-premium h-9 py-1 text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200" title="প্রিন্ট মার্জিন">
               <option value="10mm">সাধারন মার্জিন (10mm)</option>
               <option value="5mm">চিকন মার্জিন (5mm)</option>
               <option value="15mm">চওড়া মার্জিন (15mm)</option>
             </select>
-            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm">
+            <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium h-9 py-1 text-sm bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 dark:text-slate-200">
               <option value="en">English (0-9)</option>
               <option value="bn">Bengali (০-৯)</option>
               <option value="ar">Arabic (٠-٩)</option>

@@ -5,6 +5,7 @@ import { Search, Loader2, Award, BookOpen, Calendar, Building2, User, Users } fr
 import { useNavigate, useParams } from 'react-router-dom';
 import { toEnglishNumber, formatAcademicYear } from '../utils/dateFormatter';
 import { useAuth } from '../hooks/useAuth';
+import { ClassSelect } from './ClassSelect';
 
 const PublicResultSearch: React.FC = () => {
   const navigate = useNavigate();
@@ -247,20 +248,20 @@ const PublicResultSearch: React.FC = () => {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0F766E] to-[#14B8A6] rounded-3xl shadow-2xl my-4">
+    <div className="w-full max-w-md mx-auto flex flex-col items-center justify-center p-4 bg-gradient-to-br from-[#0F766E] to-[#14B8A6] dark:from-[#0B1A28] dark:to-[#0F3542] border border-transparent dark:border-slate-800 rounded-3xl shadow-2xl my-4">
       <div className="text-center mb-8">
         <h2 className="text-3xl font-bold text-white mb-2">শিক্ষার্থীর ফলাফল অনুসন্ধান</h2>
-        <p className="text-teal-50 text-lg">সহজেই ফলাফল খুঁজুন</p>
+        <p className="text-teal-50 dark:text-teal-200/80 text-lg">সহজেই ফলাফল খুঁজুন</p>
       </div>
 
-      <div className="w-full bg-white/95 backdrop-blur-md rounded-[32px] p-6 shadow-2xl border border-white/20">
-        <div className="flex justify-center p-1 bg-slate-100 rounded-[24px] mb-8">
+      <div className="w-full bg-white/95 dark:bg-[#111C2E] backdrop-blur-md rounded-[32px] p-6 shadow-2xl border border-white/20 dark:border-slate-800">
+        <div className="flex justify-center p-1 bg-slate-100 dark:bg-slate-900/90 rounded-[24px] mb-8 border border-slate-200/50 dark:border-slate-800">
           <button
             onClick={() => setSearchType('individual')}
             className={`flex items-center gap-2 px-6 py-3 rounded-[20px] font-bold transition-all duration-200 flex-1 justify-center ${
               searchType === 'individual'
                 ? 'bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white shadow-md'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             ব্যক্তিগত ফলাফল
@@ -270,7 +271,7 @@ const PublicResultSearch: React.FC = () => {
             className={`flex items-center gap-2 px-6 py-3 rounded-[20px] font-bold transition-all duration-200 flex-1 justify-center ${
               searchType === 'class'
                 ? 'bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white shadow-md'
-                : 'text-slate-600 hover:text-slate-900'
+                : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white'
             }`}
           >
             প্রতিষ্ঠান ভিত্তিক ফলাফল
@@ -281,7 +282,7 @@ const PublicResultSearch: React.FC = () => {
           <div className="space-y-4">
             {!initialOrgId && (
               <div className="relative">
-                <label className="block text-sm font-medium text-slate-700 mb-1">প্রতিষ্ঠান</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">প্রতিষ্ঠান</label>
                 <div className="relative">
                   <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -291,20 +292,20 @@ const PublicResultSearch: React.FC = () => {
                     onFocus={() => setShowOrgSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowOrgSuggestions(false), 200)}
                     placeholder="প্রতিষ্ঠান আইডি বা নাম লিখুন"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                     required
                   />
                   {showOrgSuggestions && orgSearchText && filteredOrganizations.length > 0 && (
-                    <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                    <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-[#111C2E] border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-auto">
                       {filteredOrganizations.map(org => {
                         const orgCode = org.orgCode || org.id.substring(0, 6).toUpperCase();
                         return (
                           <li
                             key={org.id}
                             onClick={() => handleOrgSelect(org)}
-                            className="px-4 py-3 hover:bg-teal-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
+                            className="px-4 py-3 hover:bg-teal-50 dark:hover:bg-slate-800/80 cursor-pointer text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 last:border-0"
                           >
-                            <span className="font-medium text-teal-700">{orgCode}</span> - {org.name}
+                            <span className="font-medium text-teal-700 dark:text-teal-400">{orgCode}</span> - {org.name}
                           </li>
                         );
                       })}
@@ -315,67 +316,52 @@ const PublicResultSearch: React.FC = () => {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষাবর্ষ</label>
-              <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <select
-                  value={selectedYear}
-                  onChange={(e) => setSelectedYear(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  required
-                  disabled={!selectedOrg}
-                >
-                  <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-                  {academicYears.map(year => (
-                    <option key={year.id} value={year.id}>{formatAcademicYear(year)}</option>
-                  ))}
-                </select>
-              </div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">শিক্ষাবর্ষ</label>
+              <ClassSelect
+                value={selectedYear}
+                onChange={(val) => setSelectedYear(val)}
+                options={academicYears.map(year => ({ id: year.id, name: formatAcademicYear(year) }))}
+                placeholder="শিক্ষাবর্ষ নির্বাচন করুন"
+                title="শিক্ষাবর্ষ নির্বাচন"
+                icon={Calendar}
+                disabled={!selectedOrg}
+                className="w-full"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">পরীক্ষা</label>
-              <div className="relative">
-                <Award className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <select
-                  value={selectedExam}
-                  onChange={(e) => setSelectedExam(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  required
-                  disabled={!selectedOrg || !selectedYear}
-                >
-                  <option value="">পরীক্ষা নির্বাচন করুন</option>
-                  {exams
-                    .filter(exam => exam.academicYearId === selectedYear)
-                    .map(exam => (
-                    <option key={exam.id} value={exam.id}>{exam.name}</option>
-                  ))}
-                </select>
-              </div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">পরীক্ষা</label>
+              <ClassSelect
+                value={selectedExam}
+                onChange={(val) => setSelectedExam(val)}
+                options={exams
+                  .filter(exam => exam.academicYearId === selectedYear)
+                  .map(exam => ({ id: exam.id, name: exam.name }))}
+                placeholder="পরীক্ষা নির্বাচন করুন"
+                title="পরীক্ষা নির্বাচন"
+                icon={Award}
+                disabled={!selectedOrg || !selectedYear}
+                className="w-full"
+              />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি</label>
-              <div className="relative">
-                <BookOpen className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
-                <select
-                  value={selectedClass}
-                  onChange={(e) => setSelectedClass(e.target.value)}
-                  className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
-                  required
-                  disabled={!selectedOrg}
-                >
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  {classes.map(cls => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-              </div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">শ্রেণি</label>
+              <ClassSelect
+                value={selectedClass}
+                onChange={(val) => setSelectedClass(val)}
+                classes={classes}
+                placeholder="শ্রেণি নির্বাচন করুন"
+                title="শ্রেণি নির্বাচন"
+                icon={BookOpen}
+                disabled={!selectedOrg}
+                className="w-full"
+              />
             </div>
 
             {searchType === 'individual' && (
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">রোল, আইডি বা নাম</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-200 mb-1">রোল, আইডি বা নাম</label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
                   <input
@@ -388,11 +374,11 @@ const PublicResultSearch: React.FC = () => {
                     onFocus={() => setShowStudentSuggestions(true)}
                     onBlur={() => setTimeout(() => setShowStudentSuggestions(false), 200)}
                     placeholder="আপনার রোল, আইডি বা নাম লিখুন"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-2xl focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
+                    className="w-full pl-10 pr-4 py-3 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-2xl text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 transition-all"
                     required
                   />
                   {showStudentSuggestions && rollNumber && filteredStudents.length > 0 && (
-                    <ul className="absolute z-10 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-lg max-h-60 overflow-auto">
+                    <ul className="absolute z-10 w-full mt-1 bg-white dark:bg-[#111C2E] border border-slate-200 dark:border-slate-700 rounded-xl shadow-lg max-h-60 overflow-auto">
                       {filteredStudents.map(student => {
                         const idStr = student.studentId ? `${student.studentId} - ` : '';
                         const rollStr = student.roll ? `রোল: ${student.roll} - ` : '';
@@ -400,9 +386,9 @@ const PublicResultSearch: React.FC = () => {
                           <li
                             key={student.id}
                             onClick={() => handleStudentSelect(student)}
-                            className="px-4 py-3 hover:bg-teal-50 cursor-pointer text-slate-700 border-b border-slate-100 last:border-0"
+                            className="px-4 py-3 hover:bg-teal-50 dark:hover:bg-slate-800/80 cursor-pointer text-slate-700 dark:text-slate-200 border-b border-slate-100 dark:border-slate-800 last:border-0"
                           >
-                            <span className="font-medium text-teal-700">{idStr}{rollStr}</span>{student.name}
+                            <span className="font-medium text-teal-700 dark:text-teal-400">{idStr}{rollStr}</span>{student.name}
                           </li>
                         );
                       })}
@@ -414,7 +400,7 @@ const PublicResultSearch: React.FC = () => {
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 text-red-600 rounded-lg text-sm border border-red-100">
+            <div className="p-3 bg-red-50 dark:bg-rose-950/40 text-red-600 dark:text-rose-300 rounded-lg text-sm border border-red-100 dark:border-rose-900/50">
               {error}
             </div>
           )}

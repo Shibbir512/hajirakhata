@@ -82,11 +82,11 @@ const FeeCategories: React.FC = () => {
       </div>
 
       {(isAdding || editingId) && (
-        <div className="card-premium p-6 bg-white rounded-[20px] border border-[#0F5C7A]/20">
-          <h3 className="text-lg font-bold mb-4">{editingId ? 'খাত সম্পাদনা' : 'নতুন খাত যোগ করুন'}</h3>
+        <div className="card-premium p-6 rounded-[20px] border border-[#0F5C7A]/20">
+          <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100 mb-4">{editingId ? 'খাত সম্পাদনা' : 'নতুন খাত যোগ করুন'}</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">খাতের নাম *</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">খাতের নাম *</label>
               <input 
                 type="text" 
                 value={name}
@@ -96,7 +96,7 @@ const FeeCategories: React.FC = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">বিবরণ (ঐচ্ছিক)</label>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">বিবরণ (ঐচ্ছিক)</label>
               <input 
                 type="text" 
                 value={description}
@@ -107,7 +107,7 @@ const FeeCategories: React.FC = () => {
             </div>
           </div>
           <div className="flex gap-3 justify-end">
-            <button onClick={cancelEdit} className="px-4 py-2 text-slate-600 hover:bg-slate-100 rounded-xl font-medium transition-colors">
+            <button onClick={cancelEdit} className="px-4 py-2 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-xl font-medium transition-colors">
               বাতিল
             </button>
             <button 
@@ -123,21 +123,21 @@ const FeeCategories: React.FC = () => {
       {loading ? (
         <div className="flex justify-center p-8"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#0F5C7A]"></div></div>
       ) : categories.length === 0 ? (
-        <div className="text-center p-12 bg-white rounded-[20px] border border-slate-100">
-          <p className="text-slate-500">কোনো ফি খাত পাওয়া যায়নি। নতুন খাত যোগ করুন।</p>
+        <div className="card-premium text-center p-12 rounded-[20px] border border-slate-100 dark:border-slate-800">
+          <p className="text-slate-500 dark:text-slate-400">কোনো ফি খাত পাওয়া যায়নি। নতুন খাত যোগ করুন।</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {categories.map(cat => (
-            <div key={cat.id} className="card-premium p-5 bg-white rounded-[20px] flex flex-col justify-between group">
+            <div key={cat.id} className="card-premium p-5 rounded-[20px] flex flex-col justify-between group">
               <div>
-                <h3 className="text-lg font-bold text-slate-800">{cat.name}</h3>
-                {cat.description && <p className="text-sm text-slate-500 mt-1">{cat.description}</p>}
+                <h3 className="text-lg font-bold text-slate-800 dark:text-slate-100">{cat.name}</h3>
+                {cat.description && <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{cat.description}</p>}
               </div>
               <div className="flex justify-end gap-2 mt-4 transition-opacity">
                 <button 
                   onClick={() => startEdit(cat)}
-                  className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                  className="p-2 text-blue-600 dark:text-cyan-400 hover:bg-blue-50 dark:hover:bg-cyan-950/40 rounded-lg transition-colors"
                 >
                   <Edit2 className="w-4 h-4" />
                 </button>

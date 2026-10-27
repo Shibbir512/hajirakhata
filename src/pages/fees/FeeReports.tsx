@@ -163,15 +163,15 @@ const FeeReports: React.FC = () => {
         </div>
       </div>
 
-      <div className="card-premium p-6 bg-white rounded-[20px]">
+      <div className="card-premium p-6 rounded-[20px]">
         <div className="flex justify-center mb-6 print:hidden">
-          <div className="bg-slate-100 p-1 rounded-xl flex shadow-inner">
+          <div className="bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-800 p-1 rounded-xl flex shadow-inner">
             <button
               onClick={() => handleCalendarTypeChange('hijri')}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                 calendarType === 'hijri'
-                  ? 'bg-white text-[#0F5C7A] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white dark:bg-slate-800 text-[#0F5C7A] dark:text-[#38BDF8] shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-4 h-4" />
@@ -181,8 +181,8 @@ const FeeReports: React.FC = () => {
               onClick={() => handleCalendarTypeChange('english')}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                 calendarType === 'english'
-                  ? 'bg-white text-[#0F5C7A] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white dark:bg-slate-800 text-[#0F5C7A] dark:text-[#38BDF8] shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-4 h-4" />
@@ -193,7 +193,7 @@ const FeeReports: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6 print:hidden">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {calendarType === 'hijri' ? 'হিজরি সন' : 'ইংরেজি সন'}
             </label>
             <input
@@ -204,16 +204,16 @@ const FeeReports: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">মাস</label>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="input-premium"
-            >
-              {(calendarType === 'hijri' ? HIJRI_MONTHS : ENGLISH_MONTHS).map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">মাস</label>
+            <ClassSelect
+              value={String(selectedMonth)}
+              onChange={(val) => setSelectedMonth(parseInt(val))}
+              options={(calendarType === 'hijri' ? HIJRI_MONTHS : ENGLISH_MONTHS).map(m => ({ id: String(m.id), name: m.name }))}
+              placeholder="মাস নির্বাচন করুন"
+              title="মাস নির্বাচন করুন"
+              icon={CalendarDays}
+              className="w-full"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শ্রেণি (ঐচ্ছিক)</label>
@@ -227,39 +227,42 @@ const FeeReports: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">স্ট্যাটাস</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">স্ট্যাটাস</label>
+            <ClassSelect
               value={filterStatus}
-              onChange={(e) => setFilterStatus(e.target.value as any)}
-              className="input-premium"
-            >
-              <option value="all">সকল</option>
-              <option value="paid">আদায় হয়েছে</option>
-              <option value="due">বাকী রয়েছে</option>
-            </select>
+              onChange={(val) => setFilterStatus(val as any)}
+              options={[
+                { id: 'all', name: 'সকল' },
+                { id: 'paid', name: 'আদায় হয়েছে' },
+                { id: 'due', name: 'বাকী রয়েছে' }
+              ]}
+              placeholder="স্ট্যাটাস"
+              title="স্ট্যাটাস নির্বাচন করুন"
+              className="w-full"
+            />
           </div>
         </div>
 
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 print:grid-cols-3">
-          <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 print:border-slate-400 print:bg-white">
-            <p className="text-blue-600 print:text-black text-sm font-medium mb-1">মোট প্রত্যাশিত</p>
-            <h3 className="text-3xl font-bold text-blue-900 print:text-black">৳{expectedTotal}</h3>
+          <div className="bg-blue-50 dark:bg-sky-950/40 p-6 rounded-2xl border border-blue-100 dark:border-sky-900/50 print:border-slate-400 print:bg-white">
+            <p className="text-blue-600 dark:text-sky-400 print:text-black text-sm font-medium mb-1">মোট প্রত্যাশিত</p>
+            <h3 className="text-3xl font-bold text-blue-900 dark:text-sky-100 print:text-black">৳{expectedTotal}</h3>
           </div>
-          <div className="bg-green-50 p-6 rounded-2xl border border-green-100 print:border-slate-400 print:bg-white">
-            <p className="text-green-600 print:text-black text-sm font-medium mb-1">মোট আদায়কৃত</p>
-            <h3 className="text-3xl font-bold text-green-900 print:text-black">৳{collectedTotal}</h3>
+          <div className="bg-green-50 dark:bg-emerald-950/40 p-6 rounded-2xl border border-green-100 dark:border-emerald-900/50 print:border-slate-400 print:bg-white">
+            <p className="text-green-600 dark:text-emerald-400 print:text-black text-sm font-medium mb-1">মোট আদায়কৃত</p>
+            <h3 className="text-3xl font-bold text-green-900 dark:text-emerald-100 print:text-black">৳{collectedTotal}</h3>
           </div>
-          <div className="bg-red-50 p-6 rounded-2xl border border-red-100 print:border-slate-400 print:bg-white">
-            <p className="text-red-600 print:text-black text-sm font-medium mb-1">মোট বকেয়া</p>
-            <h3 className="text-3xl font-bold text-red-900 print:text-black">৳{dueTotal > 0 ? dueTotal : 0}</h3>
+          <div className="bg-red-50 dark:bg-rose-950/40 p-6 rounded-2xl border border-red-100 dark:border-rose-900/50 print:border-slate-400 print:bg-white">
+            <p className="text-red-600 dark:text-rose-400 print:text-black text-sm font-medium mb-1">মোট বকেয়া</p>
+            <h3 className="text-3xl font-bold text-red-900 dark:text-rose-100 print:text-black">৳{dueTotal > 0 ? dueTotal : 0}</h3>
           </div>
         </div>
 
         {/* Chart */}
         {chartData.length > 0 && expectedTotal > 0 && (
           <div className="mb-8 print:hidden">
-            <h3 className="font-bold text-slate-800 mb-4">খাতভিত্তিক তুলনা</h3>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">খাতভিত্তিক তুলনা</h3>
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
@@ -279,16 +282,16 @@ const FeeReports: React.FC = () => {
         {/* Detailed Table */}
         {categoryBreakdown.length > 0 && expectedTotal > 0 && (
           <div className="mb-8">
-            <h3 className="font-bold text-slate-800 mb-4">খাতভিত্তিক রিপোর্ট</h3>
+            <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4">খাতভিত্তিক রিপোর্ট</h3>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-y border-slate-200">
-                    <th className="p-4 font-semibold text-slate-700">খাতের নাম</th>
-                    <th className="p-4 font-semibold text-slate-700">প্রত্যাশিত (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700">আদায়কৃত (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700">বকেয়া (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700">আদায়ের হার</th>
+                  <tr className="bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">খাতের নাম</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">প্রত্যাশিত (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">আদায়কৃত (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">বকেয়া (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">আদায়ের হার</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -296,17 +299,17 @@ const FeeReports: React.FC = () => {
                     const due = cat.expected - cat.collected;
                     const percentage = cat.expected > 0 ? Math.round((cat.collected / cat.expected) * 100) : 0;
                     return (
-                      <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
-                        <td className="p-4 font-medium text-slate-800">{cat.name}</td>
-                        <td className="p-4 text-slate-600">{cat.expected}</td>
-                        <td className="p-4 text-green-600 font-medium">{cat.collected}</td>
-                        <td className="p-4 text-red-600 font-medium">{due > 0 ? due : 0}</td>
+                      <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
+                        <td className="p-4 font-medium text-slate-800 dark:text-slate-100">{cat.name}</td>
+                        <td className="p-4 text-slate-600 dark:text-slate-300">{cat.expected}</td>
+                        <td className="p-4 text-green-600 dark:text-emerald-400 font-medium">{cat.collected}</td>
+                        <td className="p-4 text-red-600 dark:text-rose-400 font-medium">{due > 0 ? due : 0}</td>
                         <td className="p-4">
                           <div className="flex items-center gap-2">
-                            <div className="w-full bg-slate-200 rounded-full h-2.5 max-w-[100px]">
-                              <div className="bg-[#0F5C7A] h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-2.5 max-w-[100px]">
+                              <div className="bg-[#0F5C7A] dark:bg-[#38BDF8] h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
                             </div>
-                            <span className="text-sm text-slate-600">{percentage}%</span>
+                            <span className="text-sm text-slate-600 dark:text-slate-300">{percentage}%</span>
                           </div>
                         </td>
                       </tr>
@@ -322,35 +325,35 @@ const FeeReports: React.FC = () => {
         {filteredStudents.length > 0 && (
           <div>
             <div className="flex justify-between items-center mb-4">
-              <h3 className="font-bold text-slate-800">শিক্ষার্থীভিত্তিক রিপোর্ট</h3>
-              <span className="text-sm text-slate-500">মোট: {filteredStudents.length} জন</span>
+              <h3 className="font-bold text-slate-800 dark:text-slate-100">শিক্ষার্থীভিত্তিক রিপোর্ট</h3>
+              <span className="text-sm text-slate-500 dark:text-slate-400">মোট: {filteredStudents.length} জন</span>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
                 <thead>
-                  <tr className="bg-slate-50 border-y border-slate-200">
-                    <th className="p-4 font-semibold text-slate-700">নাম ও রোল</th>
-                    <th className="p-4 font-semibold text-slate-700">প্রত্যাশিত (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700">আদায়কৃত (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700">বকেয়া (৳)</th>
-                    <th className="p-4 font-semibold text-slate-700 text-center">স্ট্যাটাস</th>
+                  <tr className="bg-slate-50 dark:bg-slate-900 border-y border-slate-200 dark:border-slate-800">
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">নাম ও রোল</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">প্রত্যাশিত (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">আদায়কৃত (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300">বকেয়া (৳)</th>
+                    <th className="p-4 font-semibold text-slate-700 dark:text-slate-300 text-center">স্ট্যাটাস</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredStudents.map((report, idx) => (
-                    <tr key={idx} className="border-b border-slate-100 hover:bg-slate-50/50">
+                    <tr key={idx} className="border-b border-slate-100 dark:border-slate-800 hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
                       <td className="p-4">
-                        <p className="font-medium text-slate-800">{report.student.name}</p>
-                        <p className="text-xs text-slate-500">রোল: {report.student.roll}</p>
+                        <p className="font-medium text-slate-800 dark:text-slate-100">{report.student.name}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">রোল: {report.student.roll}</p>
                       </td>
-                      <td className="p-4 text-slate-600">{report.expected}</td>
-                      <td className="p-4 text-green-600 font-medium">{report.collected}</td>
-                      <td className="p-4 text-red-600 font-medium">{report.due > 0 ? report.due : 0}</td>
+                      <td className="p-4 text-slate-600 dark:text-slate-300">{report.expected}</td>
+                      <td className="p-4 text-green-600 dark:text-emerald-400 font-medium">{report.collected}</td>
+                      <td className="p-4 text-red-600 dark:text-rose-400 font-medium">{report.due > 0 ? report.due : 0}</td>
                       <td className="p-4 text-center">
                         {report.isPaid ? (
-                          <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">আদায় হয়েছে</span>
+                          <span className="px-3 py-1 bg-green-100 dark:bg-emerald-950/60 text-green-700 dark:text-emerald-400 rounded-full text-xs font-medium">আদায় হয়েছে</span>
                         ) : (
-                          <span className="px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">বাকী রয়েছে</span>
+                          <span className="px-3 py-1 bg-red-100 dark:bg-rose-950/60 text-red-700 dark:text-rose-400 rounded-full text-xs font-medium">বাকী রয়েছে</span>
                         )}
                       </td>
                     </tr>

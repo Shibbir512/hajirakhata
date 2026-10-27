@@ -204,26 +204,26 @@ const PublicResultView: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-[#0B1320]">
         <div className="w-12 h-12 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4">
+    <div className="min-h-screen bg-slate-50 dark:bg-[#0B1320] py-8 px-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 print:hidden">
           <button 
             onClick={() => navigate(-1)}
-            className="flex items-center gap-2 text-slate-600 hover:text-[#0F5C7A] transition-colors font-medium"
+            className="flex items-center gap-2 text-slate-600 dark:text-slate-300 hover:text-[#0F5C7A] dark:hover:text-[#38BDF8] transition-colors font-medium"
           >
             <ArrowLeft className="w-5 h-5" />
             ফিরে যান
           </button>
           <div className="flex flex-wrap gap-3 items-end">
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500 font-medium ml-1">সংখ্যা ফরম্যাট</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium ml-1">সংখ্যা ফরম্যাট</span>
               <select value={numeralFormat} onChange={(e) => setNumeralFormat(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
                   <option value="en">English (0-9)</option>
                   <option value="bn">Bengali (০-৯)</option>
@@ -231,7 +231,7 @@ const PublicResultView: React.FC = () => {
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500 font-medium ml-1">ভাষা</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium ml-1">ভাষা</span>
               <select value={marksheetLanguage} onChange={(e) => setMarksheetLanguage(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
                   <option value="bn">বাংলা</option>
                   <option value="en">English</option>
@@ -239,7 +239,7 @@ const PublicResultView: React.FC = () => {
               </select>
             </div>
             <div className="flex flex-col gap-1">
-              <span className="text-[10px] text-slate-500 font-medium ml-1">ফন্ট স্টাইল</span>
+              <span className="text-[10px] text-slate-500 dark:text-slate-400 font-medium ml-1">ফন্ট স্টাইল</span>
               <select value={fontStyle} onChange={(e) => setFontStyle(e.target.value as any)} className="input-premium py-1 h-9 text-sm">
                   <option value="modern">আধুনিক (Modern)</option>
                   <option value="classic">ক্লাসিক (Classic)</option>

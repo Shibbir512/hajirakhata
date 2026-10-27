@@ -257,11 +257,17 @@ const ResultEntry: React.FC = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-40 bg-slate-100 py-3 px-4 -mx-4 rounded-xl border border-slate-200 shadow-sm mt-0 mb-6">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 sticky top-0 z-40 bg-slate-100 dark:bg-[#111C2E] py-3 px-4 -mx-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm mt-0 mb-6">
         
         {academicYearId && examId && classId && (
           <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
-            <span className={`px-4 h-[42px] flex items-center rounded-full text-xs font-bold ${isPublished ? 'bg-[#22C55E]/10 text-[#22C55E]' : isHidden ? 'bg-slate-100 text-slate-500' : 'bg-[#F59E0B]/10 text-[#F59E0B]'} whitespace-nowrap`}>
+            <span className={`px-4 h-[42px] flex items-center rounded-full text-xs font-bold ${
+              isPublished 
+                ? 'bg-[#22C55E]/10 text-[#22C55E] dark:bg-[#22C55E]/20' 
+                : isHidden 
+                ? 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400' 
+                : 'bg-[#F59E0B]/10 text-[#F59E0B] dark:bg-[#F59E0B]/20'
+            } whitespace-nowrap`}>
               {isPublished ? 'প্রকাশিত' : isHidden ? 'গোপন' : 'খসড়া (Draft)'}
             </span>
             {role === 'admin' && (
@@ -269,14 +275,14 @@ const ResultEntry: React.FC = () => {
                 <button
                   onClick={handlePublish}
                   disabled={isPublished}
-                  className={`h-[42px] px-6 rounded-xl font-bold transition-all duration-300 shadow-sm w-full sm:w-auto whitespace-nowrap ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E] text-white' : 'bg-[#0F5C7A] text-white hover:bg-[#0D4D66]'}`}
+                  className={`h-[42px] px-6 rounded-xl font-bold transition-all duration-300 shadow-sm w-full sm:w-auto whitespace-nowrap ${isPublished ? 'opacity-50 cursor-not-allowed bg-[#22C55E] text-white' : 'bg-[#0F5C7A] text-white hover:bg-[#0D4D66] dark:bg-[#0F5C7A] dark:hover:bg-[#0F5C7A]/80'}`}
                 >
                   {isPublished ? 'প্রকাশিত' : 'ফলাফল প্রকাশ করুন'}
                 </button>
                 {isPublished && (
                   <button
                     onClick={handleHide}
-                    className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-amber-600 hover:bg-amber-50 rounded-xl border border-slate-200 transition-colors bg-white"
+                    className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors bg-white dark:bg-slate-800 dark:text-slate-300"
                     title="ফলাফল গোপন করুন"
                   >
                     <EyeOff className="w-5 h-5" />
@@ -284,7 +290,7 @@ const ResultEntry: React.FC = () => {
                 )}
                 <button
                   onClick={handleDelete}
-                  className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 rounded-xl border border-slate-200 transition-colors bg-white"
+                  className="h-[42px] w-[42px] flex items-center justify-center text-slate-500 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl border border-slate-200 dark:border-slate-700 transition-colors bg-white dark:bg-slate-800 dark:text-slate-300"
                   title="ফলাফল ডিলিট করুন"
                 >
                   <Trash2 className="w-5 h-5" />
@@ -325,38 +331,38 @@ const ResultEntry: React.FC = () => {
 
       {classId && examId && academicYearId && (
         <div className="space-y-4">
-          <div className="card-premium p-0 overflow-hidden border border-slate-200 shadow-xl">
+          <div className="card-premium p-0 overflow-hidden border border-slate-200 dark:border-slate-800 shadow-xl">
             <div className="overflow-x-auto">
               <div style={{ minWidth: `${16 + 64 + 32 + filteredSubjects.length * 24 + 20 + 20 + 20 + 32 + 20}rem` }}>
                 {/* Header */}
-                <div className="flex bg-slate-100 border-b border-slate-200 sticky top-0 z-20">
-                  <div className="w-16 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center sticky left-0 bg-slate-100 z-30">
+                <div className="flex bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 sticky top-0 z-20">
+                  <div className="w-16 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center sticky left-0 bg-slate-100 dark:bg-slate-900 z-30">
                     রোল
                   </div>
-                  <div className="w-64 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center sticky left-16 bg-slate-100 z-30">
+                  <div className="w-64 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center sticky left-16 bg-slate-100 dark:bg-slate-900 z-30">
                     নাম ও অ্যাকশন
                   </div>
-                  <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center bg-slate-100">
+                  <div className="w-32 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center bg-slate-100 dark:bg-slate-900">
                     আইডি
                   </div>
                   {filteredSubjects.map(s => (
-                    <div key={s.id} className="w-24 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center text-center">
+                    <div key={s.id} className="w-24 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center text-center">
                       {s.name}
                     </div>
                   ))}
-                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center">
                     মোট
                   </div>
-                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center">
                     পূর্ণমান
                   </div>
-                  <div className="w-20 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                  <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center">
                     শতকরা
                   </div>
-                  <div className="w-32 py-3 px-3 border-r border-slate-200 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                  <div className="w-32 py-3 px-3 border-r border-slate-200 dark:border-slate-800 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center">
                     বিভাগ
                   </div>
-                  <div className="w-20 py-3 px-3 text-xs font-bold text-slate-500 uppercase tracking-wider flex items-center justify-center">
+                  <div className="w-20 py-3 px-3 text-xs font-bold text-slate-500 dark:text-slate-300 uppercase tracking-wider flex items-center justify-center">
                     মেধাক্রম
                   </div>
                 </div>
@@ -388,28 +394,28 @@ const ResultEntry: React.FC = () => {
                 </div>
               </div>
             </div>
-            <div className="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center text-xs text-slate-500">
+            <div className="p-4 bg-slate-50 dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs text-slate-500 dark:text-slate-400">
               <div>মোট শিক্ষার্থী: {includedStudents.length}</div>
             </div>
           </div>
 
           {excludedStudents.length > 0 && (
-            <div className="card-premium p-6 border-rose-100 bg-rose-50/20 mt-4 -mx-4 sm:-mx-6 lg:mx-0 lg:-mt-2">
-              <h3 className="text-sm font-bold text-rose-800 mb-3 flex items-center gap-2">
-                <UserMinus className="w-5 h-5 text-rose-600" />
+            <div className="card-premium p-6 border-rose-100 dark:border-rose-950/60 bg-rose-50/20 dark:bg-rose-950/20 mt-4 -mx-4 sm:-mx-6 lg:mx-0 lg:-mt-2">
+              <h3 className="text-sm font-bold text-rose-800 dark:text-rose-400 mb-3 flex items-center gap-2">
+                <UserMinus className="w-5 h-5 text-rose-600 dark:text-rose-400" />
                 বাদ দেওয়া বা পরীক্ষায় অনুপস্থিত শিক্ষার্থীদের তালিকা
               </h3>
               <div className="flex flex-wrap gap-2">
                 {excludedStudents.map(student => (
-                  <div key={student.id} className="flex items-center gap-2 px-3 py-1.5 bg-white border border-rose-200 rounded-lg shadow-sm text-sm">
-                    <span className="font-bold text-rose-700">রোল {student.roll}</span>
-                    <span className="text-slate-700">{student.name}</span>
+                  <div key={student.id} className="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-rose-200 dark:border-rose-900/50 rounded-lg shadow-sm text-sm">
+                    <span className="font-bold text-rose-700 dark:text-rose-400">রোল {student.roll}</span>
+                    <span className="text-slate-700 dark:text-slate-200">{student.name}</span>
                     <button
                       onClick={() => handleInclude(student.id)}
-                      className="p-1 hover:bg-rose-50 text-emerald-600 rounded-md transition-colors"
+                      className="p-1 hover:bg-rose-50 dark:hover:bg-rose-900/30 text-emerald-600 dark:text-emerald-400 rounded-md transition-colors"
                       title="পুনরায় রেজাল্ট শীটে যুক্ত করুন"
                     >
-                      <UserPlus className="w-4 h-4 text-emerald-600" />
+                      <UserPlus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                     </button>
                   </div>
                 ))}
@@ -482,7 +488,7 @@ const ResultCell = React.memo(({
   const isBelowPass = localValue !== "" && Number(localValue) < subject.passMarks;
 
   return (
-    <div className="w-24 border-r border-slate-200 flex items-center justify-center p-0">
+    <div className="w-24 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center p-0">
       <input
         ref={(el) => { inputRefs.current[getCellKey(rowIndex, colIdx)] = el; }}
         type="text"
@@ -494,7 +500,9 @@ const ResultCell = React.memo(({
         onPaste={(e) => handlePaste(e, rowIndex, colIdx)}
         onFocus={() => setFocusedCell({ rowIndex, colIndex: colIdx })}
         className={`w-full h-full text-center focus:outline-none focus:ring-2 focus:ring-[#0F5C7A]/50 transition-all ${
-          isBelowPass ? "bg-slate-200 text-slate-600" : "bg-transparent text-slate-800"
+          isBelowPass 
+            ? "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-300 font-bold" 
+            : "bg-transparent text-slate-800 dark:text-slate-100"
         }`}
         placeholder="-"
       />
@@ -540,24 +548,24 @@ const ResultRow = React.memo(({
   const { totalMarks, totalFullMarks, percentage, grade, rank } = calculateResultMetrics(studentResults, filteredSubjects, allStudentResults, gradingSystem);
 
   return (
-    <div className="flex border-b border-slate-200 hover:bg-slate-50 transition-colors group">
-      <div className="w-16 py-3 px-1 border-r border-slate-200 flex items-center justify-center font-bold text-slate-600 sticky left-0 bg-white z-10 group-hover:bg-slate-50">
+    <div className="flex border-b border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors group">
+      <div className="w-16 py-3 px-1 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center font-bold text-slate-600 dark:text-slate-200 sticky left-0 bg-white dark:bg-[#111C2E] z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/80">
         <input 
           type="text"
           inputMode="numeric"
           value={localRoll}
           onChange={(e) => setLocalRoll(e.target.value)}
           onBlur={handleRollBlur}
-          className="w-full h-full text-center bg-transparent focus:outline-none focus:ring-1 focus:ring-[#0F5C7A]/50 rounded"
+          className="w-full h-full text-center bg-transparent text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-1 focus:ring-[#0F5C7A]/50 rounded"
           title="রোল নাম্বার পরিবর্তন করুন"
         />
       </div>
-      <div className="w-64 py-3 px-3 border-r border-slate-200 flex items-center font-medium text-slate-800 sticky left-16 bg-white z-10 group-hover:bg-slate-50 gap-2">
+      <div className="w-64 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center font-medium text-slate-800 dark:text-slate-100 sticky left-16 bg-white dark:bg-[#111C2E] z-10 group-hover:bg-slate-50 dark:group-hover:bg-slate-800/80 gap-2">
         <div className="flex flex-col gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           <button 
             onClick={() => handleMoveUp(index)}
             disabled={index === 0}
-            className="p-0.5 hover:bg-slate-200 rounded text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent"
+            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 disabled:opacity-30 disabled:hover:bg-transparent"
             title="উপরে নিন"
           >
             <ChevronUp className="w-3 h-3" />
@@ -565,7 +573,7 @@ const ResultRow = React.memo(({
           <button 
             onClick={() => handleMoveDown(index)}
             disabled={isLast}
-            className="p-0.5 hover:bg-slate-200 rounded text-slate-500 disabled:opacity-30 disabled:hover:bg-transparent"
+            className="p-0.5 hover:bg-slate-200 dark:hover:bg-slate-700 rounded text-slate-500 dark:text-slate-400 disabled:opacity-30 disabled:hover:bg-transparent"
             title="নিচে নিন"
           >
             <ChevronDown className="w-3 h-3" />
@@ -574,13 +582,13 @@ const ResultRow = React.memo(({
         <div className="flex-1 truncate">{student.name}</div>
         <button 
           onClick={() => handleExclude(student.id)}
-          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-rose-100 text-rose-500 rounded transition-all shrink-0"
+          className="p-1 opacity-0 group-hover:opacity-100 hover:bg-rose-100 dark:hover:bg-rose-950/40 text-rose-500 rounded transition-all shrink-0"
           title="রেজাল্ট শীট থেকে বাদ দিন"
         >
           <UserMinus className="w-4 h-4" />
         </button>
       </div>
-      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-xs font-mono text-slate-500 bg-slate-50/30">
+      <div className="w-32 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-xs font-mono text-slate-500 dark:text-slate-400 bg-slate-50/30 dark:bg-slate-800/30">
         {student.studentUid || "N/A"}
       </div>
       {filteredSubjects.map((s: any, colIdx: number) => {
@@ -602,19 +610,19 @@ const ResultRow = React.memo(({
           />
         );
       })}
-      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-slate-700 bg-slate-50/50">
+      <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center font-bold text-slate-700 dark:text-slate-200 bg-slate-50/50 dark:bg-slate-800/40">
         {totalMarks}
       </div>
-      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-500 text-sm">
+      <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 dark:text-slate-400 text-sm">
         {totalFullMarks}
       </div>
-      <div className="w-20 py-3 px-3 border-r border-slate-200 flex items-center justify-center text-slate-600 font-medium">
+      <div className="w-20 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-600 dark:text-slate-300 font-medium">
         {percentage}%
       </div>
-      <div className="w-32 py-3 px-3 border-r border-slate-200 flex items-center justify-center font-bold text-[#0F5C7A]">
+      <div className="w-32 py-3 px-3 border-r border-slate-200 dark:border-slate-800 flex items-center justify-center font-bold text-[#0F5C7A] dark:text-[#38BDF8]">
         {grade}
       </div>
-      <div className="w-20 py-3 px-3 flex items-center justify-center font-black text-slate-900">
+      <div className="w-20 py-3 px-3 flex items-center justify-center font-black text-slate-900 dark:text-slate-100">
         {rank}
       </div>
     </div>

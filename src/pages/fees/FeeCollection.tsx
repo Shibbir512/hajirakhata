@@ -188,19 +188,18 @@ const FeeCollection: React.FC = () => {
   return (
     <div className="space-y-6">
       <div>
-        
-        <p className="text-sm text-slate-500">শিক্ষার্থীদের মাসিক ফি জমা নিন</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">শিক্ষার্থীদের মাসিক ফি জমা নিন</p>
       </div>
 
-      <div className="card-premium p-6 bg-white rounded-[20px]">
+      <div className="card-premium p-6 rounded-[20px]">
         <div className="flex justify-center mb-6">
-          <div className="bg-slate-100 p-1 rounded-xl flex shadow-inner">
+          <div className="bg-slate-100 dark:bg-slate-900 border border-transparent dark:border-slate-800 p-1 rounded-xl flex shadow-inner">
             <button
               onClick={() => handleCalendarTypeChange('hijri')}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                 calendarType === 'hijri'
-                  ? 'bg-white text-[#0F5C7A] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white dark:bg-slate-800 text-[#0F5C7A] dark:text-[#38BDF8] shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-4 h-4" />
@@ -210,8 +209,8 @@ const FeeCollection: React.FC = () => {
               onClick={() => handleCalendarTypeChange('english')}
               className={`flex items-center gap-2 px-6 py-2 rounded-lg font-bold text-sm transition-all ${
                 calendarType === 'english'
-                  ? 'bg-white text-[#0F5C7A] shadow-sm'
-                  : 'text-slate-500 hover:text-slate-700'
+                  ? 'bg-white dark:bg-slate-800 text-[#0F5C7A] dark:text-[#38BDF8] shadow-sm'
+                  : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200'
               }`}
             >
               <CalendarDays className="w-4 h-4" />
@@ -222,7 +221,7 @@ const FeeCollection: React.FC = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
               {calendarType === 'hijri' ? 'হিজরি সন' : 'ইংরেজি সন'}
             </label>
             <input
@@ -233,16 +232,16 @@ const FeeCollection: React.FC = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">মাস</label>
-            <select
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(parseInt(e.target.value))}
-              className="input-premium"
-            >
-              {(calendarType === 'hijri' ? HIJRI_MONTHS : ENGLISH_MONTHS).map(m => (
-                <option key={m.id} value={m.id}>{m.name}</option>
-              ))}
-            </select>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">মাস</label>
+            <ClassSelect
+              value={String(selectedMonth)}
+              onChange={(val) => setSelectedMonth(parseInt(val))}
+              options={(calendarType === 'hijri' ? HIJRI_MONTHS : ENGLISH_MONTHS).map(m => ({ id: String(m.id), name: m.name }))}
+              placeholder="মাস নির্বাচন করুন"
+              title="মাস নির্বাচন করুন"
+              icon={CalendarDays}
+              className="w-full"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শ্রেণি</label>
@@ -259,13 +258,13 @@ const FeeCollection: React.FC = () => {
         {selectedClass && (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {/* Student List */}
-            <div className="lg:col-span-1 border-r pr-4">
+            <div className="lg:col-span-1 border-r border-slate-200 dark:border-slate-800 pr-4">
               <div className="flex justify-between items-center mb-3">
-                <h3 className="font-bold text-slate-800">শিক্ষার্থী তালিকা</h3>
+                <h3 className="font-bold text-slate-800 dark:text-slate-100">শিক্ষার্থী তালিকা</h3>
                 {filteredStudents.length > 0 && (
                   <button 
                     onClick={toggleAllStudents}
-                    className="text-xs font-medium text-[#0F5C7A] hover:underline"
+                    className="text-xs font-medium text-[#0F5C7A] dark:text-[#38BDF8] hover:underline"
                   >
                     {selectedStudents.length === filteredStudents.length && filteredStudents.length > 0 ? 'সব বাতিল' : 'সব নির্বাচন'}
                   </button>
@@ -279,13 +278,13 @@ const FeeCollection: React.FC = () => {
                   placeholder="নাম বা রোল দিয়ে খুঁজুন..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all"
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 dark:bg-slate-900/80 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all"
                 />
               </div>
 
               <div className="space-y-2 max-h-[500px] overflow-y-auto pr-2">
                 {filteredStudents.length === 0 ? (
-                  <p className="text-sm text-slate-500 text-center py-4">কোনো শিক্ষার্থী পাওয়া যায়নি।</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 text-center py-4">কোনো শিক্ষার্থী পাওয়া যায়নি।</p>
                 ) : (
                   filteredStudents.map(student => {
                     const record = collections.find(c => c.studentId === student.id);
@@ -302,20 +301,20 @@ const FeeCollection: React.FC = () => {
                         onClick={() => toggleStudentSelection(student.id)}
                         className={`p-3 rounded-xl cursor-pointer border transition-colors flex justify-between items-center ${
                           isSelected 
-                            ? 'bg-[#0F5C7A]/10 border-[#0F5C7A]' 
-                            : 'bg-slate-50 border-slate-100 hover:bg-slate-100'
+                            ? 'bg-[#0F5C7A]/10 border-[#0F5C7A] dark:bg-[#0F5C7A]/30 dark:border-[#38BDF8]' 
+                            : 'bg-slate-50 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800'
                         }`}
                       >
                         <div className="flex items-center gap-3">
-                          <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-[#0F5C7A] border-[#0F5C7A]' : 'border-slate-300 bg-white'}`}>
+                          <div className={`w-5 h-5 rounded border flex items-center justify-center ${isSelected ? 'bg-[#0F5C7A] border-[#0F5C7A]' : 'border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800'}`}>
                             {isSelected && <CheckCircle className="w-3 h-3 text-white" />}
                           </div>
                           <div>
-                            <p className="font-medium text-slate-800">{student.name}</p>
-                            <p className="text-xs text-slate-500">রোল: {student.roll}</p>
+                            <p className="font-medium text-slate-800 dark:text-slate-100">{student.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">রোল: {student.roll}</p>
                           </div>
                         </div>
-                        {isFullyPaid && <span className="text-xs font-medium text-green-600 bg-green-100 px-2 py-1 rounded-full">পরিশোধিত</span>}
+                        {isFullyPaid && <span className="text-xs font-medium text-green-600 dark:text-emerald-400 bg-green-100 dark:bg-emerald-950/60 px-2 py-1 rounded-full">পরিশোধিত</span>}
                       </div>
                     );
                   })
@@ -327,7 +326,7 @@ const FeeCollection: React.FC = () => {
             <div className="lg:col-span-2">
               {selectedStudents.length > 0 ? (
                 <div>
-                  <h3 className="font-bold text-slate-800 mb-4 pb-2 border-b">
+                  <h3 className="font-bold text-slate-800 dark:text-slate-100 mb-4 pb-2 border-b border-slate-200 dark:border-slate-800">
                     ফি জমা দিন ({selectedStudents.length} জন শিক্ষার্থী)
                   </h3>
                   
@@ -343,10 +342,10 @@ const FeeCollection: React.FC = () => {
                       }
                       
                       return (
-                        <div key={cat.id} className="flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <div key={cat.id} className="flex items-center justify-between bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800">
                           <div>
-                            <p className="font-medium text-slate-800">{cat.name}</p>
-                            <p className="text-xs text-slate-500">
+                            <p className="font-medium text-slate-800 dark:text-slate-100">{cat.name}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">
                               নির্ধারিত: ৳{expectedAmount} | ইতিমধ্যে জমা: ৳{paidAmount}
                             </p>
                           </div>
@@ -366,10 +365,10 @@ const FeeCollection: React.FC = () => {
                     })}
                   </div>
 
-                  <div className="mt-6 flex justify-between items-center bg-[#0F5C7A]/5 p-4 rounded-xl border border-[#0F5C7A]/20">
+                  <div className="mt-6 flex justify-between items-center bg-[#0F5C7A]/5 dark:bg-[#0F5C7A]/15 p-4 rounded-xl border border-[#0F5C7A]/20 dark:border-[#0F5C7A]/40">
                     <div>
-                      <p className="text-sm text-slate-600">সর্বমোট জমা দিচ্ছেন:</p>
-                      <p className="text-2xl font-bold text-[#0F5C7A]">
+                      <p className="text-sm text-slate-600 dark:text-slate-300">সর্বমোট জমা দিচ্ছেন:</p>
+                      <p className="text-2xl font-bold text-[#0F5C7A] dark:text-[#38BDF8]">
                         ৳{Object.values(payments).reduce((sum, val) => sum + (val || 0), 0)}
                       </p>
                     </div>
@@ -377,7 +376,7 @@ const FeeCollection: React.FC = () => {
                       {singleSelectedRecord && (
                         <button 
                           onClick={() => setIsDeleteDialogOpen(true)}
-                          className="px-4 py-2 text-red-600 bg-red-50 hover:bg-red-100 rounded-xl font-medium transition-colors flex items-center gap-2"
+                          className="px-4 py-2 text-red-600 dark:text-rose-400 bg-red-50 dark:bg-rose-950/40 hover:bg-red-100 dark:hover:bg-rose-900/50 rounded-xl font-medium transition-colors flex items-center gap-2"
                         >
                           <Trash2 className="w-5 h-5" /> এন্ট্রি মুছুন
                         </button>
@@ -393,7 +392,7 @@ const FeeCollection: React.FC = () => {
                   </div>
                 </div>
               ) : (
-                <div className="h-full flex flex-col items-center justify-center text-slate-400 p-12">
+                <div className="h-full flex flex-col items-center justify-center text-slate-400 dark:text-slate-500 p-12">
                   <Search className="w-12 h-12 mb-4 opacity-20" />
                   <p>বাম পাশ থেকে শিক্ষার্থী নির্বাচন করুন</p>
                 </div>
