@@ -143,8 +143,8 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-[6px]">
-      <div className="w-[92%] max-w-[360px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-[6px] p-4">
+      <div className="w-[92%] max-w-[360px] bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
           <div className="flex items-center gap-3">
@@ -271,52 +271,52 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
             </div>
 
             <div>
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 শিক্ষার্থীর নাম *
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="নাম লিখুন"
                 autoFocus
               />
             </div>
 
             <div>
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 পিতার নাম
               </label>
               <input
                 type="text"
                 value={fatherName}
                 onChange={(e) => setFatherName(e.target.value)}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="পিতার নাম লিখুন"
               />
             </div>
 
             <div className="relative">
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 লিঙ্গ (Gender)
               </label>
               <select
                 value={gender}
                 onChange={(e) => setGender(e.target.value)}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none appearance-none"
+                className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none appearance-none"
               >
-                <option value="পুরুষ">পুরুষ</option>
-                <option value="মহিলা">মহিলা</option>
-                <option value="অন্যান্য">অন্যান্য</option>
+                <option value="পুরুষ" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">পুরুষ</option>
+                <option value="মহিলা" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">মহিলা</option>
+                <option value="অন্যান্য" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">অন্যান্য</option>
               </select>
               <div className="absolute inset-y-0 right-0 top-[28px] flex items-center px-4 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
 
             <div>
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 ফোন নম্বর
               </label>
               <input
@@ -324,57 +324,57 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                 inputMode="numeric"
                 value={phone}
                 onChange={(e) => setPhone(toEnglishNumber(e.target.value))}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none"
                 placeholder="ফোন নম্বর লিখুন"
               />
             </div>
 
             <div className="relative">
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 রক্তের গ্রুপ
               </label>
               <select
                 value={bloodGroup}
                 onChange={(e) => setBloodGroup(e.target.value)}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none appearance-none"
+                className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none appearance-none"
               >
-                <option value="">রক্তের গ্রুপ নির্বাচন করুন</option>
-                <option value="A+">A+</option>
-                <option value="A-">A-</option>
-                <option value="B+">B+</option>
-                <option value="B-">B-</option>
-                <option value="AB+">AB+</option>
-                <option value="AB-">AB-</option>
-                <option value="O+">O+</option>
-                <option value="O-">O-</option>
+                <option value="" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">রক্তের গ্রুপ নির্বাচন করুন</option>
+                <option value="A+" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">A+</option>
+                <option value="A-" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">A-</option>
+                <option value="B+" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">B+</option>
+                <option value="B-" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">B-</option>
+                <option value="AB+" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">AB+</option>
+                <option value="AB-" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">AB-</option>
+                <option value="O+" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">O+</option>
+                <option value="O-" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">O-</option>
               </select>
               <div className="absolute inset-y-0 right-0 top-[28px] flex items-center px-4 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                <svg className="w-4 h-4 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
               </div>
             </div>
 
             <div>
-              <label className="block text-[14px] font-medium text-[#374151] mb-1">
+              <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                 ঠিকানা
               </label>
               <textarea
                 value={address}
                 onChange={(e) => setAddress(e.target.value)}
-                className="w-full h-[100px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 py-3 focus:border-[#14B8A6] outline-none"
+                className="w-full h-[100px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 py-3 focus:border-[#14B8A6] outline-none"
                 placeholder="ঠিকানা লিখুন"
               />
             </div>
 
             {orgCustomFields.map((field) => (
               <div key={field.id}>
-                <label className="block text-[14px] font-medium text-[#374151] mb-1">
+                <label className="block text-[14px] font-medium text-[#374151] dark:text-slate-200 mb-1">
                   {field.name}
                 </label>
                 <input
                   type="text"
                   value={customFieldsValues[field.id] || ""}
                   onChange={(e) => setCustomFieldsValues({ ...customFieldsValues, [field.id]: e.target.value })}
-                  className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                  className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 px-4 focus:border-[#14B8A6] outline-none"
                   placeholder={`${field.name} লিখুন`}
                 />
               </div>
@@ -385,9 +385,9 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
                 <button
                   type="button"
                   onClick={() => setIsCustomFieldsModalOpen(true)}
-                  className="w-full py-2.5 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-dashed border-emerald-400/80 rounded-[16px] font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
+                  className="w-full py-2.5 px-4 bg-emerald-50 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900/60 text-emerald-800 dark:text-emerald-300 border border-dashed border-emerald-400/80 dark:border-emerald-600 rounded-[16px] font-bold text-xs flex items-center justify-center gap-2 transition-colors shadow-sm"
                 >
-                  <Plus className="w-4 h-4 text-emerald-600" />
+                  <Plus className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   অতিরিক্ত ফিল্ড যোগ করুন
                 </button>
               </div>
@@ -398,12 +398,12 @@ const StudentAddModal: React.FC<StudentAddModalProps> = ({
         </div>
         
         {/* Footer */}
-        <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
+        <div className="p-5 border-t border-[#E5E7EB] dark:border-slate-800 flex gap-3">
           <button
             type="button"
             onClick={onClose}
             disabled={isUploading}
-            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors disabled:opacity-50"
+            className="flex-1 bg-[#F3F4F6] dark:bg-slate-800 text-[#374151] dark:text-slate-200 h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
           >
             বাতিল
           </button>

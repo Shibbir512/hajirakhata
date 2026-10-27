@@ -9,6 +9,7 @@ import { HIJRI_MONTHS, getCurrentHijriYear } from '../../constants/hijri';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Printer, CalendarDays } from 'lucide-react';
 import { toBengaliNumber } from '../../utils/dateFormatter';
+import { ClassSelect } from '../../components/ClassSelect';
 
 const ENGLISH_MONTHS = [
   { id: 1, name: "জানুয়ারি" },
@@ -215,17 +216,15 @@ const FeeReports: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি (ঐচ্ছিক)</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শ্রেণি (ঐচ্ছিক)</label>
+            <ClassSelect
               value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="input-premium"
-            >
-              <option value="">-- সকল শ্রেণি --</option>
-              {classes.map(cls => (
-                <option key={cls.id} value={cls.id}>{cls.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedClass(val)}
+              classes={classes}
+              placeholder="-- সকল শ্রেণি --"
+              allOptionLabel="-- সকল শ্রেণি --"
+              className="w-full"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-1">স্ট্যাটাস</label>

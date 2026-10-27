@@ -8,6 +8,7 @@ import { Subject } from "../types";
 import clsx from "clsx";
 import { toEnglishNumber } from "../utils/dateFormatter";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { ClassSelect } from "../components/ClassSelect";
 
 const Subjects: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -76,17 +77,16 @@ const Subjects: React.FC = () => {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         
-        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <select
-            value={selectedClassId}
-            onChange={(e) => setSelectedClassId(e.target.value)}
-            className="input-premium min-w-[200px]"
-          >
-            <option value="">শ্রেণি নির্বাচন করুন</option>
-            {classes.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto items-stretch sm:items-center">
+          <div className="w-full sm:w-[220px]">
+            <ClassSelect
+              value={selectedClassId}
+              onChange={(id) => setSelectedClassId(id)}
+              classes={classes}
+              placeholder="শ্রেণি নির্বাচন করুন"
+              className="w-full"
+            />
+          </div>
           <button onClick={openAddModal} className="btn-primary w-full sm:w-auto whitespace-nowrap">
             <Plus className="w-4 h-4" />
             নতুন বিষয়
@@ -170,15 +170,13 @@ const Subjects: React.FC = () => {
                   <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
                     শ্রেণি
                   </label>
-                  <select
-                    required
+                  <ClassSelect
                     value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                  >
-                    <option value="">শ্রেণি নির্বাচন করুন</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                    onChange={(id) => setClassId(id)}
+                    classes={classes}
+                    placeholder="শ্রেণি নির্বাচন করুন"
+                    className="w-full"
+                  />
                 </div>
                 
                 {subjectsList.map((subject, index) => (

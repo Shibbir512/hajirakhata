@@ -116,20 +116,20 @@ export const useLeaves = (orgId: string | null, user: User | null) => {
     }
   };
 
-  const syncAllLeaves = useCallback(async (): Promise<SyncLeaveResult> => {
+  const syncAllLeaves = useCallback(async (silent = false): Promise<SyncLeaveResult> => {
     if (!orgId) return { updatedSessionsCount: 0, updatedStudentsCount: 0 };
     setIsSyncing(true);
     try {
       const result = await SyncManager.syncAllApprovedLeaves(orgId);
-      if (result.updatedStudentsCount > 0) {
+      if (result.updatedStudentsCount > 0 && !silent) {
         toast.success(`${toBengaliNumber(result.updatedStudentsCount)} জন শিক্ষার্থীর অনুপস্থিতি সফলভাবে ছুটিতে হালনাগাদ হয়েছে (${toBengaliNumber(result.updatedSessionsCount)} টি সেশন)!`);
-      } else {
-        toast.success("সকল অনুমোদিত ছুটি ইতিমধ্যে হাজিরার সাথে সিঙ্ক রয়েছে।");
       }
       return result;
     } catch (error) {
       console.error("Error syncing leaves:", error);
-      toast.error("হাজিরা সিঙ্ক করতে ব্যর্থ হয়েছে।");
+      if (!silent) {
+        toast.error("হাজিরা সিঙ্ক করতে ব্যর্থ হয়েছে।");
+      }
       return { updatedSessionsCount: 0, updatedStudentsCount: 0 };
     } finally {
       setIsSyncing(false);

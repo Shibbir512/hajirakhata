@@ -28,6 +28,7 @@ import DataBackupModal from "../components/DataBackupModal";
 import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fns";
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
 import AttendanceNavTabs from "../components/AttendanceNavTabs";
+import { ClassSelect } from "../components/ClassSelect";
 
 const Reports: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
@@ -500,16 +501,16 @@ const Reports: React.FC = () => {
       <AttendanceNavTabs />
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">হাজিরা রিপোর্ট</h1>
-          <p className="text-sm text-slate-500">উপস্থিতি ও অনুপস্থিতির সার্বিক পরিসংখ্যান</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">হাজিরা রিপোর্ট</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">উপস্থিতি ও অনুপস্থিতির সার্বিক পরিসংখ্যান</p>
         </div>
         <div className="flex flex-wrap sm:flex-row gap-3 print:hidden">
           <button 
             onClick={() => setIsBackupModalOpen(true)}
-            className="h-[52px] px-4 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 font-bold rounded-xl border border-emerald-200 transition-all shadow-soft flex items-center justify-center gap-2 text-sm shrink-0"
+            className="h-[52px] px-4 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 font-bold rounded-xl border border-emerald-200 dark:border-emerald-800 transition-all shadow-soft flex items-center justify-center gap-2 text-sm shrink-0"
             title="সম্পূর্ণ ডাটাবেজ ব্যাকআপ (JSON)"
           >
-            <Database className="w-4 h-4 text-emerald-600" />
+            <Database className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
             JSON ব্যাকআপ
           </button>
           <button 
@@ -522,7 +523,7 @@ const Reports: React.FC = () => {
           </button>
           <button 
             onClick={handleExportCSV}
-            className="flex-1 h-[52px] px-4 bg-[#F1F5F9] text-slate-700 font-bold rounded-xl border border-slate-200 hover:bg-slate-200 transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
+            className="flex-1 h-[52px] px-4 bg-[#F1F5F9] dark:bg-slate-800 text-slate-700 dark:text-slate-200 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all shadow-soft flex items-center justify-center gap-2 text-sm"
           >
             <Download className="w-4 h-4" />
             CSV
@@ -551,39 +552,32 @@ const Reports: React.FC = () => {
         </div>
 
         <div className="flex flex-col gap-4 mb-8 print:hidden">
-          <div className="relative w-full">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
-            <select
+          <div className="w-full">
+            <ClassSelect
               value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[52px] bg-white border border-slate-100 rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#0c81a3] text-center shadow-soft text-base"
-            >
-              <option value="">সকল শ্রেণি (সম্মিলিত)</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+              onChange={(id) => setSelectedClassId(id)}
+              classes={classes}
+              allOptionLabel="সকল শ্রেণি (সম্মিলিত)"
+              placeholder="শ্রেণি নির্বাচন করুন"
+            />
           </div>
 
           <div className="flex gap-2 w-full">
             <button
               onClick={setDailyReport}
-              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+              className="flex-1 h-[40px] bg-[#F1F5F9] dark:bg-slate-800 text-[#0F5C7A] dark:text-teal-300 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-[#E2E8F0] dark:hover:bg-slate-700 transition-all text-sm"
             >
               আজকের
             </button>
             <button
               onClick={setWeeklyReport}
-              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+              className="flex-1 h-[40px] bg-[#F1F5F9] dark:bg-slate-800 text-[#0F5C7A] dark:text-teal-300 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-[#E2E8F0] dark:hover:bg-slate-700 transition-all text-sm"
             >
               সাপ্তাহিক
             </button>
             <button
               onClick={setMonthlyReport}
-              className="flex-1 h-[40px] bg-[#F1F5F9] text-[#0F5C7A] font-bold rounded-xl border border-slate-200 hover:bg-[#E2E8F0] transition-all text-sm"
+              className="flex-1 h-[40px] bg-[#F1F5F9] dark:bg-slate-800 text-[#0F5C7A] dark:text-teal-300 font-bold rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-[#E2E8F0] dark:hover:bg-slate-700 transition-all text-sm"
             >
               মাসিক
             </button>
@@ -596,25 +590,25 @@ const Reports: React.FC = () => {
                 selected={startDate}
                 onChange={(date: Date | null) => date && setStartDate(date)}
                 dateFormat="dd-MM-yyyy"
-                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 dark:text-slate-100 bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-700 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
               />
             </div>
-            <span className="text-slate-500 font-medium shrink-0">থেকে</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium shrink-0">থেকে</span>
             <div className="relative flex-1 min-w-0">
               <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 z-10" />
               <DatePicker
                 selected={endDate}
                 onChange={(date: Date | null) => date && setEndDate(date)}
                 dateFormat="dd-MM-yyyy"
-                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 bg-white border border-slate-100 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
+                className="w-full pl-10 pr-2 h-[52px] text-sm font-bold text-slate-700 dark:text-slate-100 bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-700 rounded-2xl shadow-soft focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all text-center"
               />
             </div>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8 print:hidden">
-          <div className="h-80 bg-white rounded-3xl p-6 border border-slate-100 shadow-soft overflow-hidden">
-            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+          <div className="h-80 bg-white dark:bg-[#111C2E] rounded-3xl p-6 border border-slate-100 dark:border-slate-800 shadow-soft overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-4 text-center">
               হাজিরা ওভারভিউ
             </h3>
             <div className="w-full h-[calc(100%-2rem)]">
@@ -639,10 +633,11 @@ const Reports: React.FC = () => {
                 </Pie>
                 <Tooltip 
                   contentStyle={{
-                    backgroundColor: "#fff",
+                    backgroundColor: "#111C2E",
+                    color: "#F8FAFC",
                     borderRadius: "8px",
-                    border: "none",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.1)",
+                    border: "1px solid #334155",
+                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
                   }}
                 />
                 <Legend />
@@ -651,42 +646,58 @@ const Reports: React.FC = () => {
           </div>
           </div>
 
-          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+          <div className="h-80 bg-white dark:bg-[#111C2E] rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] dark:border-slate-800 shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-4 text-center">
               হাজিরা ট্রেন্ড (লাইন চার্ট)
             </h3>
             <div className="w-full h-[calc(100%-2rem)]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.4} />
+                  <XAxis dataKey="date" axisLine={false} tickLine={false} stroke="#94A3B8" />
+                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} stroke="#94A3B8" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: "#111C2E",
+                      color: "#F8FAFC",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
+                    }}
+                  />
                   <Line type="monotone" dataKey="percentage" stroke="#0F5C7A" strokeWidth={2} />
                 </LineChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+          <div className="h-80 bg-white dark:bg-[#111C2E] rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] dark:border-slate-800 shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-4 text-center">
               {selectedClassId ? "সেশন অনুযায়ী উপস্থিতি (%)" : "শ্রেণি অনুযায়ী উপস্থিতি (%)"}
             </h3>
             <div className="w-full h-[calc(100%-2rem)]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={(selectedClassId ? sessionData : reportData) as any[]}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                  <XAxis dataKey={selectedClassId ? "session" : "name"} axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} />
-                  <Tooltip />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.4} />
+                  <XAxis dataKey={selectedClassId ? "session" : "name"} axisLine={false} tickLine={false} stroke="#94A3B8" />
+                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} stroke="#94A3B8" />
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: "#111C2E",
+                      color: "#F8FAFC",
+                      borderRadius: "8px",
+                      border: "1px solid #334155",
+                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
+                    }}
+                  />
                   <Bar dataKey="percentage" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
           </div>
 
-          <div className="h-80 bg-white rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
-            <h3 className="text-lg font-semibold text-slate-700 mb-4 text-center">
+          <div className="h-80 bg-white dark:bg-[#111C2E] rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] dark:border-slate-800 shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
+            <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-100 mb-4 text-center">
               দৈনিক হাজিরার হিটম্যাপ
             </h3>
             <div className="flex flex-wrap gap-2 overflow-y-auto h-[calc(100%-2rem)]">
@@ -700,7 +711,7 @@ const Reports: React.FC = () => {
         </div>
 
         {!selectedClassId && absentStudentsList.length > 0 && (
-          <div className="mb-8 overflow-hidden border border-rose-100 rounded-[20px] shadow-soft bg-rose-50/30">
+          <div className="mb-8 overflow-hidden border border-rose-100 dark:border-rose-950/60 rounded-[20px] shadow-soft bg-rose-50/30 dark:bg-rose-950/20">
             <div className="bg-rose-500 px-4 sm:px-6 py-3">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <h3 className="text-white font-bold flex items-center gap-2 shrink-0">
@@ -709,18 +720,18 @@ const Reports: React.FC = () => {
                 </h3>
                 <div className="flex flex-wrap items-center gap-2">
                   <div className="relative">
-                    <Filter className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
-                    <select
+                    <ClassSelect
                       value={absentFilterClassId}
-                      onChange={(e) => { setAbsentFilterClassId(e.target.value); setShowAllAbsent(false); }}
-                      className="pl-8 pr-6 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white appearance-none cursor-pointer min-w-[120px]"
-                    >
-                      <option value="">সকল শ্রেণি</option>
-                      {absentFilterOptions.classNames.map(cn => (
-                        <option key={cn} value={cn}>{cn}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-rose-400 pointer-events-none" />
+                      onChange={(id) => { setAbsentFilterClassId(id); setShowAllAbsent(false); }}
+                      options={absentFilterOptions.classNames.map(cn => ({ id: cn, name: cn }))}
+                      allOptionLabel="সকল শ্রেণি"
+                      placeholder="সকল শ্রেণি"
+                      size="sm"
+                      icon={Filter}
+                      title="অনুপস্থিত শ্রেণি নির্বাচন"
+                      className="min-w-[140px]"
+                      buttonClassName="bg-white/95 dark:bg-slate-900/95 text-rose-700 dark:text-rose-200 border-rose-200 dark:border-rose-800"
+                    />
                   </div>
                   <div className="flex items-center gap-1.5">
                     <div className="relative">
@@ -729,7 +740,7 @@ const Reports: React.FC = () => {
                         type="date"
                         value={absentFilterStartDate}
                         onChange={(e) => { setAbsentFilterStartDate(e.target.value); setShowAllAbsent(false); }}
-                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
+                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 dark:bg-slate-900/90 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-800 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
                         title="শুরুর তারিখ"
                       />
                     </div>
@@ -740,7 +751,7 @@ const Reports: React.FC = () => {
                         type="date"
                         value={absentFilterEndDate}
                         onChange={(e) => { setAbsentFilterEndDate(e.target.value); setShowAllAbsent(false); }}
-                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 text-rose-700 border border-rose-200 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
+                        className="pl-7 pr-2 py-1.5 text-xs font-bold rounded-lg bg-white/90 dark:bg-slate-900/90 text-rose-700 dark:text-rose-200 border border-rose-200 dark:border-rose-800 focus:ring-2 focus:ring-white/30 focus:border-white cursor-pointer w-[130px]"
                         title="শেষ তারিখ"
                       />
                     </div>
@@ -766,30 +777,30 @@ const Reports: React.FC = () => {
             </div>
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse">
-                <thead className="bg-rose-50">
+                <thead className="bg-rose-50 dark:bg-rose-950/60">
                   <tr>
-                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">রোল</th>
-                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">নাম</th>
-                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">শ্রেণি</th>
-                    <th className="py-3 px-5 text-xs font-bold text-rose-600 uppercase tracking-wider border-b border-rose-100">তারিখ</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wider border-b border-rose-100 dark:border-rose-900/60">রোল</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wider border-b border-rose-100 dark:border-rose-900/60">নাম</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wider border-b border-rose-100 dark:border-rose-900/60">শ্রেণি</th>
+                    <th className="py-3 px-5 text-xs font-bold text-rose-600 dark:text-rose-300 uppercase tracking-wider border-b border-rose-100 dark:border-rose-900/60">তারিখ</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(showAllAbsent ? filteredAbsentStudents : filteredAbsentStudents.slice(0, 50)).map((s) => (
-                    <tr key={s.id} className="border-b border-rose-50 hover:bg-rose-100/50 transition-colors">
-                      <td className="py-3 px-5 text-slate-700 font-medium text-sm">{s.roll}</td>
-                      <td className="py-3 px-5 text-slate-700 font-bold text-sm">{s.name}</td>
-                      <td className="py-3 px-5 text-slate-700 font-medium text-sm">
-                        <span className="bg-white px-2 py-0.5 rounded border border-rose-200 text-rose-600 text-xs">
+                    <tr key={s.id} className="border-b border-rose-50 dark:border-rose-950/40 hover:bg-rose-100/50 dark:hover:bg-rose-950/30 transition-colors">
+                      <td className="py-3 px-5 text-slate-700 dark:text-slate-200 font-medium text-sm">{s.roll}</td>
+                      <td className="py-3 px-5 text-slate-700 dark:text-slate-100 font-bold text-sm">{s.name}</td>
+                      <td className="py-3 px-5 text-slate-700 dark:text-slate-200 font-medium text-sm">
+                        <span className="bg-white dark:bg-rose-900/60 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-800 text-rose-600 dark:text-rose-200 text-xs">
                           {s.className}
                         </span>
                       </td>
-                      <td className="py-3 px-5 text-slate-500 text-xs">{s.date}</td>
+                      <td className="py-3 px-5 text-slate-500 dark:text-slate-400 text-xs">{s.date}</td>
                     </tr>
                   ))}
                   {filteredAbsentStudents.length === 0 && (
                     <tr>
-                      <td colSpan={4} className="text-center py-8 text-slate-400 text-sm">
+                      <td colSpan={4} className="text-center py-8 text-slate-400 dark:text-slate-500 text-sm">
                         এই ফিল্টারে কোন অনুপস্থিত শিক্ষার্থী পাওয়া যায়নি।
                       </td>
                     </tr>
@@ -799,7 +810,7 @@ const Reports: React.FC = () => {
               {!showAllAbsent && filteredAbsentStudents.length > 50 && (
                 <button 
                   onClick={() => setShowAllAbsent(true)}
-                  className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
+                  className="w-full p-3 text-center text-xs text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                 >
                   আরও {toBengaliNumber(filteredAbsentStudents.length - 50)} জন অনুপস্থিত আছে... (সব দেখুন)
                 </button>
@@ -807,7 +818,7 @@ const Reports: React.FC = () => {
               {showAllAbsent && filteredAbsentStudents.length > 50 && (
                 <button 
                   onClick={() => setShowAllAbsent(false)}
-                  className="w-full p-3 text-center text-xs text-rose-600 font-bold hover:bg-rose-100 transition-colors cursor-pointer"
+                  className="w-full p-3 text-center text-xs text-rose-600 dark:text-rose-400 font-bold hover:bg-rose-100 dark:hover:bg-rose-950/40 transition-colors cursor-pointer"
                 >
                   সংক্ষিপ্ত করুন
                 </button>
@@ -816,32 +827,32 @@ const Reports: React.FC = () => {
           </div>
         )}
 
-        <div className="overflow-x-auto border border-[#E5E7EB] rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] max-w-full">
-          <div className="bg-slate-50 px-6 py-3 border-b border-slate-200">
-            <h3 className="text-slate-700 font-bold flex items-center gap-2">
+        <div className="overflow-x-auto border border-[#E5E7EB] dark:border-slate-800 bg-white dark:bg-[#111C2E] rounded-[20px] shadow-[0_8px_20px_rgba(0,0,0,0.05)] max-w-full">
+          <div className="bg-slate-50 dark:bg-slate-900/60 px-6 py-3 border-b border-slate-200 dark:border-slate-800">
+            <h3 className="text-slate-700 dark:text-slate-200 font-bold flex items-center gap-2">
               <Users className="w-5 h-5" />
               {selectedClassId ? "শিক্ষার্থীর পারফরম্যান্স" : "শ্রেণি ভিত্তিক পারফরম্যান্স"}
             </h3>
           </div>
           <table className="w-full text-left border-collapse">
-            <thead className="bg-[#F8F9FA] sticky top-0 z-10">
+            <thead className="bg-[#F8F9FA] dark:bg-slate-900/90 sticky top-0 z-10">
               <tr>
-                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   {selectedClassId ? "রোল" : "#"}
                 </th>
-                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   {selectedClassId ? "শিক্ষার্থীর নাম" : "শ্রেণির নাম"}
                 </th>
-                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   উপস্থিত
                 </th>
-                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   অনুপস্থিত
                 </th>
-                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="hidden sm:table-cell text-center py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   ছুটি
                 </th>
-                <th className="text-center py-3.5 px-5 text-xs font-bold text-slate-500 uppercase tracking-wider border-b border-[#E5E7EB]">
+                <th className="text-center py-3.5 px-5 text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800">
                   শতকরা
                 </th>
               </tr>
@@ -850,32 +861,32 @@ const Reports: React.FC = () => {
               {reportData.map((item, index) => (
                 <tr
                   key={item.id}
-                  className="border-b border-[#E5E7EB] hover:bg-gray-50 transition-colors"
+                  className="border-b border-[#E5E7EB] dark:border-slate-800 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-colors"
                 >
-                  <td className="py-4 px-5 text-slate-800 font-medium text-sm sm:text-base">
+                  <td className="py-4 px-5 text-slate-800 dark:text-slate-200 font-medium text-sm sm:text-base">
                     {selectedClassId ? toBengaliNumber(item.roll) : toBengaliNumber(index + 1)}
                   </td>
-                  <td className="py-4 px-5 text-slate-800 font-bold text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
+                  <td className="py-4 px-5 text-slate-800 dark:text-slate-100 font-bold text-sm sm:text-base truncate max-w-[150px] sm:max-w-none">
                     {item.name}
                   </td>
-                  <td className="hidden sm:table-cell py-4 px-5 text-center text-emerald-600 font-medium text-sm sm:text-base">
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-emerald-600 dark:text-emerald-400 font-medium text-sm sm:text-base">
                     {item.present}
                   </td>
-                  <td className="hidden sm:table-cell py-4 px-5 text-center text-rose-600 font-medium text-sm sm:text-base">
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-rose-600 dark:text-rose-400 font-medium text-sm sm:text-base">
                     {item.absent}
                   </td>
-                  <td className="hidden sm:table-cell py-4 px-5 text-center text-orange-600 font-medium text-sm sm:text-base">
+                  <td className="hidden sm:table-cell py-4 px-5 text-center text-orange-600 dark:text-orange-400 font-medium text-sm sm:text-base">
                     {item.leave}
                   </td>
                   <td className="py-4 px-5 text-center">
                     <span
                       className={clsx(
-                        "px-2.5 py-1 rounded-full text-xs font-bold",
+                        "px-2.5 py-1 rounded-full text-xs font-bold border",
                         item.percentage >= 75
-                          ? "bg-emerald-100 text-emerald-700"
+                          ? "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 border-emerald-200 dark:border-emerald-800"
                           : item.percentage >= 50
-                            ? "bg-amber-100 text-amber-700"
-                            : "bg-rose-100 text-rose-700",
+                            ? "bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 border-amber-200 dark:border-amber-800"
+                            : "bg-rose-100 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800",
                       )}
                     >
                       {item.percentage}%

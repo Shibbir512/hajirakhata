@@ -334,7 +334,7 @@ const DashboardLayout: React.FC = () => {
       {(orgId || isSuperAdmin) && !isPresentationMode && <Sidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />}
       <div className="flex-1 flex flex-col overflow-hidden">
         {(orgId || isSuperAdmin) && !isPresentationMode && <Header onMenuClick={() => setIsSidebarOpen(!isSidebarOpen)} onTogglePresentationMode={() => setIsPresentationMode(true)} />}
-        <main className={clsx("flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)]", !isPresentationMode ? "p-4 md:p-6 lg:p-8 pb-[90px] lg:pb-8" : "p-4")}>
+        <main className={clsx("flex-1 overflow-x-hidden overflow-y-auto bg-[var(--color-bg-main)] text-slate-800 dark:text-slate-100 transition-colors duration-200", !isPresentationMode ? "p-4 md:p-6 lg:p-8 pb-[90px] lg:pb-8" : "p-4")}>
           <div className={clsx("mx-auto w-full", !isPresentationMode ? "max-w-7xl" : "max-w-full")}>
             <AnimatePresence mode="wait">
               <motion.div

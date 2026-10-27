@@ -12,8 +12,8 @@ export const DataBackupModal: React.FC<DataBackupModalProps> = ({ isOpen, onClos
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/45 backdrop-blur-[6px] p-4 overflow-y-auto">
-      <div className="relative w-full max-w-2xl bg-white rounded-[24px] shadow-2xl flex flex-col overflow-hidden my-8 max-h-[90vh]">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-[6px] p-4 overflow-y-auto">
+      <div className="relative w-full max-w-2xl bg-white dark:bg-[#111C2E] rounded-[24px] shadow-2xl flex flex-col overflow-hidden my-8 max-h-[90vh] border border-transparent dark:border-slate-800">
         {/* Header */}
         <div className="bg-gradient-to-r from-[#0F5C7A] to-emerald-700 h-[64px] flex items-center justify-between px-6 text-white shrink-0">
           <div className="flex items-center gap-3">

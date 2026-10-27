@@ -1,8 +1,9 @@
 import React from "react";
-import { Bell } from "lucide-react";
+import { Bell, Sun, Moon } from "lucide-react";
 import { useAuth } from "../hooks/useAuth";
 import { useLocation } from "react-router-dom";
 import { PWAInstallButton } from "./PWAInstallButton";
+import { useTheme } from "../context/ThemeContext";
 
 const MosqueIcon = ({ className }: { className?: string }) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
@@ -17,6 +18,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }) => {
   const { orgName } = useAuth();
+  const { resolvedTheme, toggleTheme } = useTheme();
   const location = useLocation();
 
   const getPageTitle = () => {
@@ -57,7 +59,7 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
 
   return (
     <header 
-      className="sticky top-0 left-0 right-0 flex items-center justify-between px-4 z-[90] shrink-0 bg-[#0F5C7A] shadow-sm print:hidden"
+      className="sticky top-0 left-0 right-0 flex items-center justify-between px-4 z-[90] shrink-0 bg-[#0F5C7A] dark:bg-[#0A3D52] shadow-sm transition-colors duration-200 print:hidden"
       style={{ 
         paddingTop: 'max(env(safe-area-inset-top), 16px)',
         paddingBottom: '16px',
@@ -79,10 +81,28 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick, onTogglePresentationMode }
           </p>
         </div>
         
-        {/* Notification Bell & Install */}
-        <div className="shrink-0 ml-3 flex items-center gap-2">
+        {/* Header Actions: Theme Toggle, Install & Notification */}
+        <div className="shrink-0 ml-2 flex items-center gap-1.5 sm:gap-2">
+          {/* Theme Toggle Button */}
+          <button
+            onClick={toggleTheme}
+            aria-label={resolvedTheme === "dark" ? "লাইট মোডে পরিবর্তন করুন" : "ডার্ক মোডে পরিবর্তন করুন"}
+            title={resolvedTheme === "dark" ? "লাইট মোড" : "ডার্ক মোড"}
+            className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 active:scale-95 transition-all flex items-center justify-center text-white"
+          >
+            {resolvedTheme === "dark" ? (
+              <Sun className="w-[18px] h-[18px] text-amber-300 transition-transform duration-200 rotate-0" />
+            ) : (
+              <Moon className="w-[18px] h-[18px] text-teal-100 transition-transform duration-200" />
+            )}
+          </button>
+
           <PWAInstallButton />
-          <button className="relative w-8 h-8 rounded-full hover:bg-white/10 transition-colors flex items-center justify-center">
+          
+          <button 
+            aria-label="বিজ্ঞপ্তি" 
+            className="relative w-9 h-9 rounded-full hover:bg-white/10 active:scale-95 transition-colors flex items-center justify-center"
+          >
             <Bell className="w-[18px] h-[18px] text-white" />
           </button>
         </div>

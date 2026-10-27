@@ -122,31 +122,31 @@ const StudentHistoryModal: React.FC<StudentHistoryModalProps> = ({ studentId, or
 
   return createPortal(
     <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-[#14B8A6]">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-          <h3 className="text-xl font-bold text-slate-800 flex items-center gap-2">
-            <BookOpen className="w-6 h-6 text-[#0F766E]" />
+      <div className="bg-white dark:bg-[#111C2E] rounded-2xl shadow-xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh] border border-[#14B8A6] dark:border-teal-700">
+        <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/60">
+          <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2">
+            <BookOpen className="w-6 h-6 text-[#0F766E] dark:text-teal-400" />
             বিস্তারিত একাডেমিক হিস্ট্রি
           </h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 transition-colors">
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors">
             <XCircle className="w-6 h-6" />
           </button>
         </div>
         <div className="p-6 overflow-y-auto flex-1 space-y-6">
           {loading ? (
-            <div className="text-center py-10 text-slate-500">লোড হচ্ছে...</div>
+            <div className="text-center py-10 text-slate-500 dark:text-slate-400">লোড হচ্ছে...</div>
           ) : (
             <>
               {/* Total Attendance Summary */}
-              <div className="bg-gradient-to-br from-teal-50 to-blue-50 rounded-2xl p-6 border border-teal-100 shadow-sm">
-                <h4 className="text-lg font-bold text-teal-800 mb-4 flex items-center gap-2">
+              <div className="bg-gradient-to-br from-teal-50 to-blue-50 dark:from-teal-950/30 dark:to-slate-900/50 rounded-2xl p-6 border border-teal-100 dark:border-teal-900/40 shadow-sm">
+                <h4 className="text-lg font-bold text-teal-800 dark:text-teal-300 mb-4 flex items-center gap-2">
                   <Activity className="w-5 h-5" />
                   পুরা শিক্ষা জীবনের উপস্থিতি
                 </h4>
                 <div className="grid grid-cols-4 gap-4">
-                  <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-slate-100">
-                    <p className="text-xs font-bold text-slate-500 mb-1">মোট সেশন</p>
-                    <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(totalAttendance.total)}</p>
+                  <div className="bg-white dark:bg-[#111C2E] p-4 rounded-xl text-center shadow-sm border border-slate-100 dark:border-slate-800">
+                    <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-1">মোট সেশন</p>
+                    <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{toBengaliNumber(totalAttendance.total)}</p>
                   </div>
                   <div className="bg-white p-4 rounded-xl text-center shadow-sm border border-emerald-100">
                     <p className="text-xs font-bold text-emerald-600 mb-1">উপস্থিতির হার</p>

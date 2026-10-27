@@ -80,23 +80,23 @@ const CustomFieldsModal: React.FC<CustomFieldsModalProps> = ({ isOpen, onClose, 
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/45 backdrop-blur-[6px]">
-      <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh]">
-        <div className="p-6 border-b border-[#E5E7EB] flex items-center justify-between bg-[#F8FAFC]">
+    <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4 bg-black/50 backdrop-blur-[6px]">
+      <div className="bg-white dark:bg-[#111C2E] rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] border border-transparent dark:border-slate-800">
+        <div className="p-6 border-b border-[#E5E7EB] dark:border-slate-800 flex items-center justify-between bg-[#F8FAFC] dark:bg-slate-900/60">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-100 text-[#0F766E] rounded-xl flex items-center justify-center shadow-inner">
+            <div className="w-10 h-10 bg-emerald-100 dark:bg-emerald-950/60 text-[#0F766E] dark:text-emerald-400 rounded-xl flex items-center justify-center shadow-inner">
               <List className="w-5 h-5" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-[#1E293B]">শিক্ষার্থীর অতিরিক্ত ফিল্ড</h2>
-              <p className="text-sm text-slate-500 font-medium">শিক্ষার্থীর প্রোফাইলে নতুন ফিল্ড যুক্ত করুন</p>
+              <h2 className="text-xl font-bold text-[#1E293B] dark:text-slate-100">শিক্ষার্থীর অতিরিক্ত ফিল্ড</h2>
+              <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">শিক্ষার্থীর প্রোফাইলে নতুন ফিল্ড যুক্ত করুন</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 transition-colors"
+            className="w-10 h-10 rounded-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-800 transition-colors"
           >
-            <X className="w-5 h-5 text-slate-500" />
+            <X className="w-5 h-5 text-slate-500 dark:text-slate-400" />
           </button>
         </div>
 
@@ -113,7 +113,7 @@ const CustomFieldsModal: React.FC<CustomFieldsModalProps> = ({ isOpen, onClose, 
                   value={newFieldName}
                   onChange={(e) => setNewFieldName(e.target.value)}
                   placeholder="নতুন ফিল্ডের নাম (যেমন: মাতার নাম)"
-                  className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-[#F9FAFB] px-4 focus:border-[#14B8A6] outline-none"
+                  className="w-full h-[52px] border border-[#D1D5DB] dark:border-slate-700 rounded-[16px] bg-[#F9FAFB] dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 px-4 focus:border-[#14B8A6] outline-none"
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' && newFieldName.trim()) {
                       handleAddCustomField();
@@ -131,15 +131,15 @@ const CustomFieldsModal: React.FC<CustomFieldsModalProps> = ({ isOpen, onClose, 
               </div>
 
               {customFields.length > 0 ? (
-                <div className="bg-slate-50 rounded-[16px] border border-slate-200 overflow-hidden">
-                  <div className="grid grid-cols-1 divide-y divide-slate-200">
+                <div className="bg-slate-50 dark:bg-slate-900/60 rounded-[16px] border border-slate-200 dark:border-slate-800 overflow-hidden">
+                  <div className="grid grid-cols-1 divide-y divide-slate-200 dark:divide-slate-800">
                     {customFields.map((field) => (
-                      <div key={field.id} className="p-4 flex items-center justify-between hover:bg-slate-100 transition-colors">
-                        <span className="font-medium text-slate-700">{field.name}</span>
+                      <div key={field.id} className="p-4 flex items-center justify-between hover:bg-slate-100 dark:hover:bg-slate-800/50 transition-colors">
+                        <span className="font-medium text-slate-700 dark:text-slate-200">{field.name}</span>
                         <button
                           onClick={() => handleDeleteCustomField(field.id)}
                           disabled={isSavingFields}
-                          className="w-8 h-8 text-rose-500 hover:bg-rose-100 rounded-lg flex items-center justify-center transition-colors"
+                          className="w-8 h-8 text-rose-500 hover:bg-rose-100 dark:hover:bg-rose-950/60 rounded-lg flex items-center justify-center transition-colors"
                           title="মুছে ফেলুন"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -149,7 +149,7 @@ const CustomFieldsModal: React.FC<CustomFieldsModalProps> = ({ isOpen, onClose, 
                   </div>
                 </div>
               ) : (
-                <div className="text-center py-8 text-slate-500 bg-slate-50 rounded-[16px] border border-dashed border-slate-300">
+                <div className="text-center py-8 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-slate-900/40 rounded-[16px] border border-dashed border-slate-300 dark:border-slate-800">
                   কোনো অতিরিক্ত ফিল্ড যুক্ত করা হয়নি
                 </div>
               )}

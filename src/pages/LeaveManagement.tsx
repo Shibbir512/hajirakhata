@@ -9,6 +9,7 @@ import clsx from "clsx";
 import toast from "react-hot-toast";
 import { createPortal } from "react-dom";
 import AttendanceNavTabs from "../components/AttendanceNavTabs";
+import { ClassSelect } from "../components/ClassSelect";
 
 const LeaveManagement: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -30,10 +31,10 @@ const LeaveManagement: React.FC = () => {
   const [viewClassId, setViewClassId] = useState<string>("");
   const [viewSearchQuery, setViewSearchQuery] = useState("");
 
-  // Auto-sync on mount to repair any missed attendance updates
+  // Auto-sync on mount silently to repair any missed attendance updates
   useEffect(() => {
     if (orgId && leaves.length > 0) {
-      syncAllLeaves().catch(console.error);
+      syncAllLeaves(true).catch(console.error);
     }
   }, [orgId, leaves.length > 0]);
   
@@ -348,22 +349,16 @@ const LeaveManagement: React.FC = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
             <div className="space-y-2">
               <label className="text-sm font-bold text-slate-700">শ্রেণি</label>
-              <div className="relative">
-                <select
-                  value={selectedClassId}
-                  onChange={(e) => {
-                    setSelectedClassId(e.target.value);
-                    setSelectedStudents(new Set());
-                  }}
-                  className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 appearance-none pr-10 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                >
-                  <option value="">শ্রেণি নির্বাচন করুন</option>
-                  {classes.map((cls) => (
-                    <option key={cls.id} value={cls.id}>{cls.name}</option>
-                  ))}
-                </select>
-                <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-              </div>
+              <ClassSelect
+                value={selectedClassId}
+                onChange={(id) => {
+                  setSelectedClassId(id);
+                  setSelectedStudents(new Set());
+                }}
+                classes={classes}
+                placeholder="শ্রেণি নির্বাচন করুন"
+                className="w-full"
+              />
             </div>
 
             <div className="space-y-2">
@@ -536,19 +531,14 @@ const LeaveManagement: React.FC = () => {
               
               <div className="flex-1 w-full space-y-2">
                 <label className="text-sm font-bold text-slate-700">শ্রেণি ফিল্টার (ঐচ্ছিক)</label>
-                <div className="relative">
-                  <select
-                    value={viewClassId}
-                    onChange={(e) => setViewClassId(e.target.value)}
-                    className="w-full text-[16px] font-medium text-slate-700 bg-slate-50 border border-slate-200 appearance-none pr-10 rounded-xl py-3 px-4 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all outline-none"
-                  >
-                    <option value="">সকল শ্রেণি</option>
-                    {classes.map((cls) => (
-                      <option key={cls.id} value={cls.id}>{cls.name}</option>
-                    ))}
-                  </select>
-                  <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-                </div>
+                <ClassSelect
+                  value={viewClassId}
+                  onChange={(id) => setViewClassId(id)}
+                  classes={classes}
+                  placeholder="সকল শ্রেণি"
+                  allOptionLabel="সকল শ্রেণি"
+                  className="w-full"
+                />
               </div>
 
               <div className="flex-[2] w-full space-y-2">

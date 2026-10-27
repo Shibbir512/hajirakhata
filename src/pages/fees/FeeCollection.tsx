@@ -9,6 +9,7 @@ import { HIJRI_MONTHS, getCurrentHijriYear } from '../../constants/hijri';
 import { CheckCircle, Search, Save, Trash2, CalendarDays } from 'lucide-react';
 import toast from 'react-hot-toast';
 import ConfirmationDialog from '../../components/ConfirmationDialog';
+import { ClassSelect } from '../../components/ClassSelect';
 
 const ENGLISH_MONTHS = [
   { id: 1, name: "জানুয়ারি" },
@@ -244,17 +245,14 @@ const FeeCollection: React.FC = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শ্রেণি</label>
+            <ClassSelect
               value={selectedClass}
-              onChange={(e) => setSelectedClass(e.target.value)}
-              className="input-premium"
-            >
-              <option value="">-- শ্রেণি নির্বাচন করুন --</option>
-              {classes.map(cls => (
-                <option key={cls.id} value={cls.id}>{cls.name}</option>
-              ))}
-            </select>
+              onChange={(val) => setSelectedClass(val)}
+              classes={classes}
+              placeholder="-- শ্রেণি নির্বাচন করুন --"
+              className="w-full"
+            />
           </div>
         </div>
 

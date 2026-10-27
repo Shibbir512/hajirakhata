@@ -13,6 +13,7 @@ import { calculateResultMetrics } from "../utils/resultCalculations";
 import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { ClassSelect } from "../components/ClassSelect";
 
 const ResultEntry: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -295,18 +296,31 @@ const ResultEntry: React.FC = () => {
       </div>
 
       <div className="card-premium p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select value={academicYearId} onChange={(e) => setAcademicYearId(e.target.value)} className="input-premium">
-          <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-          {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
-        </select>
-        <select value={examId} onChange={(e) => setExamId(e.target.value)} className="input-premium">
-          <option value="">পরীক্ষা নির্বাচন করুন</option>
-          {exams.filter(e => e.academicYearId === academicYearId).map(e => <option key={e.id} value={e.id}>{e.name}</option>)}
-        </select>
-        <select value={classId} onChange={(e) => setClassId(e.target.value)} className="input-premium">
-          <option value="">শ্রেণী নির্বাচন করুন</option>
-          {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-        </select>
+        <ClassSelect
+          value={academicYearId}
+          onChange={(val) => setAcademicYearId(val)}
+          options={academicYears.map(ay => ({ id: ay.id, name: formatAcademicYear(ay) }))}
+          placeholder="শিক্ষাবর্ষ নির্বাচন করুন"
+          title="শিক্ষাবর্ষ নির্বাচন"
+          className="w-full"
+        />
+        <ClassSelect
+          value={examId}
+          onChange={(val) => setExamId(val)}
+          options={exams.filter(e => e.academicYearId === academicYearId).map(e => ({ id: e.id, name: e.name }))}
+          placeholder="পরীক্ষা নির্বাচন করুন"
+          title="পরীক্ষা নির্বাচন"
+          disabled={!academicYearId}
+          className="w-full"
+        />
+        <ClassSelect
+          value={classId}
+          onChange={(val) => setClassId(val)}
+          classes={classes}
+          placeholder="শ্রেণি নির্বাচন করুন"
+          title="শ্রেণি নির্বাচন"
+          className="w-full"
+        />
       </div>
 
       {classId && examId && academicYearId && (

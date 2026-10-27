@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
 import ImageModal from "../components/ImageModal";
 import AttendanceNavTabs from "../components/AttendanceNavTabs";
+import { ClassSelect } from "../components/ClassSelect";
 
 interface StatCardProps {
   title: string;
@@ -338,30 +339,19 @@ const Attendance: React.FC = () => {
   return (
     <div className="space-y-6">
       <AttendanceNavTabs />
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white dark:bg-[#111C2E] p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-800">
         <div>
-          
-          <p className="text-slate-500 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm sm:text-base">শিক্ষার্থীদের দৈনিক উপস্থিতি রেকর্ড করুন</p>
         </div>
         
         {/* Class Selection Input Top Level */}
         <div className="w-full sm:w-72">
-          <div className="relative w-full">
-            <Users className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full pl-12 pr-10 h-[52px] bg-white border border-[#0fa2b0] rounded-2xl focus:ring-2 focus:ring-[#0F5C7A]/20 focus:border-[#0F5C7A] transition-all appearance-none cursor-pointer font-bold text-[#089191] shadow-soft text-[16px]"
-            >
-              <option value="">শ্রেণি নির্বাচন করুন</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-          </div>
+          <ClassSelect
+            value={selectedClassId}
+            onChange={(id) => setSelectedClassId(id)}
+            classes={classes}
+            placeholder="শ্রেণি নির্বাচন করুন"
+          />
         </div>
       </div>
 
@@ -404,9 +394,9 @@ const Attendance: React.FC = () => {
       )}
 
       {selectedClassId ? (
-        <div className="card-premium p-6 sm:p-8 border border-[#f7f7f7]">
+        <div className="card-premium p-6 sm:p-8 border border-slate-100 dark:border-slate-800 bg-white dark:bg-[#111C2E]">
             {/* Bulk Action - Segmented Control */}
-            <div className="flex bg-white p-1 rounded-2xl border border-slate-100 h-[52px] mb-4 shadow-soft">
+            <div className="flex bg-white dark:bg-slate-900/60 p-1 rounded-2xl border border-slate-100 dark:border-slate-800 h-[52px] mb-4 shadow-soft">
               <motion.button
                 whileTap={{ scale: 0.98 }}
                 onClick={() => markAll(AttendanceStatus.Present)}
@@ -414,7 +404,7 @@ const Attendance: React.FC = () => {
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
                   attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Present)
                     ? "bg-[#22C55E] text-white shadow-md shadow-[#22C55E]/20"
-                    : "text-[#22C55E] hover:bg-emerald-50"
+                    : "text-[#22C55E] dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
                 )}
               >
                 <CheckCircle className="w-4 h-4" />
@@ -427,7 +417,7 @@ const Attendance: React.FC = () => {
                   "flex-1 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2",
                   attendanceState.size > 0 && Array.from(attendanceState.values()).every(s => s.status === AttendanceStatus.Absent)
                     ? "bg-[#EF4444] text-white shadow-md shadow-[#EF4444]/20"
-                    : "text-[#EF4444] hover:bg-rose-50"
+                    : "text-[#EF4444] dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40"
                 )}
               >
                 <XCircle className="w-4 h-4" />
@@ -446,7 +436,7 @@ const Attendance: React.FC = () => {
                   setSearchQuery(e.target.value);
                   setCurrentPage(1);
                 }}
-                className="w-full h-[52px] text-base font-medium text-slate-700 bg-white pl-12 rounded-2xl shadow-soft border border-slate-100 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+                className="w-full h-[52px] text-base font-medium text-slate-700 dark:text-slate-100 bg-white dark:bg-[#111C2E] pl-12 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-700 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all placeholder-slate-400"
               />
             </div>
 
@@ -459,26 +449,26 @@ const Attendance: React.FC = () => {
                 const isLeave = status === AttendanceStatus.Leave;
 
                 return (
-                  <div key={student.id} className={clsx("bg-white p-3 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3", isLeave && "opacity-80 border border-orange-200")}>
+                  <div key={student.id} className={clsx("bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 p-3.5 rounded-[16px] shadow-[0_2px_8px_rgba(0,0,0,0.06)] mb-3", isLeave && "opacity-80 border-orange-200 dark:border-orange-800/60")}>
                     <div className="flex justify-between items-center mb-2">
                       <div className="flex items-center gap-3">
                         {student.photoUrl ? (
                           <img 
                             src={student.photoUrl} 
                             alt={student.name} 
-                            className="w-10 h-10 rounded-full object-cover border border-slate-200 cursor-pointer hover:scale-110 transition-transform" 
+                            className="w-10 h-10 rounded-full object-cover border border-slate-200 dark:border-slate-700 cursor-pointer hover:scale-110 transition-transform" 
                             referrerPolicy="no-referrer"
                             onClick={() => setViewingImage({ url: student.photoUrl!, name: student.name })}
                           />
                         ) : (
-                          <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 flex items-center justify-center text-[#0F5C7A] font-bold text-sm">
+                          <div className="w-10 h-10 rounded-full bg-[#0F5C7A]/10 dark:bg-teal-500/20 flex items-center justify-center text-[#0F5C7A] dark:text-teal-400 font-bold text-sm">
                             {student.name.charAt(0)}
                           </div>
                         )}
                         <div className="flex flex-col">
-                          <span className="font-bold text-[16px]">{toBengaliNumber(student.roll)}. {student.name}</span>
+                          <span className="font-bold text-[16px] text-slate-800 dark:text-slate-100">{toBengaliNumber(student.roll)}. {student.name}</span>
                           {isLeave && statusData?.note && (
-                            <span className="text-xs text-orange-600 font-medium bg-orange-50 px-2 py-0.5 rounded-full w-fit mt-1">
+                            <span className="text-xs text-orange-600 dark:text-orange-400 font-medium bg-orange-50 dark:bg-orange-950/50 px-2 py-0.5 rounded-full w-fit mt-1 border border-orange-200 dark:border-orange-900">
                               কারণ: {statusData.note}
                             </span>
                           )}

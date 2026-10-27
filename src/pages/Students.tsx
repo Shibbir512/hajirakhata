@@ -7,12 +7,13 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { useStudentAttendance } from "../hooks/useStudentAttendance";
 import { useAcademicYears } from "../hooks/useAcademicYears";
-import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal, Info, FileSpreadsheet, FileText, SlidersHorizontal } from "lucide-react";
+import { Plus, Edit, Trash2, Search, Eye, X, Upload, Download, ChevronDown, Calendar, User, CheckCircle, ArrowRight, Users, Printer, MoreHorizontal, Info, FileSpreadsheet, FileText, SlidersHorizontal, Droplet } from "lucide-react";
 import { Student } from "../types";
 import { toBengaliNumber, toBengaliDate, toEnglishNumber } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { ClassSelect } from "../components/ClassSelect";
 import Fuse from "fuse.js";
 
 const StudentAddModal = lazy(() => import("../components/StudentAddModal"));
@@ -661,60 +662,60 @@ const Students: React.FC = () => {
 
       <div className="card-premium p-8 border-[#0aa7a7]">
         <div className="flex flex-col sm:flex-row gap-4 mb-8">
-          <div className="relative min-w-[240px]">
-            <select
+          <div className="w-full sm:min-w-[240px]">
+            <ClassSelect
               value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="w-full text-[18px] font-bold text-center text-[#0a7e7d] bg-[#fbfbfb] border-2 border-[#0b9a89] appearance-none pr-10 rounded-xl py-3 shadow-sm focus:border-[#0b9a89] focus:ring-2 focus:ring-[#0b9a89]/20 transition-all"
-            >
-              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+              onChange={(id) => setSelectedClassId(id)}
+              classes={classes}
+              placeholder="শ্রেণি নির্বাচন করুন"
+              allOptionLabel="সকল শ্রেণি"
+              className="w-full"
+            />
           </div>
 
-          <div className="relative flex-1 bg-[#fbfbfb]">
-            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+          <div className="relative flex-1">
+            <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
             <input
               type="text"
               placeholder="নাম, রোল, ফোন বা ঠিকানা দিয়ে খুঁজুন..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="input-premium w-full text-base font-medium text-slate-700 bg-white pl-12 rounded-xl py-3 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              className="input-premium w-full text-base font-medium text-slate-700 dark:text-slate-100 bg-white dark:bg-slate-800/90 pl-12 rounded-2xl py-3 h-[52px] shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all border border-slate-200 dark:border-slate-700"
             />
           </div>
 
-          <div className="relative bg-[#fbfbfb]">
-            <select
+          <div className="w-full sm:min-w-[180px]">
+            <ClassSelect
               value={bloodGroupFilter}
-              onChange={(e) => setBloodGroupFilter(e.target.value)}
-              className="w-full h-[52px] border border-[#D1D5DB] rounded-xl bg-white px-4 focus:border-[#0F5C7A] outline-none appearance-none text-slate-700 font-medium"
-            >
-              <option value="">সব রক্তের গ্রুপ</option>
-              <option value="A+">A+</option>
-              <option value="A-">A-</option>
-              <option value="B+">B+</option>
-              <option value="B-">B-</option>
-              <option value="AB+">AB+</option>
-              <option value="AB-">AB-</option>
-              <option value="O+">O+</option>
-              <option value="O-">O-</option>
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
+              onChange={(val) => setBloodGroupFilter(val)}
+              options={[
+                { id: "", name: "সব রক্তের গ্রুপ" },
+                { id: "A+", name: "A+" },
+                { id: "A-", name: "A-" },
+                { id: "B+", name: "B+" },
+                { id: "B-", name: "B-" },
+                { id: "AB+", name: "AB+" },
+                { id: "AB-", name: "AB-" },
+                { id: "O+", name: "O+" },
+                { id: "O-", name: "O-" },
+              ]}
+              placeholder="সব রক্তের গ্রুপ"
+              allOptionLabel="সব রক্তের গ্রুপ"
+              title="রক্তের গ্রুপ নির্বাচন"
+              subtitle="তালিকা থেকে রক্তের গ্রুপ বেছে নিন"
+              icon={Droplet}
+              className="w-full"
+            />
           </div>
           
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 rounded-xl border border-slate-200">
-              <label className="text-sm font-medium text-slate-600 cursor-pointer flex items-center gap-2">
+            <div className="flex items-center gap-2 px-4 py-2 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 h-[52px]">
+              <label className="text-sm font-medium text-slate-600 dark:text-slate-300 cursor-pointer flex items-center gap-2 whitespace-nowrap">
                 <input 
                   type="checkbox" 
                   checked={showArchived} 
                   onChange={(e) => setShowArchived(e.target.checked)}
-                  className="rounded border-slate-300 text-[#0F5C7A] focus:ring-[#0F5C7A]"
+                  className="rounded border-slate-300 dark:border-slate-600 text-[#0F5C7A] focus:ring-[#0F5C7A]"
                 />
                 আর্কাইভ করা শিক্ষার্থী দেখুন
               </label>
@@ -897,21 +898,21 @@ const Students: React.FC = () => {
         {totalPages >= 1 && (
           <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
             <div className="flex flex-col sm:flex-row items-center gap-4">
-              <div className="text-sm text-slate-500">
-                দেখানো হচ্ছে <span className="font-medium text-slate-700">{toBengaliNumber(filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)}</span> থেকে <span className="font-medium text-slate-700">{toBengaliNumber(Math.min(currentPage * itemsPerPage, filteredStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium text-slate-700">{toBengaliNumber(filteredStudents.length)}</span> জন শিক্ষার্থী
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                দেখানো হচ্ছে <span className="font-medium text-slate-700 dark:text-slate-200">{toBengaliNumber(filteredStudents.length > 0 ? (currentPage - 1) * itemsPerPage + 1 : 0)}</span> থেকে <span className="font-medium text-slate-700 dark:text-slate-200">{toBengaliNumber(Math.min(currentPage * itemsPerPage, filteredStudents.length))}</span> পর্যন্ত, মোট <span className="font-medium text-slate-700 dark:text-slate-200">{toBengaliNumber(filteredStudents.length)}</span> জন শিক্ষার্থী
               </div>
               <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500">প্রতি পাতায়:</span>
+                <span className="text-sm text-slate-500 dark:text-slate-400">প্রতি পাতায়:</span>
                 <select
                   value={itemsPerPage}
                   onChange={(e) => {
                     setItemsPerPage(Number(e.target.value));
                     setCurrentPage(1);
                   }}
-                  className="bg-white border border-slate-200 rounded-lg px-2 py-1.5 text-sm text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2 py-1.5 text-sm text-slate-600 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#0F5C7A]/20"
                 >
                   {[5, 10, 20, 50, 100].map(val => (
-                    <option key={val} value={val}>{toBengaliNumber(val)}</option>
+                    <option key={val} value={val} className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">{toBengaliNumber(val)}</option>
                   ))}
                 </select>
               </div>
@@ -920,7 +921,7 @@ const Students: React.FC = () => {
               <button
                 onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                 disabled={currentPage === 1}
-                className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
                 পূর্ববর্তী
               </button>
@@ -940,7 +941,7 @@ const Students: React.FC = () => {
                           "w-9 h-9 rounded-xl text-sm transition-all duration-300",
                           currentPage === page
                             ? "bg-[#0F5C7A] text-white shadow-sm font-bold"
-                            : "text-slate-600 hover:bg-slate-100 font-medium"
+                            : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-medium"
                         )}
                       >
                         {toBengaliNumber(page)}

@@ -254,21 +254,21 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
 
   if (variant === "compact") {
     return (
-      <div className={`card-premium p-5 border border-emerald-100 bg-gradient-to-br from-white to-emerald-50/20 ${className}`}>
+      <div className={`card-premium p-5 border border-emerald-100 dark:border-slate-800 bg-gradient-to-br from-white to-emerald-50/20 dark:from-[#111C2E] dark:to-slate-900 ${className}`}>
         <div className="flex items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400 flex items-center justify-center shrink-0">
               <Database className="w-5 h-5" />
             </div>
             <div>
-              <h4 className="font-bold text-slate-800 text-sm">ডাটা ব্যাকআপ (JSON)</h4>
-              <p className="text-xs text-slate-500">হাজিরা ও ফলাফলের সম্পূর্ণ ব্যাকআপ ডাউনলোড করুন</p>
+              <h4 className="font-bold text-slate-800 dark:text-slate-100 text-sm">ডাটা ব্যাকআপ (JSON)</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400">হাজিরা ও ফলাফলের সম্পূর্ণ ব্যাকআপ ডাউনলোড করুন</p>
             </div>
           </div>
           <button
             onClick={handleExportBackup}
             disabled={isExporting}
-            className="btn-primary bg-emerald-600 hover:bg-emerald-700 h-9 px-4 text-xs font-bold flex items-center gap-2 shrink-0"
+            className="btn-primary bg-emerald-600 hover:bg-emerald-700 text-white h-9 px-4 text-xs font-bold flex items-center gap-2 shrink-0 shadow-sm"
           >
             {isExporting ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Download className="w-3.5 h-3.5" />}
             <span>{isExporting ? "প্রস্তুত হচ্ছে..." : "JSON ব্যাকআপ"}</span>
@@ -279,26 +279,26 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
   }
 
   return (
-    <div className={`card-premium p-6 sm:p-8 border border-emerald-100 bg-gradient-to-br from-white via-white to-emerald-50/25 relative overflow-hidden ${className}`}>
+    <div className={`card-premium p-6 sm:p-8 border border-emerald-100 dark:border-slate-800 bg-gradient-to-br from-white via-white to-emerald-50/25 dark:from-[#111C2E] dark:via-[#111C2E] dark:to-slate-900 relative overflow-hidden ${className}`}>
       {/* Decorative top ribbon */}
       <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-emerald-500 via-teal-500 to-[#0F5C7A]"></div>
 
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
             <Database className="w-6 h-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h3 className="text-xl font-bold text-slate-800 tracking-tight">
+              <h3 className="text-xl font-bold text-slate-800 dark:text-slate-100 tracking-tight">
                 ডাটা ব্যাকআপ ও এক্সপোর্ট (JSON Backup)
               </h3>
-              <span className="text-[10px] bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-bold">
+              <span className="text-[10px] bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 rounded-full font-bold">
                 অফলাইন সেফ
               </span>
             </div>
-            <p className="text-sm text-slate-500 mt-1">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
               আপনার প্রতিষ্ঠানের সমস্ত হাজিরা খাতা এবং পরীক্ষার ফলাফলের একটি সম্পূর্ণ ম্যানুয়াল কপি JSON ফাইল হিসেবে আপনার ডিভাইসে সংরক্ষণ করুন।
             </p>
           </div>
@@ -311,22 +311,22 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
         <label 
           className={`flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${
             includeAttendance 
-              ? "bg-emerald-50/50 border-emerald-300 shadow-sm" 
-              : "bg-slate-50/50 border-slate-200 opacity-60"
+              ? "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-sm" 
+              : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60"
           }`}
         >
           <input
             type="checkbox"
             checked={includeAttendance}
             onChange={(e) => setIncludeAttendance(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
           />
           <div>
-            <div className="flex items-center gap-1.5 font-bold text-slate-800 text-sm">
-              <CalendarCheck className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100 text-sm">
+              <CalendarCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               হাজিরা রেকর্ড (Attendance)
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               সকল তারিখের দৈনিক হাজিরা, অনুপস্থিতি ও ছুটির সম্পূর্ণ সেশন রেকর্ড।
             </p>
           </div>
@@ -336,22 +336,22 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
         <label 
           className={`flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${
             includeResults 
-              ? "bg-emerald-50/50 border-emerald-300 shadow-sm" 
-              : "bg-slate-50/50 border-slate-200 opacity-60"
+              ? "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-sm" 
+              : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60"
           }`}
         >
           <input
             type="checkbox"
             checked={includeResults}
             onChange={(e) => setIncludeResults(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
           />
           <div>
-            <div className="flex items-center gap-1.5 font-bold text-slate-800 text-sm">
-              <GraduationCap className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100 text-sm">
+              <GraduationCap className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               ফলাফল ডাটা (Exam Results)
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               সকল পরীক্ষা, শ্রেণি ও বিষয়ভিত্তিক শিক্ষার্থীদের প্রাপ্ত নম্বর ও গ্রেড।
             </p>
           </div>
@@ -361,22 +361,22 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
         <label 
           className={`flex items-start gap-3 p-4 rounded-2xl border transition-all cursor-pointer ${
             includeContext 
-              ? "bg-emerald-50/50 border-emerald-300 shadow-sm" 
-              : "bg-slate-50/50 border-slate-200 opacity-60"
+              ? "bg-emerald-50/50 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-700/60 shadow-sm" 
+              : "bg-slate-50/50 dark:bg-slate-900/40 border-slate-200 dark:border-slate-800 opacity-60"
           }`}
         >
           <input
             type="checkbox"
             checked={includeContext}
             onChange={(e) => setIncludeContext(e.target.checked)}
-            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300"
+            className="mt-1 h-4 w-4 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
           />
           <div>
-            <div className="flex items-center gap-1.5 font-bold text-slate-800 text-sm">
-              <Users className="w-4 h-4 text-emerald-600" />
+            <div className="flex items-center gap-1.5 font-bold text-slate-800 dark:text-slate-100 text-sm">
+              <Users className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
               রেফারেন্স তথ্য (Students & Classes)
             </div>
-            <p className="text-xs text-slate-500 mt-1 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               শিক্ষার্থী তালিকা, শ্রেণি, বিষয় ও পরীক্ষার নামসমূহ যাতে ব্যাকআপ পূর্ণাঙ্গ হয়।
             </p>
           </div>
@@ -384,12 +384,12 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
       </div>
 
       {/* Formatting & Last Backup Details */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-200/70 text-xs text-slate-600 mb-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-slate-50 dark:bg-slate-900/60 rounded-2xl border border-slate-200/70 dark:border-slate-800 text-xs text-slate-600 dark:text-slate-300 mb-6">
         <div className="flex items-center gap-3">
-          <HardDrive className="w-4 h-4 text-slate-500" />
+          <HardDrive className="w-4 h-4 text-slate-500 dark:text-slate-400" />
           <span>
             {lastBackupInfo ? (
-              <>সর্বশেষ ব্যাকআপ: <strong className="text-slate-800">{lastBackupInfo.date}</strong> ({lastBackupInfo.sizeKb})</>
+              <>সর্বশেষ ব্যাকআপ: <strong className="text-slate-800 dark:text-white">{lastBackupInfo.date}</strong> ({lastBackupInfo.sizeKb})</>
             ) : (
               "এই ডিভাইসে এখনো কোনো ব্যাকআপ নেওয়া হয়নি।"
             )}
@@ -402,28 +402,28 @@ export const DataBackupCard: React.FC<DataBackupCardProps> = ({
               type="checkbox"
               checked={prettyJson}
               onChange={(e) => setPrettyJson(e.target.checked)}
-              className="h-3.5 w-3.5 rounded text-emerald-600 focus:ring-emerald-500"
+              className="h-3.5 w-3.5 rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800"
             />
-            <span className="text-slate-700 font-medium">সহজে পড়ার উপযোগী ফরম্যাট (Pretty JSON)</span>
+            <span className="text-slate-700 dark:text-slate-200 font-medium">সহজে পড়ার উপযোগী ফরম্যাট (Pretty JSON)</span>
           </label>
         </div>
       </div>
 
       {/* Status when downloading */}
       {isExporting && (
-        <div className="mb-6 p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-emerald-800 text-sm animate-pulse">
-          <Loader2 className="w-5 h-5 animate-spin text-emerald-600 shrink-0" />
+        <div className="mb-6 p-4 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-2xl flex items-center gap-3 text-emerald-800 dark:text-emerald-200 text-sm animate-pulse">
+          <Loader2 className="w-5 h-5 animate-spin text-emerald-600 dark:text-emerald-400 shrink-0" />
           <div className="flex-1">
             <p className="font-bold">{currentStep || "ডাটাবেজ প্রক্রিয়াকরণ চলছে..."}</p>
-            <p className="text-xs text-emerald-600 mt-0.5">দয়া করে ব্রাউজার ট্যাব বন্ধ করবেন না</p>
+            <p className="text-xs text-emerald-600 dark:text-emerald-400 mt-0.5">দয়া করে ব্রাউজার ট্যাব বন্ধ করবেন না</p>
           </div>
         </div>
       )}
 
       {/* Action Footer */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2 text-xs text-slate-400">
-          <ShieldCheck className="w-4 h-4 text-emerald-600" />
+          <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
           <span>ব্যাকআপ ফাইলটি আপনার ডিভাইসে নিরাপদ স্থানে বা গুগল ড্রাইভে সংরক্ষণ করুন</span>
         </div>
 

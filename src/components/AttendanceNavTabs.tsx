@@ -24,7 +24,7 @@ export const AttendanceNavTabs: React.FC = () => {
               "flex items-center gap-2 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm whitespace-nowrap transition-all duration-200 border",
               isActive
                 ? "bg-[#0F5C7A] text-white border-[#0F5C7A] shadow-md shadow-[#0F5C7A]/20"
-                : "bg-white text-slate-600 hover:text-[#0F5C7A] hover:bg-slate-50 border-slate-200/80 shadow-xs"
+                : "bg-white dark:bg-[#111C2E] text-slate-600 dark:text-slate-300 hover:text-[#0F5C7A] dark:hover:text-[#2DD4BF] hover:bg-slate-50 dark:hover:bg-slate-800 border-slate-200/80 dark:border-slate-800 shadow-xs"
             )
           }
         >

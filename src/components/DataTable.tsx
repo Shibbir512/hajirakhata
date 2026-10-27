@@ -58,19 +58,19 @@ export function DataTable<T>({ data, columns, keyExtractor, emptyMessage = "No d
   }, [data, sortConfig]);
 
   return (
-    <div className="overflow-x-auto border border-[#E5E7EB] rounded-[16px]">
+    <div className="overflow-x-auto border border-[#E5E7EB] dark:border-slate-800 rounded-[16px] bg-white dark:bg-[#111C2E]">
       <table className="w-full text-left border-collapse">
-        <thead className="bg-[#F8F9FA] sticky top-0 z-10">
+        <thead className="bg-[#F8F9FA] dark:bg-slate-900/60 sticky top-0 z-10">
           <tr>
             {columns.map((col, index) => (
               <th 
                 key={index}
-                className={`py-4 px-5 text-xs font-bold text-slate-600 uppercase tracking-wider border-b border-[#E5E7EB] ${col.className || ''}`}
+                className={`py-4 px-5 text-xs font-bold text-slate-600 dark:text-slate-300 uppercase tracking-wider border-b border-[#E5E7EB] dark:border-slate-800 ${col.className || ''}`}
               >
                 {col.sortable && col.accessorKey ? (
                   <button 
                     onClick={() => handleSort(col.accessorKey as keyof T)}
-                    className={`flex items-center gap-1 hover:text-slate-800 transition-colors ${col.className?.includes('text-right') ? 'ml-auto' : ''}`}
+                    className={`flex items-center gap-1 hover:text-slate-800 dark:hover:text-white transition-colors ${col.className?.includes('text-right') ? 'ml-auto' : ''}`}
                   >
                     {col.header}
                     {sortConfig.key === col.accessorKey ? (
@@ -86,15 +86,15 @@ export function DataTable<T>({ data, columns, keyExtractor, emptyMessage = "No d
             ))}
           </tr>
         </thead>
-        <tbody>
+        <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
           {sortedData.map((item) => (
             <tr 
               key={keyExtractor(item)} 
-              className={`border-b border-[#E5E7EB] hover:bg-gray-50 transition-all duration-200 ${onRowClick ? 'cursor-pointer' : ''}`}
+              className={`border-b border-[#E5E7EB] dark:border-slate-800/80 hover:bg-gray-50 dark:hover:bg-slate-800/50 transition-all duration-200 ${onRowClick ? 'cursor-pointer' : ''}`}
               onClick={() => onRowClick && onRowClick(item)}
             >
               {columns.map((col, index) => (
-                <td key={index} className={`py-4 px-5 ${col.className || ''}`}>
+                <td key={index} className={`py-4 px-5 text-slate-700 dark:text-slate-200 ${col.className || ''}`}>
                   {col.cell ? col.cell(item) : col.accessorKey ? String(item[col.accessorKey]) : null}
                 </td>
               ))}
@@ -102,7 +102,7 @@ export function DataTable<T>({ data, columns, keyExtractor, emptyMessage = "No d
           ))}
           {sortedData.length === 0 && (
             <tr>
-              <td colSpan={columns.length} className="text-center py-12 text-slate-500">
+              <td colSpan={columns.length} className="text-center py-12 text-slate-500 dark:text-slate-400">
                 {emptyMessage}
               </td>
             </tr>

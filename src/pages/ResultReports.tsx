@@ -17,6 +17,7 @@ import { formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import { saveAs } from "file-saver";
 import { TabulationSheetDocument } from "../components/pdf/TabulationSheetDocument";
 import { generatePdfFromDom } from "../utils/pdfGenerator";
+import { ClassSelect } from "../components/ClassSelect";
 
 const ResultReports: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
@@ -554,70 +555,64 @@ const ResultReports: React.FC = () => {
       <div className="card-premium p-6 print:hidden">
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষাবর্ষ নির্বাচন করুন</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শিক্ষাবর্ষ নির্বাচন করুন</label>
+            <ClassSelect
               value={selectedAcademicYearId}
-              onChange={(e) => {
-                setSelectedAcademicYearId(e.target.value);
+              onChange={(val) => {
+                setSelectedAcademicYearId(val);
                 setSelectedExamId("");
                 setResults([]);
               }}
-              className="input-premium w-full"
-            >
-              <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-              {academicYears.map((ay) => (
-                <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>
-              ))}
-            </select>
+              options={academicYears.map((ay) => ({ id: ay.id, name: formatAcademicYear(ay) }))}
+              placeholder="শিক্ষাবর্ষ নির্বাচন করুন"
+              title="শিক্ষাবর্ষ নির্বাচন"
+              icon={Calendar}
+              className="w-full"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">শ্রেণি নির্বাচন করুন</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শ্রেণি নির্বাচন করুন</label>
+            <ClassSelect
               value={selectedClassId}
-              onChange={(e) => {
-                setSelectedClassId(e.target.value);
+              onChange={(val) => {
+                setSelectedClassId(val);
                 setSelectedExamId("");
                 setSelectedStudentId("");
                 setResults([]);
               }}
-              className="input-premium w-full"
-            >
-              <option value="">শ্রেণি নির্বাচন করুন</option>
-              {classes.map((c) => (
-                <option key={c.id} value={c.id}>{c.name}</option>
-              ))}
-            </select>
+              classes={classes}
+              placeholder="শ্রেণি নির্বাচন করুন"
+              title="শ্রেণি নির্বাচন"
+              className="w-full"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">পরীক্ষা নির্বাচন করুন</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">পরীক্ষা নির্বাচন করুন</label>
+            <ClassSelect
               value={selectedExamId}
-              onChange={(e) => {
-                setSelectedExamId(e.target.value);
+              onChange={(val) => {
+                setSelectedExamId(val);
                 setResults([]);
               }}
-              className="input-premium w-full"
+              options={filteredExams.map((e) => ({ id: e.id, name: e.name }))}
+              placeholder="পরীক্ষা নির্বাচন করুন"
+              title="পরীক্ষা নির্বাচন"
               disabled={!selectedClassId || !selectedAcademicYearId}
-            >
-              <option value="">পরীক্ষা নির্বাচন করুন</option>
-              {filteredExams.map((e) => (
-                <option key={e.id} value={e.id}>{e.name}</option>
-              ))}
-            </select>
+              className="w-full"
+            />
           </div>
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">শিক্ষার্থী নির্বাচন করুন</label>
-            <select
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">শিক্ষার্থী নির্বাচন করুন</label>
+            <ClassSelect
               value={selectedStudentId}
-              onChange={(e) => setSelectedStudentId(e.target.value)}
-              className="input-premium w-full"
+              onChange={(val) => setSelectedStudentId(val)}
+              options={filteredStudents.map((s) => ({ id: s.id, name: `${s.roll} - ${s.name}` }))}
+              placeholder="সকল শিক্ষার্থী"
+              allOptionLabel="সকল শিক্ষার্থী"
+              title="শিক্ষার্থী নির্বাচন"
               disabled={!selectedClassId}
-            >
-              <option value="">সকল শিক্ষার্থী</option>
-              {filteredStudents.map((s) => (
-                <option key={s.id} value={s.id}>{s.roll} - {s.name}</option>
-              ))}
-            </select>
+              className="w-full"
+            />
           </div>
           <div className="flex items-end">
             <button

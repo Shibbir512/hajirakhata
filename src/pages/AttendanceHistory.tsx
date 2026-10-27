@@ -15,6 +15,7 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { SyncManager } from "../services/SyncManager";
 import AttendanceNavTabs from "../components/AttendanceNavTabs";
+import { ClassSelect } from "../components/ClassSelect";
 
 const ITEMS_PER_PAGE = 12;
 
@@ -60,8 +61,6 @@ const AttendanceHistory: React.FC = () => {
       const result = await SyncManager.syncAllApprovedLeaves(orgId);
       if (result.updatedStudentsCount > 0) {
         toast.success(`${toBengaliNumber(result.updatedStudentsCount)} জন শিক্ষার্থীর অনুপস্থিতি সফলভাবে ছুটিতে রূপান্তরিত হয়েছে (${toBengaliNumber(result.updatedSessionsCount)} টি সেশন)!`);
-      } else {
-        toast.success("সকল অনুমোদিত ছুটির তথ্য ইতিমধ্যে হাজিরার সাথে সিঙ্ক রয়েছে।");
       }
     } catch (err) {
       console.error("Error syncing leaves:", err);
@@ -246,26 +245,17 @@ const AttendanceHistory: React.FC = () => {
       <AttendanceNavTabs />
       <div className="card-premium p-6 flex flex-col sm:flex-row gap-6 items-center justify-center flex-wrap rounded-[20px] border border-[#E5E7EB] relative z-50">
         <div className="relative w-full max-w-xs">
-          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
-          <div className="relative">
-            <select
-              value={selectedClassId}
-              onChange={(e) => setSelectedClassId(e.target.value)}
-              className="input-premium w-full text-[16px] font-medium text-slate-700 border border-[#D1D5DB] bg-white text-center appearance-none px-4 rounded-[16px] h-[50px] shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-            >
-              <option value="" className="text-slate-500 font-normal">শ্রেণি নির্বাচন করুন</option>
-              {classes.map((cls) => (
-                <option key={cls.id} value={cls.id}>
-                  {cls.name}
-                </option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-4 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5 pointer-events-none" />
-          </div>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 text-center">শ্রেণি নির্বাচন করুন</label>
+          <ClassSelect
+            value={selectedClassId}
+            onChange={(id) => setSelectedClassId(id)}
+            classes={classes}
+            placeholder="শ্রেণি নির্বাচন করুন"
+          />
         </div>
 
         <div className="relative w-full max-w-xs z-50">
-          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">তারিখ নির্বাচন করুন</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 text-center">তারিখ নির্বাচন করুন</label>
           <div className="relative flex items-center">
             <Calendar className="absolute left-4 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <DatePicker
@@ -273,14 +263,14 @@ const AttendanceHistory: React.FC = () => {
               onChange={(date: Date | null) => setSelectedDate(date)}
               dateFormat="dd-MM-yyyy"
               placeholderText="তারিখ নির্বাচন করুন"
-              className="input-premium w-full text-[16px] font-medium text-slate-700 border border-[#D1D5DB] bg-white text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
+              className="input-premium w-full text-[16px] font-medium text-slate-700 dark:text-slate-100 border border-[#D1D5DB] dark:border-slate-700 bg-white dark:bg-[#111C2E] text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
               isClearable
             />
           </div>
         </div>
 
         <div className="relative w-full max-w-xs">
-          <label className="block text-sm font-medium text-slate-500 mb-2 text-center">অনুপস্থিত শিক্ষার্থী খুঁজুন</label>
+          <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2 text-center">অনুপস্থিত শিক্ষার্থী খুঁজুন</label>
           <div className="relative flex items-center">
             <Search className="absolute left-4 text-slate-400 w-5 h-5 z-10 pointer-events-none" />
             <input
@@ -288,7 +278,7 @@ const AttendanceHistory: React.FC = () => {
               placeholder="নাম বা রোল নম্বর..."
               value={mainSearchQuery}
               onChange={(e) => setMainSearchQuery(e.target.value)}
-              className="input-premium w-full text-[16px] font-medium text-slate-700 border border-[#D1D5DB] bg-white text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all placeholder-slate-400"
+              className="input-premium w-full text-[16px] font-medium text-slate-700 dark:text-slate-100 border border-[#D1D5DB] dark:border-slate-700 bg-white dark:bg-[#111C2E] text-center rounded-[16px] h-[50px] px-10 shadow-sm hover:border-[#0F5C7A]/30 focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all placeholder-slate-400"
             />
           </div>
         </div>
@@ -297,10 +287,10 @@ const AttendanceHistory: React.FC = () => {
           <button
             onClick={handleSyncWithLeaves}
             disabled={isSyncingLeaves}
-            className="flex items-center gap-2 px-5 h-[50px] bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-[16px] hover:bg-emerald-100 transition-all text-sm font-semibold shadow-sm active:scale-95 disabled:opacity-50"
+            className="flex items-center gap-2 px-5 h-[50px] bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 rounded-[16px] hover:bg-emerald-100 dark:hover:bg-emerald-900/50 transition-all text-sm font-semibold shadow-sm active:scale-95 disabled:opacity-50"
             title="অনুমোদিত ছুটির তথ্যের সাথে হাজিরা রেকর্ড সিঙ্ক করুন"
           >
-            <RefreshCw className={clsx("w-4 h-4 text-emerald-600", isSyncingLeaves && "animate-spin")} />
+            <RefreshCw className={clsx("w-4 h-4 text-emerald-600 dark:text-emerald-400", isSyncingLeaves && "animate-spin")} />
             {isSyncingLeaves ? "সিঙ্ক হচ্ছে..." : "ছুটি সিঙ্ক"}
           </button>
         </div>
@@ -308,25 +298,25 @@ const AttendanceHistory: React.FC = () => {
 
       {selectedClassId && classSessions.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <div className="card-premium p-4 bg-white border-l-4 border-l-[#0F5C7A]">
-            <p className="text-sm font-medium text-slate-500 mb-1">মোট সেশন</p>
-            <p className="text-2xl font-bold text-slate-800">{toBengaliNumber(classSessions.length)} টি</p>
+          <div className="card-premium p-4 bg-white dark:bg-[#111C2E] border-l-4 border-l-[#0F5C7A] border border-slate-200 dark:border-slate-800">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">মোট সেশন</p>
+            <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{toBengaliNumber(classSessions.length)} টি</p>
           </div>
-          <div className="card-premium p-4 bg-white border-l-4 border-l-[#0F5C7A]">
-            <p className="text-sm font-medium text-slate-500 mb-1">গড় উপস্থিতি</p>
-            <p className="text-2xl font-bold text-[#0F5C7A]">
+          <div className="card-premium p-4 bg-white dark:bg-[#111C2E] border-l-4 border-l-[#0F5C7A] border border-slate-200 dark:border-slate-800">
+            <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">গড় উপস্থিতি</p>
+            <p className="text-2xl font-bold text-[#0F5C7A] dark:text-[#2DD4BF]">
               {toBengaliNumber(Math.round(classSessions.reduce((acc, s) => acc + ((s.students || []).filter((st: any) => st.status === AttendanceStatus.Present).length / (s.students?.length || 1)) * 100, 0) / (classSessions.length || 1)))}%
             </p>
           </div>
-          <div className="card-premium p-4 bg-[#EF4444]/10 border-l-4 border-l-[#EF4444]">
-            <p className="text-sm font-medium text-[#EF4444] mb-1">মোট অনুপস্থিতি (সেশন ভিত্তিক)</p>
-            <p className="text-2xl font-bold text-[#EF4444]">
+          <div className="card-premium p-4 bg-[#EF4444]/10 dark:bg-rose-950/20 border-l-4 border-l-[#EF4444] border border-transparent dark:border-rose-900/30">
+            <p className="text-sm font-medium text-[#EF4444] dark:text-rose-400 mb-1">মোট অনুপস্থিতি (সেশন ভিত্তিক)</p>
+            <p className="text-2xl font-bold text-[#EF4444] dark:text-rose-400">
               {toBengaliNumber(classSessions.reduce((acc, s) => acc + (s.students || []).filter((st: any) => st.status === AttendanceStatus.Absent).length, 0))} জন
             </p>
           </div>
-          <div className="card-premium p-4 bg-[#22C55E]/10 border-l-4 border-l-[#22C55E]">
-            <p className="text-sm font-medium text-[#22C55E] mb-1">মোট উপস্থিতি (সেশন ভিত্তিক)</p>
-            <p className="text-2xl font-bold text-[#22C55E]">
+          <div className="card-premium p-4 bg-[#22C55E]/10 dark:bg-emerald-950/20 border-l-4 border-l-[#22C55E] border border-transparent dark:border-emerald-900/30">
+            <p className="text-sm font-medium text-[#22C55E] dark:text-emerald-400 mb-1">মোট উপস্থিতি (সেশন ভিত্তিক)</p>
+            <p className="text-2xl font-bold text-[#22C55E] dark:text-emerald-400">
               {toBengaliNumber(classSessions.reduce((acc, s) => acc + (s.students || []).filter((st: any) => st.status === AttendanceStatus.Present).length, 0))} জন
             </p>
           </div>
@@ -347,17 +337,17 @@ const AttendanceHistory: React.FC = () => {
             <React.Fragment key={session.id}>
               {showDateHeader && (
                 <div className="col-span-1 md:col-span-2 lg:col-span-3 flex items-center py-2 mt-4 mb-2">
-                  <div className="flex-grow h-[1px] bg-slate-200"></div>
-                  <div className="px-5 py-2 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] font-bold text-[16px] flex items-center gap-2.5 border border-[#0F5C7A]/20 shadow-sm">
-                    <Calendar className="w-5 h-5 text-[#0F5C7A]" />
+                  <div className="flex-grow h-[1px] bg-slate-200 dark:bg-slate-800"></div>
+                  <div className="px-5 py-2 rounded-full bg-[#0F5C7A]/10 text-[#0F5C7A] dark:text-teal-300 font-bold text-[16px] flex items-center gap-2.5 border border-[#0F5C7A]/20 dark:border-teal-700/40 shadow-sm">
+                    <Calendar className="w-5 h-5 text-[#0F5C7A] dark:text-teal-400" />
                     {displayDate}
                   </div>
-                  <div className="flex-grow h-[1px] bg-slate-200"></div>
+                  <div className="flex-grow h-[1px] bg-slate-200 dark:bg-slate-800"></div>
                 </div>
               )}
-              <div className="bg-white rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-l-[8px] border-l-[#4A9D9C] flex flex-col relative" onClick={() => handleView(session)}>
+              <div className="bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-[24px] p-5 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer border-l-[8px] border-l-[#4A9D9C] flex flex-col relative" onClick={() => handleView(session)}>
                 {session._syncStatus === "pending" && (
-                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse">
+                  <div className="absolute top-2 right-2 flex items-center gap-1 bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-300 px-2 py-0.5 rounded-full text-[10px] font-bold animate-pulse border border-amber-200 dark:border-amber-800">
                     <Clock className="w-3 h-3" />
                     সিঙ্ক হচ্ছে...
                   </div>
@@ -365,13 +355,13 @@ const AttendanceHistory: React.FC = () => {
                 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-4">
-                  <h3 className="text-2xl font-bold text-slate-800">{className}</h3>
+                  <h3 className="text-2xl font-bold text-slate-800 dark:text-slate-100">{className}</h3>
                   <div className="flex gap-2" onClick={(e) => e.stopPropagation()}>
-                    <button onClick={() => handleEdit(session)} className="bg-[#F1F5F9] text-[#4A9D9C] hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors">
+                    <button onClick={() => handleEdit(session)} className="bg-[#F1F5F9] dark:bg-slate-800 text-[#4A9D9C] dark:text-[#2DD4BF] hover:bg-[#E2E8F0] dark:hover:bg-slate-700 p-2.5 rounded-full transition-colors">
                       <Edit2 className="w-4 h-4" />
                     </button>
                     {(role === 'admin' || role === 'super_admin') && (
-                      <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] text-[#EF4444] hover:bg-[#FEE2E2] p-2.5 rounded-full transition-colors">
+                      <button onClick={() => setSessionToDelete(session)} className="bg-[#FEF2F2] dark:bg-rose-950/40 text-[#EF4444] dark:text-rose-400 hover:bg-[#FEE2E2] dark:hover:bg-rose-900/50 p-2.5 rounded-full transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     )}
@@ -381,7 +371,7 @@ const AttendanceHistory: React.FC = () => {
                         setNotifySession(session);
                         setIsNotifyModalOpen(true);
                       }} 
-                      className="bg-[#F1F5F9] text-slate-500 hover:bg-[#E2E8F0] p-2.5 rounded-full transition-colors"
+                      className="bg-[#F1F5F9] dark:bg-slate-800 text-slate-500 dark:text-slate-300 hover:bg-[#E2E8F0] dark:hover:bg-slate-700 p-2.5 rounded-full transition-colors"
                       title="অনুপস্থিতদের জানান"
                     >
                       <MessageCircle className="w-4 h-4" />
@@ -392,19 +382,19 @@ const AttendanceHistory: React.FC = () => {
                 {/* Date & Time */}
                 <div className="space-y-2 mb-4">
                   <div className="flex items-center gap-4">
-                    <span className="text-slate-800 font-medium w-14">তারিখ:</span>
-                    <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
-                      <Calendar className="w-4 h-4 text-[#4A9D9C]" />
-                      <span className="text-slate-800 font-medium text-[15px]">
+                    <span className="text-slate-800 dark:text-slate-300 font-medium w-14">তারিখ:</span>
+                    <div className="bg-[#F1F5F9] dark:bg-slate-800/80 rounded-full px-4 py-1.5 flex items-center gap-2 flex-1 border border-transparent dark:border-slate-700/60">
+                      <Calendar className="w-4 h-4 text-[#4A9D9C] dark:text-teal-400" />
+                      <span className="text-slate-800 dark:text-slate-200 font-medium text-[15px]">
                         {session.date ? `${getDayNameInBengali(session.date)}, ${toBengaliDate(session.date)}` : ""}
                       </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-4">
-                    <span className="text-slate-800 font-medium w-14">সময়:</span>
-                    <div className="bg-[#F1F5F9] rounded-full px-4 py-1.5 flex items-center gap-2 flex-1">
-                      <Clock className="w-4 h-4 text-[#4A9D9C]" />
-                      <span className="text-slate-800 font-medium text-[15px]">
+                    <span className="text-slate-800 dark:text-slate-300 font-medium w-14">সময়:</span>
+                    <div className="bg-[#F1F5F9] dark:bg-slate-800/80 rounded-full px-4 py-1.5 flex items-center gap-2 flex-1 border border-transparent dark:border-slate-700/60">
+                      <Clock className="w-4 h-4 text-[#4A9D9C] dark:text-teal-400" />
+                      <span className="text-slate-800 dark:text-slate-200 font-medium text-[15px]">
                         {session.time ? toBengaliTime(session.time) : ""}
                       </span>
                     </div>
@@ -412,55 +402,55 @@ const AttendanceHistory: React.FC = () => {
                 </div>
                 
                 {/* Divider */}
-                <div className="border-t border-slate-200 mb-4"></div>
+                <div className="border-t border-slate-200 dark:border-slate-800 mb-4"></div>
                 
                 {/* Absent Section */}
                 <div className="mt-auto">
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center gap-2">
                       <span className={clsx("w-3 h-3 rounded-full", absentStudents.length > 0 ? "bg-[#EF4444]" : "bg-[#22C55E]")}></span>
-                      <h4 className="text-xl font-bold text-slate-800">
+                      <h4 className="text-xl font-bold text-slate-800 dark:text-slate-100">
                         {absentStudents.length > 0 ? `অনুপস্থিত (${toBengaliNumber(absentStudents.length)} জন)` : "সবাই উপস্থিত"}
                       </h4>
                     </div>
-                    <div className="bg-[#F1F5F9] text-slate-600 px-3 py-1 rounded-full text-sm font-medium">
+                    <div className="bg-[#F1F5F9] dark:bg-slate-800 text-slate-600 dark:text-slate-300 px-3 py-1 rounded-full text-sm font-medium border border-transparent dark:border-slate-700">
                       মোট ছাত্র: {toBengaliNumber(session.students?.length || 0)}
                     </div>
                   </div>
 
                   {absentStudents.length > 0 ? (
-                    <div className="bg-[#FEF2F2] rounded-2xl p-4">
+                    <div className="bg-[#FEF2F2] dark:bg-rose-950/25 border border-transparent dark:border-rose-900/30 rounded-2xl p-4">
                       <ul className="space-y-2.5">
                         {absentStudents.slice(0, 3).map((s: any, index: number) => {
                           const initials = s.studentName ? s.studentName.substring(0, 2) : "অজ্ঞাত";
                           const colors = [
-                            "bg-[#DCFCE7] text-[#16A34A]", // Green
-                            "bg-[#FCE7F3] text-[#DB2777]", // Pink
-                            "bg-[#FFEDD5] text-[#EA580C]", // Orange
-                            "bg-[#E0F2FE] text-[#0284C7]", // Blue
+                            "bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-300", // Green
+                            "bg-[#FCE7F3] dark:bg-pink-950/60 text-[#DB2777] dark:text-pink-300", // Pink
+                            "bg-[#FFEDD5] dark:bg-orange-950/60 text-[#EA580C] dark:text-orange-300", // Orange
+                            "bg-[#E0F2FE] dark:bg-sky-950/60 text-[#0284C7] dark:text-sky-300", // Blue
                           ];
                           const colorClass = colors[index % colors.length];
                           
                           return (
                             <li key={s.studentId} className="flex items-center gap-3">
                               <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
-                              <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold", colorClass)}>
+                              <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border border-transparent dark:border-white/10", colorClass)}>
                                 {initials}
                               </div>
-                              <span className="text-slate-800 font-medium text-lg">: {s.studentName}</span>
+                              <span className="text-slate-800 dark:text-slate-200 font-medium text-lg">: {s.studentName}</span>
                             </li>
                           );
                         })}
                         {absentStudents.length > 3 && (
-                          <li className="text-slate-500 font-medium mt-2 ml-6">
+                          <li className="text-slate-500 dark:text-slate-400 font-medium mt-2 ml-6">
                             + আরও {toBengaliNumber(absentStudents.length - 3)} জন...
                           </li>
                         )}
                       </ul>
                     </div>
                   ) : (
-                    <div className="bg-[#F0FDF4] rounded-2xl p-5 flex items-center justify-center">
-                      <p className="text-lg font-medium text-[#16A34A]">চমৎকার! সবাই উপস্থিত আছে।</p>
+                    <div className="bg-[#F0FDF4] dark:bg-emerald-950/25 border border-transparent dark:border-emerald-900/30 rounded-2xl p-5 flex items-center justify-center">
+                      <p className="text-lg font-medium text-[#16A34A] dark:text-emerald-400">চমৎকার! সবাই উপস্থিত আছে।</p>
                     </div>
                   )}
                 </div>
@@ -469,12 +459,12 @@ const AttendanceHistory: React.FC = () => {
           );
         })}
         {classSessions.length === 0 && selectedClassId && (
-          <div className="col-span-full text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+          <div className="col-span-full text-center py-16 text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
             এই শ্রেণির জন্য কোন হাজিরা রেকর্ড পাওয়া যায়নি।
           </div>
         )}
         {!selectedClassId && (
-          <div className="col-span-full text-center py-16 text-slate-500 bg-slate-50/50 rounded-3xl border border-dashed border-slate-200">
+          <div className="col-span-full text-center py-16 text-slate-500 dark:text-slate-400 bg-slate-50/50 dark:bg-slate-900/40 rounded-3xl border border-dashed border-slate-200 dark:border-slate-800">
             হাজিরা ইতিহাস দেখতে একটি শ্রেণি নির্বাচন করুন।
           </div>
         )}
@@ -482,14 +472,14 @@ const AttendanceHistory: React.FC = () => {
 
       {totalPages > 1 && (
         <div className="flex flex-col sm:flex-row items-center justify-between mt-6 gap-4">
-          <div className="text-sm text-slate-500">
-            দেখানো হচ্ছে <span className="font-medium">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, classSessions.length))}</span> পর্যন্ত, মোট <span className="font-medium">{toBengaliNumber(classSessions.length)}</span> টি রেকর্ড
+          <div className="text-sm text-slate-500 dark:text-slate-400">
+            দেখানো হচ্ছে <span className="font-medium text-slate-800 dark:text-slate-200">{toBengaliNumber((currentPage - 1) * ITEMS_PER_PAGE + 1)}</span> থেকে <span className="font-medium text-slate-800 dark:text-slate-200">{toBengaliNumber(Math.min(currentPage * ITEMS_PER_PAGE, classSessions.length))}</span> পর্যন্ত, মোট <span className="font-medium text-slate-800 dark:text-slate-200">{toBengaliNumber(classSessions.length)}</span> টি রেকর্ড
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-4 py-2 border border-slate-200 rounded-[11.25px] text-sm font-bold text-white bg-[#0F5C7A] hover:bg-[#0C6C8A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-[11.25px] text-sm font-bold text-white bg-[#0F5C7A] hover:bg-[#0C6C8A] disabled:opacity-50 disabled:cursor-not-allowed transition-colors shadow-sm"
             >
               পূর্ববর্তী
             </button>
@@ -508,7 +498,7 @@ const AttendanceHistory: React.FC = () => {
                         "w-10 h-10 rounded-xl text-sm font-bold transition-all duration-300",
                         currentPage === page
                           ? "bg-[#0F5C7A] text-white shadow-md"
-                          : "text-slate-600 hover:bg-slate-100"
+                          : "text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                       )}
                     >
                       {toBengaliNumber(page)}
@@ -527,7 +517,7 @@ const AttendanceHistory: React.FC = () => {
             <button
               onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
-              className="px-4 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
               পরবর্তী
             </button>
@@ -536,8 +526,8 @@ const AttendanceHistory: React.FC = () => {
       )}
 
       {viewingSession && createPortal(
-        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
-          <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
+        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/50 backdrop-blur-[6px] p-4 overflow-y-auto">
+          <div className="w-[92%] max-w-[400px] bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
               <div className="flex items-center gap-3">
@@ -577,10 +567,10 @@ const AttendanceHistory: React.FC = () => {
             <div className="p-5 flex flex-col overflow-hidden max-h-[65vh]">
               {/* Attendance Taker Info */}
               {viewingSession.takenBy && (
-                <div className="mb-4 p-3 bg-slate-50 rounded-xl border border-slate-100">
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">হাজিরা নিয়েছেন</p>
-                  <p className="text-sm font-bold text-[#0F5C7A]">{viewingSession.takenBy.name}</p>
-                  <p className="text-[11px] text-slate-500">{viewingSession.takenBy.email}</p>
+                <div className="mb-4 p-3 bg-slate-50 dark:bg-slate-800/80 rounded-xl border border-slate-100 dark:border-slate-700">
+                  <p className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-1">হাজিরা নিয়েছেন</p>
+                  <p className="text-sm font-bold text-[#0F5C7A] dark:text-teal-400">{viewingSession.takenBy.name}</p>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400">{viewingSession.takenBy.email}</p>
                 </div>
               )}
 
@@ -593,7 +583,7 @@ const AttendanceHistory: React.FC = () => {
                   placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
                 />
               </div>
 
@@ -609,10 +599,10 @@ const AttendanceHistory: React.FC = () => {
                   <div key={student.studentId} className={clsx(
                     "flex justify-between items-center p-4 border rounded-[16px] transition-all duration-300",
                     student.status === AttendanceStatus.Absent 
-                      ? "bg-[#EF4444]/5 border-[#EF4444]/20 shadow-sm" 
+                      ? "bg-[#EF4444]/5 dark:bg-rose-950/20 border-[#EF4444]/20 dark:border-rose-900/30 shadow-sm" 
                       : student.status === AttendanceStatus.Leave
-                      ? "bg-orange-50 border-orange-200 shadow-sm"
-                      : "bg-white border-slate-100"
+                      ? "bg-orange-50 dark:bg-orange-950/20 border-orange-200 dark:border-orange-900/30 shadow-sm"
+                      : "bg-white dark:bg-slate-800/50 border-slate-100 dark:border-slate-700"
                   )}>
                     <div className="flex items-center gap-3">
                       {student.status === AttendanceStatus.Absent && (
@@ -624,11 +614,11 @@ const AttendanceHistory: React.FC = () => {
                       <div className="flex flex-col">
                         <span className={clsx(
                           "font-bold text-[15px]",
-                          student.status === AttendanceStatus.Absent ? "text-[#EF4444]" : student.status === AttendanceStatus.Leave ? "text-orange-600" : "text-slate-800"
+                          student.status === AttendanceStatus.Absent ? "text-[#EF4444] dark:text-rose-400" : student.status === AttendanceStatus.Leave ? "text-orange-600 dark:text-orange-400" : "text-slate-800 dark:text-slate-100"
                         )}>
                           {student.studentName}
                         </span>
-                        <span className="text-slate-500 text-xs font-medium">
+                        <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">
                           রোল: {toBengaliNumber(getStudentRoll(viewingSession.classId, student.studentId))}
                         </span>
                       </div>
@@ -636,10 +626,10 @@ const AttendanceHistory: React.FC = () => {
                     <span className={clsx(
                       "px-3 py-1.5 rounded-full text-[11px] font-bold shadow-sm",
                       student.status === AttendanceStatus.Present 
-                        ? "bg-[#DCFCE7] text-[#166534] border border-[#DCFCE7]" 
+                        ? "bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#166534] dark:text-emerald-300 border border-[#DCFCE7] dark:border-emerald-800/40" 
                         : student.status === AttendanceStatus.Leave
-                        ? "bg-orange-100 text-orange-700 border border-orange-200"
-                        : "bg-[#FEE2E2] text-[#991B1B] border border-[#FEE2E2]"
+                        ? "bg-orange-100 dark:bg-orange-950/60 text-orange-700 dark:text-orange-300 border border-orange-200 dark:border-orange-800/40"
+                        : "bg-[#FEE2E2] dark:bg-rose-950/60 text-[#991B1B] dark:text-rose-300 border border-[#FEE2E2] dark:border-rose-800/40"
                     )}>
                       {student.status === AttendanceStatus.Present ? "উপস্থিত" : student.status === AttendanceStatus.Leave ? "ছুটি" : "অনুপস্থিত"}
                     </span>
@@ -649,7 +639,7 @@ const AttendanceHistory: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
+            <div className="p-5 border-t border-[#E5E7EB] dark:border-slate-800 flex-shrink-0">
               <button
                 onClick={() => { setViewingSession(null); setSearchQuery(""); }}
                 className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
@@ -663,8 +653,8 @@ const AttendanceHistory: React.FC = () => {
       )}
 
       {isEditMode && selectedSession && createPortal(
-        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/35 backdrop-blur-[6px] p-4 overflow-y-auto">
-          <div className="w-[92%] max-w-[400px] bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
+        <div className="fixed inset-0 z-[9999] flex justify-center items-start sm:items-center bg-black/50 backdrop-blur-[6px] p-4 overflow-y-auto">
+          <div className="w-[92%] max-w-[400px] bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] flex flex-col overflow-hidden my-auto">
             {/* Header */}
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex-shrink-0 flex items-center justify-between px-5 text-white">
               <div className="flex items-center gap-3">
@@ -695,7 +685,7 @@ const AttendanceHistory: React.FC = () => {
                   placeholder="শিক্ষার্থীর নাম বা রোল নম্বর দিয়ে খুঁজুন..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 rounded-xl leading-5 bg-slate-50 placeholder-slate-400 focus:outline-none focus:bg-white focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
+                  className="block w-full pl-10 pr-3 py-2.5 border border-slate-200 dark:border-slate-700 rounded-xl leading-5 bg-slate-50 dark:bg-slate-800/80 text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:bg-white dark:focus:bg-slate-800 focus:ring-2 focus:ring-[#0F5C7A] focus:border-[#0F5C7A] sm:text-sm transition-colors"
                 />
               </div>
 
@@ -707,12 +697,12 @@ const AttendanceHistory: React.FC = () => {
                   const name = student.studentName || "";
                   return name.toLowerCase().includes(searchLower) || roll.includes(searchLower);
                 }).map((student: any) => (
-                  <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 rounded-[16px] hover:bg-slate-50 transition-colors">
+                  <div key={student.studentId} className="flex justify-between items-center p-4 border border-slate-100 dark:border-slate-700 rounded-[16px] hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
                     <div className="flex flex-col">
-                      <span className="font-bold text-[15px] text-slate-800">
+                      <span className="font-bold text-[15px] text-slate-800 dark:text-slate-100">
                         {student.studentName}
                       </span>
-                      <span className="text-slate-500 text-xs font-medium">
+                      <span className="text-slate-500 dark:text-slate-400 text-xs font-medium">
                         রোল: {toBengaliNumber(getStudentRoll(selectedSession.classId, student.studentId))}
                       </span>
                     </div>
@@ -723,7 +713,7 @@ const AttendanceHistory: React.FC = () => {
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
                           student.status === AttendanceStatus.Present 
                             ? "bg-[#22C55E] text-white border-[#22C55E]/90" 
-                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                            : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-300 border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                         )}
                       >
                         উপস্থিত
@@ -734,7 +724,7 @@ const AttendanceHistory: React.FC = () => {
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
                           student.status === AttendanceStatus.Absent 
                             ? "bg-[#EF4444] text-white border-[#EF4444]/90" 
-                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                            : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-300 border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                         )}
                       >
                         অনুপস্থিত
@@ -745,7 +735,7 @@ const AttendanceHistory: React.FC = () => {
                           "px-3 py-1.5 rounded-lg text-xs font-bold transition-all duration-300 border",
                           student.status === AttendanceStatus.Leave 
                             ? "bg-orange-500 text-white border-orange-500/90" 
-                            : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
+                            : "bg-white dark:bg-slate-800 text-slate-400 dark:text-slate-300 border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700"
                         )}
                       >
                         ছুটি
@@ -757,7 +747,7 @@ const AttendanceHistory: React.FC = () => {
             </div>
 
             {/* Footer */}
-            <div className="p-5 border-t border-[#E5E7EB] flex-shrink-0">
+            <div className="p-5 border-t border-[#E5E7EB] dark:border-slate-800 flex-shrink-0">
               <button
                 onClick={handleSave}
                 className="w-full bg-[#0F5C7A] text-white h-[48px] rounded-[14px] font-bold hover:bg-[#0D4D66] transition-colors"
@@ -782,8 +772,8 @@ const AttendanceHistory: React.FC = () => {
         />
       )}
       {isNotifyModalOpen && notifySession && createPortal(
-        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 sm:p-6 transition-all">
-          <div className="bg-white rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200">
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 sm:p-6 transition-all">
+          <div className="bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-3xl shadow-2xl w-full max-w-xl overflow-hidden flex flex-col max-h-[90vh] ring-1 ring-slate-200 dark:ring-slate-800">
             <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[80px] flex-shrink-0 flex items-center justify-between px-6 text-white">
               <div className="flex items-center gap-3">
                 <div className="w-[48px] h-[48px] rounded-full bg-white/20 flex items-center justify-center">
@@ -801,9 +791,9 @@ const AttendanceHistory: React.FC = () => {
                 <X className="w-5 h-5 text-white" />
               </button>
             </div>
-            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30">
+            <div className="p-6 overflow-y-auto flex-1 bg-slate-50/30 dark:bg-slate-900/40">
               <div className="flex items-center justify-between mb-6">
-                <p className="text-sm font-medium text-slate-600">
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-300">
                   নিচের শিক্ষার্থীদের অভিভাবককে WhatsApp-এ মেসেজ পাঠান।
                 </p>
                 <button
@@ -855,15 +845,15 @@ const AttendanceHistory: React.FC = () => {
                     const whatsappUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
                     
                     return (
-                      <div key={student.studentId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white border border-slate-100 rounded-2xl shadow-soft hover:shadow-md transition-all group">
+                      <div key={student.studentId} className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 bg-white dark:bg-[#111C2E] border border-slate-100 dark:border-slate-800 rounded-2xl shadow-soft hover:shadow-md transition-all group">
                         <div className="flex-1">
-                          <p className="font-bold text-slate-800 text-lg mb-1">{student.studentName}</p>
-                          <div className="flex items-center gap-2 text-sm text-slate-500">
-                            <span className="bg-slate-100 px-2.5 py-1 rounded-lg font-medium">রোল: {toBengaliNumber(getStudentRoll(notifySession.classId, student.studentId))}</span>
+                          <p className="font-bold text-slate-800 dark:text-slate-100 text-lg mb-1">{student.studentName}</p>
+                          <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                            <span className="bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg font-medium text-slate-700 dark:text-slate-300">রোল: {toBengaliNumber(getStudentRoll(notifySession.classId, student.studentId))}</span>
                             {phone ? (
-                              <span className="bg-emerald-50 text-emerald-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
+                              <span className="bg-emerald-50 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 px-2.5 py-1 rounded-lg font-medium">মোবাইল: {toBengaliNumber(phone)}</span>
                             ) : (
-                              <span className="bg-rose-50 text-rose-600 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
+                              <span className="bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 px-2.5 py-1 rounded-lg font-medium">মোবাইল নম্বর নেই</span>
                             )}
                           </div>
                         </div>
@@ -875,7 +865,7 @@ const AttendanceHistory: React.FC = () => {
                             "h-[48px] px-6 rounded-xl text-sm font-bold flex items-center justify-center gap-2 transition-all duration-300 w-full sm:w-auto",
                             phone 
                               ? "bg-[#25D366] text-white hover:bg-[#20b858] shadow-soft" 
-                              : "bg-slate-100 text-slate-400 cursor-not-allowed"
+                              : "bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed"
                           )}
                           onClick={(e) => {
                             if (!phone) {
@@ -892,10 +882,10 @@ const AttendanceHistory: React.FC = () => {
                   })}
               </div>
             </div>
-            <div className="p-6 border-t border-slate-100 bg-white flex justify-end flex-shrink-0">
+            <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-[#111C2E] flex justify-end flex-shrink-0">
               <button
                 onClick={() => setIsNotifyModalOpen(false)}
-                className="px-8 py-3 rounded-xl font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition-colors w-full sm:w-auto"
+                className="px-8 py-3 rounded-xl font-bold text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors w-full sm:w-auto"
               >
                 বন্ধ করুন
               </button>

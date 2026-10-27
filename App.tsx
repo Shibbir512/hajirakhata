@@ -5,6 +5,7 @@ import { WifiOff, AlertTriangle, RefreshCcw, RefreshCw, CheckCircle2 } from "luc
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth, AuthProvider } from "./src/hooks/useAuth";
 import { useCapacitorApp } from "./src/hooks/useCapacitorApp";
+import { ThemeProvider } from "./src/context/ThemeContext";
 
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean, error: any }> {
   constructor(props: any) {
@@ -296,19 +297,21 @@ const App: React.FC = () => {
           },
         }}
       />
-      <AuthProvider>
-        <ErrorBoundary>
-          {isSrcDoc ? (
-            <MemoryRouter initialEntries={[currentPath || '/']}>
-              <AppRoutes />
-            </MemoryRouter>
-          ) : (
-            <BrowserRouter>
-              <AppRoutes />
-            </BrowserRouter>
-          )}
-        </ErrorBoundary>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <ErrorBoundary>
+            {isSrcDoc ? (
+              <MemoryRouter initialEntries={[currentPath || '/']}>
+                <AppRoutes />
+              </MemoryRouter>
+            ) : (
+              <BrowserRouter>
+                <AppRoutes />
+              </BrowserRouter>
+            )}
+          </ErrorBoundary>
+        </AuthProvider>
+      </ThemeProvider>
     </>
   );
 };

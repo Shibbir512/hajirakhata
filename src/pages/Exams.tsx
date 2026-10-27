@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2, FileText, X, Info, Calendar, Users, ChevronDown } f
 import { Exam } from "../types";
 import { formatAcademicYear } from "../utils/dateFormatter";
 import ConfirmationDialog from "../components/ConfirmationDialog";
+import { ClassSelect } from "../components/ClassSelect";
 
 const Exams: React.FC = () => {
   const { user, orgId, role } = useAuth();
@@ -72,15 +73,31 @@ const Exams: React.FC = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         
         <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-          <div className="flex gap-2 w-full sm:w-auto">
-            <select value={filterAcademicYear} onChange={(e) => setFilterAcademicYear(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
-              <option value="">সব শিক্ষাবর্ষ</option>
-              {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
-            </select>
-            <select value={filterClass} onChange={(e) => setFilterClass(e.target.value)} className="p-2 border rounded-lg text-sm flex-1 sm:flex-none">
-              <option value="">সব শ্রেণি</option>
-              {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-            </select>
+          <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+            <div className="w-full sm:w-[170px]">
+              <ClassSelect
+                value={filterAcademicYear}
+                onChange={(val) => setFilterAcademicYear(val)}
+                options={academicYears.map(ay => ({ id: ay.id, name: formatAcademicYear(ay) }))}
+                placeholder="সব শিক্ষাবর্ষ"
+                allOptionLabel="সব শিক্ষাবর্ষ"
+                title="শিক্ষাবর্ষ ফিল্টার"
+                size="sm"
+                icon={Calendar}
+                className="w-full"
+              />
+            </div>
+            <div className="w-full sm:w-[170px]">
+              <ClassSelect
+                value={filterClass}
+                onChange={(val) => setFilterClass(val)}
+                classes={classes}
+                placeholder="সব শ্রেণি"
+                allOptionLabel="সব শ্রেণি"
+                size="sm"
+                className="w-full"
+              />
+            </div>
           </div>
           <button onClick={openAddModal} className="btn-primary w-full sm:w-auto whitespace-nowrap">
             <Plus className="w-4 h-4" />
@@ -178,28 +195,28 @@ const Exams: React.FC = () => {
                   <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
                     শিক্ষাবর্ষ
                   </label>
-                  <select
-                    required
+                  <ClassSelect
                     value={academicYearId}
-                    onChange={(e) => setAcademicYearId(e.target.value)}
-                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                  >
-                    <option value="">শিক্ষাবর্ষ নির্বাচন করুন</option>
-                    {academicYears.map(ay => <option key={ay.id} value={ay.id}>{formatAcademicYear(ay)}</option>)}
-                  </select>
+                    onChange={(val) => setAcademicYearId(val)}
+                    options={academicYears.map(ay => ({ id: ay.id, name: formatAcademicYear(ay) }))}
+                    placeholder="শিক্ষাবর্ষ নির্বাচন করুন"
+                    title="শিক্ষাবর্ষ নির্বাচন করুন"
+                    icon={Calendar}
+                    className="w-full"
+                  />
                 </div>
                 <div>
-                  <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">
+                  <label className="block text-[13px] font-semibold text-[#6B7280] dark:text-slate-300 mb-2 uppercase tracking-wider">
                     শ্রেণি (ঐচ্ছিক)
                   </label>
-                  <select
+                  <ClassSelect
                     value={classId}
-                    onChange={(e) => setClassId(e.target.value)}
-                    className="w-full h-[52px] px-4 bg-[#F4F7FB] border border-[#E5E7EB] rounded-[16px] text-[14px] text-[#1F2937] focus:border-[#0F5C7A] focus:ring-2 focus:ring-[#0F5C7A]/20 transition-all"
-                  >
-                    <option value="">সব শ্রেণি</option>
-                    {classes.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
-                  </select>
+                    onChange={(val) => setClassId(val)}
+                    classes={classes}
+                    placeholder="সব শ্রেণি"
+                    allOptionLabel="সব শ্রেণি"
+                    className="w-full"
+                  />
                 </div>
                 <div>
                   <label className="block text-[13px] font-semibold text-[#6B7280] mb-2 uppercase tracking-wider">

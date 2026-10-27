@@ -4,6 +4,7 @@ import { Student, ClassData } from "../types";
 import { X, ArrowRight, UserCheck, GraduationCap } from "lucide-react";
 import { toBengaliNumber, formatAcademicYear, toEnglishNumber } from "../utils/dateFormatter";
 import toast from "react-hot-toast";
+import { ClassSelect } from "./ClassSelect";
 
 interface StudentPromotionModalProps {
   isOpen: boolean;
@@ -117,8 +118,8 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/35 backdrop-blur-[6px] p-2 sm:p-4">
-      <div className="w-full max-w-lg bg-white rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] border border-[#14B8A6] flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-[6px] p-2 sm:p-4">
+      <div className="w-full max-w-lg bg-white dark:bg-[#111C2E] rounded-[24px] shadow-[0_20px_40px_rgba(0,0,0,0.15)] border border-[#14B8A6] dark:border-teal-700 flex flex-col overflow-hidden">
         {/* Header */}
         <div className="bg-gradient-to-br from-[#0F5C7A] to-[#14B8A6] h-[70px] flex items-center justify-between px-5 text-white">
           <div className="flex items-center gap-3">
@@ -142,35 +143,34 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
 
         {/* Body */}
         <div className="p-5 overflow-y-auto max-h-[60vh] custom-scrollbar">
-          <div className="mb-6 bg-[#F9FAFB] p-4 rounded-[16px] border border-[#E5E7EB] flex flex-col gap-4">
+          <div className="mb-6 bg-[#F9FAFB] dark:bg-slate-900/60 p-4 rounded-[16px] border border-[#E5E7EB] dark:border-slate-800 flex flex-col gap-4">
             <div className="flex flex-col gap-2">
-              <label className="text-[14px] font-medium text-[#374151]">নতুন ক্লাস/অবস্থা:</label>
-              <select
+              <label className="text-[14px] font-medium text-[#374151] dark:text-slate-200">নতুন ক্লাস/অবস্থা:</label>
+              <ClassSelect
                 value={targetClassId}
-                onChange={(e) => setTargetClassId(e.target.value)}
-                className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-white px-4 focus:border-[#14B8A6] outline-none"
-              >
-                <option value="">-- নির্বাচন করুন --</option>
-                {classes.filter(c => c.id !== sourceClassId).map(c => (
-                  <option key={c.id} value={c.id}>{c.name}</option>
-                ))}
-                <option value="alumni" className="font-bold text-teal-600">🎓 প্রাক্তন শিক্ষার্থী (Alumni)</option>
-              </select>
+                onChange={(id) => setTargetClassId(id)}
+                options={[
+                  ...classes.filter(c => c.id !== sourceClassId).map(c => ({ id: c.id, name: c.name })),
+                  { id: "alumni", name: "🎓 প্রাক্তন শিক্ষার্থী (Alumni)" }
+                ]}
+                placeholder="-- নির্বাচন করুন --"
+                title="নতুন শ্রেণি বা অবস্থা নির্বাচন"
+                icon={GraduationCap}
+                className="w-full"
+              />
             </div>
 
             {targetClassId === "alumni" && (
-              <div className="flex flex-col gap-2 pt-4 border-t border-[#E5E7EB]">
-                <label className="text-[14px] font-medium text-[#374151]">পাসের শিক্ষাবর্ষ:</label>
-                <select
+              <div className="flex flex-col gap-2 pt-4 border-t border-[#E5E7EB] dark:border-slate-800">
+                <label className="text-[14px] font-medium text-[#374151] dark:text-slate-200">পাসের শিক্ষাবর্ষ:</label>
+                <ClassSelect
                   value={graduationYearId}
-                  onChange={(e) => setGraduationYearId(e.target.value)}
-                  className="w-full h-[52px] border border-[#D1D5DB] rounded-[16px] bg-white px-4 focus:border-[#14B8A6] outline-none"
-                >
-                  <option value="">-- শিক্ষাবর্ষ নির্বাচন করুন --</option>
-                  {academicYears.map(year => (
-                    <option key={year.id} value={year.id}>{formatAcademicYear(year)}</option>
-                  ))}
-                </select>
+                  onChange={(id) => setGraduationYearId(id)}
+                  options={academicYears.map(year => ({ id: year.id, name: formatAcademicYear(year) }))}
+                  placeholder="-- শিক্ষাবর্ষ নির্বাচন করুন --"
+                  title="পাসের শিক্ষাবর্ষ নির্বাচন"
+                  className="w-full"
+                />
               </div>
             )}
           </div>
@@ -242,11 +242,11 @@ const StudentPromotionModal: React.FC<StudentPromotionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="p-5 border-t border-[#E5E7EB] flex gap-3">
+        <div className="p-5 border-t border-[#E5E7EB] dark:border-slate-800 flex gap-3">
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="flex-1 bg-[#F3F4F6] text-[#374151] h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] transition-colors disabled:opacity-50"
+            className="flex-1 bg-[#F3F4F6] dark:bg-slate-800 text-[#374151] dark:text-slate-200 h-[48px] rounded-[14px] font-bold hover:bg-[#E5E7EB] dark:hover:bg-slate-700 transition-colors disabled:opacity-50"
           >
             বাতিল
           </button>

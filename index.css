@@ -1,6 +1,8 @@
 @import "tailwindcss";
 @import "react-datepicker/dist/react-datepicker.css";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 @keyframes enter {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
@@ -19,6 +21,190 @@
 
 :root {
   color-scheme: light;
+}
+
+html.dark,
+html.dark :root {
+  color-scheme: dark !important;
+  --color-bg-main: #0B1320;
+  --color-card-bg: #111C2E;
+}
+
+html.dark body {
+  background-color: #0B1320;
+  color: #E2E8F0;
+  color-scheme: dark !important;
+}
+
+/* Base text hierarchy in dark mode */
+html.dark h1,
+html.dark h2,
+html.dark h3,
+html.dark h4,
+html.dark h5,
+html.dark h6 {
+  color: #F8FAFC;
+}
+
+/* Automatic slate & gray text contrast adaptation for dark mode */
+html.dark .text-slate-900,
+html.dark .text-slate-800,
+html.dark .text-slate-700,
+html.dark .text-gray-900,
+html.dark .text-gray-800,
+html.dark .text-gray-700,
+html.dark .text-\[\#1E293B\],
+html.dark .text-\[\#334155\],
+html.dark .text-\[\#374151\] {
+  color: #F1F5F9;
+}
+
+html.dark .text-slate-600,
+html.dark .text-gray-600,
+html.dark .text-\[\#475569\],
+html.dark .text-\[\#6B7280\] {
+  color: #CBD5E1;
+}
+
+html.dark .text-slate-500,
+html.dark .text-gray-500,
+html.dark .text-\[\#64748B\] {
+  color: #94A3B8;
+}
+
+/* Card & Surface background adaptation */
+html.dark .bg-white:not(.toggle-thumb):not([data-keep-light]):not([data-print]):not(.btn-primary) {
+  background-color: #111C2E;
+}
+
+/* Light gray container adaptation */
+html.dark .bg-slate-50:not([data-keep-light]),
+html.dark .bg-gray-50:not([data-keep-light]),
+html.dark .bg-\[\#F1F5F9\],
+html.dark .bg-\[\#F8FAFC\],
+html.dark .bg-\[\#F8F9FA\] {
+  background-color: #0F172A;
+}
+
+/* Border adaptation */
+html.dark .border-slate-100,
+html.dark .border-slate-200,
+html.dark .border-gray-100,
+html.dark .border-gray-200,
+html.dark .border-\[\#E2E8F0\],
+html.dark .border-\[\#E5E7EB\] {
+  border-color: #1E293B;
+}
+
+/* Universal Inputs, Selects, and Textareas in dark mode */
+html.dark input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="range"]):not([type="file"]),
+html.dark select,
+html.dark textarea {
+  color-scheme: dark !important;
+  background-color: #0F172A !important;
+  border-color: #334155 !important;
+  color: #F8FAFC !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #64748B !important;
+}
+
+html.dark select option,
+html.dark select optgroup {
+  color-scheme: dark !important;
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
+}
+
+/* Universal Table Styling in dark mode */
+html.dark table thead th,
+html.dark thead tr th {
+  background-color: #0F172A !important;
+  color: #94A3B8 !important;
+  border-color: #1E293B !important;
+}
+
+html.dark table tbody tr {
+  border-color: #1E293B !important;
+}
+
+html.dark table tbody tr:hover {
+  background-color: rgba(30, 41, 59, 0.4) !important;
+}
+
+html.dark table tbody td {
+  color: #E2E8F0;
+}
+
+/* Universal Modal / Dialog / Portal Container in dark mode */
+html.dark .fixed > div > div.bg-white,
+html.dark .fixed [role="dialog"],
+html.dark .modal-content {
+  background-color: #111C2E !important;
+  color: #F1F5F9 !important;
+  border-color: #1E293B !important;
+}
+
+/* React Datepicker in dark mode */
+html.dark .react-datepicker {
+  background-color: #111C2E !important;
+  border: 1px solid #334155 !important;
+  color: #F8FAFC !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .react-datepicker__header {
+  background-color: #0F172A !important;
+  border-bottom: 1px solid #334155 !important;
+}
+
+html.dark .react-datepicker__current-month,
+html.dark .react-datepicker-time__header,
+html.dark .react-datepicker-year-header,
+html.dark .react-datepicker__day-name {
+  color: #F8FAFC !important;
+}
+
+html.dark .react-datepicker__day {
+  color: #E2E8F0 !important;
+}
+
+html.dark .react-datepicker__day:hover {
+  background-color: #1E293B !important;
+}
+
+html.dark .react-datepicker__day--selected,
+html.dark .react-datepicker__day--keyboard-selected {
+  background-color: #0F5C7A !important;
+  color: #FFFFFF !important;
+}
+
+html.dark .react-datepicker__day--disabled {
+  color: #475569 !important;
+}
+
+/* Recharts in dark mode */
+html.dark .recharts-cartesian-grid-horizontal line,
+html.dark .recharts-cartesian-grid-vertical line {
+  stroke: #1E293B !important;
+}
+
+html.dark .recharts-text {
+  fill: #94A3B8 !important;
+}
+
+html.dark .recharts-default-tooltip {
+  background-color: #111C2E !important;
+  border: 1px solid #334155 !important;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+}
+
+html.dark .recharts-tooltip-item,
+html.dark .recharts-tooltip-label {
+  color: #F8FAFC !important;
 }
 
 @theme {
@@ -326,17 +512,44 @@
   .card-premium {
     @apply bg-white/75 backdrop-blur-lg rounded-[20px] shadow-[0_4px_20px_rgba(0,0,0,0.06)] border border-[#E2E8F0];
   }
+  html.dark .card-premium {
+    background-color: rgba(17, 28, 46, 0.85);
+    border-color: #1E293B;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+  }
   .btn-primary {
     @apply bg-gradient-to-r from-[#0F766E] to-[#14B8A6] text-white rounded-[20px] shadow-[0_4px_12px_rgba(20,184,166,0.2)] hover:shadow-[0_6px_16px_rgba(20,184,166,0.3)] transition-all duration-200 font-bold px-6 py-3 h-[50px] border-none flex items-center justify-center gap-2;
   }
   .btn-secondary {
     @apply bg-white text-[#0F766E] rounded-[20px] hover:bg-slate-50 transition-all duration-200 font-medium px-6 py-3 h-[50px] border border-[#E2E8F0] flex items-center justify-center gap-2;
   }
+  html.dark .btn-secondary {
+    background-color: #1E293B;
+    color: #2DD4BF;
+    border-color: #334155;
+  }
+  html.dark .btn-secondary:hover {
+    background-color: #334155;
+  }
   .btn-outline {
     @apply bg-white text-slate-600 rounded-[20px] hover:bg-slate-50 hover:text-slate-900 transition-all duration-200 font-medium px-6 py-3 h-[50px] border border-[#E2E8F0] shadow-sm flex items-center justify-center gap-2;
   }
+  html.dark .btn-outline {
+    background-color: #1E293B;
+    color: #CBD5E1;
+    border-color: #334155;
+  }
+  html.dark .btn-outline:hover {
+    background-color: #334155;
+    color: #F8FAFC;
+  }
   .input-premium {
     @apply w-full px-4 py-3 bg-[#F8FAFC] border border-[#E2E8F0] rounded-[14px] focus:outline-none focus:ring-2 focus:ring-[rgba(20,184,166,0.2)] focus:border-[#14B8A6] transition-all shadow-sm font-medium h-[48px];
+  }
+  html.dark .input-premium {
+    background-color: #0F172A;
+    border-color: #334155;
+    color: #F8FAFC;
   }
   .search-highlight {
     @apply border-[#14B8A6] shadow-[0_0_15px_rgba(20,184,166,0.1)] ring-2 ring-[rgba(20,184,166,0.2)];
@@ -350,11 +563,26 @@
   .badge-pastel-blue {
     @apply bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-sm font-medium border border-blue-100;
   }
+  html.dark .badge-pastel-blue {
+    background-color: rgba(30, 58, 138, 0.35);
+    color: #93C5FD;
+    border-color: #1E3A8A;
+  }
   .badge-pastel-pink {
     @apply bg-pink-50 text-pink-600 px-3 py-1 rounded-full text-sm font-medium border border-pink-100;
   }
+  html.dark .badge-pastel-pink {
+    background-color: rgba(136, 19, 55, 0.35);
+    color: #FDA4AF;
+    border-color: #881337;
+  }
   .badge-pastel-orange {
     @apply bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100;
+  }
+  html.dark .badge-pastel-orange {
+    background-color: rgba(124, 45, 18, 0.35);
+    color: #FDBA74;
+    border-color: #7C2D12;
   }
   .badge-pastel-peach {
     @apply bg-orange-50 text-orange-600 px-3 py-1 rounded-full text-sm font-medium border border-orange-100;
