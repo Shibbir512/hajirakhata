@@ -10,6 +10,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsive
 import { Printer, CalendarDays } from 'lucide-react';
 import { toBengaliNumber } from '../../utils/dateFormatter';
 import { ClassSelect } from '../../components/ClassSelect';
+import { useTheme } from '../../context/ThemeContext';
 
 const ENGLISH_MONTHS = [
   { id: 1, name: "জানুয়ারি" },
@@ -28,6 +29,8 @@ const ENGLISH_MONTHS = [
 
 const FeeReports: React.FC = () => {
   const { orgId, orgName, user, role } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const { classes } = useClasses(orgId, user, role);
   const { categories } = useFeeCategories(orgId);
   
@@ -138,8 +141,8 @@ const FeeReports: React.FC = () => {
     <div id="fee-report-container" className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">ফি রিপোর্ট</h1>
-          <p className="text-sm text-slate-500">মাসিক ফি আদায়ের বিস্তারিত রিপোর্ট ও সামারি</p>
+          <h1 className="text-2xl font-bold text-slate-800 dark:text-white">ফি রিপোর্ট</h1>
+          <p className="text-sm text-slate-500 dark:text-slate-400">মাসিক ফি আদায়ের বিস্তারিত রিপোর্ট ও সামারি</p>
         </div>
         <button
           onClick={() => window.print()}
@@ -266,13 +269,30 @@ const FeeReports: React.FC = () => {
             <div className="h-80 w-full">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={chartData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E2E8F0" />
-                  <XAxis dataKey="name" axisLine={false} tickLine={false} />
-                  <YAxis axisLine={false} tickLine={false} />
-                  <Tooltip cursor={{ fill: '#F1F5F9' }} />
-                  <Legend />
-                  <Bar dataKey="প্রত্যাশিত" fill="#94A3B8" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="আদায়কৃত" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#E2E8F0"} />
+                  <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: isDark ? '#94A3B8' : '#64748B' }} />
+                  <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#94A3B8' : '#64748B' }} />
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: isDark ? "#1E293B" : "#fff",
+                      borderRadius: "12px",
+                      border: isDark ? "1px solid #334155" : "1px solid #E2E8F0",
+                      boxShadow: isDark ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 4px 20px rgba(0, 0, 0, 0.08)",
+                      color: isDark ? "#F8FAFC" : "#0F172A",
+                    }}
+                    itemStyle={{
+                      color: isDark ? "#E2E8F0" : "#334155",
+                    }}
+                    labelStyle={{
+                      color: isDark ? "#94A3B8" : "#64748B",
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                    }}
+                    cursor={{ fill: isDark ? 'rgba(255, 255, 255, 0.06)' : '#F1F5F9' }}
+                  />
+                  <Legend wrapperStyle={{ color: isDark ? '#CBD5E1' : '#4B5563' }} />
+                  <Bar dataKey="প্রত্যাশিত" fill={isDark ? "#64748B" : "#94A3B8"} radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="আদায়কৃত" fill={isDark ? "#38BDF8" : "#0F5C7A"} radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

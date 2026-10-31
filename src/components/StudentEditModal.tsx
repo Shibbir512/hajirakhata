@@ -206,15 +206,15 @@ const StudentEditModal: React.FC<StudentEditModalProps> = ({
 
               {imagePreview && (
                 <div className="w-full mt-2">
-                  <label className="block text-xs font-semibold text-slate-500 mb-1">ছবির কোয়ালিটি (Image Quality)</label>
+                  <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">ছবির কোয়ালিটি (Image Quality)</label>
                   <select
                     value={compressionLevel}
                     onChange={(e) => setCompressionLevel(e.target.value as CompressionLevel)}
-                    className="w-full bg-slate-50 border border-slate-200 text-slate-700 text-sm rounded-xl focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
+                    className="w-full bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-sm rounded-xl focus:ring-[#0F5C7A] focus:border-[#0F5C7A] block p-2.5"
                   >
-                    <option value="high">High Quality (Large size)</option>
-                    <option value="medium">Medium Quality (Balanced)</option>
-                    <option value="low">Low Quality (Fast upload)</option>
+                    <option value="high" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">High Quality (Large size)</option>
+                    <option value="medium" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Medium Quality (Balanced)</option>
+                    <option value="low" className="bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100">Low Quality (Fast upload)</option>
                   </select>
                 </div>
               )}

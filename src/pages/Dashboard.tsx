@@ -21,9 +21,12 @@ import {
 } from "recharts";
 
 import StudentSearch from "../components/StudentSearch";
+import { useTheme } from "../context/ThemeContext";
 
 const Dashboard: React.FC = () => {
   const { user, orgId, role } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const navigate = useNavigate();
   const { students } = useStudents(orgId, user, role);
   const { classes } = useClasses(orgId, user, role);
@@ -286,8 +289,8 @@ const Dashboard: React.FC = () => {
         />
       </div>
 
-        <div className="bg-white p-6 rounded-[20px] shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0]">
-        <h3 className="font-bold mb-6 tracking-tight text-center text-[#079999] text-[17.875px]">
+      <div className="bg-white dark:bg-[#111C2E] p-6 rounded-[20px] shadow-[0_6px_20px_rgba(0,0,0,0.08)] border border-[#E2E8F0] dark:border-slate-800 transition-colors">
+        <h3 className="font-bold mb-6 tracking-tight text-center text-[#079999] dark:text-[#2DD4BF] text-[17.875px]">
           সাপ্তাহিক হাজিরার প্রবণতা
         </h3>
         <div className="h-80">
@@ -303,20 +306,29 @@ const Dashboard: React.FC = () => {
                   <stop offset="100%" stopColor="#DC2626" />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#F1F5F9" />
-              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} dy={10} />
-              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748B', fontSize: 12, fontWeight: 500 }} dx={-10} />
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "rgba(255, 255, 255, 0.08)" : "#F1F5F9"} />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: isDark ? '#94A3B8' : '#64748B', fontSize: 12, fontWeight: 500 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: isDark ? '#94A3B8' : '#64748B', fontSize: 12, fontWeight: 500 }} dx={-10} />
               <Tooltip
                 contentStyle={{
-                  backgroundColor: "#fff",
+                  backgroundColor: isDark ? "#1E293B" : "#fff",
                   borderRadius: "12px",
-                  border: "none",
-                  boxShadow: "0 4px 20px rgba(0, 0, 0, 0.08)",
+                  border: isDark ? "1px solid #334155" : "none",
+                  boxShadow: isDark ? "0 8px 24px rgba(0, 0, 0, 0.4)" : "0 4px 20px rgba(0, 0, 0, 0.08)",
                   padding: "12px",
+                  color: isDark ? "#F8FAFC" : "#0F172A",
                 }}
-                cursor={{ fill: "#F8FAFC" }}
+                itemStyle={{
+                  color: isDark ? "#E2E8F0" : "#334155",
+                }}
+                labelStyle={{
+                  color: isDark ? "#94A3B8" : "#64748B",
+                  fontWeight: 600,
+                  marginBottom: "4px",
+                }}
+                cursor={{ fill: isDark ? "rgba(255, 255, 255, 0.06)" : "#F8FAFC" }}
               />
-              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500, color: '#4B5563' }} />
+              <Legend iconType="circle" wrapperStyle={{ paddingTop: '20px', fontSize: '14px', fontWeight: 500, color: isDark ? '#CBD5E1' : '#4B5563' }} />
               <Bar
                 dataKey="Present"
                 name="উপস্থিত"
@@ -341,26 +353,26 @@ const Dashboard: React.FC = () => {
           onClick={(e) => { if (e.target === e.currentTarget) setIsPendingClassesModalOpen(false); }}
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
         >
-          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100">
+          <div className="bg-white dark:bg-[#111C2E] rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100 dark:border-slate-800">
             {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-amber-50/70 to-orange-50/30">
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-amber-50/70 to-orange-50/30 dark:from-amber-950/40 dark:to-orange-950/20">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-amber-100 text-amber-600 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
+                <div className="w-11 h-11 bg-amber-100 dark:bg-amber-950/60 text-amber-600 dark:text-amber-400 rounded-2xl flex items-center justify-center shadow-sm shrink-0">
                   <Clock className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">হাজিরা বাকি থাকা শ্রেণি</h2>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white">হাজিরা বাকি থাকা শ্রেণি</h2>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-amber-100 dark:bg-amber-950/80 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800/60">
                       {toBengaliNumber(stats.classesPendingAttendanceToday)}টি
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium">আজকের হাজিরা এখনও নেওয়া হয়নি</p>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">আজকের হাজিরা এখনও নেওয়া হয়নি</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsPendingClassesModalOpen(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                 title="বন্ধ করুন"
               >
                 <X className="w-5 h-5" />
@@ -369,7 +381,7 @@ const Dashboard: React.FC = () => {
 
             {/* Search if more than 3 classes */}
             {stats.pendingClassesList.length > 3 && (
-              <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
                 <div className="relative">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -377,12 +389,12 @@ const Dashboard: React.FC = () => {
                     value={pendingSearchQuery}
                     onChange={(e) => setPendingSearchQuery(e.target.value)}
                     placeholder="শ্রেণির নাম দিয়ে খুঁজুন..."
-                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all"
+                    className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-400/30 focus:border-amber-400 transition-all placeholder:text-slate-400"
                   />
                   {pendingSearchQuery && (
                     <button
                       onClick={() => setPendingSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -401,19 +413,19 @@ const Dashboard: React.FC = () => {
                       return (
                         <div 
                           key={c.id} 
-                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 hover:bg-amber-50/40 rounded-2xl border border-slate-200/80 hover:border-amber-300 transition-all duration-200 group"
+                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 hover:bg-amber-50/40 dark:hover:bg-amber-950/20 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 hover:border-amber-300 dark:hover:border-amber-700 transition-all duration-200 group"
                         >
                           <div className="min-w-0 pr-3">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-amber-900 transition-colors truncate">
+                              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base sm:text-lg group-hover:text-amber-900 dark:group-hover:text-amber-300 transition-colors truncate">
                                 {c.name}
                               </h3>
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100/80 text-amber-700 shrink-0">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-100/80 dark:bg-amber-950/80 text-amber-700 dark:text-amber-300 shrink-0">
                                 বাকি
                               </span>
                             </div>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700">{toBengaliNumber(studentCount)}</span> জন
+                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700 dark:text-slate-200">{toBengaliNumber(studentCount)}</span> জন
                             </p>
                           </div>
                           <button
@@ -431,27 +443,27 @@ const Dashboard: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500 text-sm">
+                  <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
                     "{pendingSearchQuery}" নামে কোনো শ্রেণি পাওয়া যায়নি।
                   </div>
                 )
               ) : (
-                <div className="text-center py-10 px-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
-                  <div className="w-14 h-14 bg-emerald-100 text-emerald-600 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
+                <div className="text-center py-10 px-4 bg-emerald-50/50 dark:bg-emerald-950/30 rounded-2xl border border-emerald-100 dark:border-emerald-900/40">
+                  <div className="w-14 h-14 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-full flex items-center justify-center mx-auto mb-3 shadow-inner">
                     <CheckCircle className="w-8 h-8" />
                   </div>
-                  <h3 className="text-base font-bold text-emerald-900 mb-1">আলহামদুলিল্লাহ! সব শ্রেণির হাজিরা সম্পন্ন হয়েছে</h3>
-                  <p className="text-xs sm:text-sm text-emerald-700">আজকের জন্য আর কোনো শ্রেণির হাজিরা বাকি নেই।</p>
+                  <h3 className="text-base font-bold text-emerald-900 dark:text-emerald-200 mb-1">আলহামদুলিল্লাহ! সব শ্রেণির হাজিরা সম্পন্ন হয়েছে</h3>
+                  <p className="text-xs sm:text-sm text-emerald-700 dark:text-emerald-300">আজকের জন্য আর কোনো শ্রেণির হাজিরা বাকি নেই।</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>মোট বাকি শ্রেণি: {toBengaliNumber(stats.classesPendingAttendanceToday)} টি</span>
               <button
                 onClick={() => setIsPendingClassesModalOpen(false)}
-                className="px-4 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 বন্ধ করুন
               </button>
@@ -465,26 +477,26 @@ const Dashboard: React.FC = () => {
           onClick={(e) => { if (e.target === e.currentTarget) setIsCompletedClassesModalOpen(false); }}
           className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200"
         >
-          <div className="bg-white rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100">
+          <div className="bg-white dark:bg-[#111C2E] rounded-[24px] w-full max-w-lg overflow-hidden shadow-2xl flex flex-col max-h-[90vh] my-4 border border-slate-100 dark:border-slate-800">
             {/* Header */}
-            <div className="p-5 sm:p-6 border-b border-slate-100 flex items-center justify-between bg-gradient-to-r from-emerald-50/70 to-teal-50/30">
+            <div className="p-5 sm:p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-emerald-50/70 to-teal-50/30 dark:from-emerald-950/40 dark:to-teal-950/20">
               <div className="flex items-center gap-3">
-                <div className="w-11 h-11 bg-emerald-100 text-emerald-600 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
+                <div className="w-11 h-11 bg-emerald-100 dark:bg-emerald-950/60 text-emerald-600 dark:text-emerald-400 rounded-2xl flex items-center justify-center shadow-inner shrink-0">
                   <CheckCircle className="w-6 h-6" />
                 </div>
                 <div>
                   <div className="flex items-center gap-2">
-                    <h2 className="text-lg sm:text-xl font-bold text-slate-800">হাজিরা সম্পন্ন হওয়া শ্রেণি</h2>
-                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200">
+                    <h2 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white">হাজিরা সম্পন্ন হওয়া শ্রেণি</h2>
+                    <span className="px-2 py-0.5 rounded-full text-xs font-bold bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800/60">
                       {toBengaliNumber(stats.classesWithAttendanceToday)}টি
                     </span>
                   </div>
-                  <p className="text-xs sm:text-sm text-slate-500 font-medium">আজকের হাজিরা সম্পন্ন হয়েছে</p>
+                  <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium">আজকের হাজিরা সম্পন্ন হয়েছে</p>
                 </div>
               </div>
               <button
                 onClick={() => setIsCompletedClassesModalOpen(false)}
-                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 text-slate-400 hover:text-slate-700 transition-colors"
+                className="w-9 h-9 rounded-full flex items-center justify-center hover:bg-slate-200/80 dark:hover:bg-slate-800 text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
                 title="বন্ধ করুন"
               >
                 <X className="w-5 h-5" />
@@ -493,7 +505,7 @@ const Dashboard: React.FC = () => {
 
             {/* Search if more than 3 classes */}
             {stats.completedClassesList.length > 3 && (
-              <div className="p-4 border-b border-slate-100 bg-slate-50/50">
+              <div className="p-4 border-b border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/60">
                 <div className="relative">
                   <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
                   <input
@@ -501,12 +513,12 @@ const Dashboard: React.FC = () => {
                     value={completedSearchQuery}
                     onChange={(e) => setCompletedSearchQuery(e.target.value)}
                     placeholder="শ্রেণির নাম দিয়ে খুঁজুন..."
-                    className="w-full pl-9 pr-8 py-2 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all"
+                    className="w-full pl-9 pr-8 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-sm text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-emerald-400/30 focus:border-emerald-400 transition-all placeholder:text-slate-400"
                   />
                   {completedSearchQuery && (
                     <button
                       onClick={() => setCompletedSearchQuery("")}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                     >
                       <X className="w-4 h-4" />
                     </button>
@@ -525,19 +537,19 @@ const Dashboard: React.FC = () => {
                       return (
                         <div 
                           key={c.id} 
-                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 hover:bg-emerald-50/40 rounded-2xl border border-slate-200/80 hover:border-emerald-300 transition-all duration-200 group"
+                          className="flex items-center justify-between p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-800/60 hover:bg-emerald-50/40 dark:hover:bg-emerald-950/20 rounded-2xl border border-slate-200/80 dark:border-slate-700/60 hover:border-emerald-300 dark:hover:border-emerald-700 transition-all duration-200 group"
                         >
                           <div className="min-w-0 pr-3">
                             <div className="flex items-center gap-2">
-                              <h3 className="font-bold text-slate-800 text-base sm:text-lg group-hover:text-emerald-900 transition-colors truncate">
+                              <h3 className="font-bold text-slate-800 dark:text-slate-100 text-base sm:text-lg group-hover:text-emerald-900 dark:group-hover:text-emerald-300 transition-colors truncate">
                                 {c.name}
                               </h3>
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 text-emerald-800 shrink-0">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 shrink-0">
                                 সম্পন্ন
                               </span>
                             </div>
-                            <p className="text-xs sm:text-sm text-slate-500 mt-0.5">
-                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700">{toBengaliNumber(studentCount)}</span> জন
+                            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+                              মোট শিক্ষার্থী: <span className="font-bold text-slate-700 dark:text-slate-200">{toBengaliNumber(studentCount)}</span> জন
                             </p>
                           </div>
                           <button
@@ -555,24 +567,24 @@ const Dashboard: React.FC = () => {
                     })}
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-slate-500 text-sm">
+                  <div className="text-center py-8 text-slate-500 dark:text-slate-400 text-sm">
                     "{completedSearchQuery}" নামে কোনো শ্রেণি পাওয়া যায়নি।
                   </div>
                 )
               ) : (
-                <div className="text-center py-10 px-4 bg-slate-50 rounded-2xl border border-dashed border-slate-200">
+                <div className="text-center py-10 px-4 bg-slate-50 dark:bg-slate-800/40 rounded-2xl border border-dashed border-slate-200 dark:border-slate-700">
                   <Clock className="w-12 h-12 text-amber-400 mx-auto mb-3" />
-                  <p className="text-slate-600 font-medium">আজকের কোনো শ্রেণির হাজিরা এখনও সম্পন্ন হয়নি!</p>
+                  <p className="text-slate-600 dark:text-slate-300 font-medium">আজকের কোনো শ্রেণির হাজিরা এখনও সম্পন্ন হয়নি!</p>
                 </div>
               )}
             </div>
 
             {/* Footer */}
-            <div className="p-4 border-t border-slate-100 bg-slate-50/80 flex items-center justify-between text-xs text-slate-500">
+            <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
               <span>মোট সম্পন্ন শ্রেণি: {toBengaliNumber(stats.classesWithAttendanceToday)} টি</span>
               <button
                 onClick={() => setIsCompletedClassesModalOpen(false)}
-                className="px-4 py-1.5 text-xs font-semibold text-slate-600 hover:text-slate-800 bg-white border border-slate-200 rounded-lg hover:bg-slate-100 transition-colors"
+                className="px-4 py-1.5 text-xs font-semibold text-slate-600 dark:text-slate-300 hover:text-slate-800 dark:hover:text-white bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
               >
                 বন্ধ করুন
               </button>

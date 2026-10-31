@@ -29,9 +29,12 @@ import { startOfDay, endOfDay, startOfWeek, startOfMonth, format } from "date-fn
 import { toBengaliNumber, toEnglishNumber, getTodayISO } from "../utils/dateFormatter";
 import AttendanceNavTabs from "../components/AttendanceNavTabs";
 import { ClassSelect } from "../components/ClassSelect";
+import { useTheme } from "../context/ThemeContext";
 
 const Reports: React.FC = () => {
   const { user, orgId, role, orgName } = useAuth();
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
   const { classes } = useClasses(orgId, user, role);
   const { students } = useStudents(orgId, user, role);
 
@@ -614,36 +617,50 @@ const Reports: React.FC = () => {
             <div className="w-full h-[calc(100%-2rem)]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <PieChart>
-                <Pie
-                  data={pieData}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={60}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  paddingAngle={5}
-                  dataKey="value"
-                >
-                  {pieData.map((entry, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
-                    />
-                  ))}
-                </Pie>
-                <Tooltip 
-                  contentStyle={{
-                    backgroundColor: "#111C2E",
-                    color: "#F8FAFC",
-                    borderRadius: "8px",
-                    border: "1px solid #334155",
-                    boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
-                  }}
-                />
-                <Legend />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={60}
+                    outerRadius={80}
+                    fill="#8884d8"
+                    paddingAngle={5}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell
+                        key={`cell-${index}`}
+                        fill={COLORS[index % COLORS.length]}
+                      />
+                    ))}
+                  </Pie>
+                  <Tooltip 
+                    contentStyle={{
+                      backgroundColor: isDark ? "#111C2E" : "#FFFFFF",
+                      color: isDark ? "#F8FAFC" : "#0F172A",
+                      borderRadius: "1rem",
+                      border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                      boxShadow: isDark
+                        ? "0 10px 25px -5px rgba(0, 0, 0, 0.5)"
+                        : "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                    }}
+                    itemStyle={{
+                      color: isDark ? "#F8FAFC" : "#0F172A",
+                      fontWeight: 600,
+                    }}
+                    labelStyle={{
+                      color: isDark ? "#94A3B8" : "#64748B",
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                    }}
+                    formatter={(value: any, name: any) => [`${toBengaliNumber(value)} জন`, name]}
+                  />
+                  <Legend 
+                    formatter={(value) => <span className={isDark ? "text-slate-300 font-medium text-xs" : "text-slate-600 font-medium text-xs"}>{value}</span>}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
           </div>
 
           <div className="h-80 bg-white dark:bg-[#111C2E] rounded-[20px] p-4 sm:p-6 border border-[#E5E7EB] dark:border-slate-800 shadow-[0_8px_20px_rgba(0,0,0,0.05)] overflow-hidden">
@@ -653,19 +670,61 @@ const Reports: React.FC = () => {
             <div className="w-full h-[calc(100%-2rem)]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <LineChart data={trendData}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.4} />
-                  <XAxis dataKey="date" axisLine={false} tickLine={false} stroke="#94A3B8" />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} stroke="#94A3B8" />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: "#111C2E",
-                      color: "#F8FAFC",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#334155" : "#E2E8F0"} opacity={isDark ? 0.4 : 0.8} />
+                  <XAxis 
+                    dataKey="date" 
+                    axisLine={false} 
+                    tickLine={false} 
+                    stroke={isDark ? "#94A3B8" : "#64748B"}
+                    fontSize={12}
+                    tickFormatter={(val: string) => {
+                      if (!val) return "";
+                      const parts = val.split(" ");
+                      if (parts.length >= 2) {
+                        return `${toBengaliNumber(parts[0])}/${toBengaliNumber(parts[1])}`;
+                      }
+                      return toBengaliNumber(val);
                     }}
                   />
-                  <Line type="monotone" dataKey="percentage" stroke="#0F5C7A" strokeWidth={2} />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    domain={[0, 100]} 
+                    stroke={isDark ? "#94A3B8" : "#64748B"}
+                    tickFormatter={(val: number) => `${toBengaliNumber(val)}%`}
+                    fontSize={12}
+                  />
+                  <Tooltip 
+                    cursor={{ stroke: isDark ? "rgba(255, 255, 255, 0.2)" : "#94A3B8", strokeWidth: 1 }}
+                    contentStyle={{
+                      backgroundColor: isDark ? "#111C2E" : "#FFFFFF",
+                      color: isDark ? "#F8FAFC" : "#0F172A",
+                      borderRadius: "1rem",
+                      border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                      boxShadow: isDark
+                        ? "0 10px 25px -5px rgba(0, 0, 0, 0.5)"
+                        : "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                    }}
+                    itemStyle={{
+                      color: isDark ? "#38BDF8" : "#0F5C7A",
+                      fontWeight: 600,
+                    }}
+                    labelStyle={{
+                      color: isDark ? "#94A3B8" : "#64748B",
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                    }}
+                    formatter={(value: any) => [`${toBengaliNumber(value)}%`, "উপস্থিতি"]}
+                    labelFormatter={(label) => `তারিখ: ${toBengaliNumber(label)}`}
+                  />
+                  <Line 
+                    type="monotone" 
+                    dataKey="percentage" 
+                    stroke={isDark ? "#38BDF8" : "#0F5C7A"} 
+                    strokeWidth={2.5}
+                    dot={{ fill: isDark ? "#38BDF8" : "#0F5C7A", r: 3 }}
+                    activeDot={{ r: 5 }}
+                  />
                 </LineChart>
               </ResponsiveContainer>
             </div>
@@ -678,19 +737,46 @@ const Reports: React.FC = () => {
             <div className="w-full h-[calc(100%-2rem)]">
               <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
                 <BarChart data={(selectedClassId ? sessionData : reportData) as any[]}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" opacity={0.4} />
-                  <XAxis dataKey={selectedClassId ? "session" : "name"} axisLine={false} tickLine={false} stroke="#94A3B8" />
-                  <YAxis axisLine={false} tickLine={false} domain={[0, 100]} stroke="#94A3B8" />
-                  <Tooltip 
-                    contentStyle={{
-                      backgroundColor: "#111C2E",
-                      color: "#F8FAFC",
-                      borderRadius: "8px",
-                      border: "1px solid #334155",
-                      boxShadow: "0 4px 6px -1px rgb(0 0 0 / 0.3)",
-                    }}
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={isDark ? "#334155" : "#E2E8F0"} opacity={isDark ? 0.4 : 0.8} />
+                  <XAxis 
+                    dataKey={selectedClassId ? "session" : "name"} 
+                    axisLine={false} 
+                    tickLine={false} 
+                    stroke={isDark ? "#94A3B8" : "#64748B"}
+                    fontSize={12}
                   />
-                  <Bar dataKey="percentage" fill="#0F5C7A" radius={[4, 4, 0, 0]} />
+                  <YAxis 
+                    axisLine={false} 
+                    tickLine={false} 
+                    domain={[0, 100]} 
+                    stroke={isDark ? "#94A3B8" : "#64748B"}
+                    tickFormatter={(val: number) => `${toBengaliNumber(val)}%`}
+                    fontSize={12}
+                  />
+                  <Tooltip 
+                    cursor={{ fill: isDark ? "rgba(255, 255, 255, 0.06)" : "rgba(15, 92, 122, 0.06)" }}
+                    contentStyle={{
+                      backgroundColor: isDark ? "#111C2E" : "#FFFFFF",
+                      color: isDark ? "#F8FAFC" : "#0F172A",
+                      borderRadius: "1rem",
+                      border: isDark ? "1px solid #1E293B" : "1px solid #E2E8F0",
+                      boxShadow: isDark
+                        ? "0 10px 25px -5px rgba(0, 0, 0, 0.5)"
+                        : "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+                    }}
+                    itemStyle={{
+                      color: isDark ? "#38BDF8" : "#0F5C7A",
+                      fontWeight: 600,
+                    }}
+                    labelStyle={{
+                      color: isDark ? "#94A3B8" : "#64748B",
+                      fontWeight: 600,
+                      marginBottom: "4px",
+                    }}
+                    formatter={(value: any) => [`${toBengaliNumber(value)}%`, "উপস্থিতি"]}
+                    labelFormatter={(label) => selectedClassId ? `সেশন: ${label}` : `শ্রেণি: ${label}`}
+                  />
+                  <Bar dataKey="percentage" fill={isDark ? "#38BDF8" : "#0F5C7A"} radius={[6, 6, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -702,8 +788,8 @@ const Reports: React.FC = () => {
             </h3>
             <div className="flex flex-wrap gap-2 overflow-y-auto h-[calc(100%-2rem)]">
               {heatmapData.map(d => (
-                <div key={d.date} className={clsx("w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold text-white", d.percentage > 75 ? "bg-emerald-500" : d.percentage > 50 ? "bg-amber-500" : "bg-rose-500")} title={`${d.date}: ${d.percentage}%`}>
-                  {d.percentage}%
+                <div key={d.date} className={clsx("w-8 h-8 rounded flex items-center justify-center text-[10px] font-bold text-white shadow-xs", d.percentage > 75 ? "bg-emerald-500" : d.percentage > 50 ? "bg-amber-500" : "bg-rose-500")} title={`${toBengaliNumber(d.date)}: ${toBengaliNumber(d.percentage)}%`}>
+                  {toBengaliNumber(d.percentage)}%
                 </div>
               ))}
             </div>

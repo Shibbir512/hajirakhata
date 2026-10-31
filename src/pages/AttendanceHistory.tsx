@@ -7,7 +7,7 @@ import { useStudents } from "../hooks/useStudents";
 import { useAttendance } from "../hooks/useAttendance";
 import { AttendanceStatus } from "../types";
 import ConfirmationDialog from "../components/ConfirmationDialog";
-import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, MessageCircle, CheckCircle, Printer, RefreshCw } from "lucide-react";
+import { Edit2, X, ChevronDown, Trash2, Calendar, Share2, Clock, Search, Users, User, MessageCircle, CheckCircle, Printer, RefreshCw } from "lucide-react";
 import { toBengaliDate, toBengaliTime, toBengaliNumber, getDayNameInBengali } from "../utils/dateFormatter";
 import clsx from "clsx";
 import toast from "react-hot-toast";
@@ -421,21 +421,19 @@ const AttendanceHistory: React.FC = () => {
                   {absentStudents.length > 0 ? (
                     <div className="bg-[#FEF2F2] dark:bg-rose-950/25 border border-transparent dark:border-rose-900/30 rounded-2xl p-4">
                       <ul className="space-y-2.5">
-                        {absentStudents.slice(0, 3).map((s: any, index: number) => {
-                          const initials = s.studentName ? s.studentName.substring(0, 2) : "অজ্ঞাত";
-                          const colors = [
-                            "bg-[#DCFCE7] dark:bg-emerald-950/60 text-[#16A34A] dark:text-emerald-300", // Green
-                            "bg-[#FCE7F3] dark:bg-pink-950/60 text-[#DB2777] dark:text-pink-300", // Pink
-                            "bg-[#FFEDD5] dark:bg-orange-950/60 text-[#EA580C] dark:text-orange-300", // Orange
-                            "bg-[#E0F2FE] dark:bg-sky-950/60 text-[#0284C7] dark:text-sky-300", // Blue
-                          ];
-                          const colorClass = colors[index % colors.length];
+                        {absentStudents.slice(0, 3).map((s: any) => {
+                          const classStudents = students[session.classId] || [];
+                          const studentInfo = classStudents.find((st: any) => st.id === s.studentId);
                           
                           return (
                             <li key={s.studentId} className="flex items-center gap-3">
-                              <span className="w-2 h-2 rounded-full bg-[#EF4444]"></span>
-                              <div className={clsx("w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border border-transparent dark:border-white/10", colorClass)}>
-                                {initials}
+                              <span className="w-2 h-2 rounded-full bg-[#EF4444] shrink-0"></span>
+                              <div className="w-8 h-8 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700/80 flex items-center justify-center overflow-hidden shrink-0 shadow-xs">
+                                {studentInfo?.photoUrl ? (
+                                  <img src={studentInfo.photoUrl} alt={s.studentName} className="w-full h-full object-cover" />
+                                ) : (
+                                  <User className="w-4 h-4 text-[#0F9D8A] dark:text-[#38BDF8]" />
+                                )}
                               </div>
                               <span className="text-slate-800 dark:text-slate-200 font-medium text-lg">: {s.studentName}</span>
                             </li>

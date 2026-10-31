@@ -375,7 +375,7 @@ const StudentProfile: React.FC = () => {
   if (!student) return null;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] font-sans pb-12">
+    <div className="min-h-screen bg-[#F8FAFC] dark:bg-[#060D17] font-sans pb-12 transition-colors">
       {/* Header Section */}
       <div className="bg-gradient-to-r from-[#0F9D8A] to-[#3B82F6] pt-8 pb-24 px-4 rounded-b-[32px] shadow-lg relative z-0">
         <div className="max-w-5xl mx-auto flex items-center justify-between">
@@ -404,40 +404,40 @@ const StudentProfile: React.FC = () => {
           <div className="lg:col-span-1 space-y-6">
             
             {/* Profile Card (Hero Section) */}
-            <motion.div variants={itemVariants} className="bg-white/80 backdrop-blur-xl rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50 overflow-hidden relative">
+            <motion.div variants={itemVariants} className="bg-white/90 dark:bg-[#111C2E] backdrop-blur-xl rounded-[24px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] dark:shadow-[0_8px_30px_rgba(0,0,0,0.4)] border border-white/50 dark:border-slate-800 overflow-hidden relative">
               {/* Top gradient header inside card */}
               <div className="h-24 bg-gradient-to-br from-[#0F9D8A]/10 to-[#3B82F6]/10 relative">
                 {/* Glass effect overlay */}
-                <div className="absolute inset-0 bg-white/30 backdrop-blur-sm"></div>
+                <div className="absolute inset-0 bg-white/30 dark:bg-slate-900/40 backdrop-blur-sm"></div>
               </div>
               
               <div className="px-6 pb-8 -mt-12 relative flex flex-col items-center text-center">
                 <div 
                   onClick={() => student.photoUrl && setIsImageModalOpen(true)}
                   className={clsx(
-                    "relative w-24 h-24 rounded-full bg-white shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white",
+                    "relative w-24 h-24 rounded-full bg-white dark:bg-slate-800 shadow-[0_8px_24px_rgba(15,157,138,0.15)] flex items-center justify-center overflow-hidden mb-4 border-4 border-white dark:border-slate-700",
                     student.photoUrl && "cursor-pointer hover:scale-105 transition-transform"
                   )}
                 >
                   {student.photoUrl ? (
                     <img src={student.photoUrl} alt={student.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
-                    <User className="w-12 h-12 text-[#0F9D8A]" />
+                    <User className="w-12 h-12 text-[#0F9D8A] dark:text-[#38BDF8]" />
                   )}
                 </div>
                 
-                <h3 className="text-2xl font-bold text-slate-800 tracking-tight">{student.name}</h3>
+                <h3 className="text-2xl font-bold text-slate-800 dark:text-white tracking-tight">{student.name}</h3>
                 
                 {student.isActive === false && (
-                  <span className="px-3 py-1 bg-rose-100 text-rose-600 text-xs font-bold rounded-full mt-2 shadow-sm">
+                  <span className="px-3 py-1 bg-rose-100 dark:bg-rose-950/60 text-rose-600 dark:text-rose-400 text-xs font-bold rounded-full mt-2 shadow-sm border border-rose-200 dark:border-rose-900/40">
                     আর্কাইভ করা
                   </span>
                 )}
                 
                 <div className="flex items-center gap-2 mt-2 text-sm">
-                  <span className="text-slate-500 font-medium">ID: <span className="text-[#3B82F6] font-mono font-bold">{student.studentUid || "N/A"}</span></span>
-                  <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                  <span className="text-slate-500 font-medium">রোল: <span className="text-slate-700 font-bold">{toBengaliNumber(student.roll)}</span></span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">ID: <span className="text-[#3B82F6] dark:text-[#38BDF8] font-mono font-bold">{student.studentUid || "N/A"}</span></span>
+                  <span className="w-1 h-1 rounded-full bg-slate-300 dark:bg-slate-700"></span>
+                  <span className="text-slate-500 dark:text-slate-400 font-medium">রোল: <span className="text-slate-700 dark:text-slate-200 font-bold">{toBengaliNumber(student.roll)}</span></span>
                 </div>
 
                 {/* Edit Button */}
@@ -453,36 +453,36 @@ const StudentProfile: React.FC = () => {
 
             {/* Stats Section */}
             <motion.div variants={itemVariants} className="grid grid-cols-3 gap-4">
-              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
+              <div className="bg-white dark:bg-[#111C2E] rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#22C55E]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="w-10 h-10 rounded-full bg-[#22C55E]/10 flex items-center justify-center shrink-0 shadow-inner">
-                  <CheckCircle className="w-5 h-5 text-[#22C55E]" />
+                <div className="w-10 h-10 rounded-full bg-[#22C55E]/10 dark:bg-emerald-950/50 flex items-center justify-center shrink-0 shadow-inner">
+                  <CheckCircle className="w-5 h-5 text-[#22C55E] dark:text-emerald-400" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium text-slate-500 mb-0.5">উপস্থিত</p>
-                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.present)}</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">উপস্থিত</p>
+                  <p className="text-xl font-bold text-slate-800 dark:text-white">{toBengaliNumber(attendanceStats.present)}</p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
+              <div className="bg-white dark:bg-[#111C2E] rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-[#EF4444]/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 flex items-center justify-center shrink-0 shadow-inner">
-                  <XCircle className="w-5 h-5 text-[#EF4444]" />
+                <div className="w-10 h-10 rounded-full bg-[#EF4444]/10 dark:bg-rose-950/50 flex items-center justify-center shrink-0 shadow-inner">
+                  <XCircle className="w-5 h-5 text-[#EF4444] dark:text-rose-400" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium text-slate-500 mb-0.5">অনুপস্থিত</p>
-                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.absent)}</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">অনুপস্থিত</p>
+                  <p className="text-xl font-bold text-slate-800 dark:text-white">{toBengaliNumber(attendanceStats.absent)}</p>
                 </div>
               </div>
 
-              <div className="bg-white rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 hover:-translate-y-1 transition-transform duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
+              <div className="bg-white dark:bg-[#111C2E] rounded-[20px] p-4 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 hover:-translate-y-1 transition-all duration-300 flex flex-col items-center justify-center gap-2 relative overflow-hidden group">
                 <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center shrink-0 shadow-inner">
-                  <Calendar className="w-5 h-5 text-orange-500" />
+                <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-amber-950/50 flex items-center justify-center shrink-0 shadow-inner">
+                  <Calendar className="w-5 h-5 text-orange-500 dark:text-amber-400" />
                 </div>
                 <div className="text-center">
-                  <p className="text-xs font-medium text-slate-500 mb-0.5">ছুটি</p>
-                  <p className="text-xl font-bold text-slate-800">{toBengaliNumber(attendanceStats.leave)}</p>
+                  <p className="text-xs font-medium text-slate-500 dark:text-slate-400 mb-0.5">ছুটি</p>
+                  <p className="text-xl font-bold text-slate-800 dark:text-white">{toBengaliNumber(attendanceStats.leave)}</p>
                 </div>
               </div>
             </motion.div>
@@ -490,59 +490,59 @@ const StudentProfile: React.FC = () => {
             {/* Info Section */}
             <motion.div variants={itemVariants} className="space-y-4">
               <div className="flex items-center gap-2 px-2 mb-2">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                  <User className="w-4 h-4 text-[#3B82F6]" />
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+                  <User className="w-4 h-4 text-[#3B82F6] dark:text-blue-400" />
                 </div>
-                <h4 className="text-lg font-bold text-slate-800">ব্যক্তিগত তথ্য</h4>
+                <h4 className="text-lg font-bold text-slate-800 dark:text-white">ব্যক্তিগত তথ্য</h4>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-1 gap-4">
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">শিক্ষাবর্ষ</p>
-                  <p className="font-bold text-slate-800">{formatAcademicYear(academicYears.find(ay => ay.is_active))}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{formatAcademicYear(academicYears.find(ay => ay.is_active))}</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">শ্রেণি</p>
-                  <p className="font-bold text-slate-800">{classes.find(c => c.id === student.classId)?.name || "N/A"}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{classes.find(c => c.id === student.classId)?.name || "N/A"}</p>
                 </div>
                 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">পিতার নাম</p>
-                  <p className="font-bold text-slate-800">{student.fatherName || "-"}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{student.fatherName || "-"}</p>
                 </div>
 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">লিঙ্গ (Gender)</p>
-                  <p className="font-bold text-slate-800">{student.gender || "পুরুষ"}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{student.gender || "পুরুষ"}</p>
                 </div>
                 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">ফোন</p>
-                  <p className="font-bold text-slate-800">
+                  <p className="font-bold text-slate-800 dark:text-slate-100">
                     {student.phone ? (
-                      <a href={`tel:${student.phone}`} className="hover:text-[#3B82F6] transition-colors">{student.phone}</a>
+                      <a href={`tel:${student.phone}`} className="hover:text-[#3B82F6] dark:hover:text-[#38BDF8] transition-colors">{student.phone}</a>
                     ) : "-"}
                   </p>
                 </div>
                 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">রক্তের গ্রুপ</p>
-                  <p className="font-bold text-slate-800">{student.bloodGroup || "-"}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{student.bloodGroup || "-"}</p>
                 </div>
                 
-                <div className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                <div className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                   <p className="text-xs text-slate-400 font-medium mb-1">ঠিকানা</p>
-                  <p className="font-bold text-slate-800">{student.address || "-"}</p>
+                  <p className="font-bold text-slate-800 dark:text-slate-100">{student.address || "-"}</p>
                 </div>
 
                 {student.customFields && Object.entries(student.customFields).map(([fieldId, value]) => {
                   const fieldDef = orgCustomFields.find(f => f.id === fieldId);
                   if (!fieldDef) return null;
                   return (
-                    <div key={fieldId} className="bg-white p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-50 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-shadow">
+                    <div key={fieldId} className="bg-white dark:bg-[#111C2E] p-4 rounded-[16px] shadow-[0_2px_10px_rgba(0,0,0,0.02)] border border-slate-100 dark:border-slate-800 hover:shadow-[0_4px_15px_rgba(0,0,0,0.04)] transition-all">
                       <p className="text-xs text-slate-400 font-medium mb-1">{fieldDef.name}</p>
-                      <p className="font-bold text-slate-800">{value || "-"}</p>
+                      <p className="font-bold text-slate-800 dark:text-slate-100">{value || "-"}</p>
                     </div>
                   );
                 })}
@@ -553,17 +553,17 @@ const StudentProfile: React.FC = () => {
           {/* Right Column: Academic History */}
           <motion.div variants={itemVariants} className="lg:col-span-2">
             <div className="flex items-center gap-2 px-2 mb-4">
-              <div className="w-8 h-8 rounded-full bg-teal-50 flex items-center justify-center">
-                <BookOpen className="w-4 h-4 text-[#0F9D8A]" />
+              <div className="w-8 h-8 rounded-full bg-teal-50 dark:bg-teal-950/40 flex items-center justify-center">
+                <BookOpen className="w-4 h-4 text-[#0F9D8A] dark:text-teal-400" />
               </div>
-              <h4 className="text-lg font-bold text-slate-800">একাডেমিক ইতিহাস</h4>
+              <h4 className="text-lg font-bold text-slate-800 dark:text-white">একাডেমিক ইতিহাস</h4>
             </div>
 
-            <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+            <div className="bg-white dark:bg-[#111C2E] rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left border-collapse">
                   <thead>
-                    <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                    <tr className="bg-slate-50/50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                       <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">শিক্ষাবর্ষ</th>
                       <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">পরীক্ষা</th>
                       <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">শ্রেণি</th>
@@ -573,22 +573,22 @@ const StudentProfile: React.FC = () => {
                       <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">মেধাক্রম</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-50">
+                  <tbody className="divide-y divide-slate-50 dark:divide-slate-800/80">
                     {academicHistory.length > 0 ? (
                       academicHistory.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                          <td className="py-4 px-5 text-sm font-medium text-slate-800">{item.academicYear}</td>
-                          <td className="py-4 px-5 text-sm text-slate-600">{item.exam}</td>
-                          <td className="py-4 px-5 text-sm text-slate-600">{item.class}</td>
-                          <td className="py-4 px-5 text-sm text-slate-800 text-center font-bold">{toBengaliNumber(item.totalMarks)}</td>
-                          <td className="py-4 px-5 text-sm text-slate-600 text-center">{toBengaliNumber(item.percentage)}%</td>
-                          <td className="py-4 px-5 text-sm font-bold text-[#0F9D8A] text-center">{item.grade}</td>
-                          <td className="py-4 px-5 text-sm font-bold text-[#3B82F6] text-center">{item.rank}</td>
+                        <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                          <td className="py-4 px-5 text-sm font-medium text-slate-800 dark:text-slate-100">{item.academicYear}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300">{item.exam}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300">{item.class}</td>
+                          <td className="py-4 px-5 text-sm text-slate-800 dark:text-slate-100 text-center font-bold">{toBengaliNumber(item.totalMarks)}</td>
+                          <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300 text-center">{toBengaliNumber(item.percentage)}%</td>
+                          <td className="py-4 px-5 text-sm font-bold text-[#0F9D8A] dark:text-teal-400 text-center">{item.grade}</td>
+                          <td className="py-4 px-5 text-sm font-bold text-[#3B82F6] dark:text-blue-400 text-center">{item.rank}</td>
                         </tr>
                       ))
                     ) : (
                       <tr>
-                        <td colSpan={7} className="py-10 text-center text-slate-400 text-sm">
+                        <td colSpan={7} className="py-10 text-center text-slate-400 dark:text-slate-500 text-sm">
                           কোন ফলাফল পাওয়া যায়নি।
                         </td>
                       </tr>
@@ -601,20 +601,20 @@ const StudentProfile: React.FC = () => {
             <motion.div variants={itemVariants} className="mt-8">
               <div 
                 onClick={() => setIsAttendanceExpanded(!isAttendanceExpanded)}
-                className="flex items-center justify-between w-full gap-2 px-2 mb-4 bg-white p-4 rounded-[20px] shadow-sm border border-slate-100 cursor-pointer"
+                className="flex items-center justify-between w-full gap-2 px-2 mb-4 bg-white dark:bg-[#111C2E] p-4 rounded-[20px] shadow-sm border border-slate-100 dark:border-slate-800 cursor-pointer"
               >
                 <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-full bg-emerald-50 flex items-center justify-center">
-                    <Calendar className="w-4 h-4 text-emerald-600" />
+                  <div className="w-8 h-8 rounded-full bg-emerald-50 dark:bg-emerald-950/40 flex items-center justify-center">
+                    <Calendar className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                   </div>
-                  <h4 className="text-lg font-bold text-slate-800">হাজিরা ইতিহাস</h4>
+                  <h4 className="text-lg font-bold text-slate-800 dark:text-white">হাজিরা ইতিহাস</h4>
                 </div>
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
                     setAttendanceSortOrder(prev => prev === 'asc' ? 'desc' : 'asc');
                   }}
-                  className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-800"
+                  className="flex items-center gap-1 text-sm text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
                 >
                   <ArrowUpDown className="w-4 h-4" />
                   {attendanceSortOrder === 'asc' ? 'পুরানো থেকে নতুন' : 'নতুন থেকে পুরানো'}
@@ -622,41 +622,41 @@ const StudentProfile: React.FC = () => {
               </div>
 
               {isAttendanceExpanded && (
-                <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+                <div className="bg-white dark:bg-[#111C2E] rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 overflow-hidden">
                   <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                       <thead>
-                        <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                        <tr className="bg-slate-50/50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                           <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">তারিখ</th>
                           <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">সময়</th>
                           <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">অবস্থা</th>
                           <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">নোট</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-slate-50">
+                      <tbody className="divide-y divide-slate-50 dark:divide-slate-800/80">
                         {sortedAttendance.length > 0 ? (
                           sortedAttendance.map((item, idx) => (
-                            <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                              <td className="py-4 px-5 text-sm text-slate-800">{item.date}</td>
-                              <td className="py-4 px-5 text-sm text-slate-600">{item.time}</td>
+                            <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                              <td className="py-4 px-5 text-sm text-slate-800 dark:text-slate-100">{item.date}</td>
+                              <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300">{item.time}</td>
                               <td className="py-4 px-5 text-sm text-center">
                                 <span className={clsx(
                                   "px-3 py-1 rounded-full text-xs font-bold",
                                   item.status === AttendanceStatus.Present 
-                                    ? "bg-emerald-100 text-emerald-700" 
+                                    ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400" 
                                     : item.status === AttendanceStatus.Leave
-                                    ? "bg-orange-100 text-orange-700"
-                                    : "bg-rose-100 text-rose-700"
+                                    ? "bg-orange-100 text-orange-700 dark:bg-amber-950/60 dark:text-amber-400"
+                                    : "bg-rose-100 text-rose-700 dark:bg-rose-950/60 dark:text-rose-400"
                                 )}>
                                   {item.status === AttendanceStatus.Present ? "উপস্থিত" : item.status === AttendanceStatus.Leave ? "ছুটি" : "অনুপস্থিত"}
                                 </span>
                               </td>
-                              <td className="py-4 px-5 text-sm text-slate-600">{item.note || "-"}</td>
+                              <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300">{item.note || "-"}</td>
                             </tr>
                           ))
                         ) : (
                           <tr>
-                            <td colSpan={4} className="py-10 text-center text-slate-400 text-sm">
+                            <td colSpan={4} className="py-10 text-center text-slate-400 dark:text-slate-500 text-sm">
                               কোন হাজিরা রেকর্ড পাওয়া যায়নি।
                             </td>
                           </tr>
@@ -670,24 +670,24 @@ const StudentProfile: React.FC = () => {
             {/* Fee History Section */}
             <motion.div variants={itemVariants} className="mt-8">
               <div className="flex items-center gap-2 px-2 mb-4">
-                <div className="w-8 h-8 rounded-full bg-blue-50 flex items-center justify-center">
-                  <CreditCard className="w-4 h-4 text-blue-600" />
+                <div className="w-8 h-8 rounded-full bg-blue-50 dark:bg-blue-950/40 flex items-center justify-center">
+                  <CreditCard className="w-4 h-4 text-blue-600 dark:text-blue-400" />
                 </div>
-                <h4 className="text-lg font-bold text-slate-800">ফি প্রদানের ইতিহাস</h4>
+                <h4 className="text-lg font-bold text-slate-800 dark:text-white">ফি প্রদানের ইতিহাস</h4>
               </div>
 
-              <div className="bg-white rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 overflow-hidden">
+              <div className="bg-white dark:bg-[#111C2E] rounded-[24px] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 dark:border-slate-800 overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-left border-collapse">
                     <thead>
-                      <tr className="bg-slate-50/50 text-slate-500 border-b border-slate-100">
+                      <tr className="bg-slate-50/50 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 border-b border-slate-100 dark:border-slate-800">
                         <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">হিজরি সন ও মাস</th>
                         <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider">খাতসমূহ</th>
                         <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">মোট প্রদান</th>
                         <th className="py-4 px-5 text-xs font-semibold uppercase tracking-wider text-center">তারিখ</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-slate-50">
+                    <tbody className="divide-y divide-slate-50 dark:divide-slate-800/80">
                       {feeCollections.filter(c => c.studentId === student.id).length > 0 ? (
                         feeCollections
                           .filter(c => c.studentId === student.id)
@@ -700,26 +700,26 @@ const StudentProfile: React.FC = () => {
                             const dateStr = record.datePaid?.toDate ? record.datePaid.toDate().toLocaleDateString('bn-BD') : '-';
                             
                             return (
-                              <tr key={idx} className="hover:bg-slate-50/50 transition-colors">
-                                <td className="py-4 px-5 text-sm font-medium text-slate-800">
+                              <tr key={idx} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40 transition-colors">
+                                <td className="py-4 px-5 text-sm font-medium text-slate-800 dark:text-slate-100">
                                   {toBengaliNumber(record.hijriYear)} - {monthName}
                                 </td>
-                                <td className="py-4 px-5 text-sm text-slate-600">
+                                <td className="py-4 px-5 text-sm text-slate-600 dark:text-slate-300">
                                   <div className="flex flex-wrap gap-1">
                                     {record.payments.map((p, i) => {
                                       const catName = categories.find(c => c.id === p.categoryId)?.name || 'Unknown';
                                       return (
-                                        <span key={i} className="px-2 py-1 bg-slate-100 text-slate-600 text-xs rounded-md">
+                                        <span key={i} className="px-2 py-1 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-transparent dark:border-slate-700/60 text-xs rounded-md">
                                           {catName}: ৳{toBengaliNumber(p.amount)}
                                         </span>
                                       );
                                     })}
                                   </div>
                                 </td>
-                                <td className="py-4 px-5 text-sm font-bold text-green-600 text-center">
+                                <td className="py-4 px-5 text-sm font-bold text-green-600 dark:text-emerald-400 text-center">
                                   ৳{toBengaliNumber(record.totalAmount)}
                                 </td>
-                                <td className="py-4 px-5 text-sm text-slate-500 text-center">
+                                <td className="py-4 px-5 text-sm text-slate-500 dark:text-slate-400 text-center">
                                   {dateStr}
                                 </td>
                               </tr>
@@ -727,7 +727,7 @@ const StudentProfile: React.FC = () => {
                           })
                       ) : (
                         <tr>
-                          <td colSpan={4} className="py-10 text-center text-slate-400 text-sm">
+                          <td colSpan={4} className="py-10 text-center text-slate-400 dark:text-slate-500 text-sm">
                             কোন ফি প্রদানের রেকর্ড পাওয়া যায়নি।
                           </td>
                         </tr>

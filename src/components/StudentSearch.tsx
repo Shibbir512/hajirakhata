@@ -62,12 +62,12 @@ const StudentSearch: React.FC = () => {
           placeholder="শিক্ষার্থীর নাম, রোল বা আইডি দিয়ে খুঁজুন..."
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          className="w-full pl-12 pr-4 py-3 bg-white border border-[#ddf8f8] rounded-full focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all shadow-sm text-[#0F172A] placeholder:text-slate-400"
+          className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/90 border border-[#ddf8f8] dark:border-slate-700 rounded-full focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:border-[#3B82F6] transition-all shadow-sm text-[#0F172A] dark:text-white placeholder:text-slate-400"
         />
       </div>
 
       {query && (
-        <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.08)] border border-[#E2E8F0] overflow-hidden z-[100]">
+        <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#111C2E] rounded-2xl shadow-[0_10px_25px_rgba(0,0,0,0.08)] border border-[#E2E8F0] dark:border-slate-800 overflow-hidden z-[100]">
           {results.length > 0 ? (
             results.map((student) => (
               <button
@@ -76,22 +76,22 @@ const StudentSearch: React.FC = () => {
                   navigate(`/student-profile/${student.id}`);
                   setQuery("");
                 }}
-                className="w-full flex items-center justify-between p-4 hover:bg-[#F8FAFC] transition-colors border-b border-[#F1F5F9] last:border-0"
+                className="w-full flex items-center justify-between p-4 hover:bg-[#F8FAFC] dark:hover:bg-slate-800/60 transition-colors border-b border-[#F1F5F9] dark:border-slate-800 last:border-0"
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 flex items-center justify-center">
-                    <User className="w-5 h-5 text-[#3B82F6]" />
+                  <div className="w-10 h-10 rounded-full bg-[#3B82F6]/10 dark:bg-blue-950/50 flex items-center justify-center">
+                    <User className="w-5 h-5 text-[#3B82F6] dark:text-blue-400" />
                   </div>
                   <div className="text-left">
-                    <p className="font-bold text-[#0F172A]">{student.name}</p>
-                    <p className="text-xs text-slate-500">শ্রেণি: {getClassById(student.classId)} | রোল: {student.roll} | আইডি: {student.studentUid}</p>
+                    <p className="font-bold text-[#0F172A] dark:text-white">{student.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">শ্রেণি: {getClassById(student.classId)} | রোল: {student.roll} | আইডি: {student.studentUid}</p>
                   </div>
                 </div>
-                <ChevronRight className="w-5 h-5 text-slate-300" />
+                <ChevronRight className="w-5 h-5 text-slate-300 dark:text-slate-600" />
               </button>
             ))
           ) : (
-            <div className="p-6 text-center text-slate-500 italic">
+            <div className="p-6 text-center text-slate-500 dark:text-slate-400 italic">
               কোন শিক্ষার্থী পাওয়া যায়নি।
             </div>
           )}
