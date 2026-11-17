@@ -36,13 +36,13 @@ html.dark body {
   color-scheme: dark !important;
 }
 
-/* Base text hierarchy in dark mode */
-html.dark h1,
-html.dark h2,
-html.dark h3,
-html.dark h4,
-html.dark h5,
-html.dark h6 {
+/* Base text hierarchy in dark mode (exclude keep-light paper documents like certificates) */
+html.dark h1:where(:not([data-keep-light] *)),
+html.dark h2:where(:not([data-keep-light] *)),
+html.dark h3:where(:not([data-keep-light] *)),
+html.dark h4:where(:not([data-keep-light] *)),
+html.dark h5:where(:not([data-keep-light] *)),
+html.dark h6:where(:not([data-keep-light] *)) {
   color: #F8FAFC;
 }
 
@@ -615,6 +615,32 @@ html.dark .recharts-tooltip-label {
   margin: 0 auto;
 }
 
+/* Certificate Containers: Prioritize Noto Sans Arabic & Preserve Ligatures */
+#certificate-print-container .certificate-paper,
+#certificate-pdf-source .certificate-paper,
+#certificate-modal-pdf-source .certificate-paper,
+.certificate-paper {
+  font-family: "Noto Sans Bengali", "Noto Sans Arabic", "Hind Siliguri", "Google Sans", sans-serif;
+  font-variant-ligatures: normal;
+  letter-spacing: normal;
+}
+
+#certificate-print-container [lang="ar"],
+#certificate-print-container [dir="rtl"],
+#certificate-pdf-source [lang="ar"],
+#certificate-pdf-source [dir="rtl"],
+#certificate-modal-pdf-source [lang="ar"],
+#certificate-modal-pdf-source [dir="rtl"],
+.certificate-paper [lang="ar"],
+.certificate-paper [dir="rtl"] {
+  font-family: "Noto Sans Arabic", "Noto Naskh Arabic", "Amiri", sans-serif !important;
+  letter-spacing: 0 !important;
+  word-spacing: normal !important;
+  font-variant-ligatures: common-ligatures contextual !important;
+  font-feature-settings: "liga" 1, "calt" 1, "ccmp" 1, "mark" 1, "mkmk" 1, "kern" 1 !important;
+  text-rendering: optimizeLegibility;
+}
+
 /* ==========================================================================
    DEDICATED A4 PRINT STYLESHEET (হাজিরা খাতা / হাজিরা, ফলাফল ও ফি রিপোর্ট)
    ========================================================================== */
@@ -868,18 +894,53 @@ html.dark .recharts-tooltip-label {
     break-inside: avoid !important;
   }
 
-  /* 9. Specialized Containers (Reports, Results, Marksheets, Fees) */
+  /* 9. Specialized Containers (Reports, Results, Marksheets, Fees, Certificates) */
+  body:has(.certificate-modal-portal) #root {
+    display: none !important;
+  }
+
+  .certificate-modal-portal {
+    position: static !important;
+    inset: auto !important;
+    background: transparent !important;
+    backdrop-filter: none !important;
+    padding: 0 !important;
+    display: block !important;
+  }
+
   #tabulation-sheet-container,
   #marksheet-container,
   #report-container,
-  #fee-report-container {
+  #fee-report-container,
+  #certificate-print-container {
     width: 100% !important;
     max-width: 100% !important;
+    height: auto !important;
     margin: 0 !important;
     padding: 0 !important;
     border: none !important;
     box-shadow: none !important;
     overflow: visible !important;
+  }
+
+  #certificate-print-container > div {
+    width: 100% !important;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  #certificate-print-container .certificate-paper {
+    width: 100% !important;
+    min-height: 0 !important;
+    margin: 0 auto !important;
+    padding: 12px !important;
+    transform: none !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  #certificate-print-container .certificate-paper > div {
+    min-height: 980px !important;
   }
 
   #marksheet-container {
@@ -893,7 +954,16 @@ html.dark .recharts-tooltip-label {
   }
 
   /* Ensure all text elements are sharp and high-contrast */
-  h1, h2, h3, h4, h5, h6, p, span, div, strong, b, td, th {
+  :not(#certificate-print-container):not(#certificate-print-container *) > h1,
+  :not(#certificate-print-container):not(#certificate-print-container *) > h2,
+  :not(#certificate-print-container):not(#certificate-print-container *) > h3,
+  :not(#certificate-print-container):not(#certificate-print-container *) > h4,
+  :not(#certificate-print-container):not(#certificate-print-container *) > h5,
+  :not(#certificate-print-container):not(#certificate-print-container *) > h6,
+  #report-container h1, #report-container h2, #report-container h3, #report-container p, #report-container span, #report-container td, #report-container th,
+  #marksheet-container h1, #marksheet-container h2, #marksheet-container h3, #marksheet-container p, #marksheet-container span, #marksheet-container td, #marksheet-container th,
+  #fee-report-container h1, #fee-report-container h2, #fee-report-container h3, #fee-report-container p, #fee-report-container span, #fee-report-container td, #fee-report-container th,
+  #tabulation-sheet-container h1, #tabulation-sheet-container h2, #tabulation-sheet-container h3, #tabulation-sheet-container p, #tabulation-sheet-container span, #tabulation-sheet-container td, #tabulation-sheet-container th {
     color: #000000 !important;
   }
 }

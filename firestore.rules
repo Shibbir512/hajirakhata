@@ -134,6 +134,11 @@ service cloud.firestore {
         allow read: if isMember(orgId);
         allow write: if isAdmin(orgId);
       }
+      match /certificates/{certId} {
+        allow read: if isViewer(orgId);
+        allow create, update: if isTeacher(orgId);
+        allow delete: if isAdmin(orgId);
+      }
       match /{document=**} {
         allow read: if isMember(orgId);
         allow write: if isAdmin(orgId);

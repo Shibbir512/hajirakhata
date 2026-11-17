@@ -124,6 +124,11 @@ const FeeSetup = lazy(() => import("./src/pages/fees/FeeSetup"));
 const FeeCollection = lazy(() => import("./src/pages/fees/FeeCollection"));
 const FeeReports = lazy(() => import("./src/pages/fees/FeeReports"));
 
+// Certificate Management Pages
+const CertificatesDashboard = lazy(() => import("./src/pages/certificates/CertificatesDashboard"));
+const CertificateGenerator = lazy(() => import("./src/pages/certificates/CertificateGenerator"));
+const CertificateHistory = lazy(() => import("./src/pages/certificates/CertificateHistory"));
+
 const LoadingFallback = () => (
   <div className="min-h-screen flex items-center justify-center bg-[var(--color-bg-main)]">
     <div className="w-12 h-12 border-4 border-[#0F5C7A]/20 border-t-[#0F5C7A] rounded-full animate-spin"></div>
@@ -370,6 +375,12 @@ const AppRoutes = () => (
           <Route path="fees/setup" element={<FeeSetup />} />
           <Route path="fees/collection" element={<FeeCollection />} />
           <Route path="fees/reports" element={<FeeReports />} />
+
+          {/* Certificate Management Routes */}
+          <Route path="certificates" element={<CertificatesDashboard />} />
+          <Route path="certificates/create" element={<CertificateGenerator />} />
+          <Route path="certificates/create/:type" element={<CertificateGenerator />} />
+          <Route path="certificates/history" element={<CertificateHistory />} />
         </Route>
         
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -440,6 +440,14 @@ const StudentProfile: React.FC = () => {
                   <span className="text-slate-500 dark:text-slate-400 font-medium">রোল: <span className="text-slate-700 dark:text-slate-200 font-bold">{toBengaliNumber(student.roll)}</span></span>
                 </div>
 
+                <Link
+                  to={`/certificates/create/testimonial?studentId=${student.id}&classId=${student.classId}`}
+                  className="mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-[#0F5C7A]/10 dark:bg-teal-500/15 text-[#0F5C7A] dark:text-teal-300 hover:bg-[#0F5C7A] hover:text-white transition-colors"
+                >
+                  <Award className="w-4 h-4" />
+                  <span>সনদপত্র তৈরি করুন</span>
+                </Link>
+
                 {/* Edit Button */}
                 <button
                   onClick={() => setEditingStudent(student)}

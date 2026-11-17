@@ -24,6 +24,12 @@ import {
   Users,
   Calendar as CalendarIcon,
   ChevronUp,
+  Award,
+  ScrollText,
+  FileCheck2,
+  FileOutput,
+  Trophy,
+  History,
 } from "lucide-react";
 import clsx from "clsx";
 import { useTheme } from "../context/ThemeContext";
@@ -52,6 +58,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     fees: false,
     results: false,
     students: false,
+    certificates: false,
     settings: false
   });
   const profileMenuRef = useRef<HTMLDivElement>(null);
@@ -72,6 +79,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     else if (path.startsWith('/fees')) setOpenSections(prev => ({ ...prev, fees: true }));
     else if (path.startsWith('/result') || path.startsWith('/mark')) setOpenSections(prev => ({ ...prev, results: true }));
     else if (path.startsWith('/student') || path === '/alumni' || path === '/classes') setOpenSections(prev => ({ ...prev, students: true }));
+    else if (path.startsWith('/certificates')) setOpenSections(prev => ({ ...prev, certificates: true }));
     else if (path === '/settings' || path === '/calendar' || path === '/subjects' || path === '/exams' || path === '/academic-years' || path === '/announcements') setOpenSections(prev => ({ ...prev, settings: true }));
   }, [location.pathname]);
 
@@ -112,6 +120,15 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
     { name: "শিক্ষার্থী", path: "/students", icon: Users },
     { name: "প্রাক্তন শিক্ষার্থী", path: "/alumni", icon: GraduationCap },
     { name: "শ্রেণি", path: "/classes", icon: BookOpen },
+  ] : [];
+
+  const certificateLinks = orgId ? [
+    { name: "সনদপত্র ড্যাশবোর্ড", path: "/certificates", icon: ScrollText },
+    { name: "প্রশংসা পত্র", path: "/certificates/create/testimonial", icon: Award },
+    { name: "প্রত্যয়ন পত্র", path: "/certificates/create/bonafide", icon: FileCheck2 },
+    { name: "ছাড়পত্র", path: "/certificates/create/transfer", icon: FileOutput },
+    { name: "কৃতিত্ব পত্র", path: "/certificates/create/merit", icon: Trophy },
+    { name: "ইস্যু ইতিহাস", path: "/certificates/history", icon: History },
   ] : [];
 
   const settingsLinks = orgId ? [
@@ -274,6 +291,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, setIsOpen }) => {
           {renderSection('ফি', 'fees', ClipboardEdit, feeLinks)}
           {renderSection('ফলাফল', 'results', GraduationCap, resultLinks)}
           {renderSection('শিক্ষার্থী', 'students', Users, studentLinks)}
+          {renderSection('সনদপত্র', 'certificates', Award, certificateLinks)}
           {renderSection('সেটিংস', 'settings', Settings,
 settingsLinks)}
         </nav>

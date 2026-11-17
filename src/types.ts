@@ -117,3 +117,55 @@ export interface Holiday {
   description?: string;
   type: 'holiday' | 'event';
 }
+
+export type CertificateType = 'testimonial' | 'bonafide' | 'transfer' | 'merit';
+
+export type CertificateTemplateStyle = 'classic' | 'royal' | 'minimal';
+
+export interface CertificatePadSettings {
+  orgNameBn?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  established?: string;
+  eiinOrCode?: string;
+  logoUrl?: string;
+  principalTitle?: string;
+  principalName?: string;
+  showBismillah?: boolean;
+  showWatermark?: boolean;
+  showQrCode?: boolean;
+}
+
+export interface CertificateRecord {
+  id: string;
+  orgId: string;
+  certificateType: CertificateType;
+  memoNumber: string;
+  studentId: string;
+  studentUid?: string;
+  studentName: string;
+  fatherName: string;
+  motherName?: string;
+  address?: string;
+  roll: number;
+  classId: string;
+  className: string;
+  academicYear: string;
+  issueDate: string; // dd mm yyyy
+  purposeOrReason?: string;
+  achievementDetails?: string;
+  characterRemarks?: string;
+  customTitle?: string;
+  customBody: string;
+  templateStyle: CertificateTemplateStyle;
+  padSettings?: CertificatePadSettings;
+  issuedBy: {
+    uid: string;
+    name: string;
+    email: string;
+  };
+  createdAt: number;
+  updatedAt?: number;
+}
+

@@ -26,6 +26,12 @@ import {
   CreditCard,
   ChevronRight,
   Sparkles,
+  Award,
+  ScrollText,
+  FileCheck2,
+  FileOutput,
+  Trophy,
+  History,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import clsx from "clsx";
@@ -70,6 +76,7 @@ const BottomNavigation: React.FC = () => {
     location.pathname.startsWith("/marksheet");
   const isMoreActive =
     location.pathname.startsWith("/fees") ||
+    location.pathname.startsWith("/certificates") ||
     location.pathname.startsWith("/calendar") ||
     location.pathname.startsWith("/subjects") ||
     location.pathname.startsWith("/exams") ||
@@ -119,6 +126,15 @@ const BottomNavigation: React.FC = () => {
     { name: "ফি আদায় রিপোর্ট", path: "/fees/reports", icon: BarChart3 },
     { name: "ফি সেটআপ", path: "/fees/setup", icon: Settings },
     { name: "ফি খাত", path: "/fees/categories", icon: BookOpen },
+  ];
+
+  const certificateItems = [
+    { name: "সনদপত্র কেন্দ্র", path: "/certificates", icon: ScrollText },
+    { name: "প্রশংসা পত্র", path: "/certificates/create/testimonial", icon: Award },
+    { name: "প্রত্যয়ন পত্র", path: "/certificates/create/bonafide", icon: FileCheck2 },
+    { name: "ছাড়পত্র", path: "/certificates/create/transfer", icon: FileOutput },
+    { name: "কৃতিত্ব পত্র", path: "/certificates/create/merit", icon: Trophy },
+    { name: "ইস্যু ইতিহাস", path: "/certificates/history", icon: History },
   ];
 
   const academicItems = [
@@ -351,6 +367,34 @@ const BottomNavigation: React.FC = () => {
                     </h4>
                     <div className="grid grid-cols-2 gap-2">
                       {feeItems.map((item) => {
+                        const isActive = location.pathname === item.path;
+                        return (
+                          <NavLink
+                            key={item.path}
+                            to={item.path}
+                            onClick={() => setActiveSheet(null)}
+                            className={clsx(
+                              "flex items-center gap-2.5 p-3 rounded-xl border text-[14px] font-medium transition-all",
+                              isActive
+                                ? "bg-[#0F5C7A]/10 dark:bg-teal-500/15 border-[#0F5C7A]/30 text-[#0F5C7A] dark:text-teal-300 font-bold"
+                                : "bg-slate-50 dark:bg-slate-800/40 border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            )}
+                          >
+                            <item.icon className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                            <span className="truncate">{item.name}</span>
+                          </NavLink>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Section 1.5: Certificate Management */}
+                  <div>
+                    <h4 className="text-[13px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 mb-2 px-1">
+                      সনদপত্র ব্যবস্থাপনা
+                    </h4>
+                    <div className="grid grid-cols-2 gap-2">
+                      {certificateItems.map((item) => {
                         const isActive = location.pathname === item.path;
                         return (
                           <NavLink
